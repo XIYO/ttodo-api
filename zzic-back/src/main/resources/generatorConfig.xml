@@ -1,0 +1,31 @@
+<!DOCTYPE generatorConfiguration PUBLIC
+        "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="zzicBackDB" targetRuntime="MyBatis3">
+        <!-- JDBC 연결 설정 -->
+        <jdbcConnection driverClass="org.h2.Driver"
+                        connectionURL="jdbc:h2:~/testdb"
+                        userId="sa"
+                        password="root"/>
+
+        <!-- Java Model 생성 설정 -->
+        <javaModelGenerator targetPackage="point.zzicback.model.dao" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <!-- MyBatis Mapper XML 파일 생성 설정 -->
+        <sqlMapGenerator targetPackage="point.zzicback.mybatis.mapper" targetProject="src/main/resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <!-- MyBatis Mapper Interface 생성 설정 -->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="point.zzicback.mybatis.mapper" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+
+        <!-- 모든 테이블 설정 -->
+        <table tableName="%" />
+    </context>
+</generatorConfiguration>
