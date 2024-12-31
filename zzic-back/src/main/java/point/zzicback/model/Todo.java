@@ -20,24 +20,24 @@ public class Todo implements Serializable {
     /**
      * To-Do 항목의 고유 식별자
      */
-    @Schema(description = "To-Do 항목의 고유 식별자", example = "1", required = true)
+    @Schema(description = "To-Do 항목의 고유 식별자", example = "1")
     private Integer id;
 
     /**
      * To-Do 항목의 제목
      */
-    @Schema(description = "To-Do 항목의 제목", example = "장보기", required = true)
+    @Schema(description = "To-Do 항목의 제목", example = "장보기")
     private String title;
 
     /**
      * To-Do 항목의 상세 설명
      */
-    @Schema(description = "To-Do 항목의 상세 설명", example = "우유, 빵, 계란 구입", required = false)
+    @Schema(description = "To-Do 항목의 상세 설명", example = "우유, 빵, 계란 구입")
     private String description;
 
     /**
      * To-Do 항목 완료 여부
      */
-    @Schema(description = "To-Do 항목의 완료 여부", example = "false", required = true)
+    @Schema(description = "To-Do 항목의 완료 여부", example = "false")
     private Boolean done;
 }

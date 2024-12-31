@@ -73,7 +73,7 @@ public class TodoController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Todo getTodo(
-            @Parameter(description = "조회할 Todo의 ID", required = true)
+            @Parameter(description = "조회할 Todo의 ID")
             @PathVariable Integer id) {
         return this.todoService.getTodoById(id);
     }
@@ -94,7 +94,7 @@ public class TodoController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createTodo(
-            @Parameter(description = "등록할 Todo 정보", required = true)
+            @Parameter(description = "등록할 Todo 정보")
             @RequestBody CreateTodoRequest createTodoRequest) {
         Todo todo = null;
         this.todoService.createTodo(todo);
@@ -119,9 +119,9 @@ public class TodoController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateTodo(
-            @Parameter(description = "수정할 Todo의 ID", required = true)
+            @Parameter(description = "수정할 Todo의 ID")
             @PathVariable Integer id,
-            @Parameter(description = "수정할 Todo 정보", required = true)
+            @Parameter(description = "수정할 Todo 정보")
             @RequestBody UpdateTodoRequest updateTodoRequest) {
         Todo todo = null;
         this.todoService.updateTodo(todo);
@@ -143,7 +143,7 @@ public class TodoController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTodo(
-            @Parameter(description = "삭제할 Todo의 ID", required = true)
+            @Parameter(description = "삭제할 Todo의 ID")
             @PathVariable Integer id) {
         this.todoService.deleteTodo(id);
     }
