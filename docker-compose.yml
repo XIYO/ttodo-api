@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  zzic:
+    image: mysql:8.4.3
+    container_name: zzic-back
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: zzic-back
+    ports:
+      - "13306:3306"
+    volumes:
+      - zzic-back:/var/lib/mysql
+
+volumes:
+  zzic-back:
