@@ -3,7 +3,7 @@
   <component name="PersistentConfig">
     <option name="historyConfigList">
       <map>
-        <entry key="todo">
+        <entry key="TODO">
           <value>
             <Config>
               <option name="comment" value="true" />
@@ -11,20 +11,19 @@
               <option name="daoName" value="TodoMapper" />
               <option name="daoPackage" value="point.zzicback.mapper" />
               <option name="daoPostfix" value="Mapper" />
-              <option name="jsr310Support" value="true" />
               <option name="modelMvnPath" value="src/main/java" />
               <option name="modelName" value="Todo" />
               <option name="modelPackage" value="point.zzicback.model" />
-              <option name="name" value="todo" />
+              <option name="name" value="TODO" />
               <option name="overrideJava" value="true" />
               <option name="overrideXML" value="true" />
-              <option name="primaryKey" value="id" />
+              <option name="primaryKey" value="ID" />
               <option name="projectFolder" value="$PROJECT_DIR$/zzic-back" />
-              <option name="tableName" value="todo" />
+              <option name="tableName" value="TODO" />
               <option name="useLombokPlugin" value="true" />
               <option name="useSchemaPrefix" value="true" />
               <option name="xmlMvnPath" value="src/main/resources" />
-              <option name="xmlPackage" value="xmlMapper" />
+              <option name="xmlPackage" value="mapper" />
             </Config>
           </value>
         </entry>
