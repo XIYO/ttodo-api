@@ -1,4 +1,9 @@
+@view-transition {
+    navigation: auto;
+}
+
 body {
     font-family: 'Pretendard Variable', Pretendard, 'Pretendard JP Variable', 'Pretendard JP', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Hiragino Sans', 'Apple SD Gothic Neo', Meiryo, 'Noto Sans JP', 'Noto Sans KR', 'Malgun Gothic', Osaka, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
     font-feature-settings: 'ss05';
+    background-color: #F6F7F9;
 }
