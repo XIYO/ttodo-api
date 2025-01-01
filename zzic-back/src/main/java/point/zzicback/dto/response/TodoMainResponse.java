@@ -9,7 +9,7 @@ import lombok.Data;
 )
 public class TodoMainResponse {
     @Schema(description = "To-Do 항목의 고유 식별자", example = "1")
-    private Integer id;
+    private Long id;
 
     @Schema(description = "To-Do 항목의 제목", example = "장보기")
     private String title;
