@@ -59,7 +59,6 @@
 		</button>
 	</form>
 
-	<!--	지익를 보여주는 곳-->
 	<div style:view-transition-class={"zzic"}
 	>
 		<h2 style:view-transition-name="yet">할 일</h2>

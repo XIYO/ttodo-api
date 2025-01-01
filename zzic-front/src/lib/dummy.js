@@ -100,3 +100,23 @@ export let todos = [
 		done: false
 	}
 ];
+
+export const actionDone = (id) => {
+	todos.forEach(todo => {
+		if (todo.id === id) {
+			todo.done = true;
+		}
+	});
+};
+
+export const actionRemove = (id) => {
+	todos = todos.filter(todo => todo.id !== id);
+};
+
+export const actionAdd = (title) => {
+	todos.unshift({
+		id: todos.length + 1,
+		title,
+		done: false
+	})
+};
