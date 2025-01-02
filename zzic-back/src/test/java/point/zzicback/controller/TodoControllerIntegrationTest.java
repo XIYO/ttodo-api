@@ -7,11 +7,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 import point.zzicback.dto.request.CreateTodoRequest;
 import point.zzicback.dto.request.UpdateTodoRequest;
 import point.zzicback.model.Todo;
@@ -24,10 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * TodoController 통합 테스트
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DisplayName("TodoController 통합 테스트")
+@AutoConfigureMockMvc
 class TodoControllerIntegrationTest {
-
-    @Autowired
-    private WebApplicationContext context;
 
     @Autowired
     private TodoService todoService;
@@ -35,11 +33,28 @@ class TodoControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
     private MockMvc mockMvc;
 
+
+    Todo todo1 = new Todo();
+    Todo todo2 = new Todo();
+
+    /**
+     * 테스트용 더미 데이터 생성
+     */
     @PostConstruct
-    public void setup() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+    public void initTestData() {
+        todo1.setTitle("Test Todo 1");
+        todo1.setDescription("Description 1");
+        todo1.setDone(false);
+
+        todo2.setTitle("Test Todo 2");
+        todo2.setDescription("Description 2");
+        todo2.setDone(true);
+
+        todoService.add(todo1);
+        todoService.add(todo2);
     }
 
     @Nested
@@ -49,18 +64,6 @@ class TodoControllerIntegrationTest {
         @Test
         @DisplayName("성공적으로 모든 Todo를 조회함")
         void getAll_success() throws Exception {
-            // 데이터 준비
-            Todo todo1 = new Todo();
-            todo1.setTitle("Test Todo 1");
-            todo1.setDescription("Description 1");
-            todo1.setDone(false);
-            Todo todo2 = new Todo();
-            todo2.setTitle("Test Todo 2");
-            todo2.setDescription("Description 2");
-            todo2.setDone(true);
-            todoService.add(todo1);
-            todoService.add(todo2);
-
             // 요청 및 검증
             mockMvc.perform(get("/api/todo"))
                     .andExpect(status().isOk())
@@ -78,15 +81,8 @@ class TodoControllerIntegrationTest {
         @Test
         @DisplayName("성공적으로 특정 Todo를 조회함")
         void getById_success() throws Exception {
-            // 데이터 준비
-            Todo todo = new Todo();
-            todo.setTitle("Test Todo 1");
-            todo.setDescription("Description 1");
-            todo.setDone(false);
-            todoService.add(todo);
-
             // 요청 및 검증
-            mockMvc.perform(get("/api/todo/" + todo.getId()))
+            mockMvc.perform(get("/api/todo/" + todo1.getId()))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.title").exists())
@@ -138,18 +134,12 @@ class TodoControllerIntegrationTest {
         @DisplayName("성공적으로 Todo를 수정함")
         void modify_success() throws Exception {
             // 데이터 준비
-            Todo todo = new Todo();
-            todo.setTitle("Test Todo 1");
-            todo.setDescription("Description 1");
-            todo.setDone(false);
-            todoService.add(todo);
-
             UpdateTodoRequest request = new UpdateTodoRequest();
             request.setTitle("Updated Todo");
             request.setDescription("Updated Description");
             request.setDone(true);
 
-            mockMvc.perform(put("/api/todo/" + todo.getId())
+            mockMvc.perform(put("/api/todo/" + todo1.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNoContent());
@@ -162,7 +152,6 @@ class TodoControllerIntegrationTest {
             request.setTitle("Updated Todo");
             request.setDescription("Updated Description");
             request.setDone(true);
-            request.setTitle("Updated Todo");
 
             mockMvc.perform(put("/api/todo/9999")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -178,14 +167,7 @@ class TodoControllerIntegrationTest {
         @Test
         @DisplayName("성공적으로 Todo를 삭제함")
         void remove_success() throws Exception {
-            // 데이터 준비
-            Todo todo = new Todo();
-            todo.setTitle("Test Todo 1");
-            todo.setDescription("Description 1");
-            todo.setDone(false);
-            todoService.add(todo);
-
-            mockMvc.perform(delete("/api/todo/" + todo.getId()))
+            mockMvc.perform(delete("/api/todo/" + todo1.getId()))
                     .andExpect(status().isNoContent());
         }
 
