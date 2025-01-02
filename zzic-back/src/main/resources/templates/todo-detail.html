@@ -15,9 +15,18 @@
 	<p>상태: <span th:text="${todo.done} ? '완료됨' : '미완료'"></span></p>
 </div>
 
+<!-- 삭제 버튼 -->
+<div>
+	<form method="POST" th:action="@{/todos/delete}">
+		<input type="hidden" name="id" th:value="${todo.id}" />
+		<input type="hidden" name="_method" value="DELETE" />
+		<button type="submit">삭제</button>
+	</form>
+</div>
+
 <!-- 돌아가기 버튼 -->
 <div>
-	<a href="/todos">목록으로 돌아가기</a>
+	<a th:href="@{/todos}">목록으로 돌아가기</a>
 </div>
 </body>
 </html>

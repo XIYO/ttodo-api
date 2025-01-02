@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8" />
+	<title>ZZIC Todo List with Template</title>
+</head>
+<body>
+<header>
+	<h1>ZZIC (Template Version)</h1>
+</header>
+
+<div>
+	<!-- 새 할 일 추가 -->
+	<form id="addTodoForm">
+		<input type="text" id="title" name="title" placeholder="무엇을 해야하나요?" />
+		<textarea id="description" name="description" placeholder="자세한 설명"></textarea>
+		<button type="submit">할 일 추가</button>
+	</form>
+
+	<!-- 할 일 목록 -->
+	<h2>할 일 목록</h2>
+	<ul id="todoList"></ul>
+</div>
+
+<!--
+  <template> 태그로 하나의 'li' (할 일 항목)을 템플릿화.
+  id="todoItemTemplate" 내부를 clone해서 쓰면,
+  HTML 요소를 줄줄이 createElement 하지 않아도 됨.
+-->
+<template id="todoItemTemplate">
+	<li>
+		<span class="title"></span>
+		<button class="toggleBtn"></button>
+		<button class="deleteBtn">삭제</button>
+		<a class="detailLink" style="margin-left: 10px;">상세보기</a>
+	</li>
+</template>
+
+<script>
+	// 최신 문법: const/let, 화살표 함수, async/await 등 사용
+
+	// API 기본 URL
+	const API_URL = "/api/todo";
+
+	document.addEventListener("DOMContentLoaded", () => {
+		// 1. 페이지 로드 후 Todo 목록 불러오기
+		getTodos();
+
+		// 2. "할 일 추가" 폼 이벤트 등록 (비동기 처리)
+		const addTodoForm = document.getElementById("addTodoForm");
+		addTodoForm.addEventListener("submit", async (event) => {
+			event.preventDefault(); // 폼 새로고침 막기
+
+			const titleValue = document.getElementById("title").value.trim();
+			const descValue = document.getElementById("description").value.trim();
+
+			if (!titleValue) {
+				alert("제목을 입력해주세요.");
+				return;
+			}
+
+			// 서버로 보낼 새 Todo 데이터
+			const newTodo = {
+				title: titleValue,
+				description: descValue
+			};
+
+			try {
+				const response = await fetch(API_URL, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(newTodo)
+				});
+
+				if (!response.ok) {
+					throw new Error("서버에 새로운 할 일을 추가하지 못했습니다.");
+				}
+
+				// 성공 시 입력값 리셋하고 목록 다시 불러오기
+				document.getElementById("title").value = "";
+				document.getElementById("description").value = "";
+				getTodos();
+			} catch (error) {
+				console.error(error);
+				alert(error.message);
+			}
+		});
+	});
+
+	/**
+	 * Todo 목록 가져오기
+	 */
+	const getTodos = async () => {
+		try {
+			const response = await fetch(API_URL);
+			if (response.status === 404) {
+				// 목록이 비어있는 경우
+				renderTodos([]);
+				return;
+			}
+			if (!response.ok) {
+				throw new Error("할 일 목록을 가져오지 못했습니다.");
+			}
+			const todoData = await response.json();
+			renderTodos(todoData);
+		} catch (error) {
+			console.error(error);
+			alert(error.message);
+		}
+	};
+
+	/**
+	 * 가져온 Todo 배열을 <ul>에 렌더링
+	 * (템플릿 복제 방식)
+	 */
+	const renderTodos = (todos) => {
+		const todoList = document.getElementById("todoList");
+		const template = document.getElementById("todoItemTemplate");
+
+		// 기존 목록 초기화
+		todoList.innerHTML = "";
+
+		todos.forEach((todo) => {
+			// <template> 내부 DOM 복제
+			const clone = template.content.cloneNode(true);
+
+			// 필요한 요소 찾아오기
+			const titleSpan = clone.querySelector(".title");
+			const toggleBtn = clone.querySelector(".toggleBtn");
+			const deleteBtn = clone.querySelector(".deleteBtn");
+			const detailLink = clone.querySelector(".detailLink");
+
+			// 표시할 내용 세팅
+			titleSpan.textContent = `[${todo.id}] ${todo.title}`;
+			if (todo.done) {
+				titleSpan.style.textDecoration = "line-through";
+				toggleBtn.textContent = "미완료로";
+			} else {
+				toggleBtn.textContent = "완료로";
+			}
+
+			// 완료/미완료 토글 버튼
+			toggleBtn.addEventListener("click", () => {
+				updateTodoDone(todo.id, !todo.done);
+			});
+
+			// 삭제 버튼
+			deleteBtn.addEventListener("click", () => {
+				deleteTodo(todo.id);
+			});
+
+			// 상세보기 링크
+			detailLink.href = `/todos/${todo.id}`;
+
+			// 완성된 항목을 <ul>에 붙임
+			todoList.appendChild(clone);
+		});
+	};
+
+	/**
+	 * 완료/미완료 상태 변경
+	 */
+	const updateTodoDone = async (id, done) => {
+		try {
+			// 수정할 데이터 구조
+			const updated = {
+				id: id,
+				done: done
+			};
+
+			const putResp = await fetch(`${API_URL}/${id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(updated)
+			});
+			if (!putResp.ok) {
+				throw new Error("Todo 상태를 변경하지 못했습니다.");
+			}
+			// 성공 시 목록 재조회
+			getTodos();
+		} catch (error) {
+			console.error(error);
+			alert(error.message);
+		}
+	};
+
+	/**
+	 * Todo 삭제
+	 */
+	const deleteTodo = async (id) => {
+		try {
+			const response = await fetch(`${API_URL}/${id}`, {
+				method: "DELETE"
+			});
+			if (!response.ok) {
+				throw new Error("Todo 삭제에 실패했습니다.");
+			}
+			getTodos();
+		} catch (error) {
+			console.error(error);
+			alert(error.message);
+		}
+	};
+</script>
+</body>
+</html>

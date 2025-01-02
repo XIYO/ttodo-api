@@ -13,10 +13,10 @@
 	<!-- 새 할 일 추가 -->
 	<form method="POST" th:action="@{/todos}" enctype="application/x-www-form-urlencoded">
 		<input type="text" name="title" placeholder="무엇을 해야하나요?" />
-        <textarea
-					name="description"
-					placeholder="자세한 설명"
-				></textarea>
+		<textarea
+			name="description"
+			placeholder="자세한 설명"
+		></textarea>
 		<button type="submit">
 			할 일 추가
 		</button>

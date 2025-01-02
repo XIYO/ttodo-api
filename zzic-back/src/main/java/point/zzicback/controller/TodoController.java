@@ -22,6 +22,11 @@ public class TodoController {
         return "todos"; // Thymeleaf 템플릿 이름
     }
 
+    @GetMapping("js")
+    public String viewTodosJs() {
+        return "todos-js"; // Thymeleaf 템플릿 이름
+    }
+
     // 새 할 일을 추가
     @PostMapping
     public String add(CreateTodoRequest createTodoRequest) {
@@ -68,4 +73,12 @@ public class TodoController {
         }
         return "todo-detail"; // Thymeleaf 디테일 템플릿 이름
     }
+
+    // 할 일 삭제
+    @DeleteMapping("/delete")
+    public String deleteTodo(@RequestParam Long id) {
+        todoService.remove(id);
+        return "redirect:/todos"; // 삭제 후 메인 페이지로 리다이렉트
+    }
+
 }
