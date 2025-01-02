@@ -1,36 +1,46 @@
 package point.zzicback.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import point.zzicback.mapper.TodoMapper;
 import point.zzicback.model.Todo;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TodoServiceImpl implements TodoService {
 
+    private final TodoMapper todoMapper;
+
+
     @Override
-    public List<Todo> getTodoList() {
-        return List.of(); // 임시로 빈 리스트 반환
+    public List<Todo> getTodoList(Boolean isDone) {
+
+        return this.todoMapper.selectAll(isDone);
     }
 
     @Override
     public Todo getTodoById(Long id) {
         // 임시로 null 반환
-        return null;
+        return this.todoMapper.selectByPrimaryKey(id);
     }
 
     @Override
     public void createTodo(Todo todo) {
-        // 임시로 아무 작업도 하지 않음
+
+        this.todoMapper.insertSelective(todo);
+
     }
 
     @Override
     public void updateTodo(Todo todo) {
-        // 임시로 아무 작업도 하지 않음
+        this.todoMapper.updateByPrimaryKeySelective(todo);
+
     }
 
     @Override
     public void deleteTodo(Long id) {
-        // 임시로 아무 작업도 하지 않음
+        this.todoMapper.deleteByPrimaryKey(id);
     }
 }
