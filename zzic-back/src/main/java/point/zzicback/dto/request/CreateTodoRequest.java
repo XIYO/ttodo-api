@@ -23,7 +23,7 @@ public class CreateTodoRequest {
         Todo todo = new Todo();
         todo.setTitle(this.title);
         todo.setDescription(this.description);
-        // create 시 done을 굳이 넣지 않아도 된다면 생략 가능
+        todo.setDone(false);
         return todo;
     }
 }

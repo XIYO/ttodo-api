@@ -9,7 +9,7 @@ import java.util.List;
 @Mapper
 public interface TodoMapper {
 
-    @Select("SELECT * FROM todo")
+    @Select("SELECT * FROM TODO")
     List<Todo> selectAll();
 
     /**
