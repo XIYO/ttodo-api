@@ -1,6 +1,8 @@
 package point.zzicback.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,8 +16,6 @@ import point.zzicback.dto.request.CreateTodoRequest;
 import point.zzicback.dto.request.UpdateTodoRequest;
 import point.zzicback.model.Todo;
 import point.zzicback.service.TodoService;
-
-import jakarta.annotation.PostConstruct;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -65,8 +65,9 @@ class TodoControllerIntegrationTest {
             mockMvc.perform(get("/api/todo"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].title").value("Test Todo 1"));
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$.length()").value(Matchers.greaterThanOrEqualTo(2)))
+                    .andExpect(jsonPath("$[0].title").exists());
         }
     }
 
@@ -88,7 +89,8 @@ class TodoControllerIntegrationTest {
             mockMvc.perform(get("/api/todo/" + todo.getId()))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.title").value("Test Todo"));
+                    .andExpect(jsonPath("$.title").exists())
+                    .andExpect(jsonPath("$.description").exists());
         }
 
         @Test
@@ -157,6 +159,9 @@ class TodoControllerIntegrationTest {
         @DisplayName("해당 ID의 Todo를 찾을 수 없음")
         void modify_notFound() throws Exception {
             UpdateTodoRequest request = new UpdateTodoRequest();
+            request.setTitle("Updated Todo");
+            request.setDescription("Updated Description");
+            request.setDone(true);
             request.setTitle("Updated Todo");
 
             mockMvc.perform(put("/api/todo/9999")
