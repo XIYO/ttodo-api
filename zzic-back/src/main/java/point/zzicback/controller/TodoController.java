@@ -2,6 +2,7 @@ package point.zzicback.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -42,8 +43,16 @@ public class TodoController {
     @Operation(summary = "Todo 목록 조회", description = "모든 Todo 항목의 목록을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 Todo 목록을 조회함",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Todo.class)))
+                    content = {
+                            @Content(
+                                    mediaType = "application/json",
+                                    // 배열임을 명시하려면 ArraySchema를 사용
+                                    array = @ArraySchema(
+                                            schema = @Schema(implementation = TodoMainResponse.class)
+                                    )
+                            )
+                    }
+            )
     })
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
