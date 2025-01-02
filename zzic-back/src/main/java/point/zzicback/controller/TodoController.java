@@ -74,7 +74,7 @@ public class TodoController {
     @ResponseStatus(HttpStatus.OK)
     public Todo getTodo(
             @Parameter(description = "조회할 Todo의 ID")
-            @PathVariable Integer id) {
+            @PathVariable Long id) {
         return this.todoService.getTodoById(id);
     }
 
@@ -144,7 +144,7 @@ public class TodoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTodo(
             @Parameter(description = "삭제할 Todo의 ID")
-            @PathVariable Integer id) {
+            @PathVariable Long id) {
         this.todoService.deleteTodo(id);
     }
 }
