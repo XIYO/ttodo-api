@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("TodoController 통합 테스트")
 @AutoConfigureMockMvc
-class TodoControllerIntegrationTest {
+class TodoRestControllerIntegrationTest {
 
     @Autowired
     private TodoService todoService;

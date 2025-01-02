@@ -1,124 +1,71 @@
 package point.zzicback.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import point.zzicback.dto.request.CreateTodoRequest;
-import point.zzicback.dto.request.UpdateTodoRequest;
-import point.zzicback.dto.response.TodoMainResponse;
 import point.zzicback.model.Todo;
 import point.zzicback.service.TodoService;
 
-import jakarta.validation.Valid;
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Tag(name = "Todo API", description = "To-Do 목록을 조회, 등록, 수정, 삭제하는 API")
-@RestController
-@RequestMapping("/api/todo")
+@Controller
+@RequestMapping("/todos")
 @RequiredArgsConstructor
 public class TodoController {
 
     private final TodoService todoService;
 
-    /**
-     * Todo 목록 조회
-     */
-    @Operation(summary = "Todo 목록 조회", description = "모든 Todo 항목의 목록을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공적으로 Todo 목록을 조회함",
-                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TodoMainResponse.class)))),
-            @ApiResponse(responseCode = "404", description = "Todo 목록이 비어있음", content = @Content)
-    })
+    // 메인 페이지에서 할 일 목록을 조회
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<TodoMainResponse> getAll() {
-        List<Todo> todos = this.todoService.getAll();
-        if (todos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo list is empty");
-        }
-        return todos.stream()
-                .map(TodoMainResponse::fromEntity)
-                .collect(Collectors.toList());
+    public String viewTodos(Model model) {
+        model.addAttribute("todos", todoService.getAll());
+        return "todos"; // Thymeleaf 템플릿 이름
     }
 
-    /**
-     * 특정 Todo 조회
-     */
-    @Operation(summary = "특정 Todo 조회", description = "ID에 해당하는 Todo를 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공적으로 Todo를 조회함", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TodoMainResponse.class))),
-            @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)
-    })
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public Todo getById(@Parameter(description = "조회할 Todo의 ID") @PathVariable Long id) {
-        Todo todo = this.todoService.getById(id);
-        if (todo == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo with ID " + id + " not found");
-        }
-        return todo;
-    }
-
-    /**
-     * Todo 등록
-     */
-    @Operation(summary = "Todo 등록", description = "새로운 Todo를 등록합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "성공적으로 Todo를 생성함", content = @Content),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content)
-    })
+    // 새 할 일을 추가
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void add(@Parameter(description = "등록할 Todo 정보") @Valid @RequestBody CreateTodoRequest createTodoRequest) {
+    public String add(CreateTodoRequest createTodoRequest) {
         Todo todo = createTodoRequest.toEntity();
-        this.todoService.add(todo);
+        todoService.add(todo);
+        return "redirect:/todos"; // 추가 후 메인 페이지로 리다이렉트
     }
 
-    /**
-     * Todo 수정
-     */
-    @Operation(summary = "Todo 수정", description = "ID에 해당하는 Todo를 수정합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "성공적으로 Todo를 수정함", content = @Content),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content),
-            @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)
-    })
-    @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void modify(@Parameter(description = "수정할 Todo의 ID") @PathVariable Long id,
-                       @Parameter(description = "수정할 Todo 정보") @Valid @RequestBody UpdateTodoRequest updateTodoRequest) {
-        Todo existingTodo = this.todoService.getById(id);
-        if (existingTodo == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo with ID " + id + " not found");
+    // 할 일을 완료 처리
+    @PostMapping("/done")
+    public String markDone(@RequestParam Long id) {
+        Todo todo = todoService.getById(id);
+        if (todo != null) {
+            todo.setDone(true);
+            todoService.modify(todo);
         }
-        this.todoService.modify(updateTodoRequest.toEntity(id));
+        return "redirect:/todos"; // 완료 후 메인 페이지로 리다이렉트
     }
 
-    /**
-     * Todo 삭제
-     */
-    @Operation(summary = "Todo 삭제", description = "ID에 해당하는 Todo를 삭제합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "성공적으로 Todo를 삭제함", content = @Content),
-            @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)
-    })
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@Parameter(description = "삭제할 Todo의 ID") @PathVariable Long id) {
-        Todo todo = this.todoService.getById(id);
-        if (todo == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo with ID " + id + " not found");
+    // 할 일을 미완료 처리
+    @PostMapping("/undone")
+    public String markUndone(@RequestParam Long id) {
+        Todo todo = todoService.getById(id);
+        if (todo != null) {
+            todo.setDone(false);
+            todoService.modify(todo);
         }
-        this.todoService.remove(id);
+        return "redirect:/todos"; // 미완료 후 메인 페이지로 리다이렉트
+    }
+
+    // 할 일을 삭제
+    @PostMapping("/delete")
+    public String delete(@RequestParam Long id) {
+        todoService.remove(id);
+        return "redirect:/todos"; // 삭제 후 메인 페이지로 리다이렉트
+    }
+
+    // 할 일 상세 조회
+    @GetMapping("/{id}")
+    public String viewTodoDetail(@PathVariable Long id, Model model) {
+        Todo todo = todoService.getById(id);
+        if (todo != null) {
+            model.addAttribute("todo", todo);
+        }
+        return "todo-detail"; // Thymeleaf 디테일 템플릿 이름
     }
 }
