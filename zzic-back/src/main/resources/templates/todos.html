@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>ZZIC Todo List</title>
+</head>
+<body>
+<header>
+	<h1 th:attr="data-view-transition-name='h1'">ZZIC</h1>
+</header>
+
+<div>
+	<!-- 새 할 일 추가 -->
+	<form method="POST" th:action="@{/todos}" enctype="application/x-www-form-urlencoded">
+		<input type="text" name="title" placeholder="무엇을 해야하나요?" />
+		<textarea
+			name="description"
+			placeholder="자세한 설명"
+		></textarea>
+		<button type="submit">
+			할 일 추가
+		</button>
+	</form>
+
+	<!-- 할 일 목록 -->
+	<h2>할 일</h2>
+	<ul>
+		<li th:each="todo : ${todos}" th:key="${todo.id}">
+
+			<form method="POST" th:if="${!todo.done}" th:action="@{/todos/done}">
+				<input type="hidden" name="id" th:value="${todo.id}" />
+				<button type="submit">완료</button>
+			</form>
+
+			<form method="POST" th:if="${todo.done}" th:action="@{/todos/undone}">
+				<input type="hidden" name="id" th:value="${todo.id}" />
+				<button type="submit">미완료</button>
+			</form>
+
+			<a th:href="@{/todos/{id}(id=${todo.id})}" th:text="${todo.title}"></a>
+		</li>
+	</ul>
+</div>
+
+</body>
+</html>

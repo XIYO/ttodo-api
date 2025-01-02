@@ -31,7 +31,7 @@ class TodoMapperTest {
             todo.setDone(true);
 
             // when, 1번을 완료한것으로 수정
-            int result = todoMapper.updateDone(todo);
+            int result = todoMapper.updateByPrimaryKeySelective(todo);
 
             // then 1, 기본 기능으로 검증
             assertTrue(result == 1); // 값이 1이어야 한다.
@@ -51,7 +51,7 @@ class TodoMapperTest {
             todo.setDone(true);
 
             // when, 999999번을 완료한것으로 수정
-            int result = todoMapper.updateDone(todo);
+            int result = todoMapper.updateByPrimaryKeySelective(todo);
 
             // then 1, 기본 기능으로 검증
             assertTrue(result == 0); // 값이 0이어야 한다.

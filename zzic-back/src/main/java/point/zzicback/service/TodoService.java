@@ -8,13 +8,13 @@ import java.util.List;
  * 인터페이스 입니다 구현체를 만들어주세요
  */
 public interface TodoService {
-    List<Todo> getTodoList();
+    List<Todo> getAll();
 
-    Todo getTodoById(Long id);
+    Todo getById(Long id);
 
-    void createTodo(Todo todo);
+    int add(Todo todo);
 
-    void updateTodo(Todo todo);
+    int modify(Todo todo);
 
-    void deleteTodo(Long id);
+    int remove(Long id);
 }
