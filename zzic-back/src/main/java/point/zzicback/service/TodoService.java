@@ -10,11 +10,11 @@ import java.util.List;
 public interface TodoService {
     List<Todo> getTodoList();
 
-    Todo getTodoById(Integer id);
+    Todo getTodoById(Long id);
 
     void createTodo(Todo todo);
 
     void updateTodo(Todo todo);
 
-    void deleteTodo(Integer id);
+    void deleteTodo(Long id);
 }
