@@ -14,7 +14,7 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public Todo getTodoById(Integer id) {
+    public Todo getTodoById(Long id) {
         // 임시로 null 반환
         return null;
     }
@@ -30,7 +30,7 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public void deleteTodo(Integer id) {
+    public void deleteTodo(Long id) {
         // 임시로 아무 작업도 하지 않음
     }
 }
