@@ -17,8 +17,7 @@
 
 <!-- 삭제 버튼 -->
 <div>
-	<form method="POST" th:action="@{/todos/delete}">
-		<input type="hidden" name="id" th:value="${todo.id}" />
+	<form method="POST" th:action="@{/todos/{id}(id=${todo.id})}">
 		<input type="hidden" name="_method" value="DELETE" />
 		<button type="submit">삭제</button>
 	</form>

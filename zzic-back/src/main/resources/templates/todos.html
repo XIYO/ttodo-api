@@ -27,17 +27,24 @@
 	<ul>
 		<li th:each="todo : ${todos}" th:key="${todo.id}">
 
-			<form method="POST" th:if="${!todo.done}" th:action="@{/todos/done}">
-				<input type="hidden" name="id" th:value="${todo.id}" />
-				<button type="submit">완료</button>
-			</form>
-
-			<form method="POST" th:if="${todo.done}" th:action="@{/todos/undone}">
-				<input type="hidden" name="id" th:value="${todo.id}" />
-				<button type="submit">미완료</button>
-			</form>
-
 			<a th:href="@{/todos/{id}(id=${todo.id})}" th:text="${todo.title}"></a>
+
+			<div style="display: flex;">
+				<form method="POST" th:action="@{/todos/{id}(id=${todo.id})}">
+					<input type="hidden" name="_method" value="PATCH" />
+					<input type="hidden" name="id" th:value="${todo.id}" />
+					<input type="hidden" name="done" th:value="${todo.done}" />
+					<button type="submit" th:text="${todo.done} ? '미완료' : '완료'"
+					th:style="${todo.done} ? 'background-color: #f00;' : 'background-color: #0f0;'"
+					>완료</button>
+				</form>
+
+				<form method="POST" th:action="@{/todos/{id}(id=${todo.id})}">
+					<input type="hidden" name="_method" value="DELETE" />
+					<button type="submit">삭제</button>
+				</form>
+			</div>
+
 		</li>
 	</ul>
 </div>

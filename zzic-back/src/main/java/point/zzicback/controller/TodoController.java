@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.dto.request.CreateTodoRequest;
+import point.zzicback.dto.request.UpdateTodoRequest;
 import point.zzicback.model.Todo;
 import point.zzicback.service.TodoService;
 
@@ -35,33 +36,23 @@ public class TodoController {
         return "redirect:/todos"; // 추가 후 메인 페이지로 리다이렉트
     }
 
-    // 할 일을 완료 처리
-    @PostMapping("/done")
-    public String markDone(@RequestParam Long id) {
+    // 할 일을 수정
+    @PostMapping("/{id}/delete")
+    public String doneToggle(@PathVariable Long id, @RequestParam Boolean done) {
         Todo todo = todoService.getById(id);
-        if (todo != null) {
-            todo.setDone(true);
-            todoService.modify(todo);
-        }
+        todo.setDone(done);
+        todoService.modify(todo);
         return "redirect:/todos"; // 완료 후 메인 페이지로 리다이렉트
     }
 
-    // 할 일을 미완료 처리
-    @PostMapping("/undone")
-    public String markUndone(@RequestParam Long id) {
-        Todo todo = todoService.getById(id);
-        if (todo != null) {
-            todo.setDone(false);
-            todoService.modify(todo);
-        }
+    // 할 일을 수정
+    @PatchMapping("/{id}")
+    public String doneToggle2(@PathVariable Long id, @RequestParam Boolean done) {
+        Todo todo = new Todo();
+        todo.setId(id);
+        todo.setDone(!done);
+        todoService.modify(todo);
         return "redirect:/todos"; // 미완료 후 메인 페이지로 리다이렉트
-    }
-
-    // 할 일을 삭제
-    @PostMapping("/delete")
-    public String delete(@RequestParam Long id) {
-        todoService.remove(id);
-        return "redirect:/todos"; // 삭제 후 메인 페이지로 리다이렉트
     }
 
     // 할 일 상세 조회
@@ -74,9 +65,16 @@ public class TodoController {
         return "todo-detail"; // Thymeleaf 디테일 템플릿 이름
     }
 
+    // 할 일을 삭제
+    @PostMapping("/delete")
+    public String delete(@RequestParam Long id) {
+        todoService.remove(id);
+        return "redirect:/todos"; // 삭제 후 메인 페이지로 리다이렉트
+    }
+
     // 할 일 삭제
-    @DeleteMapping("/delete")
-    public String deleteTodo(@RequestParam Long id) {
+    @DeleteMapping("/{id}")
+    public String deleteTodo(@PathVariable Long id) {
         todoService.remove(id);
         return "redirect:/todos"; // 삭제 후 메인 페이지로 리다이렉트
     }
