@@ -4,9 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import point.zzicback.model.Todo;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 @Data
 @Schema(description = "To-Do 업데이트 요청")
 public class UpdateTodoRequest {
