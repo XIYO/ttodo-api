@@ -92,11 +92,10 @@ public class TodoRestController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void modify(@Parameter(description = "수정할 Todo의 ID") @PathVariable Long id,
                        @Parameter(description = "수정할 Todo 정보") @Valid @RequestBody UpdateTodoRequest updateTodoRequest) {
-        Todo existingTodo = this.todoService.getById(id);
-        if (existingTodo == null) {
+        int result = this.todoService.modify(updateTodoRequest.toEntity(id));
+        if (result == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo with ID " + id + " not found");
         }
-        this.todoService.modify(updateTodoRequest.toEntity(id));
     }
 
     /**
