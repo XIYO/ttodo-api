@@ -20,7 +20,6 @@ import point.zzicback.service.TodoService;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Tag(name = "Todo API", description = "To-Do 목록을 조회, 등록, 수정, 삭제하는 API")
 @RestController
@@ -44,7 +43,7 @@ public class TodoRestController {
         List<Todo> todos = this.todoService.getAll();
         return todos.stream()
                 .map(TodoMainResponse::fromEntity)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
