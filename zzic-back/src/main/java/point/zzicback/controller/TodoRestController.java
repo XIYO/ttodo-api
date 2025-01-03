@@ -36,16 +36,12 @@ public class TodoRestController {
     @Operation(summary = "Todo 목록 조회", description = "모든 Todo 항목의 목록을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공적으로 Todo 목록을 조회함",
-                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TodoMainResponse.class)))),
-            @ApiResponse(responseCode = "404", description = "Todo 목록이 비어있음", content = @Content)
+                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TodoMainResponse.class))))
     })
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<TodoMainResponse> getAll() {
         List<Todo> todos = this.todoService.getAll();
-        if (todos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo list is empty");
-        }
         return todos.stream()
                 .map(TodoMainResponse::fromEntity)
                 .collect(Collectors.toList());
