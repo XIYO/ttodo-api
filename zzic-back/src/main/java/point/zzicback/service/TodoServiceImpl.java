@@ -30,7 +30,7 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public int modify(Todo todo) {
-        return this.todoMapper.updateByPrimaryKey(todo);
+        return this.todoMapper.updateByPrimaryKeySelective(todo);
     }
 
     @Override
