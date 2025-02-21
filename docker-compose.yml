@@ -1,17 +1,17 @@
-version: '3.8'
-
 services:
-  zzic:
-    image: mysql:8.4.3
-    container_name: zzic-back
-    restart: always
+  database:
+    image: bitnami/postgresql:latest
+    container_name: postgresql
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: zzic-back
-    ports:
-      - "13306:3306"
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=zzic
     volumes:
-      - zzic-back:/var/lib/mysql
+      - postgresql-data:/bitnami/postgresql
+    ports:
+      - "5432:5432"
+    restart: always
 
 volumes:
-  zzic-back:
+  postgresql-data:
+    driver: local
