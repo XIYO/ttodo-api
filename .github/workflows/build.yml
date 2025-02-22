@@ -31,7 +31,16 @@ jobs:
         id: version
         run: |
           # 기존 버전 가져오기
-          IFS='.' read -r MAJOR MINOR PATCH <<< "${LAST_VERSION//v/}"
+          LAST_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')
+          LAST_VERSION=${LAST_VERSION//v/}  # v 제거
+          
+          # 버전 값을 정확하게 파싱
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_VERSION"
+          
+          # 기본값 보완
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
 
           # 커밋 메시지 확인
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
