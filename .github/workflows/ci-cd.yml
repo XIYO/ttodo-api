@@ -1,0 +1,115 @@
+name: CI/CD for Spring Boot
+# 워크플로우(Workflow) 이름입니다.
+
+on:
+  push:
+    branches:
+      - main
+    # main 브랜치에 push가 발생하면 빌드(테스트 포함) 후 배포를 수행합니다.
+
+  pull_request:
+    branches:
+      - main
+    # main 브랜치로의 Pull Request가 생기면 빌드와 테스트만 수행하고 배포는 실행하지 않습니다.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # 빌드와 테스트를 진행할 환경을 ubuntu-latest 이미지로 지정합니다.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        # 깃허브 리포지토리의 코드를 가져옵니다.
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+        # Java 21 버전을 사용할 수 있도록 설정합니다.
+        # build.gradle에도 Java 21을 맞춰두었다면 호환됩니다.
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+        # Gradle 빌드시 사용되는 의존성들을 캐싱하여 빌드 시간을 단축합니다.
+        # cache key에 gradle 스크립트의 해시를 활용해 변경 여부를 추적합니다.
+
+      - name: Run tests
+        run: ./gradlew clean test
+        # 빌드 이전에 테스트를 수행합니다.
+        # 테스트가 실패하면 이후 단계(배포)는 진행되지 않습니다.
+
+      - name: Build jar (bootJar)
+        run: ./gradlew bootJar
+        # 테스트가 통과하면 Spring Boot 애플리케이션을 JAR 형태로 빌드합니다.
+        # build.gradle에 선언된 bootJar 작업이 실행되어 실행가능한 JAR를 만듭니다.
+
+      - name: Upload artifact (JAR file)
+        uses: actions/upload-artifact@v3
+        with:
+          name: spring-boot-application
+          path: build/libs/*.jar
+        # 빌드가 끝난 결과물(JAR 파일)을 Actions의 아티팩트로 업로드합니다.
+        # 이후 deploy 잡에서 이 아티팩트를 다운로드해 사용할 수 있습니다.
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    # deploy 잡은 build 잡이 완료되어야(성공해야) 실행됩니다.
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # main 브랜치에 push 이벤트가 발생했을 때만 배포를 진행합니다.
+    # pull_request 이벤트 시에는 빌드, 테스트만 하고 배포는 스킵.
+
+    environment: production
+    # GitHub 상에서 배포 환경을 production으로 지정합니다(선택 사항).
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        # 원격 서버로 배포 스크립트를 전달하거나, 리포지토리 내 배포 스크립트를 쓸 수 있게
+        # 코드 자체가 필요할 수 있으므로 체크아웃을 수행합니다.
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: spring-boot-application
+        # build 잡에서 업로드한 JAR 파일 아티팩트를 받아옵니다.
+        # 기본적으로 현재 워크플로우 디렉토리에 저장됩니다.
+
+      - name: Deploy to server
+        env:
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        run: |
+          # 1) scp 명령어로 원격 서버에 JAR 파일을 복사합니다.
+          #    -i: SSH 키 파일 지정
+          #    -o StrictHostKeyChecking=no : 호스트키를 묻지 않도록 설정(선택)
+          # *.jar 대신 특정 이름으로 rename해서 보내는 예시 (myapp.jar)
+          scp -i $DEPLOY_KEY -o StrictHostKeyChecking=no build/libs/*.jar $DEPLOY_USER@$DEPLOY_SERVER:/path/to/deployment/myapp.jar
+
+          # 2) SSH로 접속해서 환경 변수를 설정한 뒤 JAR 실행
+          ssh -i $DEPLOY_KEY -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_SERVER '
+            # 이미 실행 중인 프로세스가 있다면 중지(필요 시)
+            # pkill -f "myapp.jar" || true
+
+            # 환경 변수 설정 (Spring Boot에서 ${DATABASE_URL} 등을 인식하도록 export)
+            export DATABASE_URL="'$DATABASE_URL'"
+            export DATABASE_USERNAME="'$DATABASE_USERNAME'"
+            export DATABASE_PASSWORD="'$DATABASE_PASSWORD'"
+
+            # 스프링 프로필(prod) 지정하여 백그라운드 실행
+            nohup java -jar /path/to/deployment/myapp.jar --spring.profiles.active=prod > /path/to/deployment/myapp.log 2>&1 &
+          '
+        # 주의: echo 등을 통해 secrets를 출력하면 노출될 위험이 있으므로 지양합니다.
+        # /path/to/deployment/myapp.log 에 로그가 기록되므로, 서버 SSH 접속 후 tail -f 로 확인 가능합니다.

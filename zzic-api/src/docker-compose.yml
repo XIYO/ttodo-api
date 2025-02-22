@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  zzic-api:
+    image: zzic-api:1.0.0-SNAPSHOT
+    container_name: zzic-api
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: "dev"
+      DATABASE_URL: "jdbc:postgresql://postgres:5432/postgres"
+      DATABASE_USERNAME: "postgres"
+      DATABASE_PASSWORD: "postgres"
+    restart: always
+    networks:
+      - zzic-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - zzic-network
+
+networks:
+  zzic-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

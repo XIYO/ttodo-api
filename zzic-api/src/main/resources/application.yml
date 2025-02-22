@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: zzic-api
+
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  profiles:
+    active: dev  # 기본값을 dev로 설정 (운영에서는 prod)

@@ -1,0 +1,14 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # 운영 환경에서는 DB 스키마 변경 X
+
+logging:
+  level:
+    root: WARN  # 운영에서는 로그 레벨을 WARN으로 설정
+    org.springframework: INFO
+    org.hibernate.SQL: WARN
