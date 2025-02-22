@@ -17,13 +17,6 @@ spring:
           batch_versioned_data: true
     open-in-view: false
 
-  devtools:
-    restart:
-      enabled: true
-    livereload:
-      enabled: true
-    add-properties: false
-
 logging:
   level:
     root: INFO
