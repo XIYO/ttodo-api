@@ -6,7 +6,7 @@ services:
     container_name: zzic-api
     depends_on:
       postgres:
-        condition: service_healthy  # PostgreSQL이 정상적으로 실행된 후에 시작
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
