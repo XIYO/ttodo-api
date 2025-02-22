@@ -5,10 +5,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate  # 운영 환경에서는 DB 스키마 변경 X
+      ddl-auto: validate
 
 logging:
   level:
-    root: WARN  # 운영에서는 로그 레벨을 WARN으로 설정
+    root: WARN
     org.springframework: INFO
     org.hibernate.SQL: WARN
