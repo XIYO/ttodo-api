@@ -2,34 +2,38 @@ spring:
   config:
     activate:
       on-profile: dev  # 개발 모드 활성화
+  datasource:
+    url: jdbc:postgresql://postgres:5432/postgres
+    username: postgres
+    password: postgres
 
   jpa:
     hibernate:
-      ddl-auto: update  # 개발 환경에서 DB 스키마 자동 업데이트 (운영에서는 사용 금지)
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true  # SQL을 보기 좋게 포맷
-        use_sql_comments: true  # Hibernate의 SQL 주석 표시 (어떤 쿼리인지 설명 포함)
-        highlight_sql: true  # 콘솔에서 SQL 색상 강조 (최신 Hibernate 지원)
-        show_sql: true  # 실행된 SQL 출력 (로그로 보려면 비활성화)
+        format_sql: true
+        use_sql_comments: true
+        highlight_sql: true
+        show_sql: true
         jdbc:
-          batch_size: 50  # Batch Insert/Update 성능 최적화
+          batch_size: 50
           batch_versioned_data: true
-    open-in-view: false  # View에서 Hibernate 세션 유지 방지 (N+1 문제 예방)
+    open-in-view: false
 
   devtools:
     restart:
-      enabled: true  # 파일 변경 시 자동 리스타트
+      enabled: true
     livereload:
-      enabled: true  # LiveReload 활성화 (브라우저 자동 새로고침)
-    add-properties: false  # 불필요한 기본 속성 추가 방지 (Spring Boot 3.x에서 권장)
+      enabled: true
+    add-properties: false
 
 logging:
   level:
-    root: INFO  # 기본 로그 레벨
-    org.springframework.web: DEBUG  # Spring 웹 로그
-    org.hibernate.SQL: DEBUG  # 실행된 SQL 로그 (데이터베이스 쿼리)
-    org.hibernate.orm.jdbc.bind: TRACE  # 바인딩된 SQL 파라미터 값 출력
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 변수 상세 로깅
-    org.springframework.jdbc.core.JdbcTemplate: DEBUG  # Spring JdbcTemplate SQL 로그
-    org.springframework.transaction: DEBUG  # 트랜잭션 관련 로그 활성화
+    root: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    org.springframework.transaction: DEBUG
