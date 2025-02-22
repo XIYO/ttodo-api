@@ -61,9 +61,6 @@ dependencies {
     // JUnit 5 플랫폼 실행기
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // devtools - 애플리케이션 개발 시 자동 재시작, 브라우저 새로고침 등을 지원
-    implementation 'org.springframework.boot:spring-boot-devtools'
-
     // ===== 프로필별 의존성 로드 =====
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'org.postgresql:postgresql'
