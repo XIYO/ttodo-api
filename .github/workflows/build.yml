@@ -34,7 +34,7 @@ jobs:
           major_pattern: "BREAKING CHANGE:"
           minor_pattern: "feat:"
           version_format: "${major}.${minor}.${patch}"
-          tag_prefix: ""
+          tag_prefix: "v"
           bump_each_commit: false
 
       - name: Update build version in gradle.properties
