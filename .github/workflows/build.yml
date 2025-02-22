@@ -14,7 +14,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 전체 Git 히스토리 가져오기 (태그 포함)
+          fetch-depth: 0  # 전체 Git 히스토리(태그 포함)
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -33,10 +33,9 @@ jobs:
         with:
           major_pattern: "BREAKING CHANGE:"
           minor_pattern: "feat:"
-          patch_pattern: "fix:"
-          format: "${major}.${minor}.${patch}"
+          version_format: "${major}.${minor}.${patch}"
+          tag_prefix: ""
           bump_each_commit: false
-          version_file: "gradle.properties"
 
       - name: Update build version in gradle.properties
         if: steps.version.outputs.new_version != ''
