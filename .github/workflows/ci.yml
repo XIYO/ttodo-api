@@ -1,31 +1,77 @@
-name: CI - Build & Test
+name: "Docker Build & Push"
 
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
   push:
     branches:
-      - develop
+      - main  # 메인 브랜치에 푸시될 때 실행
+    tags:
+      - 'v*'  # 버전 태그가 푸시될 때 실행
+  workflow_dispatch:  # 수동 실행 가능
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write  # GitHub Packages에 푸시할 경우 필요
+
+    strategy:
+      matrix:
+        architecture: [linux/amd64, linux/arm64]  # 다중 아키텍처 빌드
 
     steps:
-      - name: 코드 체크아웃
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: JDK 21 설정
-        uses: actions/setup-java@v3
+      - name: 🔧 Set up QEMU (멀티 아키텍처 지원)
+        uses: docker/setup-qemu-action@v3
+
+      - name: 🐳 Set up Docker Buildx (멀티 플랫폼 빌드 활성화)
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔨 Set up Java 21 (Amazon Corretto)
+        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'gradle'
+          distribution: "corretto"
+          java-version: "21"
+          architecture: "${{ matrix.architecture }}"
+          cache: "gradle"
 
-      - name: Gradle 실행 권한 부여
-        run: chmod +x gradlew
+      - name: 🏗️ Build JAR with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon
 
-      - name: Gradle 빌드 및 테스트
-        run: ./gradlew build --no-daemon
+      - name: 🔍 Extract JAR File Name
+        id: extract_jar
+        run: echo "JAR_FILE=$(ls build/libs/*.jar | grep -v 'plain' | head -n 1)" >> $GITHUB_ENV
+
+      - name: 🏷️ Set Docker Image Tag
+        id: set-tag
+        run: |
+          VERSION=$(git describe --tags --always --dirty="-dev")
+          echo "IMAGE_TAG=${VERSION}" >> $GITHUB_ENV
+
+      - name: 🔑 Log in to GitHub Container Registry (GHCR)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐳 Build & Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: ${{ startsWith(github.ref, 'refs/tags/') }}  # 태그된 경우에만 푸시
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ github.repository }}:latest
+          build-args:
+            JAR_FILE=${{ env.JAR_FILE }}
+
+      - name: ✅ Build Completed
+        run: echo "Docker build & push finished!"
