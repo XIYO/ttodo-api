@@ -22,21 +22,21 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Fetch Tags (Ensure latest tags are available)
+        run: git fetch --tags
+
       - name: Get Last Version
         id: last_version
         run: |
-          echo "LAST_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')" >> $GITHUB_ENV
+          LAST_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')
+          echo "LAST_VERSION=${LAST_VERSION//v/}" >> $GITHUB_ENV
 
       - name: Determine Next Version
         id: version
         run: |
           # 기존 버전 가져오기
-          LAST_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')
-          LAST_VERSION=${LAST_VERSION//v/}  # v 제거
-          
-          # 버전 값을 정확하게 파싱
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_VERSION"
-          
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${LAST_VERSION:-0.0.0}"
+
           # 기본값 보완
           MAJOR=${MAJOR:-0}
           MINOR=${MINOR:-0}
@@ -44,6 +44,7 @@ jobs:
 
           # 커밋 메시지 확인
           COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+
           if echo "$COMMIT_MESSAGE" | grep -q "BREAKING CHANGE:"; then
             ((MAJOR++))
             MINOR=0
@@ -61,7 +62,7 @@ jobs:
 
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "::set-output name=new_version::$NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Update gradle.properties
         if: env.SKIP != 'true'
