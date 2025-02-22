@@ -1,0 +1,28 @@
+name: "Test on ARM"
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 push될 때 실행
+  pull_request:
+    branches:
+      - main  # PR이 main으로 들어올 때 실행
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  test-arm-java:
+    runs-on: [self-hosted, ARM64]  # ARM 기반 GitHub Runner에서 실행 (사용자 설정 필요)
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4  # 코드 가져오기
+
+      - name: ☕ Set up Java (ARM)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'  # Amazon Corretto (ARM 지원 가능)
+          java-version: '21'  # Java 21
+
+      - name: 🏗️ Run Tests with Gradle (ARM)
+        run: |
+          chmod +x gradlew
+          ./gradlew test --no-daemon  # ARM 환경에서 테스트 실행
