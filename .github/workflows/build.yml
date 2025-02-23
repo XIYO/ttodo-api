@@ -15,5 +15,6 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: .github/release-please-config.json # 버전 파일 설정 추가
+          token: ${{ secrets.GITHUB_TOKEN }}  # 또는 PAT 사용 가능
+          config-file: .github/release-please-config.json
+          manifest-file: .release-please-manifest.json
