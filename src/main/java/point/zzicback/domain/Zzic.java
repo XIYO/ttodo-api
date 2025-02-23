@@ -19,7 +19,7 @@ import java.io.Serializable;
 @Data
 @Schema(description = "TO-DO 항목을 표현하는 모델")
 @Entity
-public class Todo implements Serializable {
+public class Zzic implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**

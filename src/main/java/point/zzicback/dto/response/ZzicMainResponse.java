@@ -2,11 +2,11 @@ package point.zzicback.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import point.zzicback.domain.Todo;
+import point.zzicback.domain.Zzic;
 
 @Data
 @Schema(description = "To-Do 응답 모델", requiredProperties = {"id", "title", "done"})
-public class TodoMainResponse {
+public class ZzicMainResponse {
     @Schema(description = "To-Do 항목의 고유 식별자", example = "1")
     private Long id;
 
@@ -19,11 +19,11 @@ public class TodoMainResponse {
     /**
      * Entity → Response DTO 변환 메서드
      */
-    public static TodoMainResponse fromEntity(Todo todo) {
-        TodoMainResponse response = new TodoMainResponse();
-        response.setId(todo.getId());
-        response.setTitle(todo.getTitle());
-        response.setDone(todo.getDone());
+    public static ZzicMainResponse fromEntity(Zzic zzic) {
+        ZzicMainResponse response = new ZzicMainResponse();
+        response.setId(zzic.getId());
+        response.setTitle(zzic.getTitle());
+        response.setDone(zzic.getDone());
         return response;
     }
 }
