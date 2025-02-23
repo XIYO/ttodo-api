@@ -3,7 +3,7 @@ name: Release Please
 on:
   push:
     branches:
-      - main  # `main` 브랜치에 푸시될 때 실행
+      - main  # main 브랜치에 푸시될 때 실행
 
 permissions:
   contents: write  # 태그 및 릴리즈 생성 권한 부여
@@ -12,6 +12,9 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      release_version: ${{ steps.release.outputs.release_version }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -44,7 +47,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: release
-    if: steps.release.outputs.release_created == 'true'
+    if: needs.release.outputs.release_created == 'true'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -60,8 +63,8 @@ jobs:
         run: ./gradlew build -x test
 
       - name: Upload Build Artifact to GitHub Release
-        if: steps.release.outputs.release_created == 'true'
+        if: needs.release.outputs.release_created == 'true'
         run: |
-          gh release upload v${{ steps.release.outputs.release_version }} build/libs/*.jar
+          gh release upload v${{ needs.release.outputs.release_version }} build/libs/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
