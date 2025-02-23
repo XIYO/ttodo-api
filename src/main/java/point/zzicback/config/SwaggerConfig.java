@@ -11,7 +11,7 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class SwaggerConfig {
 
-    private static final String PROD_SERVER_URL = "https://api.zzic.prod.com"; // prod 환경의 추가 서버 URL
+    private static final String PROD_SERVER_URL = "https://api.zzic.xiyo.dev"; // prod 환경의 추가 서버 URL
 
     @Bean
     public OpenAPI customOpenAPI(Environment environment) {
