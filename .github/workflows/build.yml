@@ -53,14 +53,17 @@ jobs:
           echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      # 6️⃣ Docker 이미지 빌드 (소문자 사용자명 & 프로젝트 이름 적용)
-      - name: Build Docker Image
-        run: docker build -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION .
+      # 6️⃣ Docker Buildx 설치 (멀티아키텍처 빌드 지원)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       # 7️⃣ GitHub Container Registry 로그인
       - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # 8️⃣ Docker 이미지 푸시 (GHCR)
-      - name: Push Docker Image to GHCR
-        run: docker push ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION
+      # 8️⃣ 멀티아키텍처 Docker 이미지 빌드 (AMD64 + ARM64)
+      - name: Build & Push Docker Image (Multi-Arch)
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION \
+            --push .
