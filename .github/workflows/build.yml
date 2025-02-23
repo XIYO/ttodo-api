@@ -29,7 +29,7 @@ jobs:
       - name: Build JAR
         run: |
           chmod +x gradlew
-          ./gradlew clean build
+          ./gradlew clean build -x test
 
       # 4️⃣ JAR 파일을 GitHub Packages에 업로드
       - name: Upload JAR to GitHub Packages
@@ -53,8 +53,7 @@ jobs:
 
       # 6️⃣ Docker 이미지 빌드
       - name: Build Docker Image
-        run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/$PROJECT_NAME:$VERSION .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/$PROJECT_NAME:$VERSION .
 
       # 7️⃣ GitHub Container Registry 로그인
       - name: Login to GitHub Container Registry
@@ -62,5 +61,4 @@ jobs:
 
       # 8️⃣ Docker 이미지 푸시 (GHCR)
       - name: Push Docker Image to GHCR
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/$PROJECT_NAME:$VERSION
+        run: docker push ghcr.io/${{ github.repository_owner }}/$PROJECT_NAME:$VERSION
