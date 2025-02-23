@@ -13,10 +13,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-  graphql:
-    cors:
-      allowed-origins: https://zzic.xiyo.dev, https://api.zzic.xiyo.dev
-
 
 logging:
   level:
