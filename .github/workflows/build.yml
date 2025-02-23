@@ -78,6 +78,6 @@ jobs:
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            cd /Projects/zzic
+            cd ~/Projects/zzic
             docker-compose pull
             docker-compose up -d
