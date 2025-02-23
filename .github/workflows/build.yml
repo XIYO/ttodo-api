@@ -1,13 +1,15 @@
-name: Release Please
+name: Release Please Workflow
+# 워크플로우의 이름입니다.
 
 on:
   push:
     branches:
-      - main  # main 브랜치에 푸시될 때 실행
+      - main
+      # main 브랜치에 푸시될 때 워크플로우가 실행됩니다.
 
 permissions:
-  contents: write  # 태그 및 릴리즈 생성 권한 부여
-  pull-requests: write  # PR 생성 권한 (PR을 생성하는 설정을 사용하면 필요)
+  contents: write       # 릴리즈 태그 생성 및 커밋 푸시에 필요한 권한입니다.
+  pull-requests: write    # 릴리즈 PR 생성(필요시)을 위한 권한입니다.
 
 jobs:
   release:
@@ -15,37 +17,50 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       release_version: ${{ steps.release.outputs.release_version }}
+    # release job에서는 release-please 액션을 실행하여 새 릴리즈 생성 여부와 버전을 출력 변수로 저장합니다.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 전체 히스토리 가져와야 기존 태그 정보 확인 가능
+          fetch-depth: 0
+          # 전체 커밋 히스토리를 가져옵니다. 기존 태그 및 커밋 이력을 확인하기 위해 필요합니다.
 
-      - name: Run Release Please (Auto Tagging)
+      - name: Run Release Please
         id: release
         uses: googleapis/release-please-action@v4
         with:
           release-type: simple
+          # 단순한(release-type: simple) 전략을 사용합니다.
           token: ${{ secrets.GITHUB_TOKEN }}
+          # GitHub 액션에서 제공하는 기본 토큰을 사용합니다.
           skip-github-pull-request: true
+          # 릴리즈 PR 대신 태그를 바로 생성합니다.
 
-      - name: Show Release Outputs
+      - name: Display Release Outputs
         run: echo "New version is ${{ steps.release.outputs.release_version }}"
+        # release-please 액션의 출력 결과(새 버전)를 출력합니다.
 
       - name: Update version in gradle.properties
         if: steps.release.outputs.release_created == 'true'
+        # 새 릴리즈가 생성된 경우에만 실행됩니다.
         run: |
-          echo "version=${{ steps.release.outputs.release_version }}" > gradle.properties
+          # gradle.properties 파일에서 version 값을 새로운 버전으로 변경합니다.
+          sed -i 's/^version=.*/version=${{ steps.release.outputs.release_version }}/' gradle.properties
+          # Git 사용자 정보를 설정합니다.
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          # 변경된 gradle.properties 파일을 스테이지합니다.
           git add gradle.properties
+          # 버전 업데이트 커밋을 생성합니다.
           git commit -m "🔖 Bump version to ${{ steps.release.outputs.release_version }}"
+          # main 브랜치에 변경사항을 푸시합니다.
           git push origin main
 
   build:
     runs-on: ubuntu-latest
     needs: release
     if: needs.release.outputs.release_created == 'true'
+    # 새 릴리즈가 생성된 경우에만 빌드 작업을 진행합니다.
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -56,12 +71,8 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'gradle'
+          # Gradle 캐시를 사용하여 빌드 속도를 높입니다.
 
       - name: Build Project
         run: ./gradlew build -x test
-
-      - name: Upload Build Artifact to GitHub Release
-        if: needs.release.outputs.release_created == 'true'
-        run: gh release upload v${{ needs.release.outputs.release_version }} build/libs/*.jar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # 테스트를 제외하고 프로젝트를 빌드합니다.
