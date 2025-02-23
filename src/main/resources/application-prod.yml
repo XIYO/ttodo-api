@@ -2,6 +2,13 @@ spring:
   config:
     activate:
       on-profile: prod
+  datasource:
+    hikari:
+      maximum-pool-size: 5  # 최대 연결 수 제한 (Supabase 한계 고려)
+      minimum-idle: 2        # 최소 유지할 연결 수
+      idle-timeout: 30000    # (30초) 유휴 연결 유지 시간
+      max-lifetime: 1800000  # (30분) 하나의 연결이 살아있는 최대 시간
+      connection-timeout: 5000  # (5초) 연결 시도 타임아웃
 
   jpa:
     hibernate:
