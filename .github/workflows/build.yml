@@ -71,12 +71,12 @@ jobs:
 
       # 9️⃣ SSH를 사용한 서버 배포 (Appleboy 액션 사용)
       - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ vars.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.ED25519 }}
           port: ${{ vars.PORT }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
           script: |
             cd /Projects/zzic
             docker-compose pull
