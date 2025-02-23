@@ -19,15 +19,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # 전체 히스토리 가져와야 기존 태그 정보 확인 가능
 
       - name: Run Release Please (Auto Tagging)
         id: release
         uses: googleapis/release-please-action@v4
         with:
-          release-type: simple  # 기본적인 버전 관리
+          release-type: simple
           token: ${{ secrets.GITHUB_TOKEN }}
-          skip-github-pull-request: true  # PR 없이 바로 태그 및 릴리즈 생성
+          skip-github-pull-request: true
 
       - name: Show Release Outputs
         run: echo "New version is ${{ steps.release.outputs.release_version }}"
@@ -62,7 +62,6 @@ jobs:
 
       - name: Upload Build Artifact to GitHub Release
         if: needs.release.outputs.release_created == 'true'
-        run: |
-          gh release upload v${{ needs.release.outputs.release_version }} build/libs/*.jar
+        run: gh release upload v${{ needs.release.outputs.release_version }} build/libs/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
