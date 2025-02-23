@@ -24,7 +24,7 @@ import java.util.Optional;
 
 @Tag(name = "Todo API", description = "To-Do 목록을 조회, 등록, 수정, 삭제하는 API")
 @RestController
-@RequestMapping("/api/todo")
+@RequestMapping("/api/todos")
 @RequiredArgsConstructor
 public class TodoRestController {
 
