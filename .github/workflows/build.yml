@@ -66,4 +66,21 @@ jobs:
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION \
+            -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:latest \
             --push .
+
+      # 9️⃣ SSH 설정 및 배포 (Appleboy 액션 제거)
+      - name: Deploy to Server via SSH
+        run: |
+          # SSH 키 설정
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ID25519 }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ vars.HOST }} >> ~/.ssh/known_hosts
+
+          # 서버에서 최신 Docker 이미지 업데이트 및 재시작
+          ssh -i ~/.ssh/id_rsa -p ${{ vars.PORT }} ${{ secrets.USER }}@${{ vars.HOST }} << 'EOF'
+            cd /Projects/zzic
+            docker-compose pull
+            docker-compose up -d
+          EOF
