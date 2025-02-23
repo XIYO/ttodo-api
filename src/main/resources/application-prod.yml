@@ -12,10 +12,5 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
-
-logging:
-  level:
-    root: WARN
-    org.springframework: INFO
-    org.hibernate.SQL: WARN
+      ddl-auto: validate
+    open-in-view: false

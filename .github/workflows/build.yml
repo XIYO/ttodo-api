@@ -1,4 +1,4 @@
-name: Build & Deploy zzic-api
+name: Build & Deploy ZZIC-api
 
 on:
   push:

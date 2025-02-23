@@ -3,7 +3,6 @@ spring:
     activate:
       on-profile: dev
 
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,7 +15,6 @@ spring:
         jdbc:
           batch_size: 50
           batch_versioned_data: true
-    open-in-view: false
 
 logging:
   level:

@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.1'
+    id 'org.springframework.boot' version '3.4.2'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -22,42 +22,42 @@ repositories {
 
 dependencies {
     // ===== Core Dependencies =====
-    // Spring Web을 위한 의존성
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // Bean Validation (Hibernate Validator)
+    // ===== Database =====
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // ===== Security & Authentication =====
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+    // ===== Validation =====
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
 
-    // Lombok (컴파일 타임 의존성)
+    // ===== QueryDSL =====
+    implementation 'com.querydsl:querydsl-jpa'
+    annotationProcessor 'com.querydsl:querydsl-apt'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
+    // ===== API Documentation =====
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
+    // ===== Lombok =====
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // ===== API Documentation =====
-    // OpenAPI 문서화를 위한 SpringDoc 의존성
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
-
-    // ===== Testing Dependencies =====
-    // Spring Boot의 테스트 라이브러리 (JUnit, Mockito 포함)
+    // ===== Testing =====
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    // AssertJ - 가독성 높은 테스트 코드 작성을 지원
     testImplementation 'org.assertj:assertj-core:3.26.3'
-
-    // MyBatis 통합 테스트를 지원
-    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.4'
-
-    // JUnit 5 플랫폼 실행기
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // ===== 프로필별 의존성 로드 =====
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-tasks.named("jar") {
-    enabled = false  // Plain JAR 생성 비활성화
 }
