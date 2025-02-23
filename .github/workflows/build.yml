@@ -3,7 +3,7 @@ name: release-please
 on:
   push:
     branches:
-      - main  # 기본 브랜치(main)에서 실행
+      - main  # 기본 브랜치에서 실행
 
 permissions:
   contents: write
@@ -17,3 +17,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: java
+          config-file: .github/release-please-config.json # 버전 파일 설정 추가

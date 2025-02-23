@@ -1,0 +1,10 @@
+{
+  "release-type": "java",
+  "packages": {
+    ".": {
+      "component": "my-spring-boot-app",
+      "package-name": "my-spring-boot-app",
+      "version-file": "gradle.properties"
+    }
+  }
+}
