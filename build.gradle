@@ -14,7 +14,10 @@ plugins {
 }
 
 group = 'point'
-version = findProperty("version") ?: "1.0.0" // 기본값 1.0.0
+if (!project.hasProperty('version')) {
+    throw new GradleException("Missing version property in gradle.properties")
+}
+version = project.version
 
 java {
     toolchain {
