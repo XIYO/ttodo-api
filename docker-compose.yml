@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   zzic-api:
-    image: test:1.0.0
+    image: ghcr.io/get-to-the-point/zzic-api:1.0.0
     container_name: zzic-api
     depends_on:
       postgres:
