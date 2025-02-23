@@ -74,7 +74,7 @@ jobs:
         run: |
           # SSH 키 설정
           mkdir -p ~/.ssh
-          echo "${{ secrets.ID25519 }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.ED25519 }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ vars.HOST }} >> ~/.ssh/known_hosts
 
