@@ -42,18 +42,20 @@ jobs:
       - name: Extract Project Name & Version
         id: extract_project_info
         run: |
-          PROJECT_NAME=$(grep '^project_name=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          PROJECT_NAME=$(grep '^project_name=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
 
           if [ -z "$PROJECT_NAME" ]; then PROJECT_NAME="default-project"; fi
           if [ -z "$VERSION" ]; then VERSION="1.0.0"; fi
 
+          echo "REPO_OWNER=$REPO_OWNER" >> $GITHUB_ENV
           echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      # 6️⃣ Docker 이미지 빌드
+      # 6️⃣ Docker 이미지 빌드 (소문자 사용자명 & 프로젝트 이름 적용)
       - name: Build Docker Image
-        run: docker build -t ghcr.io/${{ github.repository_owner }}/$PROJECT_NAME:$VERSION .
+        run: docker build -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION .
 
       # 7️⃣ GitHub Container Registry 로그인
       - name: Login to GitHub Container Registry
@@ -61,4 +63,4 @@ jobs:
 
       # 8️⃣ Docker 이미지 푸시 (GHCR)
       - name: Push Docker Image to GHCR
-        run: docker push ghcr.io/${{ github.repository_owner }}/$PROJECT_NAME:$VERSION
+        run: docker push ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION
