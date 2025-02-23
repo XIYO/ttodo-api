@@ -19,7 +19,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 전체 Git 히스토리 가져오기 (태그 포함)
+          fetch-depth: 0
 
       - name: Run Release Please (Auto Tagging)
         id: release
@@ -28,11 +28,9 @@ jobs:
           release-type: simple  # 기본적인 버전 관리
           token: ${{ secrets.GITHUB_TOKEN }}
           skip-github-pull-request: true  # PR 없이 바로 태그 및 릴리즈 생성
-          include-v-in-tag: true  # 'v1.0.0' 형식의 태그 생성
 
       - name: Show Release Outputs
-        run: |
-          echo "New version is ${{ steps.release.outputs.release_version }}"
+        run: echo "New version is ${{ steps.release.outputs.release_version }}"
 
       - name: Update version in gradle.properties
         if: steps.release.outputs.release_created == 'true'
