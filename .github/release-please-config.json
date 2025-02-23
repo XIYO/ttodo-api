@@ -2,8 +2,8 @@
   "release-type": "java",
   "packages": {
     ".": {
-      "component": "my-spring-boot-app",
-      "package-name": "my-spring-boot-app",
+      "component": "zzic-api",
+      "package-name": "zzic-api",
       "version-file": "gradle.properties"
     }
   }
