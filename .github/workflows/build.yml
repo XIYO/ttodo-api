@@ -42,7 +42,7 @@ jobs:
       - name: Extract Project Name & Version
         id: extract_project_info
         run: |
-          PROJECT_NAME=$(grep '^project_name=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+          PROJECT_NAME=$(grep '^project_name=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
 
           if [ -z "$PROJECT_NAME" ]; then PROJECT_NAME="default-project"; fi
