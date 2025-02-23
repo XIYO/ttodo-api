@@ -69,18 +69,15 @@ jobs:
             -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:latest \
             --push .
 
-      # 9️⃣ SSH 설정 및 배포 (Appleboy 액션 제거)
+      # 9️⃣ SSH를 사용한 서버 배포 (Appleboy 액션 사용)
       - name: Deploy to Server via SSH
-        run: |
-          # SSH 키 설정
-          mkdir -p ~/.ssh
-          echo "${{ secrets.ED25519 }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ vars.HOST }} >> ~/.ssh/known_hosts
-
-          # 서버에서 최신 Docker 이미지 업데이트 및 재시작
-          ssh -i ~/.ssh/id_rsa -p ${{ vars.PORT }} ${{ secrets.USER }}@${{ vars.HOST }} << 'EOF'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.ED25519 }}
+          port: ${{ vars.PORT }}
+          script: |
             cd /Projects/zzic
             docker-compose pull
             docker-compose up -d
-          EOF
