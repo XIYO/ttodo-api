@@ -17,4 +17,3 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}  # 또는 PAT 사용 가능
           config-file: .github/release-please-config.json
-          manifest-file: .release-please-manifest.json
