@@ -19,8 +19,6 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("ZZIC-API")
                         .description("""
-                                TODO 기능의 백엔드 기능을 담당하는 API 문서입니다.
-                                
                                 ## ZZIC 무엇인가요?
                                 
                                 우표처럼 펀치가 있는 종이를 찢는 소리를 의성어로 나타내었습니다.
