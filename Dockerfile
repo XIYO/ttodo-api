@@ -2,11 +2,8 @@
 FROM amazoncorretto:21-alpine-jdk
 WORKDIR /app
 
-# 빌드 시 전달할 변수 (빌드 중에는 ARG 사용)
-ARG JAR_FILE
-
 # JAR 파일 복사
-COPY build/libs/${JAR_FILE} app.jar
+COPY build/libs/*.jar app.jar
 
 # 실행 시 환경 변수를 인자로 받을 수 있도록 설정
 ENTRYPOINT ["sh", "-c", "java -jar \
