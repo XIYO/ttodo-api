@@ -13,7 +13,7 @@
       "extra-files": [
         {
           "file": "gradle.properties",
-          "type": "java-properties",
+          "type": "generic",
           "pattern": "version=.*",
           "replacement": "version=${version}"
         }
