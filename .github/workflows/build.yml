@@ -79,5 +79,5 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           script: |
             cd ~/Projects/zzic
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d
