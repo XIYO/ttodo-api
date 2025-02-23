@@ -16,4 +16,4 @@ jobs:
       - uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}  # 또는 PAT 사용 가능
-          config-file: .github/release-please-config.json
+          release-type: simple
