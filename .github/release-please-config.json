@@ -4,7 +4,20 @@
     ".": {
       "component": "zzic-api",
       "package-name": "zzic-api",
-      "version-file": "gradle.properties"
+      "version-file": "gradle.properties",
+      "changelog-path": "CHANGELOG.md",
+      "include-v-in-tag": true,
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "release-labels": ["autorelease: pending"],
+      "extra-files": [
+        {
+          "file": "gradle.properties",
+          "type": "plain-text",
+          "pattern": "version=.*",
+          "replacement": "version=${version}"
+        }
+      ]
     }
   }
 }

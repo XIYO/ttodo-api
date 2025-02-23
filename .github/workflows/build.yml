@@ -3,7 +3,7 @@ name: release-please
 on:
   push:
     branches:
-      - main  # 기본 브랜치에서 실행
+      - main  # main 브랜치에서 실행
 
 permissions:
   contents: write
@@ -13,7 +13,23 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: actions/checkout@v4
+
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # 또는 PAT 사용 가능
-          release-type: simple
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: .github/release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Update gradle.properties
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          NEW_VERSION="${{ steps.release.outputs.tag_name }}"
+          sed -i "s/version=.*/version=${NEW_VERSION}/g" gradle.properties
+          git config user.name "github-actions[bot]"
+          git config user.email "bunny@xiyo.dev"
+          git add gradle.properties
+          git commit -m "chore: update gradle.properties to ${NEW_VERSION}"
+          git push origin main
