@@ -33,7 +33,7 @@ jobs:
 
       # 4️⃣ JAR 파일을 GitHub Packages에 업로드
       - name: Upload JAR to GitHub Packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: zzic-api-jar
           path: build/libs/*.jar
