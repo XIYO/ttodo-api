@@ -38,11 +38,11 @@ jobs:
           name: zzic-api-jar
           path: build/libs/*.jar
 
-      # 5️⃣ 프로젝트 이름 & 버전 정보 추출 (gradle.properties에서 가져오기)
+      # 5️⃣ 프로젝트 이름 & 버전 정보 추출 (소문자로 변환)
       - name: Extract Project Name & Version
         id: extract_project_info
         run: |
-          PROJECT_NAME=$(grep '^project_name=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          PROJECT_NAME=$(grep '^project_name=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
 
           if [ -z "$PROJECT_NAME" ]; then PROJECT_NAME="default-project"; fi
