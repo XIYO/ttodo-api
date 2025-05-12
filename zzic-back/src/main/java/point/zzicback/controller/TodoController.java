@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +61,7 @@ public class TodoController {
     })
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<TodoMainResponse> getTodoList(@Parameter(description = "Todo를 완료했는지 여부") @RequestParam Boolean isDone) {
+    public List<TodoMainResponse> getAll(@Parameter(description = "Todo를 완료했는지 여부") @RequestParam Boolean isDone) {
 
         List<Todo> todos = this.todoService.getTodoList(isDone);
 
@@ -107,12 +108,11 @@ public class TodoController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터",
                     content = @Content)
     })
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createTodo(
+    public void add(
             @Parameter(description = "등록할 Todo 정보")
-            @RequestBody CreateTodoRequest createTodoRequest) {
+            @RequestBody @Valid CreateTodoRequest createTodoRequest) {
         Todo todo = objectMapper.convertValue(createTodoRequest, Todo.class);
         this.todoService.createTodo(todo);
     }
@@ -135,7 +135,7 @@ public class TodoController {
     })
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateTodo(
+    public void modify(
             @Parameter(description = "수정할 Todo의 ID")
             @PathVariable Long id,
             @Parameter(description = "수정할 Todo 정보")
@@ -160,7 +160,7 @@ public class TodoController {
     })
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTodo(
+    public void remove(
             @Parameter(description = "삭제할 Todo의 ID")
             @PathVariable Long id) {
         this.todoService.deleteTodo(id);

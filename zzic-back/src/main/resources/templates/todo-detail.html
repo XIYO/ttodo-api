@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ZZIC - 할 일 상세</title>
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<style>
+      :root {
+          --primary-color: #003399;
+          --secondary-color: #0055cc;
+          --background-color: #e6f2ff;
+          --text-color: #001a4d;
+          --accent-color: #ffcc00;
+      }
+      body {
+          font-family: 'Arial', sans-serif;
+          background-color: var(--background-color);
+          color: var(--text-color);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          margin: 0;
+          padding: 20px;
+          box-sizing: border-box;
+      }
+      .container {
+          background-color: white;
+          padding: 40px;
+          border-radius: 15px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+          width: 100%;
+          max-width: 400px;
+          position: relative;
+          overflow: hidden;
+      }
+      .container::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 20px;
+          right: 20px;
+          height: 20px;
+          background-image: repeating-linear-gradient(
+                  90deg,
+                  var(--accent-color),
+                  var(--accent-color) 10px,
+                  transparent 10px,
+                  transparent 20px
+          );
+      }
+      h1, h2 {
+          color: var(--primary-color);
+          text-align: center;
+          margin-bottom: 20px;
+      }
+      h1 {
+          font-size: 28px;
+          margin-top: 10px;
+      }
+      h2 {
+          font-size: 24px;
+          border-bottom: 2px dashed var(--primary-color);
+          padding-bottom: 10px;
+      }
+      .todo-detail {
+          background-color: var(--background-color);
+          border-radius: 10px;
+          padding: 20px;
+          margin-bottom: 30px;
+      }
+      .todo-detail p {
+          margin: 10px 0;
+          display: flex;
+          justify-content: space-between;
+      }
+      .todo-detail span {
+          font-weight: bold;
+          color: var(--secondary-color);
+      }
+      .actions {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+          margin-top: 30px;
+      }
+      .btn {
+          padding: 10px 15px;
+          border: none;
+          border-radius: 50px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-decoration: none;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      .btn-primary {
+          background-color: var(--primary-color);
+          color: white;
+      }
+      .btn-primary:hover {
+          background-color: var(--secondary-color);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      .btn-secondary {
+          background-color: var(--accent-color);
+          color: var(--text-color);
+      }
+      .btn-secondary:hover {
+          background-color: var(--secondary-color);
+          color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      .btn-full-width {
+          grid-column: 1 / -1;
+      }
+
+			.full{
+				width: 100%;
+			}
+			.margin-block{
+				margin-block: .5rem;
+			}
+	</style>
+</head>
+<body>
+<div class="container">
+	<header>
+		<h1>ZZIC</h1>
+	</header>
+
+	<div class="todo-detail">
+		<h2 th:text="${todo.title}">할 일 제목</h2>
+		<p>설명: <span th:text="${todo.description}">할 일 설명</span></p>
+		<p>상태: <span th:text="${todo.done} ? '완료' : '미완료'">상태</span></p>
+	</div>
+
+	<div class="actions">
+		<a th:href="@{/todos/update/{id}(id=${todo.id})}" class="btn btn-primary">
+			<i data-lucide="edit"></i>
+			수정
+		</a>
+		<form th:action="@{/todos/done-toggle}" method="POST">
+			<input type="hidden" name="id" th:value="${todo.id}">
+			<input type="hidden" name="done" th:value="${todo.done}">
+			<button type="submit" class="btn btn-primary full">
+				<i data-lucide="check-circle" th:if="${!todo.done}"></i>
+				<i data-lucide="x-circle" th:if="${todo.done}"></i>
+				<span th:text="${todo.done} ? '미완료로 표시' : '완료로 표시'">상태 변경</span>
+			</button>
+		</form>
+	</div>
+
+		<form th:action="@{/todos/delete}" method="POST">
+			<input type="hidden" name="id" th:value="${todo.id}">
+			<button type="submit" class="btn btn-primary full margin-block">
+				<i data-lucide="trash-2"></i>
+				삭제
+			</button>
+		</form>
+
+		<a th:href="@{/todos}" class="btn btn-secondary btn-full-width">
+			<i data-lucide="list"></i>
+			목록으로 돌아가기
+		</a>
+</div>
+<script>
+	lucide.createIcons();
+</script>
+</body>
+</html>
+

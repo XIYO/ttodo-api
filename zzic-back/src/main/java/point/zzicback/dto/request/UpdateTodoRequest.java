@@ -2,6 +2,7 @@ package point.zzicback.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import point.zzicback.model.Todo;
 
 @Data
 @Schema(description = "To-Do 업데이트 요청")
@@ -14,4 +15,12 @@ public class UpdateTodoRequest {
 
     @Schema(description = "To-Do 항목의 완료 여부", example = "false")
     private Boolean done;
+
+    public Todo ToEntity() {
+        Todo todo = new Todo();
+        todo.setTitle(title);
+        todo.setDescription(description);
+        todo.setDone(done);
+        return todo;
+    }
 }
