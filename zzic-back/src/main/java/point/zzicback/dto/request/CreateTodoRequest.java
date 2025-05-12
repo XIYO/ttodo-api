@@ -21,6 +21,7 @@ public class CreateTodoRequest {
         Todo todo = new Todo();
         todo.setTitle(title);
         todo.setDescription(description);
+        todo.setDone(false);
         return todo;
     }
 }
