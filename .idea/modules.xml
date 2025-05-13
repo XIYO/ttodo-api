@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/zzic-back.iml" filepath="$PROJECT_DIR$/.idea/modules/zzic-back.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/zzic-back.main.iml" filepath="$PROJECT_DIR$/.idea/modules/zzic-back.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/zzic-back.test.iml" filepath="$PROJECT_DIR$/.idea/modules/zzic-back.test.iml" />
     </modules>
