@@ -61,9 +61,9 @@ public class TodoController {
     })
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<TodoMainResponse> getAll(@Parameter(description = "Todo를 완료했는지 여부") @RequestParam Boolean isDone) {
+    public List<TodoMainResponse> getAll(@Parameter(description = "Todo를 완료했는지 여부") @RequestParam Boolean done) {
 
-        List<Todo> todos = this.todoService.getTodoList(isDone);
+        List<Todo> todos = this.todoService.getTodoList(done);
 
         // TodoMainResponse로 변환 필요
 
