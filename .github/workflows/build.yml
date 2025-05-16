@@ -42,13 +42,13 @@ jobs:
         id: extract_project_info
         run: |
           REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          PROJECT_NAME=${{ env.REPO_NAME }}
+          RAW_PROJECT_NAME=${{ env.REPO_NAME }}
+          PROJECT_NAME=$(echo "$RAW_PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
           VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
           if [ -z "$PROJECT_NAME" ]; then PROJECT_NAME="default-project"; fi
           if [ -z "$VERSION" ]; then VERSION="1.0.0"; fi
           echo "REPO_OWNER=$REPO_OWNER" >> $GITHUB_ENV
           echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
