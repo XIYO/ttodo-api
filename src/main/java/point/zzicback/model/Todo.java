@@ -1,10 +1,7 @@
 package point.zzicback.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,6 +33,7 @@ public class Todo implements Serializable {
      * TO-DO 항목의 제목
      */
     @Schema(description = "To-Do 항목의 제목", example = "장보기")
+    @Column(nullable = false)
     private String title;
 
     /**
@@ -48,5 +46,6 @@ public class Todo implements Serializable {
      * TO-DO 항목 완료 여부
      */
     @Schema(description = "To-Do 항목의 완료 여부", example = "false")
-    private Boolean done;
+    @Column(nullable = false)
+    private Boolean done = false;
 }
