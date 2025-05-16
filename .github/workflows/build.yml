@@ -3,7 +3,7 @@ name: Build & Deploy
 on:
   push:
     branches:
-      - main
+      - prod
 
 permissions:
   contents: write
@@ -61,7 +61,7 @@ jobs:
         run: |
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION \
-            -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:latest \
+            -t ghcrㅛ.io/$REPO_OWNER/$PROJECT_NAME:latest \
             --push .
 
       - name: Deploy to Server via SSH
