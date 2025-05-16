@@ -6,9 +6,7 @@ import lombok.Data;
 import point.zzicback.model.Todo;
 
 @Data
-@Schema(description = "To-Do 생성 요청"
-        , requiredProperties = {"title"}
-)
+@Schema(description = "To-Do 생성 요청", requiredProperties = {"title"})
 public class CreateTodoRequest {
     @Schema(description = "To-Do 항목의 제목", example = "장보기")
     @NotBlank

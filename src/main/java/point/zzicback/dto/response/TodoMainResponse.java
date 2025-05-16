@@ -4,9 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@Schema(description = "To-Do 응답 모델",
-        requiredProperties = {"id", "title", "done"}
-)
+@Schema(description = "To-Do 응답 모델", requiredProperties = {"id", "title", "done"})
 public class TodoMainResponse {
     @Schema(description = "To-Do 항목의 고유 식별자", example = "1")
     private Long id;
