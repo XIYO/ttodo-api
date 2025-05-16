@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Extract Repository Name
         id: extract_repo_name
-        run: echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+        run: echo "REPO_NAME=$(basename '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Checkout Repository
         uses: actions/checkout@v4
