@@ -1,4 +1,4 @@
-package point.zzicback.todo.application.mapper;
+package point.zzicback.todo.domain.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

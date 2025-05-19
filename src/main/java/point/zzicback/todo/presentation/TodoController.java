@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.todo.application.TodoService;
-import point.zzicback.todo.application.mapper.TodoMapper;
+import point.zzicback.todo.domain.mapper.TodoMapper;
 import point.zzicback.todo.domain.Todo;
 import point.zzicback.todo.domain.dto.request.CreateTodoRequest;
 import point.zzicback.todo.domain.dto.request.UpdateTodoRequest;
