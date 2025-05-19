@@ -1,4 +1,4 @@
-package point.zzicback.controller;
+package point.zzicback.todo.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,11 +13,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import point.zzicback.dto.request.CreateTodoRequest;
-import point.zzicback.dto.request.UpdateTodoRequest;
-import point.zzicback.dto.response.TodoMainResponse;
-import point.zzicback.model.Todo;
-import point.zzicback.service.TodoService;
+import point.zzicback.todo.domain.dto.request.CreateTodoRequest;
+import point.zzicback.todo.domain.dto.request.UpdateTodoRequest;
+import point.zzicback.todo.domain.dto.response.TodoMainResponse;
+import point.zzicback.todo.domain.Todo;
+import point.zzicback.todo.application.TodoService;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class TodoController {
      *
      * <p>모든 Todo 항목의 목록을 조회합니다.
      *
-     * @param isDone Todo를 완료했는지 여부
+     * @param done Todo를 완료했는지 여부
      * @return Todo 리스트
      */
     @Operation(summary = "Todo 목록 조회", description = "모든 Todo 항목의 목록을 조회합니다.")

@@ -1,4 +1,4 @@
-package point.zzicback.config;
+package point.zzicback.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

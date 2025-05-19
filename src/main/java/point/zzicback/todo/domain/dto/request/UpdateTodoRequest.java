@@ -1,8 +1,8 @@
-package point.zzicback.dto.request;
+package point.zzicback.todo.domain.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import point.zzicback.model.Todo;
+import point.zzicback.todo.domain.Todo;
 
 @Data
 @Schema(description = "To-Do 업데이트 요청")

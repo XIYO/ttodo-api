@@ -1,7 +1,7 @@
-package point.zzicback.repository;
+package point.zzicback.todo.persistance;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import point.zzicback.model.Todo;
+import point.zzicback.todo.domain.Todo;
 
 import java.util.List;
 

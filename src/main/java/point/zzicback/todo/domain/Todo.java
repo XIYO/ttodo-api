@@ -1,4 +1,4 @@
-package point.zzicback.model;
+package point.zzicback.todo.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;

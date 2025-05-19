@@ -1,6 +1,6 @@
-package point.zzicback.service;
+package point.zzicback.todo.application;
 
-import point.zzicback.model.Todo;
+import point.zzicback.todo.domain.Todo;
 
 import java.util.List;
 

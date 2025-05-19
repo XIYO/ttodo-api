@@ -1,9 +1,9 @@
-package point.zzicback.dto.request;
+package point.zzicback.todo.domain.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import point.zzicback.model.Todo;
+import point.zzicback.todo.domain.Todo;
 
 @Data
 @Schema(description = "To-Do 생성 요청", requiredProperties = {"title"})

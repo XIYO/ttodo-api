@@ -1,9 +1,9 @@
-package point.zzicback.service;
+package point.zzicback.todo.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import point.zzicback.model.Todo;
-import point.zzicback.repository.TodoRepository;
+import point.zzicback.todo.domain.Todo;
+import point.zzicback.todo.persistance.TodoRepository;
 
 import java.util.List;
 
