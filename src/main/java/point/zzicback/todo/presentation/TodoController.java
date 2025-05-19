@@ -1,6 +1,5 @@
 package point.zzicback.todo.presentation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -13,11 +12,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import point.zzicback.todo.application.TodoService;
+import point.zzicback.todo.application.mapper.TodoMapper;
+import point.zzicback.todo.domain.Todo;
 import point.zzicback.todo.domain.dto.request.CreateTodoRequest;
 import point.zzicback.todo.domain.dto.request.UpdateTodoRequest;
 import point.zzicback.todo.domain.dto.response.TodoMainResponse;
-import point.zzicback.todo.domain.Todo;
-import point.zzicback.todo.application.TodoService;
 
 import java.util.List;
 
@@ -35,8 +35,7 @@ import java.util.List;
 public class TodoController {
 
     private final TodoService todoService;
-
-    private final ObjectMapper objectMapper;
+    private final TodoMapper todoMapper;
 
     /**
      * Todo 목록 조회
@@ -58,7 +57,7 @@ public class TodoController {
 
         // TodoMainResponse로 변환 필요
 
-        return todos.stream().map(todo -> objectMapper.convertValue(todo, TodoMainResponse.class)).toList();
+        return todoMapper.toTodoMainResponseList(todos);
     }
 
     /**
@@ -89,7 +88,7 @@ public class TodoController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void add(@Parameter(description = "등록할 Todo 정보") @RequestBody @Valid CreateTodoRequest createTodoRequest) {
-        Todo todo = objectMapper.convertValue(createTodoRequest, Todo.class);
+        Todo todo = todoMapper.toTodo(createTodoRequest);
         this.todoService.createTodo(todo);
     }
 
@@ -106,7 +105,7 @@ public class TodoController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void modify(@Parameter(description = "수정할 Todo의 ID") @PathVariable Long id, @Parameter(description = "수정할 Todo 정보") @RequestBody UpdateTodoRequest updateTodoRequest) {
-        Todo todo = objectMapper.convertValue(updateTodoRequest, Todo.class);
+        Todo todo = todoMapper.toTodo(updateTodoRequest, id);
         todo.setId(id);
         this.todoService.updateTodo(todo);
     }
