@@ -7,25 +7,11 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
-  datasource:
-    url: jdbc:h2:file:./data/zzic-db;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: create
     database-platform: org.hibernate.dialect.H2Dialect
-
-server:
-  port: 8081
 
 springdoc:
   swagger-ui:
@@ -33,7 +19,7 @@ springdoc:
 
 jwt:
   private-key: classpath:zzic/jwt/test-private.pem
-  public-key: classpath:zzic/jwt/test-public.pem
+  public-key: classpath:zzic/jwt/public.pem
   key-id: rsa-key-id
   cookie:
     name: Authorization
