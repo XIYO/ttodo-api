@@ -1,4 +1,4 @@
-package point.zzicback.member.domain.fieldcompare;
+package point.zzicback.common.validation.fieldcompare;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

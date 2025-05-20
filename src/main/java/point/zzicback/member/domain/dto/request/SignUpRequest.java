@@ -6,10 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
-import point.zzicback.member.domain.email.UniqueEmail;
-import point.zzicback.member.domain.fieldcompare.CompareResult;
-import point.zzicback.member.domain.fieldcompare.CompareTarget;
-import point.zzicback.member.domain.fieldcompare.FieldComparison;
+import point.zzicback.common.validation.email.UniqueEmail;
+import point.zzicback.common.validation.fieldcompare.CompareResult;
+import point.zzicback.common.validation.fieldcompare.CompareTarget;
+import point.zzicback.common.validation.fieldcompare.FieldComparison;
 
 @Schema(description = "사용자 회원가입에 필요한 데이터 DTO")
 @Builder

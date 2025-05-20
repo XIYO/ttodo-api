@@ -1,0 +1,15 @@
+spring:
+  active: prod,db-h2
+
+jwt:
+  private-key: ${JWT_PRIVATE_KEY:classpath:zzic/jwt/test-private.pem}
+  public-key: ${JWT_PUBLIC_KEY:classpath:zzic/jwt/test-public.pem}
+  key-id: ${JWT_KEY_ID:rsa-key-id}
+  cookie:
+    name: Authorization
+    domain: ${JWT_COOKIE_DOMAIN:zzic-api.xiyo.dev}
+    path: /
+    secure: ${JWT_COOKIE_SECURE:true}
+    httpOnly: ${JWT_COOKIE_HTTP_ONLY:true}
+    sameSite: ${JWT_COOKIE_SAME_SITE:Lax}
+    maxAge: ${JWT_COOKIE_MAX_AGE:604800}

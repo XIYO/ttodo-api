@@ -1,4 +1,4 @@
-package point.zzicback.member.domain.email;
+package point.zzicback.common.validation.email;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

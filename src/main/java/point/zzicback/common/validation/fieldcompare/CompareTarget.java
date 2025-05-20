@@ -1,4 +1,4 @@
-package point.zzicback.member.domain.fieldcompare;
+package point.zzicback.common.validation.fieldcompare;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
