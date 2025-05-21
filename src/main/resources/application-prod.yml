@@ -10,3 +10,10 @@ jwt:
     httpOnly: ${JWT_COOKIE_HTTP_ONLY:true}
     sameSite: ${JWT_COOKIE_SAME_SITE:Lax}
     maxAge: ${JWT_COOKIE_MAX_AGE:604800}
+server:
+  port: 443
+  ssl:
+    key-store: classpath:zzic/jwt/test-zzic.p12
+    key-store-type: PKCS12
+    key-store-password:
+    key-alias: zzic-api

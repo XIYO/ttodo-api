@@ -33,4 +33,10 @@ public class AuthController {
         response.addCookie(jwtCookie);
     }
 
+    @PostMapping("/sign-out")
+    public void signOut(HttpServletResponse response) {
+        Cookie expiredCookie = cookieUtil.createJwtCookie("");
+        cookieUtil.zeroAge(expiredCookie);
+        response.addCookie(expiredCookie);
+    }
 }
