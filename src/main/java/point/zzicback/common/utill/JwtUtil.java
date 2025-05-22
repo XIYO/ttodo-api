@@ -6,10 +6,12 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import point.zzicback.common.properties.JwtProperties;
+import point.zzicback.member.domain.Member;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -19,10 +21,16 @@ public class JwtUtil {
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
 
-    public String generateJwtToken(String email) {
+    public String generateJwtToken(String id, String email, String nickname) {
         Instant now = Instant.now();
+
+        List<String> roles = Collections.singletonList("ROLE_USER");
+
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(email)
+                .subject(id)
+                .claim("email", email)
+                .claim("nickname", nickname)
+                .claim("scope", String.join(" ", roles))
                 .issuedAt(now)
                 .expiresAt(now.plus(jwtProperties.cookie().maxAge(), ChronoUnit.SECONDS))
                 .build();

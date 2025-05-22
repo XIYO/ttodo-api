@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import point.zzicback.common.utill.CookieUtil;
+import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.application.MemberService;
+import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.dto.request.SignInRequest;
 import point.zzicback.member.domain.dto.request.SignUpRequest;
 
@@ -20,15 +22,17 @@ public class AuthController {
 
     private final MemberService memberService;
     private final CookieUtil cookieUtil;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/sign-up")
     public void signUpJson(@Valid @RequestBody SignUpRequest request) {
-        memberService.signUp(request);
+        memberService.signUp(request.toCommand());
     }
 
     @PostMapping("/sign-in")
     public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
-        String jwtToken = memberService.signIn(request);
+        AuthenticatedMember authenticatedMember = memberService.signIn(request.toDto());
+        String jwtToken = jwtUtil.generateJwtToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
         Cookie jwtCookie = cookieUtil.createJwtCookie(jwtToken);
         response.addCookie(jwtCookie);
     }

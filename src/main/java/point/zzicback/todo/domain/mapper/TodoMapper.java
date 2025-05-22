@@ -24,4 +24,7 @@ public interface TodoMapper {
     // UpdateTodoRequest와 ID를 사용하여 Todo 엔티티 생성
     @Mapping(target = "id", source = "id")
     Todo toTodo(UpdateTodoRequest updateTodoRequest, Long id);
+
+    //signinrequest를 dto로 변환
+
 }

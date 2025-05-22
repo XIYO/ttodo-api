@@ -7,20 +7,23 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 public class Member {
 
     @Id
-    @GeneratedValue
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @Setter
+    private UUID id;
 
     @Column(unique = true)
     @Setter
     private String email;
 
     @Setter
-    private String nickName;
+    private String nickname;
 
     @Setter
     private String password;

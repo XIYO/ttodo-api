@@ -9,12 +9,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import point.zzicback.common.utill.JwtUtil;
+import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.Member;
+import point.zzicback.member.domain.SignUpCommand;
+import point.zzicback.member.domain.dto.SignInCommand;
 import point.zzicback.member.domain.dto.request.SignInRequest;
 import point.zzicback.member.domain.dto.request.SignUpRequest;
 import point.zzicback.member.persistance.MemberRepository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -47,7 +51,7 @@ class MemberServiceTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
         // when
-        memberService.signUp(request);
+        memberService.signUp(request.toCommand());
 
         // then
         ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
@@ -56,7 +60,7 @@ class MemberServiceTest {
 
         assertEquals("user@example.com", saved.getEmail());
         assertEquals("encodedPassword", saved.getPassword());
-        assertEquals("닉네임", saved.getNickName());
+        assertEquals("닉네임", saved.getNickname());
     }
 
     @Test
@@ -68,7 +72,7 @@ class MemberServiceTest {
         when(memberRepository.existsByEmail(request.email())).thenReturn(true);
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> memberService.signUp(request));
+        assertThrows(IllegalArgumentException.class, () -> memberService.signUp(request.toCommand()));
     }
 
     @Test
@@ -76,21 +80,25 @@ class MemberServiceTest {
     void signIn_success() {
         // given
         SignInRequest request = new SignInRequest("user@example.com", "1234");
-        String expectedToken = "jwtToken";
+        SignInCommand command = request.toDto();
 
+        UUID memberId = UUID.randomUUID();
         Member member = new Member();
+        member.setId(memberId);
         member.setEmail("user@example.com");
         member.setPassword("encodedPassword");
+        member.setNickname("테스트유저");
 
         when(memberRepository.findByEmail("user@example.com")).thenReturn(Optional.of(member));
-        when(passwordEncoder.matches(request.password(), member.getPassword())).thenReturn(true);
-        when(jwtUtil.generateJwtToken(member.getEmail())).thenReturn(expectedToken);
+        when(passwordEncoder.matches(command.password(), member.getPassword())).thenReturn(true);
 
         // when
-        String token = memberService.signIn(request);
+        AuthenticatedMember result = memberService.signIn(command);
 
         // then
-        assertEquals(expectedToken, token);
+        assertEquals(memberId.toString(), result.id());
+        assertEquals("user@example.com", result.email());
+        assertEquals("테스트유저", result.nickname());
     }
 
     @Test
@@ -107,7 +115,7 @@ class MemberServiceTest {
         when(passwordEncoder.matches(request.password(), member.getPassword())).thenReturn(false);
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request));
+        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request.toDto()));
     }
 
     @Test
@@ -119,6 +127,6 @@ class MemberServiceTest {
         when(memberRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request));
+        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request.toDto()));
     }
 }

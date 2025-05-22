@@ -20,6 +20,7 @@ import point.zzicback.todo.domain.dto.request.UpdateTodoRequest;
 import point.zzicback.todo.domain.dto.response.TodoMainResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Todo API 컨트롤러
@@ -30,7 +31,7 @@ import java.util.List;
  */
 @Tag(name = "Todo API", description = "To-Do 목록을 조회, 등록, 수정, 삭제하는 API")
 @RestController
-@RequestMapping("/api/todos")
+@RequestMapping("/api/members/{memberId}/todos")
 @RequiredArgsConstructor
 public class TodoController {
 
@@ -51,9 +52,9 @@ public class TodoController {
             array = @ArraySchema(schema = @Schema(implementation = TodoMainResponse.class)))})})
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<TodoMainResponse> getAll(@Parameter(description = "Todo를 완료했는지 여부") @RequestParam Boolean done) {
+    public List<TodoMainResponse> getAll(@Parameter(description = "회원 ID") @PathVariable UUID memberId, @Parameter(description = "Todo를 완료했는지 여부") @RequestParam Boolean done) {
 
-        List<Todo> todos = this.todoService.getTodoList(done);
+        List<Todo> todos = this.todoService.getTodoListByMember(memberId, done);
 
         // TodoMainResponse로 변환 필요
 
@@ -72,8 +73,12 @@ public class TodoController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 Todo를 조회함", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Todo.class))), @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)})
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Todo getTodo(@Parameter(description = "조회할 Todo의 ID") @PathVariable Long id) {
-        return this.todoService.getTodoById(id);
+    public TodoMainResponse getTodo(
+            @Parameter(description = "회원 ID") @PathVariable UUID memberId,
+            @Parameter(description = "조회할 Todo의 ID") @PathVariable Long id
+    ) {
+        Todo todo = todoService.getTodoByMemberIdAndTodoId(memberId, id);
+        return todoMapper.toTodoMainResponse(todo);
     }
 
     /**
@@ -87,9 +92,9 @@ public class TodoController {
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "성공적으로 Todo를 생성함", content = @Content), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content)})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void add(@Parameter(description = "등록할 Todo 정보") @RequestBody @Valid CreateTodoRequest createTodoRequest) {
+    public void add(@Parameter(description = "회원 ID") @PathVariable UUID memberId, @Parameter(description = "등록할 Todo 정보") @RequestBody @Valid CreateTodoRequest createTodoRequest) {
         Todo todo = todoMapper.toTodo(createTodoRequest);
-        this.todoService.createTodo(todo);
+        this.todoService.createTodo(memberId, todo);
     }
 
     /**
@@ -104,10 +109,10 @@ public class TodoController {
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "성공적으로 Todo를 수정함", content = @Content), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content), @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)})
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void modify(@Parameter(description = "수정할 Todo의 ID") @PathVariable Long id, @Parameter(description = "수정할 Todo 정보") @RequestBody UpdateTodoRequest updateTodoRequest) {
+    public void modify(@Parameter(description = "회원 ID") @PathVariable UUID memberId, @Parameter(description = "수정할 Todo의 ID") @PathVariable Long id, @Parameter(description = "수정할 Todo 정보") @RequestBody UpdateTodoRequest updateTodoRequest) {
         Todo todo = todoMapper.toTodo(updateTodoRequest, id);
         todo.setId(id);
-        this.todoService.updateTodo(todo);
+        this.todoService.updateTodo(memberId, todo);
     }
 
     /**
@@ -121,7 +126,7 @@ public class TodoController {
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "성공적으로 Todo를 삭제함", content = @Content), @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)})
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@Parameter(description = "삭제할 Todo의 ID") @PathVariable Long id) {
-        this.todoService.deleteTodo(id);
+    public void remove(@Parameter(description = "회원 ID") @PathVariable UUID memberId, @Parameter(description = "삭제할 Todo의 ID") @PathVariable Long id) {
+        this.todoService.deleteTodo(memberId,id);
     }
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import point.zzicback.member.domain.Member;
 
 import java.io.Serializable;
 
@@ -48,4 +49,8 @@ public class Todo implements Serializable {
     @Schema(description = "To-Do 항목의 완료 여부", example = "false")
     @Column(nullable = false)
     private Boolean done = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 }

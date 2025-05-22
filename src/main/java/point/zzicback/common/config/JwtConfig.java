@@ -10,11 +10,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.util.StreamUtils;
 import point.zzicback.common.properties.JwtProperties;
 
@@ -27,6 +30,8 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
 
 @Configuration
 @RequiredArgsConstructor
@@ -85,6 +90,23 @@ public class JwtConfig {
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        return new JwtAuthenticationConverter();
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        // 빈 문자열로 설정하여 scope 접두사를 제거
+        grantedAuthoritiesConverter.setAuthorityPrefix("");
+
+        // 기본 권한 "ROLE_USER" 추가
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = grantedAuthoritiesConverter.convert(jwt);
+
+            // 기본 권한이 없는 경우 "ROLE_USER" 추가
+            if (authorities == null || authorities.isEmpty()) {
+                authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+            }
+
+            return authorities;
+        });
+
+        return jwtConverter;
     }
 }
