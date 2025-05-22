@@ -3,13 +3,14 @@ package point.zzicback.member.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import point.zzicback.common.utill.JwtUtil;
-import point.zzicback.member.domain.Member;
 import point.zzicback.member.domain.AuthenticatedMember;
+import point.zzicback.member.domain.Member;
 import point.zzicback.member.domain.SignUpCommand;
 import point.zzicback.member.domain.dto.SignInCommand;
-import point.zzicback.member.domain.dto.request.SignUpRequest;
+import point.zzicback.member.domain.dto.response.MemberMeResponse;
 import point.zzicback.member.persistance.MemberRepository;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +44,13 @@ public class MemberService {
 
     public boolean isEmailTaken(String email) {
         return memberRepository.findByEmail(email).isPresent();
+    }
+
+    public MemberMeResponse getMemberMe(UUID memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
+
+        return new MemberMeResponse(member.getEmail(), member.getNickname());
     }
 }
 

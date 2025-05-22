@@ -7,6 +7,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,41 +17,17 @@ public class CustomJwtAuthConverter implements Converter<Jwt, AbstractAuthentica
 
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
-        /* 기본 클레임 추출 */
-        String id = jwt.getClaimAsString("id"); // id 클레임에서 회원 ID 가져오기
-        UUID memberId;
-        try {
-            // id가 null인 경우 예외를 던지기 전에 체크
-            if (id == null) {
-                memberId = UUID.randomUUID(); // id가 null인 경우 임시로 랜덤 UUID 생성
-            } else {
-                memberId = UUID.fromString(id);
-            }
-        } catch (IllegalArgumentException e) {
-            // id가 UUID 형식이 아닌 경우
-            memberId = UUID.randomUUID(); // 임시로 랜덤 UUID 생성
-        }
-        
-        String email = jwt.getSubject(); // 이메일을 subject로 사용
+        UUID id = UUID.fromString(jwt.getSubject());
+        String email = jwt.getClaimAsString("email");
         String nickname = jwt.getClaimAsString("nickname");
-        
-        // nickname이 null인 경우 기본값 설정
-        if (nickname == null) {
-            nickname = "익명 사용자";
-        }
+        String scopeString = jwt.getClaimAsString("scope");
+        List<SimpleGrantedAuthority> authorities = scopeString == null
+                ? Collections.emptyList()
+                : Arrays.stream(scopeString.split(" "))
+                .map(SimpleGrantedAuthority::new)
+                .toList();
 
-        /* 권한 → ROLE_ 접두어 없이 저장했다면 여기서 변환 */
-        List<SimpleGrantedAuthority> authorities =
-                jwt.getClaimAsStringList("roles") != null ?
-                jwt.getClaimAsStringList("roles")
-                        .stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .toList() :
-                List.of(new SimpleGrantedAuthority("ROLE_USER")); // 기본 권한 설정
-
-        MemberPrincipal principal = new MemberPrincipal(memberId, email, nickname, authorities);
-
-        /* credentials 자리에 원본 Jwt 를 넣어 두면 필요 시 꺼내 쓸 수 있음 */
+        MemberPrincipal principal = new MemberPrincipal(id, email, nickname, authorities);
         return new UsernamePasswordAuthenticationToken(principal, jwt, authorities);
     }
 }

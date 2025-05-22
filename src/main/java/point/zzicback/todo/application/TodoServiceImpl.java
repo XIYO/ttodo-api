@@ -24,6 +24,9 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public List<Todo> getTodoListByMember(UUID memberId, Boolean done) {
+        if(done == null){
+            return todoRepository.findByMemberId(memberId);
+        }
         return todoRepository.findByMemberIdAndDone(memberId, done);
     }
     @Override

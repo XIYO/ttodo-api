@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.Member;
-import point.zzicback.member.domain.SignUpCommand;
 import point.zzicback.member.domain.dto.SignInCommand;
 import point.zzicback.member.domain.dto.request.SignInRequest;
 import point.zzicback.member.domain.dto.request.SignUpRequest;
@@ -80,7 +79,7 @@ class MemberServiceTest {
     void signIn_success() {
         // given
         SignInRequest request = new SignInRequest("user@example.com", "1234");
-        SignInCommand command = request.toDto();
+        SignInCommand command = request.toCommand();
 
         UUID memberId = UUID.randomUUID();
         Member member = new Member();
@@ -115,7 +114,7 @@ class MemberServiceTest {
         when(passwordEncoder.matches(request.password(), member.getPassword())).thenReturn(false);
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request.toDto()));
+        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request.toCommand()));
     }
 
     @Test
@@ -127,6 +126,6 @@ class MemberServiceTest {
         when(memberRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
         // expect
-        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request.toDto()));
+        assertThrows(IllegalArgumentException.class, () -> memberService.signIn(request.toCommand()));
     }
 }

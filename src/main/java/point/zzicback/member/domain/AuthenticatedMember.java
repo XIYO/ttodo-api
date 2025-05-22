@@ -5,9 +5,9 @@ import java.util.UUID;
 public record AuthenticatedMember(
         String id,
         String email,
-        String nickname) {
-
+        String nickname
+) {
     public static AuthenticatedMember from(UUID id, String email, String nickname) {
-        return new AuthenticatedMember(String.valueOf(id), email, nickname);
+        return new AuthenticatedMember(id.toString(), email, nickname);
     }
 }

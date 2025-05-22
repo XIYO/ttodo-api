@@ -4,16 +4,18 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import point.zzicback.common.security.etc.MemberPrincipal;
 import point.zzicback.common.utill.CookieUtil;
 import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.dto.request.SignInRequest;
 import point.zzicback.member.domain.dto.request.SignUpRequest;
+import point.zzicback.member.domain.dto.response.MemberMeResponse;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
-        AuthenticatedMember authenticatedMember = memberService.signIn(request.toDto());
+        AuthenticatedMember authenticatedMember = memberService.signIn(request.toCommand());
         String jwtToken = jwtUtil.generateJwtToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
         Cookie jwtCookie = cookieUtil.createJwtCookie(jwtToken);
         response.addCookie(jwtCookie);
@@ -42,5 +44,11 @@ public class AuthController {
         Cookie expiredCookie = cookieUtil.createJwtCookie("");
         cookieUtil.zeroAge(expiredCookie);
         response.addCookie(expiredCookie);
+    }
+
+    @GetMapping("/me")
+    public MemberMeResponse getMe(@AuthenticationPrincipal MemberPrincipal principal) {
+        UUID memberId = principal.id();
+        return memberService.getMemberMe(memberId);
     }
 }
