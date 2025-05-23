@@ -22,7 +22,6 @@ import point.zzicback.todo.domain.dto.request.UpdateTodoRequest;
 import point.zzicback.todo.domain.dto.response.TodoMainResponse;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Todo API 컨트롤러
@@ -33,7 +32,7 @@ import java.util.UUID;
  */
 @Tag(name = "Todo API", description = "To-Do 목록을 조회, 등록, 수정, 삭제하는 API")
 @RestController
-@RequestMapping("/api/todos")
+@RequestMapping("/api/members")
 @RequiredArgsConstructor
 public class TodoController {
 
@@ -52,7 +51,7 @@ public class TodoController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 Todo 목록을 조회함", content = {@Content(mediaType = "application/json",
             // 배열임을 명시하려면 ArraySchema를 사용
             array = @ArraySchema(schema = @Schema(implementation = TodoMainResponse.class)))})})
-    @GetMapping
+    @GetMapping("/me/todos")
     @ResponseStatus(HttpStatus.OK)
     public List<TodoMainResponse> getAll(
             @AuthenticationPrincipal MemberPrincipal principal,
@@ -77,7 +76,7 @@ public class TodoController {
      */
     @Operation(summary = "특정 Todo 조회", description = "ID에 해당하는 Todo를 조회합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "성공적으로 Todo를 조회함", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Todo.class))), @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)})
-    @GetMapping("/{id}")
+    @GetMapping("/me/todos/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TodoMainResponse getTodo(
             @AuthenticationPrincipal MemberPrincipal principal,
@@ -96,7 +95,7 @@ public class TodoController {
      */
     @Operation(summary = "Todo 등록", description = "새로운 Todo를 등록합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "성공적으로 Todo를 생성함", content = @Content), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content)})
-    @PostMapping
+    @PostMapping("/me/todos")
     @ResponseStatus(HttpStatus.CREATED)
     public void add(
             @AuthenticationPrincipal MemberPrincipal principal,
@@ -115,7 +114,7 @@ public class TodoController {
      */
     @Operation(summary = "Todo 수정", description = "ID에 해당하는 Todo를 수정합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "성공적으로 Todo를 수정함", content = @Content), @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content), @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)})
-    @PutMapping("/{id}")
+    @PutMapping("/me/todos/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void modify(
             @AuthenticationPrincipal MemberPrincipal principal,
@@ -135,7 +134,7 @@ public class TodoController {
      */
     @Operation(summary = "Todo 삭제", description = "ID에 해당하는 Todo를 삭제합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "성공적으로 Todo를 삭제함", content = @Content), @ApiResponse(responseCode = "404", description = "해당 ID의 Todo를 찾을 수 없음", content = @Content)})
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/me/todos/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(
             @AuthenticationPrincipal MemberPrincipal principal,
