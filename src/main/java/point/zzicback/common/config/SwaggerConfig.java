@@ -14,6 +14,7 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .addServersItem(new Server().url("https://zzic-api.xiyo.dev").description("Production Server"))
+                .addServersItem(new Server().url("http://localhost:8080").description("Local Server"))
                 .info(new Info().title("찌익 (ZZIC) 백엔드 API 문서").version("1.0.0").description("""
                 TODO 기능의 백엔드 기능을 담당하는 API 문서 입니다.
                 
