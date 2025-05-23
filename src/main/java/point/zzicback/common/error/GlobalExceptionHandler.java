@@ -11,31 +11,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationError(
-            MethodArgumentNotValidException ex,
-            HttpServletRequest request
-    ) {
-        List<FieldErrorResponse> fieldErrors = ex.getBindingResult()
+    public ResponseEntity<Map<String, List<String>>> handleValidationError(MethodArgumentNotValidException ex) {
+        Map<String, List<String>> fieldErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(err -> new FieldErrorResponse(err.getField(), err.getDefaultMessage()))
-                .toList();
+                .collect(Collectors.groupingBy(
+                        err -> err.getField(),
+                        Collectors.mapping(err -> err.getDefaultMessage(), Collectors.toList())
+                ));
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                ZonedDateTime.now(ZoneId.of("Asia/Seoul")).toString(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                request.getRequestURI(),
-                ex.getMessage(),
-                fieldErrors
-        );
-
-        return ResponseEntity.badRequest().body(errorResponse);
+        return ResponseEntity.badRequest().body(fieldErrors);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -87,5 +79,12 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    @ExceptionHandler(FieldValidationException.class)
+    public ResponseEntity<Map<String, List<String>>> handleFieldValidation(FieldValidationException ex) {
+        return ResponseEntity.badRequest().body(
+                Map.of(ex.getField(), List.of(ex.getMessage()))
+        );
     }
 }

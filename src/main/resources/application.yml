@@ -7,6 +7,9 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+  messages:
+    basename: messages
+    encoding: UTF-8
   jpa:
     show-sql: true
     hibernate:

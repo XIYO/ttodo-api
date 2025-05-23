@@ -3,6 +3,7 @@ package point.zzicback.member.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import point.zzicback.common.error.FieldValidationException;
 import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.domain.SignUpCommand;
@@ -33,10 +34,10 @@ public class MemberService {
 
     public AuthenticatedMember signIn(SignInCommand signInCommand) {
         Member member = memberRepository.findByEmail(signInCommand.email())
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
+                .orElseThrow(() -> new FieldValidationException("email", "회원이 존재하지 않습니다."));
 
         if (!passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
+            throw new FieldValidationException("password", "비밀번호가 틀렸습니다.");
         }
 
         return AuthenticatedMember.from(member.getId(), member.getEmail(), member.getNickname());

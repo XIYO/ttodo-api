@@ -3,6 +3,7 @@ package point.zzicback.common.config;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,7 +12,9 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI().info(new Info().title("찌익 (ZZIC) 백엔드 API 문서").version("1.0.0").description("""
+        return new OpenAPI()
+                .addServersItem(new Server().url("https://zzic-api.xiyo.dev").description("Production Server"))
+                .info(new Info().title("찌익 (ZZIC) 백엔드 API 문서").version("1.0.0").description("""
                 TODO 기능의 백엔드 기능을 담당하는 API 문서 입니다.
                 
                 ## ZZIC 무엇인가요?
