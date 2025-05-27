@@ -8,7 +8,8 @@ public record JwtProperties(
         String keyId,
         Resource publicKey,
         Resource privateKey,
-        CookieProperties cookie
+        CookieProperties cookie,
+        int expiration
 ) {
     public record CookieProperties(
             String name,

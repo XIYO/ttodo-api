@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import point.zzicback.common.jwt.RefreshTokenService;
 import point.zzicback.common.security.etc.MemberPrincipal;
 import point.zzicback.common.utill.CookieUtil;
 import point.zzicback.common.utill.JwtUtil;
@@ -25,6 +26,7 @@ public class AuthController {
     private final MemberService memberService;
     private final CookieUtil cookieUtil;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/sign-up")
     public void signUpJson(@Valid @RequestBody SignUpRequest request) {
@@ -34,9 +36,13 @@ public class AuthController {
     @PostMapping("/sign-in")
     public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
         AuthenticatedMember authenticatedMember = memberService.signIn(request.toCommand());
-        String jwtToken = jwtUtil.generateJwtToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
+        String jwtToken = jwtUtil.generateAccessToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
         Cookie jwtCookie = cookieUtil.createJwtCookie(jwtToken);
         response.addCookie(jwtCookie);
+
+        String refreshToken = jwtUtil.generateRefreshToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
+
+        refreshTokenService.save(UUID.fromString(authenticatedMember.id()), refreshToken, jwtToken);
     }
 
     @PostMapping("/sign-out")

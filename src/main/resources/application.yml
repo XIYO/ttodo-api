@@ -16,6 +16,12 @@ spring:
       ddl-auto: create
     database-platform: org.hibernate.dialect.H2Dialect
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 1234
+
 springdoc:
   swagger-ui:
     path: /
@@ -26,6 +32,7 @@ jwt:
   private-key: classpath:zzic/jwt/test-private.pem
   public-key: classpath:zzic/jwt/public.pem
   key-id: rsa-key-id
+  expiration: 1
   cookie:
     name: Authorization
     domain: localhost
