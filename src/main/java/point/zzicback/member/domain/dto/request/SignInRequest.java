@@ -3,7 +3,7 @@ package point.zzicback.member.domain.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import point.zzicback.member.domain.dto.SignInCommand;
+import point.zzicback.member.domain.dto.command.SignInCommand;
 
 @Schema(description = "사용자 로그인 요청 DTO")
 @PasswordOrAnonymousValid

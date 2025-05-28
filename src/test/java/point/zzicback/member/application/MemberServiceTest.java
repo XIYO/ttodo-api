@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.Member;
-import point.zzicback.member.domain.dto.SignInCommand;
+import point.zzicback.member.domain.dto.command.SignInCommand;
 import point.zzicback.member.domain.dto.request.SignInRequest;
 import point.zzicback.member.domain.dto.request.SignUpRequest;
 import point.zzicback.member.persistance.MemberRepository;

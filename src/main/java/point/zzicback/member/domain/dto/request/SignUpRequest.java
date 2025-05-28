@@ -10,7 +10,7 @@ import point.zzicback.common.validation.email.UniqueEmail;
 import point.zzicback.common.validation.fieldcompare.CompareResult;
 import point.zzicback.common.validation.fieldcompare.CompareTarget;
 import point.zzicback.common.validation.fieldcompare.FieldComparison;
-import point.zzicback.member.domain.SignUpCommand;
+import point.zzicback.member.domain.dto.command.SignUpCommand;
 
 @Schema(description = "사용자 회원가입에 필요한 데이터 DTO")
 @Builder
@@ -37,12 +37,12 @@ public record SignUpRequest(
         @CompareResult // 패스워드 비교 결과 필드 지정
         String confirmPassword,
 
-        @NotBlank(message = "{nickName.required}")
+        @NotBlank(message = "{nickname.required}")
         @Schema(description = "사용자 이름", example = "홍길동")
-        String nickName
+        String nickname
 
 ) {
     public SignUpCommand toCommand() {
-        return new SignUpCommand(email, password, nickName);
+        return new SignUpCommand(email, password, nickname);
     }
 }
