@@ -1,19 +1,19 @@
 package point.zzicback.member.presentation;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import point.zzicback.common.jwt.TokenService;
-import point.zzicback.common.security.etc.MemberPrincipal;
 import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
 import point.zzicback.common.utill.CookieUtil;
 import point.zzicback.common.utill.JwtUtil;
@@ -21,7 +21,6 @@ import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.dto.request.SignInRequest;
 import point.zzicback.member.domain.dto.request.SignUpRequest;
-import point.zzicback.member.domain.dto.response.MemberMeResponse;
 
 import java.util.UUID;
 
@@ -83,17 +82,5 @@ public class AuthController {
         if (jwtToken != null) {
             tokenService.deleteByToken(jwtToken);
         }
-    }
-
-
-    @Operation(summary = "내 정보 조회", description = "현재 로그인한 회원의 정보를 조회합니다.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "회원 정보 조회 성공", useReturnTypeSchema = true),
-        @ApiResponse(responseCode = "401", description = "인증 실패")
-    })
-    @GetMapping("/me")
-    public MemberMeResponse getMe(@Parameter(hidden = true) @AuthenticationPrincipal MemberPrincipal principal) {
-        UUID memberId = principal.id();
-        return memberService.getMemberMe(memberId);
     }
 }
