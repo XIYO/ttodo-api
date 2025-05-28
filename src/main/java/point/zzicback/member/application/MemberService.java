@@ -26,7 +26,7 @@ public class MemberService {
         Member member = new Member();
         member.setEmail(signUpCommand.email());
         member.setPassword(passwordEncoder.encode(signUpCommand.password()));
-        member.setNickname(signUpCommand.nickName());
+        member.setNickname(signUpCommand.nickname());
 
         memberRepository.save(member);
     }

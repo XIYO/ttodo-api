@@ -9,16 +9,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import point.zzicback.common.jwt.TokenService;
 import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
 import point.zzicback.common.utill.CookieUtil;
 import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.AuthenticatedMember;
+import point.zzicback.member.domain.dto.command.SignInCommand;
 import point.zzicback.member.domain.dto.request.SignInRequest;
 import point.zzicback.member.domain.dto.request.SignUpRequest;
 
@@ -36,20 +34,41 @@ public class AuthController {
     private final TokenService tokenService;
     private final MultiBearerTokenResolver tokenResolver;
 
-    @Operation(summary = "회원가입", description = "회원가입을 진행합니다.")
+    @Operation(summary = "회원가입 및 로그인", description = "회원가입을 진행하고 즉시 로그인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "회원가입 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            @ApiResponse(responseCode = "200", description = "회원가입 및 로그인 성공, 쿠키에 토큰 발급"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
     })
     @PostMapping("/sign-up")
-    public void signUpJson(@Valid @RequestBody SignUpRequest request) {
+    public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+        // 1. 회원가입 진행
         memberService.signUp(request.toCommand());
+
+        // 2. 회원가입 후 바로 로그인 진행
+        // SignInCommand로 변환 (패스워드만 있으면 됨)
+        SignInCommand signInCommand = new SignInCommand(request.email(), request.password());
+        AuthenticatedMember authenticatedMember = memberService.signIn(signInCommand);
+
+        // 3. 토큰 발급 및 쿠키 설정
+        String deviceId = UUID.randomUUID().toString();
+        String accessToken = jwtUtil.generateAccessToken(authenticatedMember.id(),
+                authenticatedMember.email(),
+                authenticatedMember.nickname());
+        Cookie jwtCookie = cookieUtil.createJwtCookie(accessToken);
+        response.addCookie(jwtCookie);
+
+        String refreshToken = jwtUtil.generateRefreshToken(authenticatedMember.id(), deviceId);
+        Cookie refreshCookie = cookieUtil.createRefreshCookie(refreshToken);
+        response.addCookie(refreshCookie);
+
+        tokenService.save(deviceId, refreshToken);
     }
 
     @Operation(summary = "로그인", description = "로그인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "로그인 성공, 쿠키에 토큰 발급"),
-        @ApiResponse(responseCode = "401", description = "인증 실패")
+            @ApiResponse(responseCode = "200", description = "로그인 성공, 쿠키에 토큰 발급"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @PostMapping("/sign-in")
     public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
@@ -83,4 +102,7 @@ public class AuthController {
             tokenService.deleteByToken(jwtToken);
         }
     }
+
+    @GetMapping("/refresh")
+    public void refresh() {}
 }
