@@ -3,9 +3,9 @@ package point.zzicback.common.config;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,9 +13,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import point.zzicback.common.jwt.TokenService;
 import point.zzicback.common.security.etc.CustomJwtAuthConverter;
 import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
 import point.zzicback.common.utill.CookieUtil;
@@ -31,6 +34,8 @@ public class SecurityConfig {
     private final CustomJwtAuthConverter customJwtAuthConverter;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
+    private final JwtDecoder jwtDecoder;
+    private final ApplicationContext applicationContext;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint) throws Exception {
@@ -71,26 +76,32 @@ public class SecurityConfig {
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authException) -> {
             Throwable cause = authException.getCause();
-
             if (!(cause instanceof JwtValidationException) && cause != null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
 
-            JwtValidationException validationEx = (JwtValidationException) cause;
-            // 1) 만료된 토큰으로부터 subject 추출 (서명 검증 없이 페이로드만 파싱)
-            String token = multiBearerTokenResolver.resolve(request);
-            String sub = jwtUtil.extractClaim(token, "sub");
-            String claimEmail = jwtUtil.extractClaim(token, "email");
-            String claimNickname = jwtUtil.extractClaim(token, "nickname");
+            String refreshToken = cookieUtil.getRefreshToken(request);
+            if (refreshToken == null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+            try {
+                jwtDecoder.decode(refreshToken);
+            } catch (JwtException e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+            String deviceId = jwtUtil.extractClaim(refreshToken, "device");
+            // TokenService를 ApplicationContext에서 직접 가져와 사용 (순환참조 방지)
+            TokenService tokenService = applicationContext.getBean(TokenService.class);
+            TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
 
-            // 2) 새 토큰 발급
-            String newToken = jwtUtil.generateAccessToken(sub, claimEmail, claimNickname);
+            Cookie accessCookie = cookieUtil.createJwtCookie(newTokens.accessToken());
+            response.addCookie(accessCookie);
+            Cookie refreshCookie = cookieUtil.createRefreshCookie(newTokens.refreshToken());
+            response.addCookie(refreshCookie);
 
-            Cookie jwtCookie = cookieUtil.createJwtCookie(newToken);
-            response.addCookie(jwtCookie);
-
-             //4) 원래 요청 URI 그대로 307 Temporary Redirect
             String uri = request.getRequestURI()
                     + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
             response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);

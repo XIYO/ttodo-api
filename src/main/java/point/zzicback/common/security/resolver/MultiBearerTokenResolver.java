@@ -33,6 +33,7 @@ public class MultiBearerTokenResolver implements BearerTokenResolver {
                     .orElse(null);
         }
 
+
         return null;
     }
 }

@@ -1,13 +1,15 @@
 package point.zzicback.member.presentation;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import point.zzicback.common.jwt.RefreshTokenService;
+import point.zzicback.common.jwt.TokenService;
 import point.zzicback.common.security.etc.MemberPrincipal;
+import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
 import point.zzicback.common.utill.CookieUtil;
 import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.application.MemberService;
@@ -26,7 +28,8 @@ public class AuthController {
     private final MemberService memberService;
     private final CookieUtil cookieUtil;
     private final JwtUtil jwtUtil;
-    private final RefreshTokenService refreshTokenService;
+    private final TokenService tokenService;
+    private final MultiBearerTokenResolver tokenResolver;
 
     @PostMapping("/sign-up")
     public void signUpJson(@Valid @RequestBody SignUpRequest request) {
@@ -36,21 +39,32 @@ public class AuthController {
     @PostMapping("/sign-in")
     public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
         AuthenticatedMember authenticatedMember = memberService.signIn(request.toCommand());
-        String jwtToken = jwtUtil.generateAccessToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
-        Cookie jwtCookie = cookieUtil.createJwtCookie(jwtToken);
+        String deviceId = UUID.randomUUID().toString();
+        String accessToken = jwtUtil.generateAccessToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
+        Cookie jwtCookie = cookieUtil.createJwtCookie(accessToken);
         response.addCookie(jwtCookie);
 
-        String refreshToken = jwtUtil.generateRefreshToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
+        String refreshToken = jwtUtil.generateRefreshToken(authenticatedMember.id(), deviceId);
+        Cookie refreshCookie = cookieUtil.createRefreshCookie(refreshToken);
+        response.addCookie(refreshCookie);
 
-        refreshTokenService.save(UUID.fromString(authenticatedMember.id()), refreshToken, jwtToken);
+        tokenService.save(deviceId, refreshToken);
     }
 
     @PostMapping("/sign-out")
-    public void signOut(HttpServletResponse response) {
+    public void signOut(HttpServletRequest request, HttpServletResponse response) {
+        // 1) 쿠키 즉시 만료
         Cookie expiredCookie = cookieUtil.createJwtCookie("");
         cookieUtil.zeroAge(expiredCookie);
         response.addCookie(expiredCookie);
+
+        // 2) 요청에서 JWT 꺼내기
+        String jwtToken = tokenResolver.resolve(request);
+        if (jwtToken != null) {
+            tokenService.deleteByToken(jwtToken);
+        }
     }
+
 
     @GetMapping("/me")
     public MemberMeResponse getMe(@AuthenticationPrincipal MemberPrincipal principal) {

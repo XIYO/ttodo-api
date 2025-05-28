@@ -1,5 +1,6 @@
 package point.zzicback.common.properties;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 
@@ -9,7 +10,8 @@ public record JwtProperties(
         Resource publicKey,
         Resource privateKey,
         CookieProperties cookie,
-        int expiration
+        int expiration,
+        int refreshExpiration
 ) {
     public record CookieProperties(
             String name,
@@ -17,7 +19,6 @@ public record JwtProperties(
             String path,
             boolean secure,
             boolean httpOnly,
-            String sameSite,
-            int maxAge
+            String sameSite
     ) {}
 }

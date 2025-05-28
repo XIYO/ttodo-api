@@ -32,7 +32,8 @@ jwt:
   private-key: classpath:zzic/jwt/test-private.pem
   public-key: classpath:zzic/jwt/public.pem
   key-id: rsa-key-id
-  expiration: 1
+  expiration: 60
+  refresh-expiration: 31536000 # 365 * 24 * 60 * 60
   cookie:
     name: Authorization
     domain: localhost
@@ -40,4 +41,3 @@ jwt:
     secure: false
     httpOnly: true
     sameSite: Lax
-    maxAge: 604800

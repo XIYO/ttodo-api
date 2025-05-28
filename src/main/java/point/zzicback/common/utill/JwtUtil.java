@@ -14,7 +14,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -23,38 +25,39 @@ public class JwtUtil {
     private final JwtProperties jwtProperties;
     private final JwtEncoder jwtEncoder;
 
-    private String generateJwtToken(String id, String email, String nickname, Instant expiresAt) {
+    private String generateToken(String userId, Instant expiresAt, Map<String, Object> additionalClaims) {
         Instant now = Instant.now();
-
-        List<String> roles = Collections.singletonList("ROLE_USER");
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(id)
-                .claim("email", email)
-                .claim("nickname", nickname)
-                .claim("scope", String.join(" ", roles))
+        JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
+                .subject(userId)
                 .issuedAt(now)
-                .expiresAt(expiresAt)
-                .build();
+                .expiresAt(expiresAt);
 
+        additionalClaims.forEach(claimsBuilder::claim);
+
+        JwtClaimsSet claims = claimsBuilder.build();
         JwtEncoderParameters parameters = JwtEncoderParameters.from(
                 JwsHeader.with(() -> "RS256")
                         .keyId(jwtProperties.keyId())
                         .build(),
                 claims
         );
-
         return jwtEncoder.encode(parameters).getTokenValue();
     }
 
     public String generateAccessToken(String id, String email, String nickname) {
         Instant expiresAt = Instant.now().plus(jwtProperties.expiration(), ChronoUnit.SECONDS);
-        return generateJwtToken(id, email, nickname, expiresAt);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", email);
+        claims.put("nickname", nickname);
+        claims.put("scope", "ROLE_USER");
+        return generateToken(id, expiresAt, claims);
     }
 
-    public String generateRefreshToken(String id, String email, String nickname) {
-        Instant expiresAt = Instant.now().plus(365, ChronoUnit.DAYS);
-        return generateJwtToken(id, email, nickname, expiresAt);
+    public String generateRefreshToken(String id, String device) {
+        Instant expiresAt = Instant.now().plus(jwtProperties.refreshExpiration(), ChronoUnit.SECONDS);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("device", device);
+        return generateToken(id, expiresAt, claims);
     }
 
     public String extractClaim(String token, String claimName) {
@@ -80,4 +83,6 @@ public class JwtUtil {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰 파싱 실패", e);
         }
     }
+
+
 }

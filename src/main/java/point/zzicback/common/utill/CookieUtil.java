@@ -13,7 +13,7 @@ public class CookieUtil {
 
     public Cookie createJwtCookie(String jwtToken) {
         String cookieName = jwtProperties.cookie().name();
-        int maxAge = jwtProperties.cookie().maxAge();
+        int maxAge = jwtProperties.expiration();
         return this.create(cookieName, jwtToken, maxAge);
     }
 
@@ -35,5 +35,21 @@ public class CookieUtil {
 
     public void zeroAge(Cookie cookie) {
         cookie.setMaxAge(0);
+    }
+
+    public Cookie createRefreshCookie(String refreshToken) {
+        String cookieName = jwtProperties.cookie().name() + "-refresh";
+        int maxAge = jwtProperties.refreshExpiration();
+        return this.create(cookieName, refreshToken, maxAge);
+    }
+
+    public String getRefreshToken(jakarta.servlet.http.HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+        for (Cookie cookie : request.getCookies()) {
+            if (cookie.getName().equals(jwtProperties.cookie().name() + "-refresh")) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }
