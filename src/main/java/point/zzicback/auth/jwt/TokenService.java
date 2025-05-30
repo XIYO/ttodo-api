@@ -1,11 +1,11 @@
-package point.zzicback.common.jwt;
+package point.zzicback.auth.jwt;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import point.zzicback.common.properties.JwtProperties;
-import point.zzicback.common.util.JwtUtil;
+import point.zzicback.auth.config.properties.JwtProperties;
+import point.zzicback.auth.util.JwtUtil;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
 

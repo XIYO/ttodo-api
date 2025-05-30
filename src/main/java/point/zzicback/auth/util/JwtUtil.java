@@ -1,4 +1,4 @@
-package point.zzicback.common.util;
+package point.zzicback.auth.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -8,14 +8,12 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-import point.zzicback.common.properties.JwtProperties;
+import point.zzicback.auth.config.properties.JwtProperties;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -69,7 +67,6 @@ public class JwtUtil {
 
             String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
 
-            // 매우 단순한 claim 추출 (key는 "..."로 감싸져 있다고 가정)
             String target = "\"" + claimName + "\"";
             int start = payloadJson.indexOf(target);
             if (start == -1) return null;
@@ -83,6 +80,4 @@ public class JwtUtil {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰 파싱 실패", e);
         }
     }
-
-
 }

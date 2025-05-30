@@ -15,10 +15,10 @@ import point.zzicback.auth.domain.AuthenticatedMember;
 import point.zzicback.auth.presentation.dto.SignInRequest;
 import point.zzicback.auth.presentation.dto.SignUpRequest;
 import point.zzicback.auth.presentation.mapper.AuthPresentationMapper;
-import point.zzicback.common.jwt.TokenService;
-import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
-import point.zzicback.common.util.CookieUtil;
-import point.zzicback.common.util.JwtUtil;
+import point.zzicback.auth.jwt.TokenService;
+import point.zzicback.auth.security.resolver.MultiBearerTokenResolver;
+import point.zzicback.auth.util.CookieUtil;
+import point.zzicback.auth.util.JwtUtil;
 
 import java.util.UUID;
 
@@ -94,6 +94,6 @@ public class AuthController {
 
     @GetMapping("/refresh")
     public void refresh() {
-
+        // 자동 토큰 갱신은 AuthenticationEntryPoint에서 처리됨
     }
 }

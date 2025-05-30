@@ -3,7 +3,6 @@ package point.zzicback.common.config;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,8 +12,6 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .addServersItem(new Server().url("https://zzic-api.xiyo.dev").description("Production Server"))
-                .addServersItem(new Server().url("http://localhost:8080").description("Local Server"))
                 .info(new Info().title("찌익 (ZZIC) 백엔드 API 문서").version("1.0.0").description("""
                 TODO 기능의 백엔드 기능을 담당하는 API 문서 입니다.
                 
@@ -22,12 +19,6 @@ public class SwaggerConfig {
                 
                 우표처럼 펀치가 있는 종이를 찢는 소리를 의성어로 나타내었습니다.
                 완료된 투두는 찢어 표시하는 것처럼 완료된 투두를 표시합니다.
-                
-                ## 로드맵
-                - 1/2 API 명세 완성
-                - 1/3 작업 착수 1/3 ~ 1/5 작업 완료
-                - 1/6 ~ 1/10 프론트붙치기
-                
                 ## 
                 """).license(new License().name("Apache 2.0").url("https://springdoc.org")));
     }

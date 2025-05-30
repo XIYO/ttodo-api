@@ -1,6 +1,5 @@
-package point.zzicback.common.properties;
+package point.zzicback.auth.config.properties;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 

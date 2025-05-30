@@ -1,5 +1,4 @@
-package point.zzicback.common.security.resolver;
-
+package point.zzicback.auth.security.resolver;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.stereotype.Component;
-import point.zzicback.common.properties.JwtProperties;
+import point.zzicback.auth.config.properties.JwtProperties;
 
 import java.util.Arrays;
 
@@ -32,7 +31,6 @@ public class MultiBearerTokenResolver implements BearerTokenResolver {
                     .map(Cookie::getValue)
                     .orElse(null);
         }
-
 
         return null;
     }

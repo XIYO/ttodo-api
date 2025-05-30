@@ -1,9 +1,9 @@
-package point.zzicback.common.util;
+package point.zzicback.auth.util;
 
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import point.zzicback.common.properties.JwtProperties;
+import point.zzicback.auth.config.properties.JwtProperties;
 
 @Component
 @RequiredArgsConstructor
@@ -23,7 +23,6 @@ public class CookieUtil {
         cookie.setSecure(jwtProperties.cookie().secure());
         cookie.setHttpOnly(jwtProperties.cookie().httpOnly());
 
-        // 개발 환경(localhost)에서는 domain 설정을 하지 않음
         String domain = jwtProperties.cookie().domain();
         if (domain != null && !domain.equalsIgnoreCase("localhost") && !domain.isBlank()) {
             cookie.setDomain(domain);

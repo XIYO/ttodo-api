@@ -1,4 +1,4 @@
-package point.zzicback.common.config;
+package point.zzicback.auth.config;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -19,8 +20,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.util.StreamUtils;
-import point.zzicback.common.properties.JwtProperties;
-
+import point.zzicback.auth.config.properties.JwtProperties;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +35,7 @@ import java.util.Collections;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableConfigurationProperties(JwtProperties.class)
 public class JwtConfig {
 
     private final JwtProperties jwtProperties;
@@ -57,13 +58,13 @@ public class JwtConfig {
     }
 
     private RSAPrivateKey loadPrivateKey() throws Exception {
-        byte[] keyBytes = Base64.getDecoder().decode(readKey((Resource) jwtProperties.privateKey()));
+        byte[] keyBytes = Base64.getDecoder().decode(readKey(jwtProperties.privateKey()));
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         return (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(keySpec);
     }
 
     private RSAPublicKey loadPublicKey() throws Exception {
-        byte[] keyBytes = Base64.getDecoder().decode(readKey((Resource) jwtProperties.publicKey()));
+        byte[] keyBytes = Base64.getDecoder().decode(readKey(jwtProperties.publicKey()));
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(keySpec);
     }
@@ -91,15 +92,12 @@ public class JwtConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        // 빈 문자열로 설정하여 scope 접두사를 제거
         grantedAuthoritiesConverter.setAuthorityPrefix("");
 
-        // 기본 권한 "ROLE_USER" 추가
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Collection<GrantedAuthority> authorities = grantedAuthoritiesConverter.convert(jwt);
 
-            // 기본 권한이 없는 경우 "ROLE_USER" 추가
             if (authorities == null || authorities.isEmpty()) {
                 authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
             }

@@ -1,4 +1,4 @@
-package point.zzicback.common.config;
+package point.zzicback.auth.config;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,12 +18,11 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import point.zzicback.common.jwt.TokenService;
-import point.zzicback.common.security.etc.CustomJwtAuthConverter;
-import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
-import point.zzicback.common.util.CookieUtil;
-import point.zzicback.common.util.JwtUtil;
-
+import point.zzicback.auth.jwt.TokenService;
+import point.zzicback.auth.security.converter.CustomJwtAuthConverter;
+import point.zzicback.auth.security.resolver.MultiBearerTokenResolver;
+import point.zzicback.auth.util.CookieUtil;
+import point.zzicback.auth.util.JwtUtil;
 
 @Configuration
 @EnableWebSecurity
@@ -67,7 +66,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -94,7 +92,6 @@ public class SecurityConfig {
                 return;
             }
             String deviceId = jwtUtil.extractClaim(refreshToken, "device");
-            // TokenService를 ApplicationContext에서 직접 가져와 사용 (순환참조 방지)
             TokenService tokenService = applicationContext.getBean(TokenService.class);
             TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
 
