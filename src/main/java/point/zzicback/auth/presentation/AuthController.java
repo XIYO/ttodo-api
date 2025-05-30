@@ -17,8 +17,8 @@ import point.zzicback.auth.presentation.dto.SignUpRequest;
 import point.zzicback.auth.presentation.mapper.AuthPresentationMapper;
 import point.zzicback.common.jwt.TokenService;
 import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
-import point.zzicback.common.utill.CookieUtil;
-import point.zzicback.common.utill.JwtUtil;
+import point.zzicback.common.util.CookieUtil;
+import point.zzicback.common.util.JwtUtil;
 
 import java.util.UUID;
 
@@ -94,6 +94,6 @@ public class AuthController {
 
     @GetMapping("/refresh")
     public void refresh() {
-        // 토큰 리프레시는 SecurityConfig에서 처리됨
+
     }
 }

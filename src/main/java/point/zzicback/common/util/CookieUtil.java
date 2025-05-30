@@ -1,4 +1,4 @@
-package point.zzicback.common.utill;
+package point.zzicback.common.util;
 
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;

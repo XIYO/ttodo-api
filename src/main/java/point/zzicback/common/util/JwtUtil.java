@@ -1,4 +1,4 @@
-package point.zzicback.common.utill;
+package point.zzicback.common.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

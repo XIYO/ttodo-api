@@ -21,8 +21,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import point.zzicback.common.jwt.TokenService;
 import point.zzicback.common.security.etc.CustomJwtAuthConverter;
 import point.zzicback.common.security.resolver.MultiBearerTokenResolver;
-import point.zzicback.common.utill.CookieUtil;
-import point.zzicback.common.utill.JwtUtil;
+import point.zzicback.common.util.CookieUtil;
+import point.zzicback.common.util.JwtUtil;
 
 
 @Configuration

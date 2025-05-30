@@ -8,6 +8,7 @@ import point.zzicback.auth.application.dto.command.SignInCommand;
 import point.zzicback.auth.application.dto.command.SignUpCommand;
 import point.zzicback.auth.application.mapper.AuthApplicationMapper;
 import point.zzicback.auth.domain.AuthenticatedMember;
+import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.persistance.MemberRepository;
 
@@ -22,7 +23,7 @@ public class AuthService {
 
     public void signUp(SignUpCommand signUpCommand) {
         if (memberRepository.existsByEmail(signUpCommand.email())) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new BusinessException("이미 존재하는 이메일입니다.");
         }
         Member member = authApplicationMapper.toEntity(signUpCommand);
         member.setPassword(passwordEncoder.encode(signUpCommand.password()));
@@ -33,11 +34,11 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthenticatedMember signIn(SignInCommand signInCommand) {
         Member member = memberRepository.findByEmail(signInCommand.email())
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
+                .orElseThrow(() -> new BusinessException("회원 정보 없음"));
 
         if (!"anonymous@shared.com".equals(signInCommand.email())
                 && !passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
+            throw new BusinessException("비밀번호가 틀렸습니다.");
         }
 
         return AuthenticatedMember.from(member.getId(), member.getEmail(), member.getNickname());
