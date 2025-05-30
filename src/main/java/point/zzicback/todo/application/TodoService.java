@@ -1,25 +1,55 @@
 package point.zzicback.todo.application;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import point.zzicback.member.persistance.MemberRepository;
 import point.zzicback.todo.domain.Todo;
+import point.zzicback.todo.persistance.TodoRepository;
 
-import java.util.List;
 import java.util.UUID;
 
-/**
- * 인터페이스 입니다 구현체를 만들어주세요
- */
-public interface TodoService {
-    List<Todo> getTodoList(Boolean done);
+import static java.util.Optional.ofNullable;
 
-    Todo getTodoById(Long id);
+@Service
+@RequiredArgsConstructor
+public class TodoService {
 
-    void createTodo(UUID memberId, Todo todo);
+    private final TodoRepository todoRepository;
+    private final MemberRepository memberRepository;
 
-    void updateTodo(UUID memberId, Todo todo);
+    public Page<Todo> getTodoListByMemberWithPagination(UUID memberId, Boolean done, Pageable pageable) {
+        return done == null
+                ? todoRepository.findByMemberId(memberId, pageable)
+                : todoRepository.findByMemberIdAndDone(memberId, done, pageable);
+    }
 
-    void deleteTodo(UUID memberId,Long id);
+    public Todo getTodoByMemberIdAndTodoId(UUID memberId, Long todoId) {
+        return todoRepository.findByIdAndMemberId(todoId, memberId).orElse(null);
+    }
 
-    List<Todo> getTodoListByMember(UUID memberId, Boolean done);
+    public long createTodo(UUID memberId, Todo todo) {
+        return memberRepository.findById(memberId)
+                .map(member -> {
+                    todo.setMember(member);
+                    return todoRepository.save(todo).getId();
+                })
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    }
 
-    Todo getTodoByMemberIdAndTodoId(UUID memberId, Long todoId);
+    public void updateTodo(UUID memberId, Todo todo) {
+        todoRepository.findByIdAndMemberId(todo.getId(), memberId).ifPresent(existingTodo -> {
+            ofNullable(todo.getTitle()).ifPresent(existingTodo::setTitle);
+            ofNullable(todo.getDescription()).ifPresent(existingTodo::setDescription);
+            ofNullable(todo.getDone()).ifPresent(existingTodo::setDone);
+            todoRepository.save(existingTodo);
+        });
+    }
+
+
+    public void deleteTodo(UUID memberId, Long id) {
+        todoRepository.findByIdAndMemberId(id, memberId)
+                .ifPresent(todo -> todoRepository.deleteById(id));
+    }
 }
