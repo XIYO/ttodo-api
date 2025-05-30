@@ -1,4 +1,4 @@
-package point.zzicback.member.domain.dto.request;
+package point.zzicback.member.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -10,7 +10,6 @@ import point.zzicback.common.validation.email.UniqueEmail;
 import point.zzicback.common.validation.fieldcompare.CompareResult;
 import point.zzicback.common.validation.fieldcompare.CompareTarget;
 import point.zzicback.common.validation.fieldcompare.FieldComparison;
-import point.zzicback.member.domain.dto.command.SignUpCommand;
 
 @Schema(description = "사용자 회원가입에 필요한 데이터 DTO")
 @Builder
@@ -42,7 +41,4 @@ public record SignUpRequest(
         String nickname
 
 ) {
-    public SignUpCommand toCommand() {
-        return new SignUpCommand(email, password, nickname);
-    }
 }

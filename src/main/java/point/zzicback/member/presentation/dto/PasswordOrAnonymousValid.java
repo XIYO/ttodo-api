@@ -1,4 +1,4 @@
-package point.zzicback.member.domain.dto.request;
+package point.zzicback.member.presentation.dto;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

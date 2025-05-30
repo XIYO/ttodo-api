@@ -1,4 +1,4 @@
-package point.zzicback.member.domain.dto.request;
+package point.zzicback.member.presentation.dto;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -17,4 +17,3 @@ public class PasswordOrAnonymousValidator implements ConstraintValidator<Passwor
         return value.password() != null && !value.password().isBlank();
     }
 }
-

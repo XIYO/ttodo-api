@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import point.zzicback.common.properties.JwtProperties;
 import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.application.MemberService;
-import point.zzicback.member.domain.dto.response.MemberMeResponse;
+import point.zzicback.member.application.dto.response.MemberMeResponse;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;

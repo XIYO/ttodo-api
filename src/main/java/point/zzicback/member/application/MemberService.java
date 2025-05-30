@@ -6,9 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.Member;
-import point.zzicback.member.domain.dto.command.SignUpCommand;
-import point.zzicback.member.domain.dto.command.SignInCommand;
-import point.zzicback.member.domain.dto.response.MemberMeResponse;
+import point.zzicback.member.application.dto.command.SignUpCommand;
+import point.zzicback.member.application.dto.command.SignInCommand;
+import point.zzicback.member.application.dto.query.MemberQuery;
+import point.zzicback.member.application.dto.response.MemberMeResponse;
+import point.zzicback.member.application.mapper.MemberApplicationMapper;
 import point.zzicback.member.persistance.MemberRepository;
 import point.zzicback.common.error.EntityNotFoundException;
 
@@ -20,6 +22,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MemberApplicationMapper memberApplicationMapper;
 
     @Transactional(readOnly = true)
     public Member findVerifiedMember(UUID memberId) {
@@ -27,14 +30,17 @@ public class MemberService {
                 .orElseThrow(() -> new EntityNotFoundException("Member", memberId));
     }
 
+    @Transactional(readOnly = true)
+    public Member findVerifiedMember(MemberQuery query) {
+        return findVerifiedMember(query.memberId());
+    }
+
     public void signUp(SignUpCommand signUpCommand) {
         if (memberRepository.existsByEmail(signUpCommand.email())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
-        Member member = new Member();
-        member.setEmail(signUpCommand.email());
+        Member member = memberApplicationMapper.toEntity(signUpCommand);
         member.setPassword(passwordEncoder.encode(signUpCommand.password()));
-        member.setNickname(signUpCommand.nickname());
 
         memberRepository.save(member);
     }
@@ -59,6 +65,10 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
 
-        return new MemberMeResponse(member.getEmail(), member.getNickname());
+        return memberApplicationMapper.toResponse(member);
+    }
+
+    public MemberMeResponse getMemberMe(MemberQuery query) {
+        return getMemberMe(query.memberId());
     }
 }

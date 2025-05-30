@@ -1,4 +1,4 @@
-package point.zzicback.member.domain.dto.command;
+package point.zzicback.member.application.dto.command;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

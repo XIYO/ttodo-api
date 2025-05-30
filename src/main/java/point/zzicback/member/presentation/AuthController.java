@@ -16,9 +16,10 @@ import point.zzicback.common.utill.CookieUtil;
 import point.zzicback.common.utill.JwtUtil;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.AuthenticatedMember;
-import point.zzicback.member.domain.dto.command.SignInCommand;
-import point.zzicback.member.domain.dto.request.SignInRequest;
-import point.zzicback.member.domain.dto.request.SignUpRequest;
+import point.zzicback.member.application.dto.command.SignInCommand;
+import point.zzicback.member.presentation.dto.SignInRequest;
+import point.zzicback.member.presentation.dto.SignUpRequest;
+import point.zzicback.member.presentation.mapper.MemberPresentationMapper;
 
 import java.util.UUID;
 
@@ -33,6 +34,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final TokenService tokenService;
     private final MultiBearerTokenResolver tokenResolver;
+    private final MemberPresentationMapper memberPresentationMapper;
 
     @Operation(summary = "회원가입 및 로그인", description = "회원가입을 진행하고 즉시 로그인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
     @ApiResponses({
@@ -43,7 +45,7 @@ public class AuthController {
     @PostMapping("/sign-up")
     public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
         // 1. 회원가입 진행
-        memberService.signUp(request.toCommand());
+        memberService.signUp(memberPresentationMapper.toCommand(request));
 
         // 2. 회원가입 후 바로 로그인 진행
         // SignInCommand로 변환 (패스워드만 있으면 됨)
@@ -72,7 +74,7 @@ public class AuthController {
     })
     @PostMapping("/sign-in")
     public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
-        AuthenticatedMember authenticatedMember = memberService.signIn(request.toCommand());
+        AuthenticatedMember authenticatedMember = memberService.signIn(memberPresentationMapper.toCommand(request));
         String deviceId = UUID.randomUUID().toString();
         String accessToken = jwtUtil.generateAccessToken(authenticatedMember.id(), authenticatedMember.email(), authenticatedMember.nickname());
         Cookie jwtCookie = cookieUtil.createJwtCookie(accessToken);
