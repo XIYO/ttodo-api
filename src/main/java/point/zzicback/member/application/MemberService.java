@@ -3,12 +3,14 @@ package point.zzicback.member.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.domain.dto.command.SignUpCommand;
 import point.zzicback.member.domain.dto.command.SignInCommand;
 import point.zzicback.member.domain.dto.response.MemberMeResponse;
 import point.zzicback.member.persistance.MemberRepository;
+import point.zzicback.common.error.EntityNotFoundException;
 
 import java.util.UUID;
 
@@ -18,6 +20,12 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Transactional(readOnly = true)
+    public Member findVerifiedMember(UUID memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member", memberId));
+    }
 
     public void signUp(SignUpCommand signUpCommand) {
         if (memberRepository.existsByEmail(signUpCommand.email())) {

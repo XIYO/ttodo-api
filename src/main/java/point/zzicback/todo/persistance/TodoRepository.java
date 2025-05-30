@@ -12,8 +12,6 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     Page<Todo> findByMemberIdAndDone(UUID memberId, Boolean done, Pageable pageable);
 
-    Page<Todo> findByMemberId(UUID memberId, Pageable pageable);
-
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
 }
 

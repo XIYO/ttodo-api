@@ -7,11 +7,12 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
 @Getter
-public class Member {
+public class Member implements Serializable {
 
     @Id
     @GeneratedValue(generator = "UUID")
