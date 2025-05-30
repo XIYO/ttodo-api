@@ -23,12 +23,15 @@ import org.springframework.util.StreamUtils;
 import point.zzicback.auth.config.properties.JwtProperties;
 
 import java.io.InputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,12 +47,12 @@ public class JwtConfig {
     private RSAPublicKey publicKey;
 
     @PostConstruct
-    public void init() throws Exception {
+    public void init() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         this.privateKey = loadPrivateKey();
         this.publicKey = loadPublicKey();
     }
 
-    private String readKey(Resource resource) throws Exception {
+    private String readKey(Resource resource) throws IOException {
         try (InputStream inputStream = resource.getInputStream()) {
             return StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8)
                     .replaceAll("-----.*?-----", "")
@@ -57,13 +60,13 @@ public class JwtConfig {
         }
     }
 
-    private RSAPrivateKey loadPrivateKey() throws Exception {
+    private RSAPrivateKey loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] keyBytes = Base64.getDecoder().decode(readKey(jwtProperties.privateKey()));
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         return (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(keySpec);
     }
 
-    private RSAPublicKey loadPublicKey() throws Exception {
+    private RSAPublicKey loadPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] keyBytes = Base64.getDecoder().decode(readKey(jwtProperties.publicKey()));
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(keySpec);
@@ -98,7 +101,7 @@ public class JwtConfig {
         jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Collection<GrantedAuthority> authorities = grantedAuthoritiesConverter.convert(jwt);
 
-            if (authorities == null || authorities.isEmpty()) {
+            if (authorities.isEmpty()) {
                 authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
             }
 
