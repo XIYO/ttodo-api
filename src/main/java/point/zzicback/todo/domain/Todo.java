@@ -26,7 +26,6 @@ public class Todo {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    // Add builder
     @Builder
     public Todo(Long id, String title, String description, Boolean done, Member member) {
         this.id = id;

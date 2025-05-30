@@ -37,11 +37,11 @@ public class TodoService {
     }
 
     @Transactional
-    public Long createTodo(CreateTodoCommand command) {
+    public void createTodo(CreateTodoCommand command) {
         var member = memberService.findVerifiedMember(command.memberId());
         Todo todo = todoApplicationMapper.toEntity(command);
         todo.setMember(member);
-        return todoRepository.save(todo).getId();
+        todoRepository.save(todo);
     }
 
     @Transactional

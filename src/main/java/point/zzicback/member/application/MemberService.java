@@ -43,10 +43,9 @@ public class MemberService {
         Member member = memberRepository.findByEmail(signInCommand.email())
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
 
-        if (!"anonymous@shared.com".equals(signInCommand.email())) {
-            if (!passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
-                throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-            }
+        if (!"anonymous@shared.com".equals(signInCommand.email())
+                && !passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
         }
 
         return AuthenticatedMember.from(member.getId(), member.getEmail(), member.getNickname());
@@ -63,4 +62,3 @@ public class MemberService {
         return new MemberMeResponse(member.getEmail(), member.getNickname());
     }
 }
-
