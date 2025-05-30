@@ -1,4 +1,4 @@
-package point.zzicback.member.presentation.dto;
+package point.zzicback.auth.presentation.dto;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

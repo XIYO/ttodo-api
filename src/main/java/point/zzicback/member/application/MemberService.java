@@ -1,13 +1,9 @@
 package point.zzicback.member.application;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.zzicback.member.domain.AuthenticatedMember;
 import point.zzicback.member.domain.Member;
-import point.zzicback.member.application.dto.command.SignUpCommand;
-import point.zzicback.member.application.dto.command.SignInCommand;
 import point.zzicback.member.application.dto.query.MemberQuery;
 import point.zzicback.member.application.dto.response.MemberMeResponse;
 import point.zzicback.member.application.mapper.MemberApplicationMapper;
@@ -18,10 +14,10 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
     private final MemberApplicationMapper memberApplicationMapper;
 
     @Transactional(readOnly = true)
@@ -35,32 +31,7 @@ public class MemberService {
         return findVerifiedMember(query.memberId());
     }
 
-    public void signUp(SignUpCommand signUpCommand) {
-        if (memberRepository.existsByEmail(signUpCommand.email())) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
-        }
-        Member member = memberApplicationMapper.toEntity(signUpCommand);
-        member.setPassword(passwordEncoder.encode(signUpCommand.password()));
-
-        memberRepository.save(member);
-    }
-
-    public AuthenticatedMember signIn(SignInCommand signInCommand) {
-        Member member = memberRepository.findByEmail(signInCommand.email())
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
-
-        if (!"anonymous@shared.com".equals(signInCommand.email())
-                && !passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
-        }
-
-        return AuthenticatedMember.from(member.getId(), member.getEmail(), member.getNickname());
-    }
-
-    public boolean isEmailTaken(String email) {
-        return memberRepository.findByEmail(email).isPresent();
-    }
-
+    @Transactional(readOnly = true)
     public MemberMeResponse getMemberMe(UUID memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보 없음"));
@@ -68,6 +39,7 @@ public class MemberService {
         return memberApplicationMapper.toResponse(member);
     }
 
+    @Transactional(readOnly = true)
     public MemberMeResponse getMemberMe(MemberQuery query) {
         return getMemberMe(query.memberId());
     }

@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.query.MemberQuery;
-import point.zzicback.member.presentation.dto.MemberMeResponse;
+import point.zzicback.member.presentation.dto.MemberResponse;
 import point.zzicback.member.presentation.mapper.MemberPresentationMapper;
 
 import java.util.UUID;
@@ -26,7 +26,7 @@ public class MemberController {
     @ApiResponse(responseCode = "200", description = "회원 정보 조회 성공")
     @GetMapping("/{memberId}/me")
     @ResponseStatus(HttpStatus.OK)
-    public MemberMeResponse getMemberMe(@PathVariable UUID memberId) {
+    public MemberResponse getMemberMe(@PathVariable UUID memberId) {
         return memberPresentationMapper.toResponse(
                 memberService.getMemberMe(MemberQuery.of(memberId))
         );

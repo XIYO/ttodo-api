@@ -4,16 +4,16 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import point.zzicback.member.application.MemberService;
+import point.zzicback.auth.application.AuthService;
 
 @Component
 public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, String> {
 
-    private final MemberService memberService;
+    private final AuthService authService;
 
     @Autowired
-    public UniqueEmailValidator(MemberService memberService) {
-        this.memberService = memberService;
+    public UniqueEmailValidator(AuthService authService) {
+        this.authService = authService;
     }
 
     @Override
@@ -22,6 +22,6 @@ public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, St
         if (email == null || email.isEmpty()) {
             return true;
         }
-        return !memberService.isEmailTaken(email);
+        return !authService.isEmailTaken(email);
     }
 }

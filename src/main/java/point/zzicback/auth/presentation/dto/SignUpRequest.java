@@ -1,4 +1,4 @@
-package point.zzicback.member.presentation.dto;
+package point.zzicback.auth.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -28,17 +28,16 @@ public record SignUpRequest(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,16}$",
                 message = "비밀번호는 최소 8자, 최대 16자, 대문자, 소문자, 숫자, 특수문자를 포함해야 합니다."
         )
-        @CompareTarget // 패스워드 비교 대상 필드 지정
-        String password ,
+        @CompareTarget
+        String password,
 
         @Schema(description = "비밀번호 확인", example = "Strong@123", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank(message = "패스워드 확인을 입력해주세요.")
-        @CompareResult // 패스워드 비교 결과 필드 지정
+        @CompareResult
         String confirmPassword,
 
         @NotBlank(message = "{nickname.required}")
         @Schema(description = "사용자 이름", example = "홍길동")
         String nickname
 
-) {
-}
+) {}

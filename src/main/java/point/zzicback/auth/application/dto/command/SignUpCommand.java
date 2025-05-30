@@ -1,4 +1,4 @@
-package point.zzicback.member.application.dto.command;
+package point.zzicback.auth.application.dto.command;
 
 public record SignUpCommand(
         String email,

@@ -1,4 +1,4 @@
-package point.zzicback.member.domain;
+package point.zzicback.auth.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

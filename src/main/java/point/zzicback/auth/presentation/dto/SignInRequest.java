@@ -1,4 +1,4 @@
-package point.zzicback.member.presentation.dto;
+package point.zzicback.auth.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -15,5 +15,4 @@ public record SignInRequest(
 
         @Schema(description = "사용자 비밀번호", example = "Strong@123")
         String password
-) {
-}
+) {}
