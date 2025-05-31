@@ -32,7 +32,7 @@ public void signUp(SignUpCommand signUpCommand) {
 public AuthenticatedMember signIn(SignInCommand signInCommand) {
   Member member = memberRepository.findByEmail(signInCommand.email())
           .orElseThrow(() -> new BusinessException("회원 정보 없음"));
-  if (! "anonymous@shared.com".equals(signInCommand.email())
+  if (! "anon@zzic.com".equals(signInCommand.email())
           && ! passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
     throw new BusinessException("비밀번호가 틀렸습니다.");
   }
