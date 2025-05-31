@@ -26,7 +26,7 @@ public class MultiBearerTokenResolver implements BearerTokenResolver {
 
         if (request.getCookies() != null) {
             return Arrays.stream(request.getCookies())
-                    .filter(cookie -> jwtProperties.cookie().name().equals(cookie.getName()))
+                    .filter(cookie -> jwtProperties.accessToken().cookie().name().equals(cookie.getName()))
                     .findFirst()
                     .map(Cookie::getValue)
                     .orElse(null);

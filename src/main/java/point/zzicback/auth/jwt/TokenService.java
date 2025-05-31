@@ -2,15 +2,14 @@ package point.zzicback.auth.jwt;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import point.zzicback.auth.config.properties.JwtProperties;
+import point.zzicback.auth.repository.TokenRepository;
 import point.zzicback.auth.util.JwtUtil;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -19,16 +18,21 @@ public class TokenService {
     private final JwtUtil jwtUtil;
     private final JwtProperties jwtProperties;
     private final MemberService memberService;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final TokenRepository tokenRepository;
 
     public void save(String deviceId, String refreshToken) {
         long refreshSeconds = jwtProperties.refreshExpiration();
-        redisTemplate.opsForValue().set(deviceId, refreshToken, refreshSeconds, TimeUnit.SECONDS);
+        tokenRepository.save(deviceId, refreshToken, refreshSeconds);
     }
 
     public void deleteByToken(String refreshToken) {
         String deviceId = jwtUtil.extractClaim(refreshToken, "device");
-        redisTemplate.delete(deviceId);
+        tokenRepository.delete(deviceId);
+    }
+
+    public boolean isValidRefreshToken(String deviceId, String refreshToken) {
+        String storedToken = tokenRepository.get(deviceId);
+        return refreshToken.equals(storedToken);
     }
 
     public record TokenPair(

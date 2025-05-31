@@ -11,14 +11,22 @@ jwt:
   key-id: ${JWT_KEY_ID:rsa-key-id}
   expiration: ${JWT_EXPIRATION:60}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:31536000}
-  cookie:
-    name: Authorization
-    domain: ${JWT_COOKIE_DOMAIN:xiyo.dev}
-    path: /
-    secure: ${JWT_COOKIE_SECURE:true}
-    httpOnly: ${JWT_COOKIE_HTTP_ONLY:true}
-    sameSite: ${JWT_COOKIE_SAME_SITE:Lax}
-    maxAge: ${JWT_COOKIE_MAX_AGE:604800}
+  access-token:
+    cookie:
+      name: access-token
+      domain: ${JWT_COOKIE_DOMAIN:xiyo.dev}
+      path: /
+      secure: true
+      httpOnly: false
+      sameSite: lax
+  refresh-token:
+    cookie:
+      name: refresh-token
+      domain: ${JWT_COOKIE_DOMAIN:xiyo.dev}
+      path: /
+      secure: true
+      httpOnly: true
+      sameSite: lax
 
 server:
   port: 443

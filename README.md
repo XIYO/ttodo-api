@@ -2,6 +2,39 @@
 
 ZZIC 의 백엔드 서버입니다.
 
+## 토큰 저장소 설정
+
+### 개발 환경 - 로컬 모드 (기본값)
+```bash
+# 프로파일: dev-local
+# 로컬 메모리에 토큰 저장
+./gradlew bootRun --args='--spring.profiles.active=dev-local'
+```
+
+### 개발 환경 - Redis 모드  
+```bash
+# 프로파일: dev-redis
+# Redis 서버 필요 (없으면 실행 실패)
+./gradlew bootRun --args='--spring.profiles.active=dev-redis'
+```
+
+### Redis 시작 방법
+```bash
+# Docker로 Redis 시작
+docker run -d --name redis -p 6379:6379 redis:latest
+
+# 또는 로컬 Redis 설치 후 시작
+brew install redis
+brew services start redis
+```
+
+### 운영 환경  
+- **staging/prod**: Redis 서버 필수
+- 환경변수로 연결 정보 설정:
+  - `REDIS_HOST`: Redis 서버 호스트
+  - `REDIS_PORT`: Redis 서버 포트  
+  - `REDIS_PASSWORD`: Redis 서버 비밀번호
+
 ## 구현 목표
 
 - TODO 생성

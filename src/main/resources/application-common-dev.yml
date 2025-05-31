@@ -1,0 +1,34 @@
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.H2Dialect
+
+jwt:
+  private-key: classpath:zzic/jwt/test-private.pem
+  public-key: classpath:zzic/jwt/public.pem
+  key-id: rsa-key-id
+  expiration: 60
+  refresh-expiration: 31536000 # 365 * 24 * 60 * 60
+  access-token:
+    cookie:
+      name: access-token
+      domain: localhost
+      path: /
+      secure: false
+      httpOnly: false
+      sameSite: none
+  refresh-token:
+    cookie:
+      name: refresh-token
+      domain: localhost
+      path: /
+      secure: false
+      httpOnly: true
+      sameSite: none
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    point.zzicback: DEBUG

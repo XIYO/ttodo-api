@@ -8,10 +8,19 @@ public record JwtProperties(
         String keyId,
         Resource publicKey,
         Resource privateKey,
-        CookieProperties cookie,
+        AccessTokenProperties accessToken,
+        RefreshTokenProperties refreshToken,
         int expiration,
         int refreshExpiration
 ) {
+    public record AccessTokenProperties(
+            CookieProperties cookie
+    ) {}
+    
+    public record RefreshTokenProperties(
+            CookieProperties cookie
+    ) {}
+    
     public record CookieProperties(
             String name,
             String domain,

@@ -12,31 +12,38 @@ public class CookieUtil {
 
     private final JwtProperties jwtProperties;
 
-    private String getRefreshCookieName() {
-        return jwtProperties.cookie().name() + "-refresh";
-    }
-
     public Cookie createJwtCookie(String jwtToken) {
-        return create(jwtProperties.cookie().name(), jwtToken, jwtProperties.expiration());
+        return createAccessTokenCookie(jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.expiration());
     }
 
     public Cookie createRefreshCookie(String refreshToken) {
-        return create(getRefreshCookieName(), refreshToken, jwtProperties.refreshExpiration());
+        return createRefreshTokenCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshExpiration());
     }
 
-    public Cookie create(String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath(jwtProperties.cookie().path());
-        cookie.setSecure(jwtProperties.cookie().secure());
-        cookie.setHttpOnly(jwtProperties.cookie().httpOnly());
+    private Cookie createAccessTokenCookie(JwtProperties.CookieProperties cookieProps, String token, int maxAge) {
+        Cookie cookie = new Cookie(cookieProps.name(), token);
+        setCommonCookieProperties(cookie, cookieProps, maxAge);
+        return cookie;
+    }
 
-        String domain = jwtProperties.cookie().domain();
+    private Cookie createRefreshTokenCookie(JwtProperties.CookieProperties cookieProps, String token, int maxAge) {
+        Cookie cookie = new Cookie(cookieProps.name(), token);
+        setCommonCookieProperties(cookie, cookieProps, maxAge);
+        return cookie;
+    }
+
+    private void setCommonCookieProperties(Cookie cookie, JwtProperties.CookieProperties cookieProps, int maxAge) {
+        cookie.setPath(cookieProps.path());
+        cookie.setSecure(cookieProps.secure());
+        cookie.setHttpOnly(cookieProps.httpOnly());
+
+        String domain = cookieProps.domain();
         if (domain != null && !domain.equalsIgnoreCase("localhost") && !domain.isBlank()) {
             cookie.setDomain(domain);
         }
 
         cookie.setMaxAge(maxAge);
-        return cookie;
+        // Note: sameSite는 현재 jakarta.servlet.http.Cookie에서 직접 지원하지 않음
     }
 
     public void zeroAge(Cookie cookie) {
@@ -45,8 +52,9 @@ public class CookieUtil {
 
     public String getRefreshToken(HttpServletRequest request) {
         if (request.getCookies() == null) return null;
+        String refreshCookieName = jwtProperties.refreshToken().cookie().name();
         for (Cookie cookie : request.getCookies()) {
-            if (cookie.getName().equals(getRefreshCookieName())) {
+            if (cookie.getName().equals(refreshCookieName)) {
                 return cookie.getValue();
             }
         }

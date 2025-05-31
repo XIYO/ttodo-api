@@ -2,7 +2,15 @@ spring:
   application:
     name: zzic-api
   profiles:
-    active: db-h2
+    group:
+      dev:
+        - "db-h2"
+        - "common-dev"
+      prod:
+        - "db-pg"
+        - "redis"
+        - "common-prod"
+    active: dev
   mvc:
     hiddenmethod:
       filter:
@@ -10,34 +18,9 @@ spring:
   messages:
     basename: messages
     encoding: UTF-8
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: create
-    database-platform: org.hibernate.dialect.H2Dialect
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: 1234
 
 springdoc:
   swagger-ui:
     path: /
   api-docs:
     path: /v3/api-docs
-
-jwt:
-  private-key: classpath:zzic/jwt/test-private.pem
-  public-key: classpath:zzic/jwt/public.pem
-  key-id: rsa-key-id
-  expiration: 60
-  refresh-expiration: 31536000 # 365 * 24 * 60 * 60
-  cookie:
-    name: Authorization
-    domain: localhost
-    path: /
-    secure: false
-    httpOnly: true
-    sameSite: Lax
