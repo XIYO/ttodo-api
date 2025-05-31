@@ -1,6 +1,7 @@
 package point.zzicback.auth.util;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import point.zzicback.auth.config.properties.JwtProperties;
@@ -11,10 +12,16 @@ public class CookieUtil {
 
     private final JwtProperties jwtProperties;
 
+    private String getRefreshCookieName() {
+        return jwtProperties.cookie().name() + "-refresh";
+    }
+
     public Cookie createJwtCookie(String jwtToken) {
-        String cookieName = jwtProperties.cookie().name();
-        int maxAge = jwtProperties.expiration();
-        return this.create(cookieName, jwtToken, maxAge);
+        return create(jwtProperties.cookie().name(), jwtToken, jwtProperties.expiration());
+    }
+
+    public Cookie createRefreshCookie(String refreshToken) {
+        return create(getRefreshCookieName(), refreshToken, jwtProperties.refreshExpiration());
     }
 
     public Cookie create(String name, String value, int maxAge) {
@@ -36,16 +43,10 @@ public class CookieUtil {
         cookie.setMaxAge(0);
     }
 
-    public Cookie createRefreshCookie(String refreshToken) {
-        String cookieName = jwtProperties.cookie().name() + "-refresh";
-        int maxAge = jwtProperties.refreshExpiration();
-        return this.create(cookieName, refreshToken, maxAge);
-    }
-
-    public String getRefreshToken(jakarta.servlet.http.HttpServletRequest request) {
+    public String getRefreshToken(HttpServletRequest request) {
         if (request.getCookies() == null) return null;
         for (Cookie cookie : request.getCookies()) {
-            if (cookie.getName().equals(jwtProperties.cookie().name() + "-refresh")) {
+            if (cookie.getName().equals(getRefreshCookieName())) {
                 return cookie.getValue();
             }
         }

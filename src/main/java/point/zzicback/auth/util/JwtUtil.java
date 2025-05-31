@@ -13,7 +13,6 @@ import point.zzicback.auth.config.properties.JwtProperties;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -44,17 +43,17 @@ public class JwtUtil {
 
     public String generateAccessToken(String id, String email, String nickname) {
         Instant expiresAt = Instant.now().plus(jwtProperties.expiration(), ChronoUnit.SECONDS);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("email", email);
-        claims.put("nickname", nickname);
-        claims.put("scope", "ROLE_USER");
+        Map<String, Object> claims = Map.of(
+            "email", email,
+            "nickname", nickname,
+            "scope", "ROLE_USER"
+        );
         return generateToken(id, expiresAt, claims);
     }
 
     public String generateRefreshToken(String id, String device) {
         Instant expiresAt = Instant.now().plus(jwtProperties.refreshExpiration(), ChronoUnit.SECONDS);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("device", device);
+        Map<String, Object> claims = Map.of("device", device);
         return generateToken(id, expiresAt, claims);
     }
 

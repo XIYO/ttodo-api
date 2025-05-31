@@ -1,9 +1,7 @@
 package point.zzicback.auth.config;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -14,16 +12,12 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import point.zzicback.auth.jwt.TokenService;
+import point.zzicback.auth.application.AuthTokenService;
 import point.zzicback.auth.security.converter.CustomJwtAuthConverter;
 import point.zzicback.auth.security.resolver.MultiBearerTokenResolver;
-import point.zzicback.auth.util.CookieUtil;
-import point.zzicback.auth.util.JwtUtil;
 
 @Configuration
 @EnableWebSecurity
@@ -32,10 +26,7 @@ public class SecurityConfig {
 
     private final MultiBearerTokenResolver multiBearerTokenResolver;
     private final CustomJwtAuthConverter customJwtAuthConverter;
-    private final JwtUtil jwtUtil;
-    private final CookieUtil cookieUtil;
-    private final JwtDecoder jwtDecoder;
-    private final ApplicationContext applicationContext;
+    private final AuthTokenService authTokenService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint) throws Exception {
@@ -81,25 +72,11 @@ public class SecurityConfig {
                 return;
             }
 
-            String refreshToken = cookieUtil.getRefreshToken(request);
-            if (refreshToken == null) {
+            boolean refreshed = authTokenService.refreshTokensIfNeeded(request, response);
+            if (!refreshed) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
-            try {
-                jwtDecoder.decode(refreshToken);
-            } catch (JwtException e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-            String deviceId = jwtUtil.extractClaim(refreshToken, "device");
-            TokenService tokenService = applicationContext.getBean(TokenService.class);
-            TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
-
-            Cookie accessCookie = cookieUtil.createJwtCookie(newTokens.accessToken());
-            response.addCookie(accessCookie);
-            Cookie refreshCookie = cookieUtil.createRefreshCookie(newTokens.refreshToken());
-            response.addCookie(refreshCookie);
 
             String uri = request.getRequestURI()
                     + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
