@@ -11,20 +11,20 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 public class MultiBearerTokenResolver implements BearerTokenResolver {
-private final DefaultBearerTokenResolver defaultResolver = new DefaultBearerTokenResolver();
-private final JwtProperties jwtProperties;
+  private final DefaultBearerTokenResolver defaultResolver = new DefaultBearerTokenResolver();
+  private final JwtProperties jwtProperties;
 
-@Override
-public String resolve(HttpServletRequest request) {
-  String token = defaultResolver.resolve(request);
-  if (token != null) {
-    return token;
+  @Override
+  public String resolve(HttpServletRequest request) {
+    String token = defaultResolver.resolve(request);
+    if (token != null) {
+      return token;
+    }
+    if (request.getCookies() != null) {
+      return Arrays.stream(request.getCookies())
+              .filter(cookie -> jwtProperties.accessToken().cookie().name().equals(cookie.getName())).findFirst()
+              .map(Cookie::getValue).orElse(null);
+    }
+    return null;
   }
-  if (request.getCookies() != null) {
-    return Arrays.stream(request.getCookies())
-            .filter(cookie -> jwtProperties.accessToken().cookie().name().equals(cookie.getName())).findFirst()
-            .map(Cookie::getValue).orElse(null);
-  }
-  return null;
-}
 }

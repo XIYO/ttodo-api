@@ -9,12 +9,12 @@ import java.util.UUID;
 
 @Mapper(componentModel = "spring")
 public interface TodoPresentationMapper {
-@Mapping(target = "memberId", source = "memberId")
-CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
+  @Mapping(target = "memberId", source = "memberId")
+  CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
-@Mapping(target = "memberId", source = "memberId")
-@Mapping(target = "todoId", source = "todoId")
-UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
+  @Mapping(target = "memberId", source = "memberId")
+  @Mapping(target = "todoId", source = "todoId")
+  UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
-point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResponse todoResponse);
+  point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResponse todoResponse);
 }

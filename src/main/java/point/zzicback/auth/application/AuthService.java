@@ -15,32 +15,32 @@ import point.zzicback.member.persistance.MemberRepository;
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {
-private final MemberRepository memberRepository;
-private final PasswordEncoder passwordEncoder;
-private final AuthApplicationMapper authApplicationMapper;
+  private final MemberRepository memberRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final AuthApplicationMapper authApplicationMapper;
 
-public void signUp(SignUpCommand signUpCommand) {
-  if (memberRepository.existsByEmail(signUpCommand.email())) {
-    throw new BusinessException("이미 존재하는 이메일입니다.");
+  public void signUp(SignUpCommand signUpCommand) {
+    if (memberRepository.existsByEmail(signUpCommand.email())) {
+      throw new BusinessException("이미 존재하는 이메일입니다.");
+    }
+    Member member = authApplicationMapper.toEntity(signUpCommand);
+    member.setPassword(passwordEncoder.encode(signUpCommand.password()));
+    memberRepository.save(member);
   }
-  Member member = authApplicationMapper.toEntity(signUpCommand);
-  member.setPassword(passwordEncoder.encode(signUpCommand.password()));
-  memberRepository.save(member);
-}
 
-@Transactional(readOnly = true)
-public AuthenticatedMember signIn(SignInCommand signInCommand) {
-  Member member = memberRepository.findByEmail(signInCommand.email())
-          .orElseThrow(() -> new BusinessException("회원 정보 없음"));
-  if (! "anon@zzic.com".equals(signInCommand.email())
-          && ! passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
-    throw new BusinessException("비밀번호가 틀렸습니다.");
+  @Transactional(readOnly = true)
+  public AuthenticatedMember signIn(SignInCommand signInCommand) {
+    Member member = memberRepository.findByEmail(signInCommand.email())
+            .orElseThrow(() -> new BusinessException("회원 정보 없음"));
+    if (!"anon@zzic.com".equals(signInCommand.email())
+            && !passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
+      throw new BusinessException("비밀번호가 틀렸습니다.");
+    }
+    return AuthenticatedMember.from(member.getId(), member.getEmail(), member.getNickname());
   }
-  return AuthenticatedMember.from(member.getId(), member.getEmail(), member.getNickname());
-}
 
-@Transactional(readOnly = true)
-public boolean isEmailTaken(String email) {
-  return memberRepository.findByEmail(email).isPresent();
-}
+  @Transactional(readOnly = true)
+  public boolean isEmailTaken(String email) {
+    return memberRepository.findByEmail(email).isPresent();
+  }
 }

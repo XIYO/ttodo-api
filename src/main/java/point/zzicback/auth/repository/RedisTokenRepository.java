@@ -11,25 +11,25 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Profile("redis")
 public class RedisTokenRepository implements TokenRepository {
-private final RedisTemplate<String, String> redisTemplate;
+  private final RedisTemplate<String, String> redisTemplate;
 
-@Override
-public void save(String key, String value, long expirationSeconds) {
-  redisTemplate.opsForValue().set(key, value, expirationSeconds, TimeUnit.SECONDS);
-}
+  @Override
+  public void save(String key, String value, long expirationSeconds) {
+    redisTemplate.opsForValue().set(key, value, expirationSeconds, TimeUnit.SECONDS);
+  }
 
-@Override
-public String get(String key) {
-  return redisTemplate.opsForValue().get(key);
-}
+  @Override
+  public String get(String key) {
+    return redisTemplate.opsForValue().get(key);
+  }
 
-@Override
-public void delete(String key) {
-  redisTemplate.delete(key);
-}
+  @Override
+  public void delete(String key) {
+    redisTemplate.delete(key);
+  }
 
-@Override
-public boolean exists(String key) {
-  return redisTemplate.hasKey(key);
-}
+  @Override
+  public boolean exists(String key) {
+    return redisTemplate.hasKey(key);
+  }
 }

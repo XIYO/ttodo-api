@@ -8,7 +8,7 @@ import java.util.*;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, UUID> {
-Optional<Member> findByEmail(String email);
+  Optional<Member> findByEmail(String email);
 
-boolean existsByEmail(String email);
+  boolean existsByEmail(String email);
 }
