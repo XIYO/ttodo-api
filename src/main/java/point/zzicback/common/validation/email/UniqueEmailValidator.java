@@ -8,20 +8,18 @@ import point.zzicback.auth.application.AuthService;
 
 @Component
 public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, String> {
+private final AuthService authService;
 
-    private final AuthService authService;
+@Autowired
+public UniqueEmailValidator(AuthService authService) {
+  this.authService = authService;
+}
 
-    @Autowired
-    public UniqueEmailValidator(AuthService authService) {
-        this.authService = authService;
-    }
-
-    @Override
-    public boolean isValid(String email, ConstraintValidatorContext context) {
-
-        if (email == null || email.isEmpty()) {
-            return true;
-        }
-        return !authService.isEmailTaken(email);
-    }
+@Override
+public boolean isValid(String email, ConstraintValidatorContext context) {
+  if (email == null || email.isEmpty()) {
+    return true;
+  }
+  return ! authService.isEmailTaken(email);
+}
 }

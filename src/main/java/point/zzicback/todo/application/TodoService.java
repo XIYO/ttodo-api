@@ -20,44 +20,44 @@ import point.zzicback.todo.persistance.TodoRepository;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class TodoService {
+private final TodoRepository todoRepository;
+private final MemberService memberService;
+private final TodoApplicationMapper todoApplicationMapper;
 
-    private final TodoRepository todoRepository;
-    private final MemberService memberService;
-    private final TodoApplicationMapper todoApplicationMapper;
+public Page<TodoResponse> getTodoList(TodoListQuery query) {
+  Page<Todo> todoPage = todoRepository.findByMemberIdAndDone(query.memberId(), query.done(), query.pageable());
+  return todoPage.map(todoApplicationMapper::toResponse);
+}
 
-    public Page<TodoResponse> getTodoList(TodoListQuery query) {
-        Page<Todo> todoPage = todoRepository.findByMemberIdAndDone(query.memberId(), query.done(), query.pageable());
+public TodoResponse getTodo(TodoQuery query) {
+  return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
+          .map(todoApplicationMapper::toResponse)
+          .orElseThrow(() -> new EntityNotFoundException("Todo", query.todoId()));
+}
 
-        return todoPage.map(todoApplicationMapper::toResponse);
-    }
+@Transactional
+public void createTodo(CreateTodoCommand command) {
+  MemberQuery memberQuery = new MemberQuery(command.memberId());
+  var member = memberService.findVerifiedMember(memberQuery);
+  Todo todo = todoApplicationMapper.toEntity(command);
+  todo.setMember(member);
+  todoRepository.save(todo);
+}
 
-    public TodoResponse getTodo(TodoQuery query) {
-        return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
-                .map(todoApplicationMapper::toResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Todo", query.todoId()));
-    }
+@Transactional
+public void updateTodo(UpdateTodoCommand command) {
+  Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
+          .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
+  todoApplicationMapper.updateEntity(command, todo);
+}
 
-    @Transactional
-    public void createTodo(CreateTodoCommand command) {
-        MemberQuery memberQuery = new MemberQuery(command.memberId());
-        var member = memberService.findVerifiedMember(memberQuery);
-        Todo todo = todoApplicationMapper.toEntity(command);
-        todo.setMember(member);
-        todoRepository.save(todo);
-    }
-
-    @Transactional
-    public void updateTodo(UpdateTodoCommand command) {
-        Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
-        todoApplicationMapper.updateEntity(command, todo);
-    }
-
-    @Transactional
-    public void deleteTodo(TodoQuery query) {
-        todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
-                .ifPresentOrElse(todo -> todoRepository.deleteById(query.todoId()), () -> {
+@Transactional
+public void deleteTodo(TodoQuery query) {
+  todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
+          .ifPresentOrElse(
+                  todo -> todoRepository.deleteById(query.todoId()), () -> {
                     throw new EntityNotFoundException("Todo", query.todoId());
-                });
-    }
+                  }
+          );
+}
 }

@@ -15,18 +15,16 @@ import java.util.UUID;
 
 @Component
 public class CustomJwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
-
-    @Override
-    public AbstractAuthenticationToken convert(Jwt jwt) {
-        UUID id = UUID.fromString(jwt.getSubject());
-        String email = jwt.getClaimAsString("email");
-        String nickname = jwt.getClaimAsString("nickname");
-        String scopeString = jwt.getClaimAsString("scope");
-        List<SimpleGrantedAuthority> authorities = scopeString == null
-                ? Collections.emptyList()
-                : Arrays.stream(scopeString.split(" ")).map(SimpleGrantedAuthority::new).toList();
-
-        MemberPrincipal principal = new MemberPrincipal(id, email, nickname, authorities);
-        return new UsernamePasswordAuthenticationToken(principal, jwt, authorities);
-    }
+@Override
+public AbstractAuthenticationToken convert(Jwt jwt) {
+  UUID id = UUID.fromString(jwt.getSubject());
+  String email = jwt.getClaimAsString("email");
+  String nickname = jwt.getClaimAsString("nickname");
+  String scopeString = jwt.getClaimAsString("scope");
+  List<SimpleGrantedAuthority> authorities = scopeString == null
+          ? Collections.emptyList()
+          : Arrays.stream(scopeString.split(" ")).map(SimpleGrantedAuthority::new).toList();
+  MemberPrincipal principal = new MemberPrincipal(id, email, nickname, authorities);
+  return new UsernamePasswordAuthenticationToken(principal, jwt, authorities);
+}
 }

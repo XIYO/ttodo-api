@@ -22,49 +22,45 @@ import java.util.UUID;
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
 public class TodoController {
+private final TodoService todoService;
+private final TodoPresentationMapper todoPresentationMapper;
 
-    private final TodoService todoService;
-    private final TodoPresentationMapper todoPresentationMapper;
+@GetMapping("/{memberId}/todos")
+@ResponseStatus(HttpStatus.OK)
+public Page<TodoResponse> getAll(@PathVariable UUID memberId, @RequestParam Boolean done,
+                                 @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
+                                 @RequestParam(defaultValue = "id,desc") String sort) {
+  String[] sortParams = sort.split(",");
+  String sortBy = sortParams[0];
+  Sort.Direction direction = sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1])
+          ? Sort.Direction.DESC
+          : Sort.Direction.ASC;
+  Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+  TodoListQuery query = TodoListQuery.of(memberId, done, pageable);
+  return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
+}
 
-    @GetMapping("/{memberId}/todos")
-    @ResponseStatus(HttpStatus.OK)
-    public Page<TodoResponse> getAll(@PathVariable UUID memberId, @RequestParam Boolean done,
-                                     @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
-                                     @RequestParam(defaultValue = "id,desc") String sort) {
+@GetMapping("/{memberId}/todos/{id}")
+@ResponseStatus(HttpStatus.OK)
+public TodoResponse getTodo(@PathVariable UUID memberId, @PathVariable Long id) {
+  return todoPresentationMapper.toResponse(todoService.getTodo(TodoQuery.of(memberId, id)));
+}
 
-        String[] sortParams = sort.split(",");
-        String sortBy = sortParams[0];
-        Sort.Direction direction = sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1])
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC;
+@PostMapping("/{memberId}/todos")
+@ResponseStatus(HttpStatus.CREATED)
+public void add(@PathVariable UUID memberId, @RequestBody @Valid CreateTodoRequest request) {
+  todoService.createTodo(todoPresentationMapper.toCommand(request, memberId));
+}
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        TodoListQuery query = TodoListQuery.of(memberId, done, pageable);
+@PutMapping("/{memberId}/todos/{id}")
+@ResponseStatus(HttpStatus.NO_CONTENT)
+public void modify(@PathVariable UUID memberId, @PathVariable Long id, @RequestBody UpdateTodoRequest request) {
+  todoService.updateTodo(todoPresentationMapper.toCommand(request, memberId, id));
+}
 
-        return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
-    }
-
-    @GetMapping("/{memberId}/todos/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public TodoResponse getTodo(@PathVariable UUID memberId, @PathVariable Long id) {
-        return todoPresentationMapper.toResponse(todoService.getTodo(TodoQuery.of(memberId, id)));
-    }
-
-    @PostMapping("/{memberId}/todos")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void add(@PathVariable UUID memberId, @RequestBody @Valid CreateTodoRequest request) {
-        todoService.createTodo(todoPresentationMapper.toCommand(request, memberId));
-    }
-
-    @PutMapping("/{memberId}/todos/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void modify(@PathVariable UUID memberId, @PathVariable Long id, @RequestBody UpdateTodoRequest request) {
-        todoService.updateTodo(todoPresentationMapper.toCommand(request, memberId, id));
-    }
-
-    @DeleteMapping("/{memberId}/todos/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remove(@PathVariable UUID memberId, @PathVariable Long id) {
-        todoService.deleteTodo(TodoQuery.of(memberId, id));
-    }
+@DeleteMapping("/{memberId}/todos/{id}")
+@ResponseStatus(HttpStatus.NO_CONTENT)
+public void remove(@PathVariable UUID memberId, @PathVariable Long id) {
+  todoService.deleteTodo(TodoQuery.of(memberId, id));
+}
 }

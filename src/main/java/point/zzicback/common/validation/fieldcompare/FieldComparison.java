@@ -10,9 +10,9 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = FieldComparisonValidator.class)
 @Documented
 public @interface FieldComparison {
-    String message() default "필드 값이 일치하지 않습니다.";
+String message() default "필드 값이 일치하지 않습니다.";
 
-    Class<?>[] groups() default {};
+Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+Class<? extends Payload>[] payload() default {};
 }

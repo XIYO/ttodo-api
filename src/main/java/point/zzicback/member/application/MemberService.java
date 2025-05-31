@@ -12,12 +12,11 @@ import point.zzicback.member.persistance.MemberRepository;
 @RequiredArgsConstructor
 @Transactional
 public class MemberService {
+private final MemberRepository memberRepository;
 
-    private final MemberRepository memberRepository;
-
-    @Transactional(readOnly = true)
-    public Member findVerifiedMember(MemberQuery query) {
-        return memberRepository.findById(query.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("Member", query.memberId()));
-    }
+@Transactional(readOnly = true)
+public Member findVerifiedMember(MemberQuery query) {
+  return memberRepository.findById(query.memberId())
+          .orElseThrow(() -> new EntityNotFoundException("Member", query.memberId()));
+}
 }

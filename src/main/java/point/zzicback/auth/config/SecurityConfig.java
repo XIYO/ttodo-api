@@ -22,52 +22,37 @@ import point.zzicback.auth.security.resolver.MultiBearerTokenResolver;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+private final MultiBearerTokenResolver multiBearerTokenResolver;
+private final CustomJwtAuthConverter customJwtAuthConverter;
+private final AuthTokenService authTokenService;
 
-    private final MultiBearerTokenResolver multiBearerTokenResolver;
-    private final CustomJwtAuthConverter customJwtAuthConverter;
-    private final AuthTokenService authTokenService;
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint) throws Exception {
+  http.csrf(AbstractHttpConfigurer::disable).formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(authorize -> authorize.requestMatchers("/", "/auth/sign-up", "/auth/sign-in", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll().anyRequest().authenticated()).oauth2ResourceServer(oauth2 -> oauth2.bearerTokenResolver(multiBearerTokenResolver).jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthConverter)).authenticationEntryPoint(authenticationEntryPoint));
+  return http.build();
+}
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint)
-            throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable).formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        authorize -> authorize.requestMatchers("/", "/auth/sign-up", "/auth/sign-in", "/swagger-ui/**",
-                                "/v3/api-docs/**", "/swagger-ui.html").permitAll().anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.bearerTokenResolver(multiBearerTokenResolver)
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthConverter))
-                        .authenticationEntryPoint(authenticationEntryPoint));
+@Bean
+public PasswordEncoder passwordEncoder() {
+  return new BCryptPasswordEncoder();
+}
 
-        return http.build();
+@Bean
+public AuthenticationEntryPoint authenticationEntryPoint() {
+  return (request, response, authException) -> {
+    Throwable cause = authException.getCause();
+    if (! (cause instanceof JwtValidationException) && cause != null) {
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      return;
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    boolean refreshed = authTokenService.refreshTokensIfNeeded(request, response);
+    if (! refreshed) {
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      return;
     }
-
-    @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        return (request, response, authException) -> {
-            Throwable cause = authException.getCause();
-            if (!(cause instanceof JwtValidationException) && cause != null) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-
-            boolean refreshed = authTokenService.refreshTokensIfNeeded(request, response);
-            if (!refreshed) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-
-            String uri = request.getRequestURI()
-                    + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
-            response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
-            response.setHeader(HttpHeaders.LOCATION, uri);
-        };
-    }
+    String uri = request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
+    response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+    response.setHeader(HttpHeaders.LOCATION, uri);
+  };
+}
 }

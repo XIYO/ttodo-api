@@ -7,7 +7,6 @@ import point.zzicback.member.domain.Member;
 
 @Mapper(componentModel = "spring")
 public interface AuthApplicationMapper {
-
-    @Mapping(target = "id", ignore = true)
-    Member toEntity(SignUpCommand command);
+@Mapping(target = "id", ignore = true)
+Member toEntity(SignUpCommand command);
 }
