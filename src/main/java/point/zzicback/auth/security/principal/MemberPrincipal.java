@@ -3,8 +3,7 @@ package point.zzicback.auth.security.principal;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 
 public record MemberPrincipal(UUID id, String email, String nickname,
                               Collection<? extends GrantedAuthority> authorities) implements UserDetails {

@@ -1,10 +1,8 @@
 package point.zzicback.auth.security.resolver;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
-import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.*;
 import org.springframework.stereotype.Component;
 import point.zzicback.auth.config.properties.JwtProperties;
 

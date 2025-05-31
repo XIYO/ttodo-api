@@ -2,18 +2,14 @@ package point.zzicback.auth.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import point.zzicback.auth.config.properties.JwtProperties;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor

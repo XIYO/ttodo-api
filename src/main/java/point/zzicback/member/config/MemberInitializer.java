@@ -1,8 +1,7 @@
 package point.zzicback.member.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.*;
 import org.springframework.stereotype.Component;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.persistance.MemberRepository;

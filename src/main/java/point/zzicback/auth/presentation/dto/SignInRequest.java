@@ -1,8 +1,7 @@
 package point.zzicback.auth.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 
 @Schema(description = "사용자 로그인 요청 DTO")
 @PasswordOrAnonymousValid

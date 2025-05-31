@@ -1,7 +1,6 @@
 package point.zzicback.auth.util;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import point.zzicback.auth.config.properties.JwtProperties;

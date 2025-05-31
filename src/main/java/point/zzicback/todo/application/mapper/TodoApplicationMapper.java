@@ -1,8 +1,7 @@
 package point.zzicback.todo.application.mapper;
 
 import org.mapstruct.*;
-import point.zzicback.todo.application.dto.command.CreateTodoCommand;
-import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
+import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.response.TodoResponse;
 import point.zzicback.todo.domain.Todo;
 

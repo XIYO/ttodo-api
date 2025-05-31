@@ -1,7 +1,6 @@
 package point.zzicback.todo.application.dto.command;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.util.UUID;
 

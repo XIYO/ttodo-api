@@ -1,7 +1,6 @@
 package point.zzicback.common.validation.email;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import point.zzicback.auth.application.AuthService;

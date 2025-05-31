@@ -1,15 +1,11 @@
 package point.zzicback.auth.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 import point.zzicback.common.validation.email.UniqueEmail;
-import point.zzicback.common.validation.fieldcompare.CompareResult;
-import point.zzicback.common.validation.fieldcompare.CompareTarget;
-import point.zzicback.common.validation.fieldcompare.FieldComparison;
+import point.zzicback.common.validation.fieldcompare.*;
 
 @Schema(description = "사용자 회원가입에 필요한 데이터 DTO")
 @Builder

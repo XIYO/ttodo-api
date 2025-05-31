@@ -1,12 +1,9 @@
 package point.zzicback.todo.presentation.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import point.zzicback.todo.application.dto.command.CreateTodoCommand;
-import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
+import org.mapstruct.*;
+import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.response.TodoResponse;
-import point.zzicback.todo.presentation.dto.CreateTodoRequest;
-import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
+import point.zzicback.todo.presentation.dto.*;
 
 import java.util.UUID;
 

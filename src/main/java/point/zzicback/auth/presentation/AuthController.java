@@ -3,17 +3,14 @@ package point.zzicback.auth.presentation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import point.zzicback.auth.application.AuthService;
-import point.zzicback.auth.application.AuthTokenService;
+import point.zzicback.auth.application.*;
 import point.zzicback.auth.application.dto.command.SignInCommand;
 import point.zzicback.auth.domain.AuthenticatedMember;
-import point.zzicback.auth.presentation.dto.SignInRequest;
-import point.zzicback.auth.presentation.dto.SignUpRequest;
+import point.zzicback.auth.presentation.dto.*;
 import point.zzicback.auth.presentation.mapper.AuthPresentationMapper;
 
 @Tag(name = "인증", description = "회원 인증 관련 API")

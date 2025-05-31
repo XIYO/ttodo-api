@@ -1,7 +1,6 @@
 package point.zzicback.auth.presentation.dto;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.*;
 
 public class PasswordOrAnonymousValidator implements ConstraintValidator<PasswordOrAnonymousValid, SignInRequest> {
 private static final String ANONYMOUS_EMAIL = "anonymous@shared.com";

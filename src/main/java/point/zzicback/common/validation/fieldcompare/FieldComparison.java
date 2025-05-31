@@ -1,7 +1,6 @@
 package point.zzicback.common.validation.fieldcompare;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
+import jakarta.validation.*;
 
 import java.lang.annotation.*;
 
