@@ -4,10 +4,10 @@ spring:
   profiles:
     group:
       dev:
-        - "db-h2"
+        - "h2"
         - "common-dev"
       prod:
-        - "db-pg"
+        - "postgres"
         - "redis"
         - "common-prod"
     active: dev
