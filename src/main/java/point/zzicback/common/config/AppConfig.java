@@ -6,4 +6,5 @@ import point.zzicback.auth.config.properties.JwtProperties;
 
 @Configuration
 @EnableConfigurationProperties(JwtProperties.class)
-public class AppConfig {}
+public class AppConfig {
+}

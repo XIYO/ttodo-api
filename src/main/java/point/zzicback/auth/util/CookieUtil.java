@@ -13,33 +13,26 @@ public class CookieUtil {
     private final JwtProperties jwtProperties;
 
     public Cookie createJwtCookie(String jwtToken) {
-        return createAccessTokenCookie(
-                jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.expiration());
+        return createAccessTokenCookie(jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.expiration());
     }
 
     public Cookie createRefreshCookie(String refreshToken) {
-        return createRefreshTokenCookie(
-                jwtProperties.refreshToken().cookie(),
-                refreshToken,
-                jwtProperties.refreshExpiration());
+        return createRefreshTokenCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshExpiration());
     }
 
-    private Cookie createAccessTokenCookie(
-            JwtProperties.CookieProperties cookieProps, String token, int maxAge) {
+    private Cookie createAccessTokenCookie(JwtProperties.CookieProperties cookieProps, String token, int maxAge) {
         Cookie cookie = new Cookie(cookieProps.name(), token);
         setCommonCookieProperties(cookie, cookieProps, maxAge);
         return cookie;
     }
 
-    private Cookie createRefreshTokenCookie(
-            JwtProperties.CookieProperties cookieProps, String token, int maxAge) {
+    private Cookie createRefreshTokenCookie(JwtProperties.CookieProperties cookieProps, String token, int maxAge) {
         Cookie cookie = new Cookie(cookieProps.name(), token);
         setCommonCookieProperties(cookie, cookieProps, maxAge);
         return cookie;
     }
 
-    private void setCommonCookieProperties(
-            Cookie cookie, JwtProperties.CookieProperties cookieProps, int maxAge) {
+    private void setCommonCookieProperties(Cookie cookie, JwtProperties.CookieProperties cookieProps, int maxAge) {
         cookie.setPath(cookieProps.path());
         cookie.setSecure(cookieProps.secure());
         cookie.setHttpOnly(cookieProps.httpOnly());

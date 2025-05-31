@@ -1,13 +1,13 @@
 package point.zzicback.auth.security.principal;
 
-import java.util.Collection;
-import java.util.UUID;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public record MemberPrincipal(
-        UUID id, String email, String nickname, Collection<? extends GrantedAuthority> authorities)
-        implements UserDetails {
+import java.util.Collection;
+import java.util.UUID;
+
+public record MemberPrincipal(UUID id, String email, String nickname,
+                              Collection<? extends GrantedAuthority> authorities) implements UserDetails {
 
     @Override
     public String getUsername() {

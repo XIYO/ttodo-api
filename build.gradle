@@ -57,9 +57,10 @@ dependencies {
 spotless {
     java {
         target 'src/**/*.java'
-        googleJavaFormat('1.22.0').aosp()
+        eclipse().configFile('.spotless/eclipse.prefs')
         indentWithSpaces(2)
         removeUnusedImports()
+        importOrder('java|javax', 'jakarta', 'org', 'com', '', '\\#')
         trimTrailingWhitespace()
         endWithNewline()
     }

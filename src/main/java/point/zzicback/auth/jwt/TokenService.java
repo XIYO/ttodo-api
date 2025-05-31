@@ -1,7 +1,6 @@
 package point.zzicback.auth.jwt;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import point.zzicback.auth.config.properties.JwtProperties;
@@ -10,6 +9,8 @@ import point.zzicback.auth.util.JwtUtil;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.query.MemberQuery;
 import point.zzicback.member.domain.Member;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,23 +36,21 @@ public class TokenService {
         return refreshToken.equals(storedToken);
     }
 
-    public record TokenPair(
-            @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-                    String accessToken,
-            @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-                    String refreshToken) {}
-
     public TokenPair refreshTokens(String deviceId, String oldRefreshToken) {
         UUID memberId = UUID.fromString(jwtUtil.extractClaim(oldRefreshToken, "sub"));
         MemberQuery memberQuery = new MemberQuery(memberId);
         Member member = memberService.findVerifiedMember(memberQuery);
 
-        String newAccessToken =
-                jwtUtil.generateAccessToken(
-                        memberId.toString(), member.getEmail(), member.getNickname());
+        String newAccessToken = jwtUtil.generateAccessToken(memberId.toString(), member.getEmail(),
+                member.getNickname());
         String newRefreshToken = jwtUtil.generateRefreshToken(memberId.toString(), deviceId);
 
         save(deviceId, newRefreshToken);
         return new TokenPair(newAccessToken, newRefreshToken);
+    }
+
+    public record TokenPair(
+            @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String accessToken,
+            @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String refreshToken) {
     }
 }

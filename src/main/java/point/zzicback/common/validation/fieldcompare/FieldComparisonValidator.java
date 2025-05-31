@@ -2,6 +2,7 @@ package point.zzicback.common.validation.fieldcompare;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+
 import java.lang.reflect.RecordComponent;
 
 public class FieldComparisonValidator implements ConstraintValidator<FieldComparison, Object> {
@@ -40,11 +41,10 @@ public class FieldComparisonValidator implements ConstraintValidator<FieldCompar
                 return true;
             }
             // 둘 중 하나만 null이거나 값이 다르면 검증 실패
-            if (targetValue == null || resultValue == null || !targetValue.equals(resultValue)) {
+            if (targetValue == null || !targetValue.equals(resultValue)) {
                 context.disableDefaultConstraintViolation();
                 context.buildConstraintViolationWithTemplate(
-                                String.format("'%s' 필드와 '%s' 필드가 같지 않습니다.", targetName, resultName))
-                        .addPropertyNode(resultName)
+                                String.format("'%s' 필드와 '%s' 필드가 같지 않습니다.", targetName, resultName)).addPropertyNode(resultName)
                         .addConstraintViolation();
                 return false;
             }

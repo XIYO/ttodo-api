@@ -6,19 +6,6 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +21,20 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.util.StreamUtils;
 import point.zzicback.auth.config.properties.JwtProperties;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
 
 @Configuration
 @RequiredArgsConstructor
@@ -53,21 +54,18 @@ public class JwtConfig {
 
     private String readKey(Resource resource) throws IOException {
         try (InputStream inputStream = resource.getInputStream()) {
-            return StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8)
-                    .replaceAll("-----.*?-----", "")
+            return StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8).replaceAll("-----.*?-----", "")
                     .replaceAll("\\s+", "");
         }
     }
 
-    private RSAPrivateKey loadPrivateKey()
-            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    private RSAPrivateKey loadPrivateKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] keyBytes = Base64.getDecoder().decode(readKey(jwtProperties.privateKey()));
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         return (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(keySpec);
     }
 
-    private RSAPublicKey loadPublicKey()
-            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    private RSAPublicKey loadPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] keyBytes = Base64.getDecoder().decode(readKey(jwtProperties.publicKey()));
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(keySpec);
@@ -80,11 +78,7 @@ public class JwtConfig {
 
     @Bean
     public JwtEncoder jwtEncoder() {
-        RSAKey rsaKey =
-                new RSAKey.Builder(publicKey)
-                        .privateKey(privateKey)
-                        .keyID(jwtProperties.keyId())
-                        .build();
+        RSAKey rsaKey = new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(jwtProperties.keyId()).build();
         JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(rsaKey));
         return new NimbusJwtEncoder(jwkSource);
     }
@@ -96,23 +90,19 @@ public class JwtConfig {
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
-                new JwtGrantedAuthoritiesConverter();
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         grantedAuthoritiesConverter.setAuthorityPrefix("");
 
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(
-                jwt -> {
-                    Collection<GrantedAuthority> authorities =
-                            grantedAuthoritiesConverter.convert(jwt);
+        jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = grantedAuthoritiesConverter.convert(jwt);
 
-                    if (authorities.isEmpty()) {
-                        authorities =
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-                    }
+            if (authorities.isEmpty()) {
+                authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+            }
 
-                    return authorities;
-                });
+            return authorities;
+        });
 
         return jwtConverter;
     }

@@ -3,13 +3,14 @@ package point.zzicback.auth.application;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import point.zzicback.auth.domain.AuthenticatedMember;
 import point.zzicback.auth.jwt.TokenService;
 import point.zzicback.auth.util.CookieUtil;
 import point.zzicback.auth.util.JwtUtil;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +20,9 @@ public class AuthTokenService {
     private final CookieUtil cookieUtil;
     private final TokenService tokenService;
 
-    public record TokenResult(String accessToken, String refreshToken, String deviceId) {}
-
     public TokenResult generateTokens(AuthenticatedMember member) {
         String deviceId = UUID.randomUUID().toString();
-        String accessToken =
-                jwtUtil.generateAccessToken(member.id(), member.email(), member.nickname());
+        String accessToken = jwtUtil.generateAccessToken(member.id(), member.email(), member.nickname());
         String refreshToken = jwtUtil.generateRefreshToken(member.id(), deviceId);
 
         tokenService.save(deviceId, refreshToken);
@@ -63,7 +61,8 @@ public class AuthTokenService {
 
     public boolean refreshTokensIfNeeded(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = cookieUtil.getRefreshToken(request);
-        if (refreshToken == null) return false;
+        if (refreshToken == null)
+            return false;
 
         try {
             String deviceId = jwtUtil.extractClaim(refreshToken, "device");
@@ -77,5 +76,8 @@ public class AuthTokenService {
             clearTokenCookies(response);
             return false;
         }
+    }
+
+    public record TokenResult(String accessToken, String refreshToken, String deviceId) {
     }
 }

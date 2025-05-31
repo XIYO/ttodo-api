@@ -1,16 +1,15 @@
 package point.zzicback.auth.repository;
 
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @Profile("!redis")
 public class InMemoryTokenRepository implements TokenRepository {
-
-    private record TokenEntry(String value, LocalDateTime expiresAt) {}
 
     private final ConcurrentMap<String, TokenEntry> store = new ConcurrentHashMap<>();
 
@@ -43,5 +42,8 @@ public class InMemoryTokenRepository implements TokenRepository {
             store.remove(key);
         }
         return exists;
+    }
+
+    private record TokenEntry(String value, LocalDateTime expiresAt) {
     }
 }

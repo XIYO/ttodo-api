@@ -26,16 +26,13 @@ public class TodoService {
     private final TodoApplicationMapper todoApplicationMapper;
 
     public Page<TodoResponse> getTodoList(TodoListQuery query) {
-        Page<Todo> todoPage =
-                todoRepository.findByMemberIdAndDone(
-                        query.memberId(), query.done(), query.pageable());
+        Page<Todo> todoPage = todoRepository.findByMemberIdAndDone(query.memberId(), query.done(), query.pageable());
 
         return todoPage.map(todoApplicationMapper::toResponse);
     }
 
     public TodoResponse getTodo(TodoQuery query) {
-        return todoRepository
-                .findByIdAndMemberId(query.todoId(), query.memberId())
+        return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
                 .map(todoApplicationMapper::toResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Todo", query.todoId()));
     }
@@ -51,21 +48,16 @@ public class TodoService {
 
     @Transactional
     public void updateTodo(UpdateTodoCommand command) {
-        Todo todo =
-                todoRepository
-                        .findByIdAndMemberId(command.todoId(), command.memberId())
-                        .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
+        Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
         todoApplicationMapper.updateEntity(command, todo);
     }
 
     @Transactional
     public void deleteTodo(TodoQuery query) {
-        todoRepository
-                .findByIdAndMemberId(query.todoId(), query.memberId())
-                .ifPresentOrElse(
-                        todo -> todoRepository.deleteById(query.todoId()),
-                        () -> {
-                            throw new EntityNotFoundException("Todo", query.todoId());
-                        });
+        todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
+                .ifPresentOrElse(todo -> todoRepository.deleteById(query.todoId()), () -> {
+                    throw new EntityNotFoundException("Todo", query.todoId());
+                });
     }
 }

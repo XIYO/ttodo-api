@@ -1,8 +1,9 @@
 package point.zzicback.member.domain;
 
 import jakarta.persistence.*;
-import java.util.UUID;
 import lombok.*;
+
+import java.util.UUID;
 
 @Entity
 @Getter

@@ -17,8 +17,7 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public Member findVerifiedMember(MemberQuery query) {
-        return memberRepository
-                .findById(query.memberId())
+        return memberRepository.findById(query.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("Member", query.memberId()));
     }
 }

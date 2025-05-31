@@ -5,7 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** 비교 대상 필드를 표시하는 어노테이션 */
+/**
+ * 비교 대상 필드를 표시하는 어노테이션
+ */
 @Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CompareTarget {}
+public @interface CompareTarget {
+}

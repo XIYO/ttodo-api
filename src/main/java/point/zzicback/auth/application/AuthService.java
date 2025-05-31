@@ -33,10 +33,8 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthenticatedMember signIn(SignInCommand signInCommand) {
-        Member member =
-                memberRepository
-                        .findByEmail(signInCommand.email())
-                        .orElseThrow(() -> new BusinessException("회원 정보 없음"));
+        Member member = memberRepository.findByEmail(signInCommand.email())
+                .orElseThrow(() -> new BusinessException("회원 정보 없음"));
 
         if (!"anonymous@shared.com".equals(signInCommand.email())
                 && !passwordEncoder.matches(signInCommand.password(), member.getPassword())) {

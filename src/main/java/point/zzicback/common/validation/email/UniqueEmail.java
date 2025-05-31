@@ -2,6 +2,7 @@ package point.zzicback.common.validation.email;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+
 import java.lang.annotation.*;
 
 @Documented
