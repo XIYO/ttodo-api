@@ -24,3 +24,15 @@ springdoc:
     path: /
   api-docs:
     path: /v3/api-docs
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: '!redis'
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
