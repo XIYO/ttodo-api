@@ -31,7 +31,8 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "잘못된 요청")
     @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
     @PostMapping("/sign-up")
-    public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+    public void signUpAndIn(
+            @Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
         authService.signUp(authPresentationMapper.toCommand(request));
 
         SignInCommand signInCommand = new SignInCommand(request.email(), request.password());
@@ -44,8 +45,10 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "로그인 성공, 쿠키에 토큰 발급")
     @ApiResponse(responseCode = "401", description = "인증 실패")
     @PostMapping("/sign-in")
-    public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
-        AuthenticatedMember authenticatedMember = authService.signIn(authPresentationMapper.toCommand(request));
+    public void signInJson(
+            @Valid @RequestBody SignInRequest request, HttpServletResponse response) {
+        AuthenticatedMember authenticatedMember =
+                authService.signIn(authPresentationMapper.toCommand(request));
         authTokenService.authenticateWithCookies(authenticatedMember, response);
     }
 

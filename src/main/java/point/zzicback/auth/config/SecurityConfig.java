@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -29,30 +28,34 @@ public class SecurityConfig {
     private final AuthTokenService authTokenService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
+    public SecurityFilterChain filterChain(
+            HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/",
-                                "/auth/sign-up",
-                                "/auth/sign-in",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .bearerTokenResolver(multiBearerTokenResolver)
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthConverter))
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                );
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(
+                        authorize ->
+                                authorize
+                                        .requestMatchers(
+                                                "/",
+                                                "/auth/sign-up",
+                                                "/auth/sign-in",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**",
+                                                "/swagger-ui.html")
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
+                .oauth2ResourceServer(
+                        oauth2 ->
+                                oauth2.bearerTokenResolver(multiBearerTokenResolver)
+                                        .jwt(
+                                                jwt ->
+                                                        jwt.jwtAuthenticationConverter(
+                                                                customJwtAuthConverter))
+                                        .authenticationEntryPoint(authenticationEntryPoint));
 
         return http.build();
     }
@@ -77,8 +80,11 @@ public class SecurityConfig {
                 return;
             }
 
-            String uri = request.getRequestURI()
-                    + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
+            String uri =
+                    request.getRequestURI()
+                            + (request.getQueryString() != null
+                                    ? "?" + request.getQueryString()
+                                    : "");
             response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
             response.setHeader(HttpHeaders.LOCATION, uri);
         };

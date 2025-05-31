@@ -1,21 +1,17 @@
 package point.zzicback.auth.security.principal;
 
+import java.util.Collection;
+import java.util.UUID;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.UUID;
-
 public record MemberPrincipal(
-        UUID id,
-        String email,
-        String nickname,
-        Collection<? extends GrantedAuthority> authorities
-) implements UserDetails {
+        UUID id, String email, String nickname, Collection<? extends GrantedAuthority> authorities)
+        implements UserDetails {
 
-    @Override 
-    public String getUsername() { 
-        return email; 
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     @Override
@@ -23,9 +19,28 @@ public record MemberPrincipal(
         return authorities;
     }
 
-    @Override public String getPassword() { return null; }
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+    @Override
+    public String getPassword() {
+        return null;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

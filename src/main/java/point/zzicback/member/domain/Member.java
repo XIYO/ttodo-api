@@ -1,31 +1,27 @@
 package point.zzicback.member.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.io.Serializable;
+import jakarta.persistence.*;
 import java.util.UUID;
+import lombok.*;
 
 @Entity
 @Getter
-public class Member implements Serializable {
-
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+public class Member {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @Setter
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(AccessLevel.NONE)
     private UUID id;
 
-    @Column(unique = true)
-    @Setter
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Setter
+    @Column(nullable = false)
     private String nickname;
 
-    @Setter
+    @Column(nullable = false)
     private String password;
 }

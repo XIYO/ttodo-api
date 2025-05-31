@@ -1,6 +1,7 @@
 package point.zzicback.todo.presentation;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,11 +13,9 @@ import point.zzicback.todo.application.TodoService;
 import point.zzicback.todo.application.dto.query.TodoListQuery;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.presentation.dto.CreateTodoRequest;
-import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
 import point.zzicback.todo.presentation.dto.TodoResponse;
+import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/members")
@@ -34,25 +33,24 @@ public class TodoController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id,desc") String sort) {
-        
+
         String[] sortParams = sort.split(",");
         String sortBy = sortParams[0];
-        Sort.Direction direction = sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1]) 
-                                    ? Sort.Direction.DESC 
-                                    : Sort.Direction.ASC;
-        
+        Sort.Direction direction =
+                sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1])
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         TodoListQuery query = TodoListQuery.of(memberId, done, pageable);
-        
+
         return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
     }
 
     @GetMapping("/{memberId}/todos/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TodoResponse getTodo(@PathVariable UUID memberId, @PathVariable Long id) {
-        return todoPresentationMapper.toResponse(
-            todoService.getTodo(TodoQuery.of(memberId, id))
-        );
+        return todoPresentationMapper.toResponse(todoService.getTodo(TodoQuery.of(memberId, id)));
     }
 
     @PostMapping("/{memberId}/todos")
@@ -63,7 +61,10 @@ public class TodoController {
 
     @PutMapping("/{memberId}/todos/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void modify(@PathVariable UUID memberId, @PathVariable Long id, @RequestBody UpdateTodoRequest request) {
+    public void modify(
+            @PathVariable UUID memberId,
+            @PathVariable Long id,
+            @RequestBody UpdateTodoRequest request) {
         todoService.updateTodo(todoPresentationMapper.toCommand(request, memberId, id));
     }
 

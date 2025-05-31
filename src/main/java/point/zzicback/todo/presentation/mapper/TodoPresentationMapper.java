@@ -1,5 +1,6 @@
 package point.zzicback.todo.presentation.mapper;
 
+import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import point.zzicback.todo.application.dto.command.CreateTodoCommand;
@@ -7,8 +8,6 @@ import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
 import point.zzicback.todo.application.dto.response.TodoResponse;
 import point.zzicback.todo.presentation.dto.CreateTodoRequest;
 import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
-
-import java.util.UUID;
 
 @Mapper(componentModel = "spring")
 public interface TodoPresentationMapper {

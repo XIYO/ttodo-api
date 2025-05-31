@@ -1,5 +1,8 @@
 package point.zzicback.common.error;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -7,10 +10,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,15 +26,16 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         detail.setTitle("Validation Failed");
-        
-        Map<String, List<String>> fieldErrors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.groupingBy(
-                        FieldError::getField,
-                        Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())
-                ));
-        
+
+        Map<String, List<String>> fieldErrors =
+                ex.getBindingResult().getFieldErrors().stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        FieldError::getField,
+                                        Collectors.mapping(
+                                                FieldError::getDefaultMessage,
+                                                Collectors.toList())));
+
         detail.setProperty("errors", fieldErrors);
         return detail;
     }

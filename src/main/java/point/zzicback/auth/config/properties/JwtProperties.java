@@ -11,22 +11,16 @@ public record JwtProperties(
         AccessTokenProperties accessToken,
         RefreshTokenProperties refreshToken,
         int expiration,
-        int refreshExpiration
-) {
-    public record AccessTokenProperties(
-            CookieProperties cookie
-    ) {}
-    
-    public record RefreshTokenProperties(
-            CookieProperties cookie
-    ) {}
-    
+        int refreshExpiration) {
+    public record AccessTokenProperties(CookieProperties cookie) {}
+
+    public record RefreshTokenProperties(CookieProperties cookie) {}
+
     public record CookieProperties(
             String name,
             String domain,
             String path,
             boolean secure,
             boolean httpOnly,
-            String sameSite
-    ) {}
+            String sameSite) {}
 }

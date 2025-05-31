@@ -1,5 +1,9 @@
 package point.zzicback.auth.util;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -10,11 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import point.zzicback.auth.config.properties.JwtProperties;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Map;
-
 @Component
 @RequiredArgsConstructor
 public class JwtUtil {
@@ -22,37 +21,34 @@ public class JwtUtil {
     private final JwtProperties jwtProperties;
     private final JwtEncoder jwtEncoder;
 
-    private String generateToken(String userId, Instant expiresAt, Map<String, Object> additionalClaims) {
+    private String generateToken(
+            String userId, Instant expiresAt, Map<String, Object> additionalClaims) {
         Instant now = Instant.now();
-        JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
-                .subject(userId)
-                .issuedAt(now)
-                .expiresAt(expiresAt);
+        JwtClaimsSet.Builder claimsBuilder =
+                JwtClaimsSet.builder().subject(userId).issuedAt(now).expiresAt(expiresAt);
 
         additionalClaims.forEach(claimsBuilder::claim);
 
         JwtClaimsSet claims = claimsBuilder.build();
-        JwtEncoderParameters parameters = JwtEncoderParameters.from(
-                JwsHeader.with(() -> "RS256")
-                        .keyId(jwtProperties.keyId())
-                        .build(),
-                claims
-        );
+        JwtEncoderParameters parameters =
+                JwtEncoderParameters.from(
+                        JwsHeader.with(() -> "RS256").keyId(jwtProperties.keyId()).build(), claims);
         return jwtEncoder.encode(parameters).getTokenValue();
     }
 
     public String generateAccessToken(String id, String email, String nickname) {
         Instant expiresAt = Instant.now().plus(jwtProperties.expiration(), ChronoUnit.SECONDS);
-        Map<String, Object> claims = Map.of(
-            "email", email,
-            "nickname", nickname,
-            "scope", "ROLE_USER"
-        );
+        Map<String, Object> claims =
+                Map.of(
+                        "email", email,
+                        "nickname", nickname,
+                        "scope", "ROLE_USER");
         return generateToken(id, expiresAt, claims);
     }
 
     public String generateRefreshToken(String id, String device) {
-        Instant expiresAt = Instant.now().plus(jwtProperties.refreshExpiration(), ChronoUnit.SECONDS);
+        Instant expiresAt =
+                Instant.now().plus(jwtProperties.refreshExpiration(), ChronoUnit.SECONDS);
         Map<String, Object> claims = Map.of("device", device);
         return generateToken(id, expiresAt, claims);
     }
