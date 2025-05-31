@@ -21,7 +21,7 @@ public class TodoController {
 
   @GetMapping("/{memberId}/todos")
   @ResponseStatus(HttpStatus.OK)
-  public Page<TodoResponse> getAll(@PathVariable UUID memberId, @RequestParam Boolean done,
+  public Page<TodoResponse> getAll(@PathVariable UUID memberId, @RequestParam(defaultValue = "false") Boolean done,
                                    @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
                                    @RequestParam(defaultValue = "id,desc") String sort) {
     String[] sortParams = sort.split(",");
