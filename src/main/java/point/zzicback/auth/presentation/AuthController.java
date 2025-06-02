@@ -79,8 +79,7 @@ public class AuthController {
 
   private Member authenticateMember(String email, String password) {
     Member member = memberService.findByEmail(email);
-    if (!"anon@zzic.com".equals(email) 
-        && !passwordEncoder.matches(password, member.getPassword())) {
+    if (!passwordEncoder.matches(password, member.getPassword())) {
       throw new BusinessException("비밀번호가 틀렸습니다.");
     }
     return member;

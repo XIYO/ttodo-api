@@ -15,7 +15,7 @@ public class MemberInitializer implements ApplicationRunner {
   public void run(ApplicationArguments args) {
     String anonymousEmail = "anon@zzic.com";
     if (memberRepository.findByEmail(anonymousEmail).isEmpty()) {
-      Member anonymous = Member.builder().email(anonymousEmail).nickname("익명의 찍찍이").password("anonymous").build();
+      Member anonymous = Member.builder().email(anonymousEmail).nickname("익명의 찍찍이").password("Anonymouse@123").build();
       memberRepository.save(anonymous);
     }
   }
