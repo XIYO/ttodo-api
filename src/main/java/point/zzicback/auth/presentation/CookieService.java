@@ -3,11 +3,10 @@ package point.zzicback.auth.presentation;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import point.zzicback.auth.config.properties.JwtProperties;
 
-import java.util.Arrays;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,16 +31,26 @@ public class CookieService {
     return cookie;
   }
 
-  public void zeroAge(Cookie cookie) {
-    cookie.setMaxAge(0);
-  }
-
-  public String getRefreshToken(HttpServletRequest request) {
+  public Optional<String> getRefreshToken(HttpServletRequest request) {
     return request.getCookies() == null ? null : 
       Arrays.stream(request.getCookies())
         .filter(cookie -> jwtProperties.refreshToken().cookie().name().equals(cookie.getName()))
         .findFirst()
-        .map(Cookie::getValue)
-        .orElse(null);
+        .map(Cookie::getValue);
+  }
+
+  public void expireTokenCookies(HttpServletRequest request, HttpServletResponse response) {
+    Cookie[] cookies = request.getCookies();
+    if (cookies != null) {
+      String accessName = jwtProperties.accessToken().cookie().name();
+      String refreshName = jwtProperties.refreshToken().cookie().name();
+      for (Cookie cookie : cookies) {
+        String name = cookie.getName();
+        if (accessName.equals(name) || refreshName.equals(name)) {
+          cookie.setMaxAge(0);
+          response.addCookie(cookie);
+        }
+      }
+    }
   }
 }

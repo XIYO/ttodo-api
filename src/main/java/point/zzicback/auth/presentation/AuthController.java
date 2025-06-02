@@ -63,7 +63,10 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "로그아웃 성공")
   @PostMapping("/sign-out")
   public void signOut(HttpServletRequest request, HttpServletResponse response) {
-    signOutWithCookies(request, response);
+    cookieService.getRefreshToken(request)
+        .filter(tokenService::isValidToken)
+        .ifPresent(tokenService::deleteByToken);
+    cookieService.expireTokenCookies(request, response);
   }
 
   @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 액세스 토큰 갱신")
@@ -71,10 +74,14 @@ public class AuthController {
   @ApiResponse(responseCode = "401", description = "토큰 갱신 실패")
   @GetMapping("/refresh")
   public void refresh(HttpServletRequest request, HttpServletResponse response) {
-    boolean refreshed = refreshTokensIfNeeded(request, response);
-    if (!refreshed) {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
+    String refreshToken = cookieService.getRefreshToken(request)
+        .orElseThrow(() -> new BusinessException("리프레시 토큰이 없습니다."));
+    
+    String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
+    TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
+
+    response.addCookie(cookieService.createJwtCookie(newTokens.accessToken()));
+    response.addCookie(cookieService.createRefreshCookie(newTokens.refreshToken()));
   }
 
   private Member authenticateMember(String email, String password) {
@@ -90,46 +97,8 @@ public class AuthController {
     
     Cookie accessCookie = cookieService.createJwtCookie(tokens.accessToken());
     Cookie refreshCookie = cookieService.createRefreshCookie(tokens.refreshToken());
-    
+
     response.addCookie(accessCookie);
     response.addCookie(refreshCookie);
-  }
-
-  private void signOutWithCookies(HttpServletRequest request, HttpServletResponse response) {
-    String refreshToken = cookieService.getRefreshToken(request);
-    if (refreshToken != null) {
-      tokenService.deleteByToken(refreshToken);
-    }
-    
-    // 쿠키 무효화
-    Cookie accessCookie = cookieService.createJwtCookie("");
-    Cookie refreshCookie = cookieService.createRefreshCookie("");
-    cookieService.zeroAge(accessCookie);
-    cookieService.zeroAge(refreshCookie);
-    
-    response.addCookie(accessCookie);
-    response.addCookie(refreshCookie);
-  }
-
-  private boolean refreshTokensIfNeeded(HttpServletRequest request, HttpServletResponse response) {
-    String refreshToken = cookieService.getRefreshToken(request);
-    if (refreshToken == null) {
-      return false;
-    }
-    
-    try {
-      String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
-      TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
-      
-      Cookie accessCookie = cookieService.createJwtCookie(newTokens.accessToken());
-      Cookie refreshCookie = cookieService.createRefreshCookie(newTokens.refreshToken());
-      
-      response.addCookie(accessCookie);
-      response.addCookie(refreshCookie);
-      
-      return true;
-    } catch (Exception _) {
-      return false;
-    }
   }
 }

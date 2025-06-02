@@ -36,11 +36,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
   }
 
   private boolean refreshTokensIfNeeded(HttpServletRequest request, HttpServletResponse response) {
-    String refreshToken = cookieService.getRefreshToken(request);
-    if (refreshToken == null) {
-      return false;
-    }
-    
+    String refreshToken = cookieService.getRefreshToken(request)
+            .ifPresentOrElse(() => null);
+
     try {
       String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
       TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
