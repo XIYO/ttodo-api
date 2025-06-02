@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.application.*;
 import point.zzicback.auth.application.dto.command.SignInCommand;
 import point.zzicback.auth.domain.AuthenticatedMember;
+import point.zzicback.auth.application.TokenService;
 import point.zzicback.auth.presentation.dto.*;
 import point.zzicback.auth.presentation.mapper.AuthPresentationMapper;
 
@@ -19,7 +20,8 @@ import point.zzicback.auth.presentation.mapper.AuthPresentationMapper;
 @RequestMapping("/auth")
 public class AuthController {
   private final AuthService authService;
-  private final AuthTokenService authTokenService;
+  private final TokenService tokenService;
+  private final CookieService cookieService;
   private final AuthPresentationMapper authPresentationMapper;
 
   @Operation(summary = "회원가입 및 로그인", description = "회원가입을 진행하고 즉시 로그인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
@@ -31,7 +33,7 @@ public class AuthController {
     authService.signUp(authPresentationMapper.toCommand(request));
     SignInCommand signInCommand = new SignInCommand(request.email(), request.password());
     AuthenticatedMember authenticatedMember = authService.signIn(signInCommand);
-    authTokenService.authenticateWithCookies(authenticatedMember, response);
+    authenticateWithCookies(authenticatedMember, response);
   }
 
   @Operation(summary = "로그인", description = "로그인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.")
@@ -40,14 +42,14 @@ public class AuthController {
   @PostMapping("/sign-in")
   public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
     AuthenticatedMember authenticatedMember = authService.signIn(authPresentationMapper.toCommand(request));
-    authTokenService.authenticateWithCookies(authenticatedMember, response);
+    authenticateWithCookies(authenticatedMember, response);
   }
 
   @Operation(summary = "로그아웃", description = "로그아웃 처리 및 토큰 만료")
   @ApiResponse(responseCode = "200", description = "로그아웃 성공")
   @PostMapping("/sign-out")
   public void signOut(HttpServletRequest request, HttpServletResponse response) {
-    authTokenService.signOut(request, response);
+    signOutWithCookies(request, response);
   }
 
   @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 액세스 토큰 갱신")
@@ -55,9 +57,57 @@ public class AuthController {
   @ApiResponse(responseCode = "401", description = "토큰 갱신 실패")
   @GetMapping("/refresh")
   public void refresh(HttpServletRequest request, HttpServletResponse response) {
-    boolean refreshed = authTokenService.refreshTokensIfNeeded(request, response);
+    boolean refreshed = refreshTokensIfNeeded(request, response);
     if (!refreshed) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    }
+  }
+
+  private void authenticateWithCookies(AuthenticatedMember member, HttpServletResponse response) {
+    TokenService.TokenResult tokens = tokenService.generateTokens(member);
+    
+    Cookie accessCookie = cookieService.createJwtCookie(tokens.accessToken());
+    Cookie refreshCookie = cookieService.createRefreshCookie(tokens.refreshToken());
+    
+    response.addCookie(accessCookie);
+    response.addCookie(refreshCookie);
+  }
+
+  private void signOutWithCookies(HttpServletRequest request, HttpServletResponse response) {
+    String refreshToken = cookieService.getRefreshToken(request);
+    if (refreshToken != null) {
+      tokenService.deleteByToken(refreshToken);
+    }
+    
+    // 쿠키 무효화
+    Cookie accessCookie = cookieService.createJwtCookie("");
+    Cookie refreshCookie = cookieService.createRefreshCookie("");
+    cookieService.zeroAge(accessCookie);
+    cookieService.zeroAge(refreshCookie);
+    
+    response.addCookie(accessCookie);
+    response.addCookie(refreshCookie);
+  }
+
+  private boolean refreshTokensIfNeeded(HttpServletRequest request, HttpServletResponse response) {
+    String refreshToken = cookieService.getRefreshToken(request);
+    if (refreshToken == null) {
+      return false;
+    }
+    
+    try {
+      String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
+      TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
+      
+      Cookie accessCookie = cookieService.createJwtCookie(newTokens.accessToken());
+      Cookie refreshCookie = cookieService.createRefreshCookie(newTokens.refreshToken());
+      
+      response.addCookie(accessCookie);
+      response.addCookie(refreshCookie);
+      
+      return true;
+    } catch (Exception _) {
+      return false;
     }
   }
 }
