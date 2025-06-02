@@ -6,23 +6,30 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import point.zzicback.auth.application.*;
-import point.zzicback.auth.application.dto.command.SignInCommand;
-import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.auth.application.TokenService;
+import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.auth.presentation.dto.*;
-import point.zzicback.auth.presentation.mapper.AuthPresentationMapper;
+import point.zzicback.member.application.MemberService;
+import point.zzicback.member.application.dto.command.MemberSignInCommand;
+import point.zzicback.member.application.dto.command.MemberSignUpCommand;
+import point.zzicback.member.domain.Member;
+
+import java.util.List;
 
 @Tag(name = "인증", description = "회원 인증 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
+@Transactional
 public class AuthController {
-  private final AuthService authService;
+  private static final String USER_ROLE = "ROLE_USER";
+  
+  private final MemberService memberService;
   private final TokenService tokenService;
   private final CookieService cookieService;
-  private final AuthPresentationMapper authPresentationMapper;
 
   @Operation(summary = "회원가입 및 로그인", description = "회원가입을 진행하고 즉시 로그인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
   @ApiResponse(responseCode = "200", description = "회원가입 및 로그인 성공, 쿠키에 토큰 발급")
@@ -30,9 +37,12 @@ public class AuthController {
   @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
   @PostMapping("/sign-up")
   public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
-    authService.signUp(authPresentationMapper.toCommand(request));
-    SignInCommand signInCommand = new SignInCommand(request.email(), request.password());
-    MemberPrincipal memberPrincipal = authService.signIn(signInCommand);
+    MemberSignUpCommand signUpCommand = new MemberSignUpCommand(request.email(), request.password(), request.nickname());
+    memberService.createMember(signUpCommand);
+    MemberSignInCommand signInCommand = new MemberSignInCommand(request.email(), request.password());
+    Member member = memberService.authenticate(signInCommand);
+    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
+    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
     authenticateWithCookies(memberPrincipal, response);
   }
 
@@ -40,8 +50,12 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "로그인 성공, 쿠키에 토큰 발급")
   @ApiResponse(responseCode = "401", description = "인증 실패")
   @PostMapping("/sign-in")
-  public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
-    MemberPrincipal memberPrincipal = authService.signIn(authPresentationMapper.toCommand(request));
+  @Transactional(readOnly = true)
+  public void signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
+    MemberSignInCommand signInCommand = new MemberSignInCommand(request.email(), request.password());
+    Member member = memberService.authenticate(signInCommand);
+    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
+    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
     authenticateWithCookies(memberPrincipal, response);
   }
 

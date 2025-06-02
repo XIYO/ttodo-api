@@ -1,4 +1,4 @@
-package point.zzicback.auth.security.converter;
+package point.zzicback.auth.infrastructure.jwt;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.NonNull;
