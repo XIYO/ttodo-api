@@ -3,6 +3,8 @@ package point.zzicback.auth.presentation;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import point.zzicback.auth.config.properties.JwtProperties;
 
 import java.util.Arrays;
@@ -26,11 +28,7 @@ public class CookieService {
     cookie.setSecure(props.secure());
     cookie.setHttpOnly(props.httpOnly());
     cookie.setMaxAge(maxAge);
-    
-    String domain = props.domain();
-    if (domain != null && !domain.equalsIgnoreCase("localhost") && !domain.isBlank()) {
-      cookie.setDomain(domain);
-    }
+    cookie.setDomain(props.domain());
     return cookie;
   }
 
