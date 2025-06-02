@@ -39,10 +39,7 @@ public class TokenService {
     UUID memberId = UUID.fromString(jwtUtil.extractClaim(oldRefreshToken, "sub"));
     MemberQuery memberQuery = new MemberQuery(memberId);
     Member member = memberService.findVerifiedMember(memberQuery);
-    String newAccessToken = jwtUtil.generateAccessToken(
-            memberId.toString(), member.getEmail(),
-            member.getNickname()
-    );
+    String newAccessToken = jwtUtil.generateAccessToken(memberId.toString(), member.getEmail(), member.getNickname());
     String newRefreshToken = jwtUtil.generateRefreshToken(memberId.toString(), deviceId);
     save(deviceId, newRefreshToken);
     return new TokenPair(newAccessToken, newRefreshToken);

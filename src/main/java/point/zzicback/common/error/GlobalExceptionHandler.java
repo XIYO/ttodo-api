@@ -23,11 +23,8 @@ public class GlobalExceptionHandler {
   public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
     ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
     detail.setTitle("Validation Failed");
-    Map<String, List<String>> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-            .collect(Collectors.groupingBy(
-                    FieldError::getField,
-                    Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())
-            ));
+    Map<String, List<String>> fieldErrors = ex.getBindingResult().getFieldErrors().stream().collect(Collectors
+            .groupingBy(FieldError::getField, Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())));
     detail.setProperty("errors", fieldErrors);
     return detail;
   }

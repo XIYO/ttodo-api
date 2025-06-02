@@ -28,8 +28,7 @@ public class TodoService {
   }
 
   public TodoResponse getTodo(TodoQuery query) {
-    return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
-            .map(todoApplicationMapper::toResponse)
+    return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId()).map(todoApplicationMapper::toResponse)
             .orElseThrow(() -> new EntityNotFoundException("Todo", query.todoId()));
   }
 
@@ -52,10 +51,8 @@ public class TodoService {
   @Transactional
   public void deleteTodo(TodoQuery query) {
     todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
-            .ifPresentOrElse(
-                    todo -> todoRepository.deleteById(query.todoId()), () -> {
-                      throw new EntityNotFoundException("Todo", query.todoId());
-                    }
-            );
+            .ifPresentOrElse(todo -> todoRepository.deleteById(query.todoId()), () -> {
+              throw new EntityNotFoundException("Todo", query.todoId());
+            });
   }
 }

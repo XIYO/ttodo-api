@@ -38,9 +38,9 @@ public class FieldComparisonValidator implements ConstraintValidator<FieldCompar
       // 둘 중 하나만 null이거나 값이 다르면 검증 실패
       if (targetValue == null || !targetValue.equals(resultValue)) {
         context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(
-                        String.format("'%s' 필드와 '%s' 필드가 같지 않습니다.", targetName, resultName)).addPropertyNode(resultName)
-                .addConstraintViolation();
+        context
+                .buildConstraintViolationWithTemplate(String.format("'%s' 필드와 '%s' 필드가 같지 않습니다.", targetName, resultName))
+                .addPropertyNode(resultName).addConstraintViolation();
         return false;
       }
       return true;

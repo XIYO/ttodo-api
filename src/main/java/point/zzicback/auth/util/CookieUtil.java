@@ -15,7 +15,8 @@ public class CookieUtil {
   }
 
   public Cookie createRefreshCookie(String refreshToken) {
-    return createRefreshTokenCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshExpiration());
+    return createRefreshTokenCookie(jwtProperties.refreshToken().cookie(), refreshToken,
+            jwtProperties.refreshExpiration());
   }
 
   private Cookie createAccessTokenCookie(JwtProperties.CookieProperties cookieProps, String token, int maxAge) {
@@ -47,7 +48,8 @@ public class CookieUtil {
   }
 
   public String getRefreshToken(HttpServletRequest request) {
-    if (request.getCookies() == null) return null;
+    if (request.getCookies() == null)
+      return null;
     String refreshCookieName = jwtProperties.refreshToken().cookie().name();
     for (Cookie cookie : request.getCookies()) {
       if (cookie.getName().equals(refreshCookieName)) {
