@@ -7,14 +7,15 @@ import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.application.TokenService;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.auth.presentation.dto.*;
+import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
-import point.zzicback.member.application.dto.command.MemberSignInCommand;
-import point.zzicback.member.application.dto.command.MemberSignUpCommand;
+import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.domain.Member;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class AuthController {
   private static final String USER_ROLE = "ROLE_USER";
   
   private final MemberService memberService;
+  private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
   private final CookieService cookieService;
 
@@ -37,10 +39,9 @@ public class AuthController {
   @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
   @PostMapping("/sign-up")
   public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
-    MemberSignUpCommand signUpCommand = new MemberSignUpCommand(request.email(), request.password(), request.nickname());
+    CreateMemberCommand signUpCommand = new CreateMemberCommand(request.email(), request.password(), request.nickname());
     memberService.createMember(signUpCommand);
-    MemberSignInCommand signInCommand = new MemberSignInCommand(request.email(), request.password());
-    Member member = memberService.authenticate(signInCommand);
+    Member member = authenticateMember(request.email(), request.password());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
     MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
     authenticateWithCookies(memberPrincipal, response);
@@ -52,8 +53,7 @@ public class AuthController {
   @PostMapping("/sign-in")
   @Transactional(readOnly = true)
   public void signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
-    MemberSignInCommand signInCommand = new MemberSignInCommand(request.email(), request.password());
-    Member member = memberService.authenticate(signInCommand);
+    Member member = authenticateMember(request.email(), request.password());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
     MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
     authenticateWithCookies(memberPrincipal, response);
@@ -75,6 +75,15 @@ public class AuthController {
     if (!refreshed) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
+  }
+
+  private Member authenticateMember(String email, String password) {
+    Member member = memberService.findByEmail(email);
+    if (!"anon@zzic.com".equals(email) 
+        && !passwordEncoder.matches(password, member.getPassword())) {
+      throw new BusinessException("비밀번호가 틀렸습니다.");
+    }
+    return member;
   }
 
   private void authenticateWithCookies(MemberPrincipal member, HttpServletResponse response) {

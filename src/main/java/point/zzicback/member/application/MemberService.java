@@ -6,12 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.common.error.EntityNotFoundException;
-import point.zzicback.member.application.dto.command.MemberSignUpCommand;
-import point.zzicback.member.application.dto.command.MemberSignInCommand;
+import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.application.dto.command.UpdateMemberCommand;
-import point.zzicback.member.application.dto.query.MemberQuery;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.persistance.MemberRepository;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class MemberService {
   private final MemberRepository memberRepository;
   private final PasswordEncoder passwordEncoder;
 
-  public void createMember(MemberSignUpCommand command) {
+  public void createMember(CreateMemberCommand command) {
     if (memberRepository.existsByEmail(command.email())) {
       throw new BusinessException("이미 존재하는 이메일입니다.");
     }
@@ -33,25 +33,23 @@ public class MemberService {
   }
 
   @Transactional(readOnly = true)
-  public Member authenticate(MemberSignInCommand command) {
-    Member member = memberRepository.findByEmail(command.email())
+  public Member findByEmail(String email) {
+    return memberRepository.findByEmail(email)
         .orElseThrow(() -> new BusinessException("회원 정보 없음"));
-    if (!"anon@zzic.com".equals(command.email())
-        && !passwordEncoder.matches(command.password(), member.getPassword())) {
-      throw new BusinessException("비밀번호가 틀렸습니다.");
-    }
-    return member;
   }
 
   @Transactional(readOnly = true)
-  public Member findVerifiedMember(MemberQuery query) {
-    return memberRepository.findById(query.memberId())
-        .orElseThrow(() -> new EntityNotFoundException("Member", query.memberId()));
+  public Member findVerifiedMember(UUID memberId) {
+    return findMemberById(memberId);
   }
 
   public void updateMember(UpdateMemberCommand command) {
-    Member member = memberRepository.findById(command.memberId())
-        .orElseThrow(() -> new EntityNotFoundException("Member", command.memberId()));
+    Member member = findMemberById(command.memberId());
     member.setNickname(command.nickname());
+  }
+
+  private Member findMemberById(UUID memberId) {
+    return memberRepository.findById(memberId)
+        .orElseThrow(() -> new EntityNotFoundException("Member", memberId));
   }
 }

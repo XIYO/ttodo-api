@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.application.MemberService;
-import point.zzicback.member.application.dto.query.MemberQuery;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.response.TodoResponse;
@@ -34,8 +33,7 @@ public class TodoService {
 
   @Transactional
   public void createTodo(CreateTodoCommand command) {
-    MemberQuery memberQuery = new MemberQuery(command.memberId());
-    var member = memberService.findVerifiedMember(memberQuery);
+    var member = memberService.findVerifiedMember(command.memberId());
     Todo todo = todoApplicationMapper.toEntity(command);
     todo.setMember(member);
     todoRepository.save(todo);

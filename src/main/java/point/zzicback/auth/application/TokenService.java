@@ -11,7 +11,6 @@ import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.auth.repository.TokenRepository;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
-import point.zzicback.member.application.dto.query.MemberQuery;
 import point.zzicback.member.domain.Member;
 
 import java.time.Instant;
@@ -107,7 +106,7 @@ public class TokenService {
     validateAndDeleteInvalidToken(deviceId, oldRefreshToken);
     
     UUID memberId = UUID.fromString(extractClaim(oldRefreshToken, SUB_CLAIM));
-    Member member = memberService.findVerifiedMember(new MemberQuery(memberId));
+    Member member = memberService.findVerifiedMember(memberId);
     
     String newAccessToken = generateAccessToken(memberId.toString(), member.getEmail(), member.getNickname());
     String newRefreshToken = generateRefreshToken(memberId.toString(), deviceId);
