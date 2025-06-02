@@ -1,9 +1,8 @@
 package point.zzicback.auth.presentation;
 
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import point.zzicback.auth.config.properties.JwtProperties;
 
 import java.util.*;
@@ -21,6 +20,22 @@ public class CookieService {
     return createCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshExpiration());
   }
 
+  public Cookie createExpiredJwtCookie() {
+    return createCookie(jwtProperties.accessToken().cookie(), "", 0);
+  }
+
+  public Cookie createExpiredRefreshCookie() {
+    return createCookie(jwtProperties.refreshToken().cookie(), "", 0);
+  }
+
+  public Optional<String> getRefreshToken(Cookie[] cookies) {
+    return cookies == null ? Optional.empty() :
+        Arrays.stream(cookies)
+            .filter(cookie -> jwtProperties.refreshToken().cookie().name().equals(cookie.getName()))
+            .findFirst()
+            .map(Cookie::getValue);
+  }
+
   private Cookie createCookie(JwtProperties.CookieProperties props, String token, int maxAge) {
     Cookie cookie = new Cookie(props.name(), token);
     cookie.setPath(props.path());
@@ -29,28 +44,5 @@ public class CookieService {
     cookie.setMaxAge(maxAge);
     cookie.setDomain(props.domain());
     return cookie;
-  }
-
-  public Optional<String> getRefreshToken(HttpServletRequest request) {
-    return request.getCookies() == null ? null : 
-      Arrays.stream(request.getCookies())
-        .filter(cookie -> jwtProperties.refreshToken().cookie().name().equals(cookie.getName()))
-        .findFirst()
-        .map(Cookie::getValue);
-  }
-
-  public void expireTokenCookies(HttpServletRequest request, HttpServletResponse response) {
-    Cookie[] cookies = request.getCookies();
-    if (cookies != null) {
-      String accessName = jwtProperties.accessToken().cookie().name();
-      String refreshName = jwtProperties.refreshToken().cookie().name();
-      for (Cookie cookie : cookies) {
-        String name = cookie.getName();
-        if (accessName.equals(name) || refreshName.equals(name)) {
-          cookie.setMaxAge(0);
-          response.addCookie(cookie);
-        }
-      }
-    }
   }
 }

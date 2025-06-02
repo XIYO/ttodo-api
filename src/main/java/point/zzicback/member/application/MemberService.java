@@ -1,7 +1,6 @@
 package point.zzicback.member.application;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.BusinessException;
@@ -18,7 +17,6 @@ import java.util.UUID;
 @Transactional
 public class MemberService {
   private final MemberRepository memberRepository;
-  private final PasswordEncoder passwordEncoder;
 
   public void createMember(CreateMemberCommand command) {
     if (memberRepository.existsByEmail(command.email())) {
@@ -26,7 +24,7 @@ public class MemberService {
     }
     Member member = Member.builder()
         .email(command.email())
-        .password(passwordEncoder.encode(command.password()))
+        .password(command.password())
         .nickname(command.nickname())
         .build();
     memberRepository.save(member);

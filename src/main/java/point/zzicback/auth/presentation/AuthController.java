@@ -39,7 +39,7 @@ public class AuthController {
   @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
   @PostMapping("/sign-up")
   public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
-    CreateMemberCommand signUpCommand = new CreateMemberCommand(request.email(), request.password(), request.nickname());
+    CreateMemberCommand signUpCommand = new CreateMemberCommand(request.email(), passwordEncoder.encode(request.password()), request.nickname());
     memberService.createMember(signUpCommand);
     Member member = authenticateMember(request.email(), request.password());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
@@ -63,10 +63,9 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "로그아웃 성공")
   @PostMapping("/sign-out")
   public void signOut(HttpServletRequest request, HttpServletResponse response) {
-    cookieService.getRefreshToken(request)
-        .filter(tokenService::isValidToken)
-        .ifPresent(tokenService::deleteByToken);
-    cookieService.expireTokenCookies(request, response);
+    cookieService.getRefreshToken(request.getCookies()).ifPresent(tokenService::deleteByToken);
+    response.addCookie(cookieService.createExpiredJwtCookie());
+    response.addCookie(cookieService.createExpiredRefreshCookie());
   }
 
   @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 액세스 토큰 갱신")
@@ -74,7 +73,7 @@ public class AuthController {
   @ApiResponse(responseCode = "401", description = "토큰 갱신 실패")
   @GetMapping("/refresh")
   public void refresh(HttpServletRequest request, HttpServletResponse response) {
-    String refreshToken = cookieService.getRefreshToken(request)
+    String refreshToken = cookieService.getRefreshToken(request.getCookies())
         .orElseThrow(() -> new BusinessException("리프레시 토큰이 없습니다."));
     
     String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
