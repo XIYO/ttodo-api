@@ -1,15 +1,18 @@
 package point.zzicback.auth.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.auth.application.dto.command.*;
 import point.zzicback.auth.application.mapper.AuthApplicationMapper;
-import point.zzicback.auth.domain.AuthenticatedMember;
+import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.persistance.MemberRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,14 +32,15 @@ public class AuthService {
   }
 
   @Transactional(readOnly = true)
-  public AuthenticatedMember signIn(SignInCommand signInCommand) {
+  public MemberPrincipal signIn(SignInCommand signInCommand) {
     Member member = memberRepository.findByEmail(signInCommand.email())
             .orElseThrow(() -> new BusinessException("회원 정보 없음"));
     if (!"anon@zzic.com".equals(signInCommand.email())
             && !passwordEncoder.matches(signInCommand.password(), member.getPassword())) {
       throw new BusinessException("비밀번호가 틀렸습니다.");
     }
-    return AuthenticatedMember.from(member.getId(), member.getEmail(), member.getNickname());
+    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    return MemberPrincipal.from(member, authorities);
   }
 
   @Transactional(readOnly = true)

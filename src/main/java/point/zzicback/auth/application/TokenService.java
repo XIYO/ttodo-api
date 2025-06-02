@@ -7,7 +7,7 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import point.zzicback.auth.config.properties.JwtProperties;
-import point.zzicback.auth.domain.AuthenticatedMember;
+import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.auth.repository.TokenRepository;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
@@ -128,10 +128,10 @@ public class TokenService {
           @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String refreshToken) {
   }
 
-  public TokenResult generateTokens(AuthenticatedMember member) {
+  public TokenResult generateTokens(MemberPrincipal member) {
     String deviceId = UUID.randomUUID().toString();
-    String accessToken = generateAccessToken(member.id(), member.email(), member.nickname());
-    String refreshToken = generateRefreshToken(member.id(), deviceId);
+    String accessToken = generateAccessToken(member.idAsString(), member.email(), member.nickname());
+    String refreshToken = generateRefreshToken(member.idAsString(), deviceId);
     save(deviceId, refreshToken);
     return new TokenResult(accessToken, refreshToken, deviceId);
   }

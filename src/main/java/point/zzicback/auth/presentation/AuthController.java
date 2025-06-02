@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.application.*;
 import point.zzicback.auth.application.dto.command.SignInCommand;
-import point.zzicback.auth.domain.AuthenticatedMember;
+import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.auth.application.TokenService;
 import point.zzicback.auth.presentation.dto.*;
 import point.zzicback.auth.presentation.mapper.AuthPresentationMapper;
@@ -32,8 +32,8 @@ public class AuthController {
   public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
     authService.signUp(authPresentationMapper.toCommand(request));
     SignInCommand signInCommand = new SignInCommand(request.email(), request.password());
-    AuthenticatedMember authenticatedMember = authService.signIn(signInCommand);
-    authenticateWithCookies(authenticatedMember, response);
+    MemberPrincipal memberPrincipal = authService.signIn(signInCommand);
+    authenticateWithCookies(memberPrincipal, response);
   }
 
   @Operation(summary = "로그인", description = "로그인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.")
@@ -41,8 +41,8 @@ public class AuthController {
   @ApiResponse(responseCode = "401", description = "인증 실패")
   @PostMapping("/sign-in")
   public void signInJson(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
-    AuthenticatedMember authenticatedMember = authService.signIn(authPresentationMapper.toCommand(request));
-    authenticateWithCookies(authenticatedMember, response);
+    MemberPrincipal memberPrincipal = authService.signIn(authPresentationMapper.toCommand(request));
+    authenticateWithCookies(memberPrincipal, response);
   }
 
   @Operation(summary = "로그아웃", description = "로그아웃 처리 및 토큰 만료")
@@ -63,7 +63,7 @@ public class AuthController {
     }
   }
 
-  private void authenticateWithCookies(AuthenticatedMember member, HttpServletResponse response) {
+  private void authenticateWithCookies(MemberPrincipal member, HttpServletResponse response) {
     TokenService.TokenResult tokens = tokenService.generateTokens(member);
     
     Cookie accessCookie = cookieService.createJwtCookie(tokens.accessToken());
