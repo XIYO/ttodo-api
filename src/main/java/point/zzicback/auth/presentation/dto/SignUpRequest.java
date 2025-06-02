@@ -7,7 +7,7 @@ import lombok.extern.jackson.Jacksonized;
 import point.zzicback.common.validation.email.UniqueEmail;
 import point.zzicback.common.validation.fieldcompare.*;
 
-@Schema(description = "사용자 회원가입에 필요한 데이터 DTO")
+@Schema(description = "사용자 사인-업에 필요한 데이터 DTO")
 @Builder
 @FieldComparison(message = "패스워드와 확인 패스워드가 일치하지 않습니다.")
 @Jacksonized

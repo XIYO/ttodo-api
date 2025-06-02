@@ -33,8 +33,8 @@ public class AuthController {
   private final TokenService tokenService;
   private final CookieService cookieService;
 
-  @Operation(summary = "회원가입 및 로그인", description = "회원가입을 진행하고 즉시 로그인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
-  @ApiResponse(responseCode = "200", description = "회원가입 및 로그인 성공, 쿠키에 토큰 발급")
+  @Operation(summary = "사인-업 및 사인-인", description = "사인-업을 진행하고 즉시 사인-인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
+  @ApiResponse(responseCode = "200", description = "사인-업 및 사인-인 성공, 쿠키에 토큰 발급")
   @ApiResponse(responseCode = "400", description = "잘못된 요청")
   @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
   @PostMapping("/sign-up")
@@ -47,8 +47,8 @@ public class AuthController {
     authenticateWithCookies(memberPrincipal, response);
   }
 
-  @Operation(summary = "로그인", description = "로그인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.")
-  @ApiResponse(responseCode = "200", description = "로그인 성공, 쿠키에 토큰 발급")
+  @Operation(summary = "사인-인", description = "사인-인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.")
+  @ApiResponse(responseCode = "200", description = "사인-인 성공, 쿠키에 토큰 발급")
   @ApiResponse(responseCode = "401", description = "인증 실패")
   @PostMapping("/sign-in")
   @Transactional(readOnly = true)
@@ -59,8 +59,8 @@ public class AuthController {
     authenticateWithCookies(memberPrincipal, response);
   }
 
-  @Operation(summary = "로그아웃", description = "로그아웃 처리 및 토큰 만료")
-  @ApiResponse(responseCode = "200", description = "로그아웃 성공")
+  @Operation(summary = "사인-아웃", description = "사인-아웃 처리 및 토큰 만료")
+  @ApiResponse(responseCode = "200", description = "사인-아웃 성공")
   @PostMapping("/sign-out")
   public void signOut(HttpServletRequest request, HttpServletResponse response) {
     cookieService.getRefreshToken(request.getCookies()).ifPresent(tokenService::deleteByToken);
