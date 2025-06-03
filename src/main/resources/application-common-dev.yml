@@ -6,7 +6,7 @@ jwt:
     expiration: 60
     cookie:
       name: access-token
-      domain: localhost
+      domain: 
       path: /
       secure: false
       httpOnly: false
@@ -15,11 +15,23 @@ jwt:
     expiration: 31536000
     cookie:
       name: refresh-token
-      domain: localhost
+      domain: 
       path: /
       secure: false
       httpOnly: true
       sameSite: none
+
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/zzic-db;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
 server:
   http2:
