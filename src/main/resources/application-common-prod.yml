@@ -29,14 +29,14 @@ jwt:
       sameSite: lax
 
 server:
-  port: 443
-  ssl:
-    key-store: classpath:zzic/jwt/test-zzic.p12
-    key-store-type: PKCS12
-    key-store-password:
-    key-alias: zzic-api
+  port: 8080
 
 logging:
   level:
     org.springframework: WARN
     point.zzicback: INFO
+
+swagger:
+  server:
+    url: https://zzic-api.xiyo.dev
+    description: Production

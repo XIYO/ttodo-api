@@ -1,17 +1,27 @@
-version: '3.8'
-
 services:
   zzic:
-    image: mysql:8.4.3
-    container_name: zzic-back
-    restart: always
+    image: ghcr.io/get-to-the-point/zzic-api:latest
+    container_name: zzic-api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zzic.rule=Host(`zzic-api.xiyo.dev`)"
+      - "traefik.http.routers.zzic.entrypoints=websecure"
+      - "traefik.http.routers.zzic.tls.certresolver=cloudflare"
+      - "traefik.http.services.zzic.loadbalancer.server.port=8080"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: zzic-back
-    ports:
-      - "13306:3306"
-    volumes:
-      - zzic-back:/var/lib/mysql
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    networks:
+      - web
+    depends_on:
+      - redis
+  redis:
+    image: redis:alpine
+    container_name: redis
+    networks:
+      - web
 
-volumes:
-  zzic-back:
+networks:
+  web:
+    external: true
