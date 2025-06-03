@@ -1,4 +1,4 @@
-package point.zzicback.common.config;
+package point.zzicback.auth.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

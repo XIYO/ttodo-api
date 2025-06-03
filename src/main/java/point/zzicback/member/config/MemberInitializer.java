@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.*;
 import org.springframework.stereotype.Component;
 import point.zzicback.member.domain.Member;
-import point.zzicback.member.persistance.MemberRepository;
+import point.zzicback.member.domain.MemberRepository;
 
 @Component
 @RequiredArgsConstructor

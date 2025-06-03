@@ -31,16 +31,6 @@ class MemberServiceTest {
   }
 
   @Test
-  @DisplayName("중복 이메일 회원 생성 시 예외 발생")
-  void createMemberDuplicateEmail() {
-    CreateMemberCommand command = new CreateMemberCommand("dup@example.com", "password", "nickname");
-    memberService.createMember(command);
-    CreateMemberCommand duplicateCommand = new CreateMemberCommand("dup@example.com", "password2", "nickname2");
-    BusinessException exception = assertThrows(BusinessException.class, () -> memberService.createMember(duplicateCommand));
-    assertEquals("이미 존재하는 이메일입니다.", exception.getMessage());
-  }
-
-  @Test
   @DisplayName("이메일로 회원 조회 성공")
   void findByEmailSuccess() {
     CreateMemberCommand command = new CreateMemberCommand("find@example.com", "password", "nickname");

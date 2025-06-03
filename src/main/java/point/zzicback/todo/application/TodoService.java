@@ -11,7 +11,7 @@ import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.response.TodoResponse;
 import point.zzicback.todo.application.mapper.TodoApplicationMapper;
 import point.zzicback.todo.domain.Todo;
-import point.zzicback.todo.persistance.TodoRepository;
+import point.zzicback.todo.domain.TodoRepository;
 
 @Service
 @RequiredArgsConstructor

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import point.zzicback.auth.config.properties.JwtProperties;
 import point.zzicback.auth.domain.MemberPrincipal;
-import point.zzicback.auth.repository.TokenRepository;
+import point.zzicback.auth.domain.TokenRepository;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;

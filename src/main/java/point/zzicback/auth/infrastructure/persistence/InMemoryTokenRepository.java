@@ -1,11 +1,17 @@
-package point.zzicback.auth.repository;
+package point.zzicback.auth.infrastructure.persistence;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
+import point.zzicback.auth.domain.TokenRepository;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.*;
 
+/**
+ * InMemory 기반 TokenRepository 구현체
+ * Infrastructure 계층에 위치 - 기술적 구현사항을 담당
+ * 개발/테스트 환경에서 사용하는 Infrastructure 컴포넌트
+ */
 @Repository
 @Profile("!redis")
 public class InMemoryTokenRepository implements TokenRepository {

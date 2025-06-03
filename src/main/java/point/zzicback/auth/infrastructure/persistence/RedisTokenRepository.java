@@ -1,12 +1,18 @@
-package point.zzicback.auth.repository;
+package point.zzicback.auth.infrastructure.persistence;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import point.zzicback.auth.domain.TokenRepository;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Redis 기반 TokenRepository 구현체
+ * Infrastructure 계층에 위치 - 기술적 구현사항을 담당
+ * 프로덕션 환경에서 사용하는 Infrastructure 컴포넌트
+ */
 @Repository
 @RequiredArgsConstructor
 @Profile("redis")
