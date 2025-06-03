@@ -66,8 +66,8 @@ jobs:
           echo "Docker Compose 파일 확인..."
           ls -la docker-compose*
           echo "최신 이미지 Pull..."
-          docker-compose -f docker-compose.prod.yml pull zzic-api
+          docker compose pull zzic-api
           echo "서비스 재시작..."
-          docker-compose -f docker-compose.prod.yml up -d --force-recreate zzic-api
+          docker compose up -d --force-recreate zzic-api
           echo "배포 완료!"
-          docker-compose -f docker-compose.prod.yml ps
+          docker compose ps
