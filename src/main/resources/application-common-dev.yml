@@ -33,10 +33,6 @@ spring:
       ddl-auto: update
     show-sql: true
 
-server:
-  http2:
-    enabled: true
-
 logging:
   level:
     root: debug

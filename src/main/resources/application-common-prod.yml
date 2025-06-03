@@ -1,3 +1,8 @@
+app:
+  scheme: https
+  host: zzic-api.xiyo.dev
+  port: 443
+
 jwt:
   private-key: classpath:zzic/jwt/test-private.pem
   public-key: classpath:zzic/jwt/public.pem
@@ -20,16 +25,3 @@ jwt:
       secure: true
       httpOnly: true
       sameSite: lax
-
-server:
-  port: 8443
-  http2:
-    enabled: true
-  ssl:
-    enabled: true
-    key-store: classpath:zzic/jwt/test-zzic.p12
-    key-store-type: PKCS12
-    key-store-password: 
-    key-alias: zzic-api
-    protocol: TLS
-    enabled-protocols: TLSv1.2,TLSv1.3

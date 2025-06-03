@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.info.*;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 
 import java.util.List;
@@ -14,10 +15,24 @@ public class SwaggerConfig {
   private static final String SECURITY_SCHEME_NAME = "Bearer Authentication";
 
   @Bean
-  public OpenAPI customOpenAPI() {
+  @Profile("!prod")
+  public OpenAPI defaultOpenAPI() {
+    return createBaseOpenAPI();
+  }
+
+  @Bean
+  @Profile("prod")
+  public OpenAPI prodOpenAPI(@Value("${app.scheme}") String scheme,
+                            @Value("${app.host}") String host,
+                            @Value("${app.port}") int port) {
+    var url = buildServerUrl(scheme, host, port);
+    return createBaseOpenAPI()
+            .servers(List.of(new Server().url(url).description("Production")));
+  }
+
+  private OpenAPI createBaseOpenAPI() {
     return new OpenAPI()
             .info(apiInfo())
-            // .servers(serverList())
             .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
             .components(securityComponents());
   }
@@ -41,11 +56,11 @@ public class SwaggerConfig {
                     .url("https://www.apache.org/licenses/LICENSE-2.0"));
   }
 
-  private List<Server> serverList() {
-    return List.of(
-            new Server().url("http://localhost:8080").description("Local"),
-            new Server().url("https://api.zzic.point").description("Production")
-    );
+  private String buildServerUrl(String scheme, String host, int port) {
+    if ((scheme.equals("http") && port == 80) || (scheme.equals("https") && port == 443)) {
+      return "%s://%s".formatted(scheme, host);
+    }
+    return "%s://%s:%d".formatted(scheme, host, port);
   }
 
   private Components securityComponents() {
