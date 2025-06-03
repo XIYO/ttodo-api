@@ -40,6 +40,4 @@ USER spring
 
 ENV JAVA_OPTS=""
 
-EXPOSE 8080
-
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
