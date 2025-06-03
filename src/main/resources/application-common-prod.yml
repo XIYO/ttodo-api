@@ -22,7 +22,7 @@ jwt:
       sameSite: lax
 
 server:
-  port: 443
+  port: 8443
   http2:
     enabled: true
   ssl:

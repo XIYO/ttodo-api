@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:alpine
+    image: postgres:17-alpine
     container_name: zzic-postgres
     environment:
       POSTGRES_DB: zzic
@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     container_name: zzic-api
     ports:
-      - "443:443"
+      - "8443:8443"
     env_file:
       - .env.docker-compose
     depends_on:
