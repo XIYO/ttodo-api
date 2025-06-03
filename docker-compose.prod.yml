@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  zzic-api:
+    image: ghcr.io/${GITHUB_REPOSITORY}:latest
+    container_name: zzic-api
+    restart: unless-stopped
+    platform: linux/arm64
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/zzic
+      SPRING_DATASOURCE_USERNAME: zzic
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - zzic-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: zzic-postgres
+    restart: unless-stopped
+    platform: linux/arm64
+    environment:
+      POSTGRES_DB: zzic
+      POSTGRES_USER: zzic
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - zzic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zzic"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: zzic-redis
+    restart: unless-stopped
+    platform: linux/arm64
+    ports:
+      - "6379:6379"
+    networks:
+      - zzic-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  zzic-network:
+    driver: bridge

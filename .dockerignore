@@ -1,12 +1,20 @@
-# 빌드 결과물 제외
-build/
+# 빌드 결과물 제외 (필요한 것들은 Dockerfile에서 직접 복사)
 .gradle/
+build/classes/
+build/generated/
+build/reports/
+build/test-results/
+build/tmp/
 
 # IDE 관련 파일 제외
 .idea/
 *.iml
 *.iws
 *.ipr
+.vscode/
+.settings/
+.project
+.classpath
 
 # OS 관련 파일 제외
 .DS_Store
@@ -15,6 +23,7 @@ Thumbs.db
 # Git 관련 파일 제외
 .git/
 .gitignore
+.gitattributes
 
 # 로그 파일 제외
 *.log
@@ -26,10 +35,19 @@ Thumbs.db
 # 데이터베이스 파일 제외 (H2)
 data/
 
-# Docker 관련 파일 제외
-Dockerfile
-.dockerignore
-docker-compose.yml
+# 환경 설정 파일 제외
+.env*
 
-# README 제외
+# Docker 관련 파일 제외
+.dockerignore
+docker-compose*.yml
+
+# GitHub Actions 워크플로우 제외
+.github/
+
+# 문서 및 기타 파일 제외
 README.md
+*.md
+
+# 스포트리스 설정 제외
+.spotless/

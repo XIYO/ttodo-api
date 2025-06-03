@@ -49,6 +49,31 @@ docker-compose -f docker-compose.local.yml up -d
 ./health-check.sh
 ```
 
+### GitHub Container Registry에서 배포
+GitHub Actions를 통해 자동으로 빌드된 ARM64 Docker 이미지를 사용하여 배포할 수 있습니다.
+
+```bash
+# 1. 환경 변수 파일 설정
+cp .env.prod.example .env.prod
+# .env.prod 파일에서 GITHUB_REPOSITORY와 POSTGRES_PASSWORD 설정
+
+# 2. GitHub Container Registry에서 이미지 가져와서 실행
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+# 3. 로그 확인
+docker-compose -f docker-compose.prod.yml logs -f zzic-api
+```
+
+### GitHub Actions 워크플로우
+- **트리거**: `main`, `develop` 브랜치 푸시 및 태그 생성
+- **플랫폼**: ARM64 아키텍처 지원
+- **레지스트리**: GitHub Container Registry (ghcr.io)
+- **이미지 태그**:
+  - `latest`: main 브랜치 최신 커밋
+  - `develop`: develop 브랜치 최신 커밋
+  - `v*`: 버전 태그 (예: v1.0.0)
+  - `<branch>-<sha>`: 브랜치별 커밋 SHA
+
 ### 서비스 구성
 - **ZZIC API**: http://localhost:8080 (Swagger UI 포함)
 - **PostgreSQL**: localhost:5432 (zzic/zzic123)

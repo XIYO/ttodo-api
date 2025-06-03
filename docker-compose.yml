@@ -13,18 +13,5 @@ services:
     image: redis:alpine
     container_name: zzic-redis
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: zzic-api
-    ports:
-      - "8443:8443"
-    env_file:
-      - .env.docker-compose
-    depends_on:
-      - postgres
-      - redis
-
 volumes:
   postgres_data:
