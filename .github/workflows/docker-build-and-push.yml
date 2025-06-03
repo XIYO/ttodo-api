@@ -4,91 +4,70 @@ on:
   push:
     branches:
       - main
-      - develop
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - main
-      - develop
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up JDK 24
-      uses: actions/setup-java@v4
-      with:
-        java-version: '24'
-        distribution: 'temurin'
-
-    - name: Cache Gradle packages
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
-
-    - name: Run tests
-      run: ./gradlew test
-
   build-and-push:
-    needs: test
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
     permissions:
       contents: read
       packages: write
 
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '24'
+        distribution: 'temurin'
+
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+    - name: Test and Build
+      run: |
+        chmod +x ./gradlew
+        ./gradlew clean test bootJar --no-daemon
+
+    - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Log in to Container Registry
+    - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
-        registry: ${{ env.REGISTRY }}
+        registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Build and push Docker image for ARM64
+    - name: Build and Push
       uses: docker/build-push-action@v5
       with:
         context: .
         platforms: linux/arm64
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: |
-          BUILDKIT_INLINE_CACHE=1
+        tags: ghcr.io/${{ github.repository }}:latest
+
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.ED25519 }}
+        script: |
+          cd ~/Projects/zzic-api
+          echo "현재 디렉토리: $(pwd)"
+          echo "Docker Compose 파일 확인..."
+          ls -la docker-compose*
+          echo "최신 이미지 Pull..."
+          docker-compose -f docker-compose.prod.yml pull zzic-api
+          echo "서비스 재시작..."
+          docker-compose -f docker-compose.prod.yml up -d --force-recreate zzic-api
+          echo "배포 완료!"
+          docker-compose -f docker-compose.prod.yml ps
