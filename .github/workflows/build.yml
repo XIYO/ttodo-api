@@ -6,7 +6,6 @@ on:
       - main
 
 permissions:
-  contents: write
   packages: write
 
 jobs:
@@ -14,38 +13,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Extract Repository Name
-        id: extract_repo_name
-        run: echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Extract Project Name & Version
-        id: extract_project_info
+      - name: Extract Version
+        id: extract_version
         run: |
-          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          RAW_PROJECT_NAME=${{ env.REPO_NAME }}
-          PROJECT_NAME=$(echo "$RAW_PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
-          VERSION=$(grep '^version=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
-          if [ -z "$PROJECT_NAME" ]; then PROJECT_NAME="default-project"; fi
-          if [ -z "$VERSION" ]; then VERSION="1.0.0"; fi
-          echo "REPO_OWNER=$REPO_OWNER" >> $GITHUB_ENV
-          echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
-          echo "VERSION=$VERSION"         >> $GITHUB_ENV
+          version=$(cat gradle.properties | cut -d'=' -f2)
+          echo "VERSION=$version" >> $GITHUB_ENV
+          echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Build & Push Docker Image (Multi-Arch)
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 \
-            -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION \
-            -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:latest \
-            --push .
+      - name: Build & Push Docker Image (ARM64)
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/get-to-the-point/zzic-api:${{ steps.extract_version.outputs.version }}
+            ghcr.io/get-to-the-point/zzic-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.2.1
@@ -55,6 +43,6 @@ jobs:
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            cd ~/Projects/${{ env.REPO_NAME }}
+            cd ~/Projects/zzic-api
             docker compose pull
             docker compose up -d
