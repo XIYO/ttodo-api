@@ -14,13 +14,13 @@ COPY gradle.properties .
 RUN chmod +x ./gradlew
 
 # 종속성 다운로드 (소스 코드 변경 시에도 캐시 활용)
-RUN ./gradlew dependencies --no-daemon --build-cache --parallel
+RUN ./gradlew dependencies --no-daemon
 
 # 소스 코드 복사
 COPY src src
 
 # 프로젝트 빌드 (테스트 제외)
-RUN ./gradlew bootJar -x test --no-daemon --build-cache --parallel
+RUN ./gradlew bootJar -x test --no-daemon
 
 # 런타임 스테이지
 FROM eclipse-temurin:24-jre

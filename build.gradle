@@ -50,18 +50,3 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-// Gradle 빌드 성능 최적화
-tasks.withType(JavaCompile) {
-    options.compilerArgs += ['-Xlint:none', '-nowarn']
-    options.incremental = true
-}
-
-// JAR 빌드 최적화
-jar {
-    enabled = false
-}
-
-bootJar {
-    archiveClassifier = ''
-}

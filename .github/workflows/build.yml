@@ -27,20 +27,10 @@ jobs:
           distribution: 'corretto'
           java-version: '24'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Build JAR
         run: |
           chmod +x gradlew
-          ./gradlew clean build -x test --build-cache --parallel
+          ./gradlew clean build -x test
 
       - name: Upload JAR to GitHub Packages
         uses: actions/upload-artifact@v4
@@ -69,11 +59,9 @@ jobs:
 
       - name: Build & Push Docker Image (Multi-Arch)
         run: |
-          docker buildx build --platform linux/amd64 \
+          docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
             -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:$VERSION \
             -t ghcr.io/$REPO_OWNER/$PROJECT_NAME:latest \
-            --cache-from=type=gha \
-            --cache-to=type=gha,mode=max \
             --push .
 
       - name: Deploy to Server via SSH
