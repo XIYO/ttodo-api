@@ -56,21 +56,14 @@ jobs:
     - name: Install sshpass
       run: sudo apt-get update && sudo apt-get install -y sshpass
 
-    - name: Deploy to Server
-      env:
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-      run: |
-        sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
-          cd ~/Projects/zzic-api
-          echo "현재 디렉토리: $(pwd)"
-          echo "Docker Compose 파일 확인..."
-          ls -la docker-compose*
-          echo "최신 이미지 Pull..."
-          docker compose pull zzic-api
-          echo "서비스 재시작..."
-          docker compose up -d --force-recreate zzic-api
-          echo "배포 완료!"
-          docker compose ps
-        EOF
+    - name: Deploy to Server via SSH
+      uses: appleboy/ssh-action@v1.2.1
+      with:
+          host: ${{ vars.HOST }}
+          port: ${{ vars.PORT }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            cd ~/Projects/zzic-api
+            docker compose pull
+            docker compose up -d
