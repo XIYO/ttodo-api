@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     container_name: zzic-postgres
     ports:
-      - "5432:5432"           # 로컬에서 접속할 수 있도록 포트 매핑
+      - "5432:5432"
     environment:
       POSTGRES_DB: zzic
       POSTGRES_USER: zzic
@@ -15,7 +15,7 @@ services:
     image: redis:alpine
     container_name: zzic-redis
     ports:
-      - "6379:6379"           # 로컬에서 접속할 수 있도록 포트 매핑
+      - "6379:6379"
 
 volumes:
   postgres_data:
