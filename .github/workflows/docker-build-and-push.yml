@@ -45,17 +45,13 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set lowercase repository owner
-      id: lowercase
-      run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
     - name: Build and Push
       uses: docker/build-push-action@v5
       with:
         context: .
         platforms: linux/arm64
         push: true
-        tags: ghcr.io/${{ steps.lowercase.outputs.owner }}/zzic-api:latest
+        tags: ghcr.io/get-to-the-point/zzic-api:latest
 
     - name: Deploy to Server
       uses: appleboy/ssh-action@v1.0.3
@@ -65,13 +61,13 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         key: ${{ secrets.ED25519 }}
         script: |
-          cd ~/Projects/zzic-api
-          echo "현재 디렉토리: $(pwd)"
-          echo "Docker Compose 파일 확인..."
-          ls -la docker-compose*
-          echo "최신 이미지 Pull..."
-          docker compose pull zzic-api
-          echo "서비스 재시작..."
-          docker compose up -d --force-recreate zzic-api
-          echo "배포 완료!"
+          cd ~/Projects/zzic-api && \
+          echo "현재 디렉토리: $(pwd)" && \
+          echo "Docker Compose 파일 확인..." && \
+          ls -la docker-compose* && \
+          echo "최신 이미지 Pull..." && \
+          docker compose pull zzic-api && \
+          echo "서비스 재시작..." && \
+          docker compose up -d --force-recreate zzic-api && \
+          echo "배포 완료!" && \
           docker compose ps
