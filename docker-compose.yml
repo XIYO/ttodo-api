@@ -1,27 +1,21 @@
 services:
-  zzic:
-    image: ghcr.io/get-to-the-point/zzic-api:latest
-    container_name: zzic-api
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.zzic.rule=Host(`zzic-api.xiyo.dev`)"
-      - "traefik.http.routers.zzic.entrypoints=websecure"
-      - "traefik.http.routers.zzic.tls.certresolver=cloudflare"
-      - "traefik.http.services.zzic.loadbalancer.server.port=8080"
+  postgres:
+    image: postgres:16-alpine
+    container_name: zzic-postgres
+    ports:
+      - "5432:5432"           # 로컬에서 접속할 수 있도록 포트 매핑
     environment:
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-    networks:
-      - web
-    depends_on:
-      - redis
+      POSTGRES_DB: zzic
+      POSTGRES_USER: zzic
+      POSTGRES_PASSWORD: zzic
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   redis:
     image: redis:alpine
-    container_name: redis
-    networks:
-      - web
+    container_name: zzic-redis
+    ports:
+      - "6379:6379"           # 로컬에서 접속할 수 있도록 포트 매핑
 
-networks:
-  web:
-    external: true
+volumes:
+  postgres_data:

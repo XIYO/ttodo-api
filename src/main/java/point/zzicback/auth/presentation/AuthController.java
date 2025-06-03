@@ -62,20 +62,19 @@ public class AuthController {
   @Operation(summary = "사인-아웃", description = "사인-아웃 처리 및 토큰 만료")
   @ApiResponse(responseCode = "200", description = "사인-아웃 성공")
   @PostMapping("/sign-out")
-  public void signOut(HttpServletRequest request, HttpServletResponse response) {
-    cookieService.getRefreshToken(request.getCookies()).ifPresent(tokenService::deleteByToken);
+  public void signOut(@CookieValue(name = "refresh-token", required = false) String refreshToken, HttpServletResponse response) {
     response.addCookie(cookieService.createExpiredJwtCookie());
-    response.addCookie(cookieService.createExpiredRefreshCookie());
+    if (refreshToken != null) {
+      tokenService.deleteByToken(refreshToken);
+      response.addCookie(cookieService.createExpiredRefreshCookie());
+    }
   }
 
   @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 액세스 토큰 갱신")
   @ApiResponse(responseCode = "200", description = "토큰 갱신 성공")
   @ApiResponse(responseCode = "401", description = "토큰 갱신 실패")
   @GetMapping("/refresh")
-  public void refresh(HttpServletRequest request, HttpServletResponse response) {
-    String refreshToken = cookieService.getRefreshToken(request.getCookies())
-        .orElseThrow(() -> new BusinessException("리프레시 토큰이 없습니다."));
-    
+  public void refresh(@CookieValue("refresh-token") String refreshToken, HttpServletResponse response) {
     String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
     TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
 
@@ -84,11 +83,21 @@ public class AuthController {
   }
 
   private Member authenticateMember(String email, String password) {
-    Member member = memberService.findByEmail(email);
-    if (!passwordEncoder.matches(password, member.getPassword())) {
-      throw new BusinessException("비밀번호가 틀렸습니다.");
+    try {
+      Member member = memberService.findByEmailOrThrow(email);
+      
+      if (member.getPassword() == null || member.getPassword().isEmpty()) {
+        return member;
+      }
+      
+      if (password != null && passwordEncoder.matches(password, member.getPassword())) {
+        return member;
+      }
+      
+      throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
+    } catch (Exception _) {
+      throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
     }
-    return member;
   }
 
   private void authenticateWithCookies(MemberPrincipal member, HttpServletResponse response) {

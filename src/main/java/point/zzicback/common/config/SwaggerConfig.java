@@ -4,7 +4,6 @@ import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.info.*;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 
 import java.util.List;
@@ -13,18 +12,12 @@ import java.util.List;
 public class SwaggerConfig {
 
   private static final String SECURITY_SCHEME_NAME = "Bearer Authentication";
-  
-  @Value("${swagger.server.url}")
-  private String serverUrl;
-  
-  @Value("${swagger.server.description}")
-  private String serverDescription;
 
   @Bean
   public OpenAPI customOpenAPI() {
     return new OpenAPI()
             .info(apiInfo())
-            .servers(serverList())
+            // .servers(serverList())
             .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
             .components(securityComponents());
   }
@@ -50,7 +43,8 @@ public class SwaggerConfig {
 
   private List<Server> serverList() {
     return List.of(
-            new Server().url(serverUrl).description(serverDescription)
+            new Server().url("http://localhost:8080").description("Local"),
+            new Server().url("https://api.zzic.point").description("Production")
     );
   }
 

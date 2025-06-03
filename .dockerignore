@@ -1,0 +1,35 @@
+# 빌드 결과물 제외
+build/
+.gradle/
+
+# IDE 관련 파일 제외
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS 관련 파일 제외
+.DS_Store
+Thumbs.db
+
+# Git 관련 파일 제외
+.git/
+.gitignore
+
+# 로그 파일 제외
+*.log
+
+# 임시 파일 제외
+*.tmp
+*.temp
+
+# 데이터베이스 파일 제외 (H2)
+data/
+
+# Docker 관련 파일 제외
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# README 제외
+README.md

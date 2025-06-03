@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://192.168.1.1:5432/zzic}
-    username: ${DATABASE_USERNAME:zzic}
-    password: ${DATABASE_PASSWORD:}
+    url: jdbc:postgresql://localhost:5432/zzic
+    username: zzic
+    password: zzic
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -12,7 +12,5 @@ spring:
       max-lifetime: 1800000
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    properties:
-      hibernate:
-        format_sql: false
-        use_sql_comments: false
+    hibernate:
+      ddl-auto: update

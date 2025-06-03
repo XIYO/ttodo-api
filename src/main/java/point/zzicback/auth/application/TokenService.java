@@ -43,7 +43,7 @@ public class TokenService {
   }
 
   public String generateAccessToken(String id, String email, String nickname) {
-    Instant expiresAt = Instant.now().plus(jwtProperties.expiration(), ChronoUnit.SECONDS);
+    Instant expiresAt = Instant.now().plus(jwtProperties.accessToken().expiration(), ChronoUnit.SECONDS);
     Map<String, Object> claims = Map.of(
       EMAIL_CLAIM, email, 
       NICKNAME_CLAIM, nickname, 
@@ -53,7 +53,7 @@ public class TokenService {
   }
 
   public String generateRefreshToken(String id, String device) {
-    Instant expiresAt = Instant.now().plus(jwtProperties.refreshExpiration(), ChronoUnit.SECONDS);
+    Instant expiresAt = Instant.now().plus(jwtProperties.refreshToken().expiration(), ChronoUnit.SECONDS);
     Map<String, Object> claims = Map.of(DEVICE_CLAIM, device);
     return generateToken(id, expiresAt, claims);
   }

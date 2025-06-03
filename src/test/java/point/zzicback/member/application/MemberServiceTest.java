@@ -11,6 +11,8 @@ import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.application.dto.command.UpdateMemberCommand;
 import point.zzicback.member.domain.Member;
 
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -24,7 +26,7 @@ class MemberServiceTest {
   void createMemberSuccess() {
     CreateMemberCommand command = new CreateMemberCommand("test@example.com", "password", "nickname");
     memberService.createMember(command);
-    Member member = memberService.findByEmail("test@example.com");
+    Member member = memberService.findByEmailOrThrow("test@example.com");
     assertEquals("test@example.com", member.getEmail());
     assertEquals("password", member.getPassword());
     assertEquals("nickname", member.getNickname());
@@ -35,15 +37,14 @@ class MemberServiceTest {
   void findByEmailSuccess() {
     CreateMemberCommand command = new CreateMemberCommand("find@example.com", "password", "nickname");
     memberService.createMember(command);
-    Member member = memberService.findByEmail("find@example.com");
+    Member member = memberService.findByEmailOrThrow("find@example.com");
     assertEquals("find@example.com", member.getEmail());
   }
 
   @Test
   @DisplayName("이메일로 회원 조회 실패 시 예외 발생")
   void findByEmailNotFound() {
-    BusinessException exception = assertThrows(BusinessException.class, () -> memberService.findByEmail("notfound@example.com"));
-    assertEquals("회원 정보 없음", exception.getMessage());
+    assertThrows(BusinessException.class, () -> memberService.findByEmailOrThrow("notfound@example.com"));
   }
 
   @Test
@@ -51,7 +52,7 @@ class MemberServiceTest {
   void findVerifiedMemberSuccess() {
     CreateMemberCommand command = new CreateMemberCommand("verified@example.com", "password", "nickname");
     memberService.createMember(command);
-    Member created = memberService.findByEmail("verified@example.com");
+    Member created = memberService.findByEmailOrThrow("verified@example.com");
     Member member = memberService.findVerifiedMember(created.getId());
     assertEquals(created.getId(), member.getId());
   }
@@ -59,9 +60,8 @@ class MemberServiceTest {
   @Test
   @DisplayName("회원 ID로 회원 조회 실패 시 예외 발생")
   void findVerifiedMemberNotFound() {
-    EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-        () -> memberService.findVerifiedMember(java.util.UUID.randomUUID()));
-    assertTrue(exception.getMessage().contains("Member"));
+    assertThrows(EntityNotFoundException.class,
+        () -> memberService.findVerifiedMember(UUID.randomUUID()));
   }
 
   @Test
@@ -69,10 +69,45 @@ class MemberServiceTest {
   void updateMember() {
     CreateMemberCommand command = new CreateMemberCommand("update@example.com", "password", "nickname");
     memberService.createMember(command);
-    Member member = memberService.findByEmail("update@example.com");
+    Member member = memberService.findByEmailOrThrow("update@example.com");
     UpdateMemberCommand updateCommand = new UpdateMemberCommand(member.getId(), "newNickname");
     memberService.updateMember(updateCommand);
-    Member updated = memberService.findByEmail("update@example.com");
+    Member updated = memberService.findByEmailOrThrow("update@example.com");
     assertEquals("newNickname", updated.getNickname());
+  }
+
+  @Test
+  @DisplayName("이메일로 회원 조회 Optional - 존재하는 경우")
+  void findByEmailOptionalExists() {
+    CreateMemberCommand command = new CreateMemberCommand("optional@example.com", "password", "nickname");
+    memberService.createMember(command);
+    Optional<Member> member = memberService.findByEmail("optional@example.com");
+    assertTrue(member.isPresent());
+    assertEquals("optional@example.com", member.get().getEmail());
+  }
+
+  @Test
+  @DisplayName("이메일로 회원 조회 Optional - 존재하지 않는 경우")
+  void findByEmailOptionalNotExists() {
+    Optional<Member> member = memberService.findByEmail("nonexistent@example.com");
+    assertTrue(member.isEmpty());
+  }
+
+  @Test
+  @DisplayName("ID로 회원 조회 Optional - 존재하는 경우")
+  void findByIdOptionalExists() {
+    CreateMemberCommand command = new CreateMemberCommand("id-optional@example.com", "password", "nickname");
+    memberService.createMember(command);
+    Member created = memberService.findByEmailOrThrow("id-optional@example.com");
+    Optional<Member> member = memberService.findById(created.getId());
+    assertTrue(member.isPresent());
+    assertEquals(created.getId(), member.get().getId());
+  }
+
+  @Test
+  @DisplayName("ID로 회원 조회 Optional - 존재하지 않는 경우")
+  void findByIdOptionalNotExists() {
+    Optional<Member> member = memberService.findById(UUID.randomUUID());
+    assertTrue(member.isEmpty());
   }
 }

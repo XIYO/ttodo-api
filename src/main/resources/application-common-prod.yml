@@ -1,42 +1,35 @@
-spring:
-  jpa:
-    show-sql: false
-    hibernate:
-      ddl-auto: validate
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
 jwt:
-  private-key: ${JWT_PRIVATE_KEY:classpath:zzic/jwt/test-private.pem}
-  public-key: ${JWT_PUBLIC_KEY:classpath:zzic/jwt/public.pem}
-  key-id: ${JWT_KEY_ID:rsa-key-id}
-  expiration: ${JWT_EXPIRATION:60}
-  refresh-expiration: ${JWT_REFRESH_EXPIRATION:31536000}
+  private-key: classpath:zzic/jwt/test-private.pem
+  public-key: classpath:zzic/jwt/public.pem
+  key-id: rsa-key-id
   access-token:
+    expiration: 60
     cookie:
       name: access-token
-      domain: ${JWT_COOKIE_DOMAIN:xiyo.dev}
+      domain: 
       path: /
       secure: true
       httpOnly: false
       sameSite: lax
   refresh-token:
+    expiration: 31536000
     cookie:
       name: refresh-token
-      domain: ${JWT_COOKIE_DOMAIN:xiyo.dev}
+      domain: 
       path: /
       secure: true
       httpOnly: true
       sameSite: lax
 
 server:
-  port: 8080
-
-logging:
-  level:
-    org.springframework: WARN
-    point.zzicback: INFO
-
-swagger:
-  server:
-    url: https://zzic-api.xiyo.dev
-    description: Production
+  port: 8443
+  http2:
+    enabled: true
+  ssl:
+    enabled: true
+    key-store: classpath:zzic/jwt/test-zzic.p12
+    key-store-type: PKCS12
+    key-store-password: 
+    key-alias: zzic-api
+    protocol: TLS
+    enabled-protocols: TLSv1.2,TLSv1.3

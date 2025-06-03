@@ -7,12 +7,13 @@ import point.zzicback.common.error.*;
 import point.zzicback.member.application.dto.command.*;
 import point.zzicback.member.domain.*;
 
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class MemberService {
+  private static final String MEMBER_ENTITY = "Member";
   private final MemberRepository memberRepository;
 
   public void createMember(CreateMemberCommand command) {
@@ -25,23 +26,36 @@ public class MemberService {
   }
 
   @Transactional(readOnly = true)
-  public Member findByEmail(String email) {
+  public Optional<Member> findByEmail(String email) {
+    return memberRepository.findByEmail(email);
+  }
+
+  @Transactional(readOnly = true)
+  public Member findByEmailOrThrow(String email) {
     return memberRepository.findByEmail(email)
         .orElseThrow(() -> new BusinessException("회원 정보 없음"));
   }
 
   @Transactional(readOnly = true)
+  public Optional<Member> findById(UUID memberId) {
+    return memberRepository.findById(memberId);
+  }
+
+  @Transactional(readOnly = true)
+  public Member findByIdOrThrow(UUID memberId) {
+    return memberRepository.findById(memberId)
+        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
+  }
+
+  @Transactional(readOnly = true)
   public Member findVerifiedMember(UUID memberId) {
-    return findMemberById(memberId);
+    return memberRepository.findById(memberId)
+        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
   }
 
   public void updateMember(UpdateMemberCommand command) {
-    Member member = findMemberById(command.memberId());
+    Member member = memberRepository.findById(command.memberId())
+        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, command.memberId()));
     member.setNickname(command.nickname());
-  }
-
-  private Member findMemberById(UUID memberId) {
-    return memberRepository.findById(memberId)
-        .orElseThrow(() -> new EntityNotFoundException("Member", memberId));
   }
 }

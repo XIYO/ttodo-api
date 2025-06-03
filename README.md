@@ -35,6 +35,40 @@ brew services start redis
   - `REDIS_PORT`: Redis 서버 포트  
   - `REDIS_PASSWORD`: Redis 서버 비밀번호
 
+## Docker Compose 실행
+
+### 로컬 개발 환경
+```bash
+# 1. 애플리케이션 빌드
+./gradlew build
+
+# 2. Docker Compose로 전체 서비스 시작
+docker-compose -f docker-compose.local.yml up -d
+
+# 3. 헬스 체크 (선택사항)
+./health-check.sh
+```
+
+### 서비스 구성
+- **ZZIC API**: http://localhost:8080 (Swagger UI 포함)
+- **PostgreSQL**: localhost:5432 (zzic/zzic123)
+- **Redis**: localhost:6379
+
+### 유용한 명령어
+```bash
+# 로그 확인
+docker-compose -f docker-compose.local.yml logs -f zzic
+
+# 컨테이너 상태 확인
+docker-compose -f docker-compose.local.yml ps
+
+# 서비스 중지
+docker-compose -f docker-compose.local.yml down
+
+# 볼륨까지 함께 삭제
+docker-compose -f docker-compose.local.yml down -v
+```
+
 ## 구현 목표
 
 - TODO 생성

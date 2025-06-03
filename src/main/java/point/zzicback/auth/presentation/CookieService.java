@@ -13,11 +13,11 @@ public class CookieService {
   private final JwtProperties jwtProperties;
 
   public Cookie createJwtCookie(String jwtToken) {
-    return createCookie(jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.expiration());
+    return createCookie(jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.accessToken().expiration());
   }
 
   public Cookie createRefreshCookie(String refreshToken) {
-    return createCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshExpiration());
+    return createCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshToken().expiration());
   }
 
   public Cookie createExpiredJwtCookie() {

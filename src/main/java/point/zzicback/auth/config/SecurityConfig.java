@@ -20,7 +20,7 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable).formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(authorize -> authorize.requestMatchers("/", "/auth/sign-up", "/auth/sign-in", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll().anyRequest().authenticated()).oauth2ResourceServer(oauth2 -> oauth2.bearerTokenResolver(multiBearerTokenResolver).jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthConverter)).authenticationEntryPoint(jwtAuthenticationEntryPoint));
+    http.csrf(AbstractHttpConfigurer::disable).formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(authorize -> authorize.requestMatchers("/", "/auth/sign-up", "/auth/sign-in", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/actuator/**").permitAll().anyRequest().authenticated()).oauth2ResourceServer(oauth2 -> oauth2.bearerTokenResolver(multiBearerTokenResolver).jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthConverter)).authenticationEntryPoint(jwtAuthenticationEntryPoint));
     return http.build();
   }
 }
