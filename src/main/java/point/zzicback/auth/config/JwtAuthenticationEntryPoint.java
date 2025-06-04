@@ -23,13 +23,13 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
-    
+
     boolean refreshed = refreshTokensIfNeeded(request, response);
     if (!refreshed) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
-    
+
     String uri = request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
     response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
     response.setHeader(HttpHeaders.LOCATION, uri);
@@ -49,12 +49,19 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
       
       Cookie accessCookie = cookieService.createJwtCookie(newTokens.accessToken());
       Cookie refreshCookie = cookieService.createRefreshCookie(newTokens.refreshToken());
-      
+
       response.addCookie(accessCookie);
       response.addCookie(refreshCookie);
-      
+
       return true;
     } catch (Exception _) {
+      tokenService.deleteByToken(refreshToken);
+      
+      Cookie accessCookie = cookieService.createExpiredJwtCookie();
+      Cookie refreshCookie = cookieService.createExpiredRefreshCookie();
+
+      response.addCookie(accessCookie);
+      response.addCookie(refreshCookie);
       return false;
     }
   }
