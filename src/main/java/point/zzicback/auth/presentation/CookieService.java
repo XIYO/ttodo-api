@@ -18,11 +18,13 @@ public class CookieService {
   public void setJwtCookie(HttpServletResponse response, String jwtToken) {
     ResponseCookie cookie = createResponseCookie(jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.accessToken().expiration());
     response.addHeader(SET_COOKIE_HEADER, cookie.toString());
+    response.setHeader("Authorization", "Bearer " + jwtToken);
   }
 
   public void setRefreshCookie(HttpServletResponse response, String refreshToken) {
     ResponseCookie cookie = createResponseCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshToken().expiration());
     response.addHeader(SET_COOKIE_HEADER, cookie.toString());
+    response.setHeader("Authorization-refresh", refreshToken);
   }
 
   public void setExpiredJwtCookie(HttpServletResponse response) {
@@ -49,7 +51,6 @@ public class CookieService {
         .maxAge(Duration.ofSeconds(maxAge))
         .secure(props.secure())
         .httpOnly(props.httpOnly())
-        .sameSite(props.sameSite())
         .httpOnly(props.httpOnly());
     
     if (props.domain() != null && !props.domain().isEmpty()) {
