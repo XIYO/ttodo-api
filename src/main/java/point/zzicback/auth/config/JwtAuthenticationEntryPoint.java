@@ -47,21 +47,15 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
       String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
       TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
       
-      Cookie accessCookie = cookieService.createJwtCookie(newTokens.accessToken());
-      Cookie refreshCookie = cookieService.createRefreshCookie(newTokens.refreshToken());
-
-      response.addCookie(accessCookie);
-      response.addCookie(refreshCookie);
+      cookieService.setJwtCookie(response, newTokens.accessToken());
+      cookieService.setRefreshCookie(response, newTokens.refreshToken());
 
       return true;
     } catch (Exception _) {
       tokenService.deleteByToken(refreshToken);
       
-      Cookie accessCookie = cookieService.createExpiredJwtCookie();
-      Cookie refreshCookie = cookieService.createExpiredRefreshCookie();
-
-      response.addCookie(accessCookie);
-      response.addCookie(refreshCookie);
+      cookieService.setExpiredJwtCookie(response);
+      cookieService.setExpiredRefreshCookie(response);
       return false;
     }
   }

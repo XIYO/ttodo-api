@@ -63,10 +63,10 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "사인-아웃 성공")
   @PostMapping("/sign-out")
   public void signOut(@CookieValue(name = "refresh-token", required = false) String refreshToken, HttpServletResponse response) {
-    response.addCookie(cookieService.createExpiredJwtCookie());
+    cookieService.setExpiredJwtCookie(response);
     if (refreshToken != null) {
       tokenService.deleteByToken(refreshToken);
-      response.addCookie(cookieService.createExpiredRefreshCookie());
+      cookieService.setExpiredRefreshCookie(response);
     }
   }
 
@@ -78,8 +78,8 @@ public class AuthController {
     String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
     TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
 
-    response.addCookie(cookieService.createJwtCookie(newTokens.accessToken()));
-    response.addCookie(cookieService.createRefreshCookie(newTokens.refreshToken()));
+    cookieService.setJwtCookie(response, newTokens.accessToken());
+    cookieService.setRefreshCookie(response, newTokens.refreshToken());
   }
 
   private Member authenticateMember(String email, String password) {
@@ -103,10 +103,7 @@ public class AuthController {
   private void authenticateWithCookies(MemberPrincipal member, HttpServletResponse response) {
     TokenService.TokenResult tokens = tokenService.generateTokens(member);
     
-    Cookie accessCookie = cookieService.createJwtCookie(tokens.accessToken());
-    Cookie refreshCookie = cookieService.createRefreshCookie(tokens.refreshToken());
-
-    response.addCookie(accessCookie);
-    response.addCookie(refreshCookie);
+    cookieService.setJwtCookie(response, tokens.accessToken());
+    cookieService.setRefreshCookie(response, tokens.refreshToken());
   }
 }

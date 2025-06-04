@@ -1,31 +1,38 @@
 package point.zzicback.auth.presentation;
 
-import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import point.zzicback.auth.config.properties.JwtProperties;
 
+import java.time.Duration;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class CookieService {
+  private static final String SET_COOKIE_HEADER = "Set-Cookie";
   private final JwtProperties jwtProperties;
 
-  public Cookie createJwtCookie(String jwtToken) {
-    return createCookie(jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.accessToken().expiration());
+  public void setJwtCookie(HttpServletResponse response, String jwtToken) {
+    ResponseCookie cookie = createResponseCookie(jwtProperties.accessToken().cookie(), jwtToken, jwtProperties.accessToken().expiration());
+    response.addHeader(SET_COOKIE_HEADER, cookie.toString());
   }
 
-  public Cookie createRefreshCookie(String refreshToken) {
-    return createCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshToken().expiration());
+  public void setRefreshCookie(HttpServletResponse response, String refreshToken) {
+    ResponseCookie cookie = createResponseCookie(jwtProperties.refreshToken().cookie(), refreshToken, jwtProperties.refreshToken().expiration());
+    response.addHeader(SET_COOKIE_HEADER, cookie.toString());
   }
 
-  public Cookie createExpiredJwtCookie() {
-    return createCookie(jwtProperties.accessToken().cookie(), "", 0);
+  public void setExpiredJwtCookie(HttpServletResponse response) {
+    ResponseCookie cookie = createResponseCookie(jwtProperties.accessToken().cookie(), "", 0);
+    response.addHeader(SET_COOKIE_HEADER, cookie.toString());
   }
 
-  public Cookie createExpiredRefreshCookie() {
-    return createCookie(jwtProperties.refreshToken().cookie(), "", 0);
+  public void setExpiredRefreshCookie(HttpServletResponse response) {
+    ResponseCookie cookie = createResponseCookie(jwtProperties.refreshToken().cookie(), "", 0);
+    response.addHeader(SET_COOKIE_HEADER, cookie.toString());
   }
 
   public Optional<String> getRefreshToken(Cookie[] cookies) {
@@ -36,13 +43,21 @@ public class CookieService {
             .map(Cookie::getValue);
   }
 
-  private Cookie createCookie(JwtProperties.CookieProperties props, String token, int maxAge) {
-    Cookie cookie = new Cookie(props.name(), token);
-    cookie.setPath(props.path());
-    cookie.setSecure(props.secure());
-    cookie.setHttpOnly(props.httpOnly());
-    cookie.setMaxAge(maxAge);
-    cookie.setDomain(props.domain());
-    return cookie;
+  private ResponseCookie createResponseCookie(JwtProperties.CookieProperties props, String value, int maxAge) {
+    ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(props.name(), value)
+        .path(props.path())
+        .maxAge(Duration.ofSeconds(maxAge))
+        .secure(props.secure())
+        .httpOnly(props.httpOnly());
+    
+    if (props.domain() != null && !props.domain().isEmpty()) {
+      builder.domain(props.domain());
+    }
+    
+    if (props.sameSite() != null && !props.sameSite().isEmpty()) {
+      builder.sameSite(props.sameSite());
+    }
+    
+    return builder.build();
   }
 }
