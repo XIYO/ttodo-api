@@ -10,7 +10,7 @@ jwt:
       path: /
       secure: false
       httpOnly: false
-      sameSite: none
+      sameSite: None
   refresh-token:
     expiration: 31536000
     cookie:
@@ -19,7 +19,7 @@ jwt:
       path: /
       secure: false
       httpOnly: true
-      sameSite: none
+      sameSite: None
 
 spring:
   datasource:

@@ -48,6 +48,7 @@ public class CookieService {
         .path(props.path())
         .maxAge(Duration.ofSeconds(maxAge))
         .secure(props.secure())
+        .sameSite(props.sameSite())
         .httpOnly(props.httpOnly());
     
     if (props.domain() != null && !props.domain().isEmpty()) {
