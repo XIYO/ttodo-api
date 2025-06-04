@@ -88,7 +88,7 @@ public class TokenService {
   }
 
   public void save(String deviceId, String refreshToken) {
-    long refreshSeconds = jwtProperties.refreshExpiration();
+    long refreshSeconds = jwtProperties.refreshToken().expiration();
     tokenRepository.save(deviceId, refreshToken, refreshSeconds);
   }
 
