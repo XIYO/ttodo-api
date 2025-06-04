@@ -74,12 +74,7 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "토큰 갱신 성공")
   @ApiResponse(responseCode = "401", description = "토큰 갱신 실패")
   @GetMapping("/refresh")
-  public void refresh(@CookieValue("refresh-token") String refreshToken, HttpServletResponse response) {
-    String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
-    TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
-
-    cookieService.setJwtCookie(response, newTokens.accessToken());
-    cookieService.setRefreshCookie(response, newTokens.refreshToken());
+  public void refresh() {
   }
 
   private Member authenticateMember(String email, String password) {
