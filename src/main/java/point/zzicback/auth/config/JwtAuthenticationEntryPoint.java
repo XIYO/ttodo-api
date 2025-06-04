@@ -27,6 +27,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     boolean refreshed = refreshTokensIfNeeded(request, response);
     if (!refreshed) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      cookieService.setExpiredJwtCookie(response);
+      cookieService.setExpiredRefreshCookie(response);
       return;
     }
 
