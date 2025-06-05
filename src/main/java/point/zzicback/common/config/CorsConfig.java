@@ -10,7 +10,8 @@ public class CorsConfig {
   public CorsFilter corsFilter() {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowCredentials(true);
-    config.addAllowedOriginPattern("*");
+    config.addAllowedOrigin("http://localhost:5173");
+    config.addAllowedOrigin("https://zzic.xiyo.dev");
     config.addAllowedHeader("*");
     config.addAllowedMethod("*");
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
