@@ -15,7 +15,7 @@ jwt:
       path: /
       secure: true
       httpOnly: false
-      sameSite: None
+      sameSite: Lax
   refresh-token:
     expiration: 31536000
     cookie:
