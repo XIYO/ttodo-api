@@ -10,6 +10,7 @@ public class CorsConfig {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowCredentials(true);
     config.addAllowedOrigin("https://zzic.xiyo.com");
+    config.addAllowedOrigin("https://zzic-api.xiyo.com");
     config.addAllowedHeader("*");
     config.addAllowedMethod("*");
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
