@@ -56,6 +56,21 @@ public class TodoService {
   }
 
   @Transactional
+  public void partialUpdateTodo(UpdateTodoCommand command) {
+    Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
+            .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
+    if (command.title() != null) {
+      todo.setTitle(command.title());
+    }
+    if (command.description() != null) {
+      todo.setDescription(command.description());
+    }
+    if (command.done() != null) {
+      todo.setDone(command.done());
+    }
+  }
+
+  @Transactional
   public void deleteTodo(TodoQuery query) {
     todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
             .ifPresentOrElse(todo -> todoRepository.deleteById(query.todoId()), () -> {

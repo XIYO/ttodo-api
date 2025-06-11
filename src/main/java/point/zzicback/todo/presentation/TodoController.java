@@ -52,6 +52,12 @@ public class TodoController {
     todoService.updateTodo(todoPresentationMapper.toCommand(request, memberId, id));
   }
 
+  @PatchMapping("/{memberId}/todos/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void partialModify(@PathVariable UUID memberId, @PathVariable Long id, @RequestBody UpdateTodoRequest request) {
+    todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, memberId, id));
+  }
+
   @DeleteMapping("/{memberId}/todos/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void remove(@PathVariable UUID memberId, @PathVariable Long id) {
