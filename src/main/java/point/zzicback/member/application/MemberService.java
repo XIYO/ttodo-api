@@ -16,13 +16,13 @@ public class MemberService {
   private static final String MEMBER_ENTITY = "Member";
   private final MemberRepository memberRepository;
 
-  public void createMember(CreateMemberCommand command) {
+  public Member createMember(CreateMemberCommand command) {
     Member member = Member.builder()
         .email(command.email())
         .password(command.password())
         .nickname(command.nickname())
         .build();
-    memberRepository.save(member);
+    return memberRepository.save(member);
   }
 
   @Transactional(readOnly = true)

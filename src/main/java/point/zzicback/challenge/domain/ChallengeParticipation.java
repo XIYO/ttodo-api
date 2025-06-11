@@ -1,0 +1,40 @@
+package point.zzicback.challenge.domain;
+
+import jakarta.persistence.*;
+import lombok.*;
+import point.zzicback.member.domain.Member;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+public class ChallengeParticipation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Challenge challenge;
+
+    @OneToMany(mappedBy = "challengeParticipation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChallengeTodo> challengeTodos = new ArrayList<>();
+
+    private LocalDateTime joinedAt;
+
+    @Builder
+    public ChallengeParticipation(Member member, Challenge challenge) {
+        this.member = member;
+        this.challenge = challenge;
+    }
+
+    @PrePersist
+    private void prePersist() {
+        joinedAt = LocalDateTime.now();
+    }
+}

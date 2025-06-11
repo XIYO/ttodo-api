@@ -1,7 +1,6 @@
 package point.zzicback.common.error;
 
 import org.springframework.http.*;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -45,16 +44,14 @@ public class GlobalExceptionHandler {
     return detail;
   }
 
-  @ExceptionHandler(JwtException.class)
-  public ProblemDetail handleJwtException(JwtException ex) {
-    ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
-    detail.setTitle("JWT Error");
-    detail.setDetail("JWT 토큰 처리 중 오류가 발생했습니다: " + ex.getMessage());
-    return detail;
-  }
+
 
   @ExceptionHandler(Exception.class)
-  public ProblemDetail handleGeneric() {
+  public ProblemDetail handleGeneric(Exception ex) {
+    // 에러 로깅 추가
+    System.err.println("Unexpected error occurred: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+    ex.printStackTrace();
+    
     ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
     detail.setTitle("Internal Server Error");
     detail.setDetail("서버 내부 오류가 발생했습니다");
