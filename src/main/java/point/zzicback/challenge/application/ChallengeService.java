@@ -116,4 +116,15 @@ public class ChallengeService {
         // 매퍼를 통해 엔티티 목록을 응답 객체 목록으로 변환
         return challengeApplicationMapper.toChallengeDetailDto(allChallenges);
     }
+
+    // 챌린지 부분 수정 (PATCH)
+    public void partialUpdateChallenge(Long challengeId, UpdateChallengeCommand command) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
+        String newTitle = command.title() != null ? command.title() : challenge.getTitle();
+        String newDescription = command.description() != null ? command.description() : challenge.getDescription();
+        PeriodType newPeriodType = command.periodType() != null ? command.periodType() : challenge.getPeriodType();
+        challenge.update(newTitle, newDescription, newPeriodType);
+        challengeRepository.save(challenge);
+    }
 }

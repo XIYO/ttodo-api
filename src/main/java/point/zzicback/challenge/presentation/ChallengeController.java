@@ -65,9 +65,9 @@ public class ChallengeController {
     @Operation(summary = "챌린지 수정", description = "기존 챌린지 정보를 수정합니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 수정 성공")
     @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
-    @PutMapping("/{challengeId}")
-    public void updateChallenge(@PathVariable Long challengeId, @Valid @RequestBody UpdateChallengeCommand command) {
-        challengeService.updateChallenge(challengeId, command);
+    @PatchMapping("/{challengeId}")
+    public void updateChallenge(@PathVariable Long challengeId, @RequestBody UpdateChallengeCommand command) {
+        challengeService.partialUpdateChallenge(challengeId, command);
     }
 
     @Operation(summary = "챌린지 삭제", description = "챌린지를 삭제합니다.")
