@@ -36,26 +36,21 @@ public class ChallengeController {
         return CreateChallengeResponse.of(challengeId);
     }
 
-    @Operation(summary = "모든 챌린지 조회", description = "등록된 모든 챌린지를 조회합니다.")
+    @Operation(summary = "모든 챌린지 조회", description = "등록된 모든 챌린지를 조회합니다. 인증된 사용자의 경우 참여 여부가 포함됩니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
     @GetMapping
-    public Page<ChallengeDto> getChallenges(@RequestParam(defaultValue = "0") int page,
+    public Page<ChallengeDto> getChallenges(@AuthenticationPrincipal MemberPrincipal principal,
+                                           @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "10") int size,
                                            @RequestParam(defaultValue = "id,desc") String sort) {
         Pageable pageable = createPageable(page, size, sort);
-        return challengeService.getChallenges(pageable).map(challengePresentationMapper::toDto);
-    }
-
-    @Operation(summary = "사용자별 챌린지 조회", description = "사용자의 참여 여부를 포함한 챌린지 목록을 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "사용자 챌린지 목록 조회 성공")
-    @GetMapping("/by-member")
-    public Page<ChallengeJoinedDto> getChallengesByMember(@AuthenticationPrincipal MemberPrincipal principal,
-                                                          @RequestParam(defaultValue = "0") int page,
-                                                          @RequestParam(defaultValue = "10") int size,
-                                                          @RequestParam(defaultValue = "id,desc") String sort) {
-        Pageable pageable = createPageable(page, size, sort);
-        Member member = memberService.findVerifiedMember(principal.id());
-        return challengeService.getChallengesByMember(member, pageable);
+        
+        if (principal != null) {
+            Member member = memberService.findVerifiedMember(principal.id());
+            return challengeService.getChallengesWithParticipation(member, pageable);
+        } else {
+            return challengeService.getChallenges(pageable).map(challengePresentationMapper::toDto);
+        }
     }
 
     @Operation(summary = "챌린지 상세 조회", description = "특정 챌린지의 상세 정보를 조회합니다.")

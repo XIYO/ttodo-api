@@ -9,6 +9,7 @@ public record ChallengeDto(
         String description,
         LocalDate startDate,
         LocalDate endDate,
-        PeriodType periodType
+        PeriodType periodType,
+        Boolean participationStatus
 ) {
 }

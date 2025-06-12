@@ -9,6 +9,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ChallengeApplicationMapper {
 
+    @Mapping(target = "participationStatus", constant = "false")
     ChallengeDto toChallengeDto(Challenge challenge);
 
     @Mapping(target = "id", source = "member.id")

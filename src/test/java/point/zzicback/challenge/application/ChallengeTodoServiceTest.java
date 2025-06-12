@@ -195,4 +195,38 @@ class ChallengeTodoServiceTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("챌린지 Todo를 찾을 수 없습니다.");
     }
+
+    @Test
+    @DisplayName("중도하차 후 투두 목록에서 제외됨")
+    void getTodos_AfterLeavingChallenge() {
+        var participation = allParticipations.get(0);
+        
+        var todosBeforeLeaving = challengeTodoService.getAllChallengeTodos(testMember);
+        assertThat(todosBeforeLeaving).hasSize(3);
+        
+        participation.leaveChallenge();
+        participationRepository.save(participation);
+        
+        var todosAfterLeaving = challengeTodoService.getAllChallengeTodos(testMember);
+        assertThat(todosAfterLeaving).hasSize(2);
+        
+        var remainingPeriodTypes = todosAfterLeaving.stream()
+                .map(ChallengeTodoDto::periodType)
+                .toList();
+        assertThat(remainingPeriodTypes).containsExactlyInAnyOrder(PeriodType.WEEKLY, PeriodType.MONTHLY);
+    }
+
+    @Test
+    @DisplayName("중도하차한 챌린지에서 투두 완료 시도 시 예외 발생")
+    void completeChallenge_AfterLeaving() {
+        var participation = allParticipations.get(0);
+        participation.leaveChallenge();
+        participationRepository.save(participation);
+        
+        assertThatThrownBy(() -> 
+            challengeTodoService.completeChallenge(participation.getChallenge().getId(), testMember, LocalDate.now())
+        )
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("해당 챌린지에 참여하지 않았습니다.");
+    }
 }

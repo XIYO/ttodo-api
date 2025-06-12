@@ -30,20 +30,27 @@ public class ChallengeTodoService {
     private EntityManager entityManager;
 
     public void completeChallenge(ChallengeParticipation cp, LocalDate currentDate) {
-        ChallengeTodo challengeTodo = challengeTodoRepository
-                .findByChallengeParticipation(cp)
-                .orElseGet(() -> {
-                    LocalDate targetDate = calculateTargetDate(cp.getChallenge().getPeriodType());
-                    ChallengeTodo newTodo = ChallengeTodo.builder()
-                            .challengeParticipation(cp)
-                            .targetDate(targetDate)
-                            .build();
-                    return challengeTodoRepository.save(newTodo);
-                });
-
-        if (!challengeTodo.isCompleted()) {
-            challengeTodo.complete(currentDate);
-            challengeTodoRepository.save(challengeTodo);
+        var existingTodo = (cp.getChallenge().getPeriodType() == PeriodType.DAILY)
+                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(cp, currentDate)
+                : challengeTodoRepository.findByChallengeParticipation(cp);
+        
+        if (existingTodo.isPresent()) {
+            ChallengeTodo todo = existingTodo.get();
+            if (!todo.isCompleted()) {
+                todo.complete(currentDate);
+                challengeTodoRepository.save(todo);
+            }
+        } else {
+            LocalDate targetDate = (cp.getChallenge().getPeriodType() == PeriodType.DAILY) 
+                    ? currentDate 
+                    : calculateTargetDate(cp.getChallenge().getPeriodType());
+                    
+            ChallengeTodo newTodo = ChallengeTodo.builder()
+                    .challengeParticipation(cp)
+                    .targetDate(targetDate)
+                    .build();
+            newTodo.complete(currentDate);
+            challengeTodoRepository.save(newTodo);
         }
     }
 
@@ -51,35 +58,42 @@ public class ChallengeTodoService {
         challengeService.findById(challengeId);
 
         ChallengeParticipation participation = participationRepository
-                .findByMemberAndChallenge_Id(member, challengeId)
+                .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 챌린지에 참여하지 않았습니다."));
 
-        ChallengeTodo challengeTodo = challengeTodoRepository
-                .findByChallengeParticipation(participation)
-                .orElseThrow(() -> new IllegalArgumentException("챌린지 Todo를 찾을 수 없습니다."));
+        ChallengeTodo challengeTodo;
+        if (participation.getChallenge().getPeriodType() == PeriodType.DAILY) {
+            challengeTodo = challengeTodoRepository
+                    .findByChallengeParticipationAndTargetDate(participation, currentDate)
+                    .orElseThrow(() -> new IllegalArgumentException("챌린지 Todo를 찾을 수 없습니다."));
+        } else {
+            challengeTodo = challengeTodoRepository
+                    .findByChallengeParticipation(participation)
+                    .orElseThrow(() -> new IllegalArgumentException("챌린지 Todo를 찾을 수 없습니다."));
+        }
 
-        challengeTodo.cancel(currentDate);
         challengeTodoRepository.delete(challengeTodo);
     }
 
     public boolean isCompletedInPeriod(ChallengeParticipation cp, LocalDate date) {
-        return challengeTodoRepository
-                .findByChallengeParticipation(cp)
+        var todoOptional = (cp.getChallenge().getPeriodType() == PeriodType.DAILY)
+                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(cp, date)
+                : challengeTodoRepository.findByChallengeParticipation(cp);
+                
+        return todoOptional
                 .map(todo -> todo.isInPeriod(cp.getChallenge().getPeriodType(), date) && todo.isCompleted())
                 .orElse(false);
     }
     
-    // 챌린지 참여자가 해야 할 챌린지 투두를 모두 조회
     @Transactional(readOnly = true)
     public List<ChallengeTodoDto> getAllChallengeTodos(Member member) {
-        List<ChallengeParticipation> participations = participationRepository.findByMember(member);
+        List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
 
         return participations.stream()
                 .flatMap(this::createChallengeTodoStream)
                 .toList();
     }
 
-    // 챌린지 참여자가 해야 할 챌린지 투두를 페이지네이션으로 조회
     @Transactional(readOnly = true)
     public Page<ChallengeTodoDto> getAllChallengeTodos(Member member, Pageable pageable) {
         List<ChallengeTodoDto> allTodos = getAllChallengeTodos(member);
@@ -90,17 +104,15 @@ public class ChallengeTodoService {
         return new PageImpl<>(pagedTodos, pageable, allTodos.size());
     }
  
-    // 챌린지 참여자가 완료되지 않은 챌린지 투두를 모두 조회
     @Transactional(readOnly = true)
     public List<ChallengeTodoDto> getUncompletedChallengeTodos(Member member) {
-        List<ChallengeParticipation> participations = participationRepository.findByMember(member);
+        List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
 
         return participations.stream()
                 .flatMap(this::createUncompletedChallengeTodoStream)
                 .toList();
     }
 
-    // 챌린지 참여자가 완료되지 않은 챌린지 투두를 페이지네이션으로 조회
     @Transactional(readOnly = true)
     public Page<ChallengeTodoDto> getUncompletedChallengeTodos(Member member, Pageable pageable) {
         List<ChallengeTodoDto> allTodos = getUncompletedChallengeTodos(member);
@@ -111,21 +123,19 @@ public class ChallengeTodoService {
         return new PageImpl<>(pagedTodos, pageable, allTodos.size());
     }
 
-    // 챌린지 참여자가 완료된 챌린지 투두를 모두 조회
     @Transactional(readOnly = true)
     public List<ChallengeTodoDto> getCompletedChallengeTodos(Member member) {
-        List<ChallengeParticipation> participations = participationRepository.findByMember(member);
+        List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
 
         return participations.stream()
                 .flatMap(this::createCompletedChallengeTodoStream)
                 .toList();
     }
 
-    // 챌린지 참여자가 완료된 챌린지 투두를 페이지네이션으로 조회
     @Transactional(readOnly = true)
     public Page<ChallengeTodoDto> getCompletedChallengeTodos(Member member, Pageable pageable) {
         List<ChallengeTodoDto> allTodos = getCompletedChallengeTodos(member);
-        allTodos = applySorting(allTodos, pageable.getSort()); //메모리정렬
+        allTodos = applySorting(allTodos, pageable.getSort());
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allTodos.size());
         List<ChallengeTodoDto> pagedTodos = allTodos.subList(start, end);
@@ -138,20 +148,20 @@ public class ChallengeTodoService {
             LocalDate currentDate = LocalDate.now();
             PeriodType periodType = participation.getChallenge().getPeriodType();
             
-            // 챌린지의 전체 기간이 지났는지 먼저 체크
             if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
-                return Stream.empty(); // 챌린지 전체 기간 만료시 빈 스트림 반환
+                return Stream.empty();
             }
             
-            // 기간이 지났는지 확인 (주기별 기간 체크)
             if (!virtualTodo.isInPeriod(periodType, currentDate)) {
-                return Stream.empty(); // 기간 만료시 빈 스트림 반환
+                return Stream.empty();
             }
             
-            var existingTodo = challengeTodoRepository.findByChallengeParticipation(participation);
+            var existingTodo = (periodType == PeriodType.DAILY) 
+                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
+                : challengeTodoRepository.findByChallengeParticipation(participation);
+                
             if (existingTodo.isPresent()) {
                 ChallengeTodo actualTodo = existingTodo.get();
-                // 실제 저장된 투두도 기간 체크
                 if (!actualTodo.isInPeriod(periodType, currentDate)) {
                     return Stream.empty();
                 }
@@ -170,21 +180,20 @@ public class ChallengeTodoService {
             LocalDate currentDate = LocalDate.now();
             PeriodType periodType = participation.getChallenge().getPeriodType();
             
-            // 챌린지의 전체 기간이 지났는지 먼저 체크
             if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
-                return Stream.empty(); // 챌린지 전체 기간 만료시 빈 스트림 반환
+                return Stream.empty();
             }
             
-            // 기간이 지났는지 확인 (주기별 기간 체크)
             if (!virtualTodo.isInPeriod(periodType, currentDate)) {
-                return Stream.empty(); // 기간 만료시 빈 스트림 반환
+                return Stream.empty();
             }
             
-            var existingTodo = challengeTodoRepository.findByChallengeParticipation(participation);
+            var existingTodo = (periodType == PeriodType.DAILY) 
+                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
+                : challengeTodoRepository.findByChallengeParticipation(participation);
 
             if (existingTodo.isPresent()) {
                 ChallengeTodo todo = existingTodo.get();
-                // 실제 저장된 투두도 기간 체크
                 if (!todo.isInPeriod(periodType, currentDate)) {
                     return Stream.empty();
                 }
@@ -206,14 +215,12 @@ public class ChallengeTodoService {
             var virtualTodo = createVirtualChallengeTodo(participation);
             LocalDate currentDate = LocalDate.now();
             
-            // 챌린지의 전체 기간이 지났는지 먼저 체크
             if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
-                return Stream.empty(); // 챌린지 전체 기간 만료시 빈 스트림 반환
+                return Stream.empty();
             }
             
-            // 기간이 지났는지 확인 (주기별 기간 체크)
             if (!virtualTodo.isInPeriod(participation.getChallenge().getPeriodType(), currentDate)) {
-                return Stream.empty(); // 기간 만료시 빈 스트림 반환
+                return Stream.empty();
             }
             
             return challengeTodoRepository.findByChallengeParticipation(participation)
@@ -226,7 +233,6 @@ public class ChallengeTodoService {
         }
     }
 
-    // 가상 챌린지 Todo 생성
     ChallengeTodo createVirtualChallengeTodo(ChallengeParticipation participation) {
         if (participation == null) {
             throw new IllegalArgumentException("ChallengeParticipation cannot be null");
@@ -245,7 +251,6 @@ public class ChallengeTodoService {
                 .build();
     }
 
-    // 챌린지의 주기 유형에 따라 목표 날짜를 계산
     private LocalDate calculateTargetDate(PeriodType periodType) {
         LocalDate today = LocalDate.now();
         return switch (periodType) {
@@ -259,7 +264,7 @@ public class ChallengeTodoService {
         challengeService.findById(challengeId);
 
         ChallengeParticipation participation = participationRepository
-                .findByMemberAndChallenge_Id(member, challengeId)
+                .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 챌린지에 참여하지 않았습니다."));
         
         completeChallenge(participation, currentDate);
@@ -297,7 +302,6 @@ public class ChallengeTodoService {
         };
     }
 
-    // 챌린지의 전체 기간 내에 있는지 확인하는 메서드
     private boolean isWithinChallengeRange(Challenge challenge, LocalDate date) {
         return !date.isBefore(challenge.getStartDate()) && !date.isAfter(challenge.getEndDate());
     }

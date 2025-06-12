@@ -278,4 +278,36 @@ class ChallengeServiceTest {
         assertThatThrownBy(() -> challengeService.findById(nonExistentId))
                 .isInstanceOf(EntityNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("중도하차 후 참여 여부가 false로 표시됨")
+    void getChallengesByMember_AfterLeaving() {
+        testParticipation.leaveChallenge();
+        participationRepository.save(testParticipation);
+
+        List<ChallengeJoinedDto> challenges = challengeService.getChallengesByMember(testMember);
+
+        assertThat(challenges).hasSize(1);
+        ChallengeJoinedDto challengeDto = challenges.get(0);
+        assertThat(challengeDto.participationStatus()).isFalse();
+    }
+
+    @Test
+    @DisplayName("중도하차 후 재참여 시 참여 여부가 true로 표시됨")
+    void getChallengesByMember_AfterRejoin() {
+        testParticipation.leaveChallenge();
+        participationRepository.save(testParticipation);
+
+        ChallengeParticipation newParticipation = ChallengeParticipation.builder()
+                .member(testMember)
+                .challenge(testChallenge)
+                .build();
+        participationRepository.save(newParticipation);
+
+        List<ChallengeJoinedDto> challenges = challengeService.getChallengesByMember(testMember);
+
+        assertThat(challenges).hasSize(1);
+        ChallengeJoinedDto challengeDto = challenges.get(0);
+        assertThat(challengeDto.participationStatus()).isTrue();
+    }
 }

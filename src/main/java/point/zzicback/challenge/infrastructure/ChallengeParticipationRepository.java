@@ -13,4 +13,9 @@ public interface ChallengeParticipationRepository extends JpaRepository<Challeng
     boolean existsByMemberAndChallenge_Id(Member member, Long challengeId);
 
     List<ChallengeParticipation> findByMember(Member member);
+
+    // 활성 참여자 조회 (joinOut이 null인 경우)
+    List<ChallengeParticipation> findByMemberAndJoinOutIsNull(Member member);
+    Optional<ChallengeParticipation> findByMemberAndChallenge_IdAndJoinOutIsNull(Member member, Long challengeId);
+    boolean existsByMemberAndChallenge_IdAndJoinOutIsNull(Member member, Long challengeId);
 }
