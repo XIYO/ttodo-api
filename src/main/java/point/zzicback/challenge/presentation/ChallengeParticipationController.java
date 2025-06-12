@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.challenge.application.ChallengeParticipationService;
@@ -16,7 +15,6 @@ import point.zzicback.member.domain.Member;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/challenge-participations")
-@Transactional
 public class ChallengeParticipationController {
     
     private final ChallengeParticipationService participationService;

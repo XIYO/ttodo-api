@@ -1,12 +1,12 @@
 package point.zzicback.challenge.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.application.dto.command.UpdateChallengeCommand;
-import point.zzicback.challenge.application.dto.result.*;
-import point.zzicback.challenge.application.mapper.ChallengeApplicationMapper;
+import point.zzicback.challenge.application.dto.result.ChallengeJoinedDto;
 import point.zzicback.challenge.domain.Challenge;
 import point.zzicback.challenge.domain.PeriodType;
 import point.zzicback.challenge.infrastructure.*;
@@ -23,7 +23,6 @@ public class ChallengeService {
 
     private final ChallengeRepository challengeRepository;
     private final ChallengeParticipationRepository challengeParticipationRepository;
-    private final ChallengeApplicationMapper challengeApplicationMapper;
 
     //챌린지 생성
     public Long createChallenge(CreateChallengeCommand command) {
@@ -50,22 +49,18 @@ public class ChallengeService {
 
     //챌린지 목록 조회
     @Transactional(readOnly = true)
-    public List<ChallengeDto> getChallenges() {
-        return challengeApplicationMapper.toChallengeDto(challengeRepository.findAll());
+    public Page<Challenge> getChallenges(Pageable pageable) {
+        return challengeRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
     public List<ChallengeJoinedDto> getChallengesByMember(Member member) {
-        // 1. 모든 챌린지 조회
         List<Challenge> allChallenges = challengeRepository.findAll();
-
-        // 2. 회원이 참여중인 챌린지 ID 목록 조회
         List<Long> participatedChallengeIds = challengeParticipationRepository.findByMember(member)
                 .stream()
                 .map(participation -> participation.getChallenge().getId())
                 .toList();
-
-        // 3. 모든 챌린지에 대해 회원 참여 여부를 포함한 응답 생성
+        
         return allChallenges.stream()
                 .map(challenge -> new ChallengeJoinedDto(
                         challenge.getId(),
@@ -80,14 +75,32 @@ public class ChallengeService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ChallengeJoinedDto> getChallengesByMember(Member member, Pageable pageable) {
+        Page<Challenge> challengePage = challengeRepository.findAll(pageable);
+        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMember(member)
+                .stream()
+                .map(participation -> participation.getChallenge().getId())
+                .toList();
+        
+        return challengePage.map(challenge -> new ChallengeJoinedDto(
+                challenge.getId(),
+                challenge.getTitle(),
+                challenge.getDescription(),
+                challenge.getStartDate(),
+                challenge.getEndDate(),
+                challenge.getPeriodType(),
+                participatedChallengeIds.contains(challenge.getId())
+        ));
+    }
+
+    @Transactional(readOnly = true)
     public Challenge findById(Long challengeId) {
         return challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
     }
 
-    public ChallengeDto getChallenge(Long challengeId) {
+    public Challenge getChallenge(Long challengeId) {
         return challengeRepository.findById(challengeId)
-                .map(challengeApplicationMapper::toChallengeDto)
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
     }
 
@@ -109,12 +122,8 @@ public class ChallengeService {
 
     // 모든 챌린지와 각 챌린지별 참여자 목록 조회
     @Transactional(readOnly = true)
-    public List<ChallengeDetailDto> getAllChallengesWithParticipants() {
-        // 챌린지와 참여자 정보를 함께 조회 (N+1 문제 방지)
-        List<Challenge> allChallenges = challengeRepository.findAllWithParticipations();
-
-        // 매퍼를 통해 엔티티 목록을 응답 객체 목록으로 변환
-        return challengeApplicationMapper.toChallengeDetailDto(allChallenges);
+    public Page<Challenge> getAllChallengesWithParticipants(Pageable pageable) {
+        return challengeRepository.findAllWithParticipations(pageable);
     }
 
     // 챌린지 부분 수정 (PATCH)

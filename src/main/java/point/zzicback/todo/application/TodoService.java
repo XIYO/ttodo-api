@@ -11,7 +11,6 @@ import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoListQuery;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.result.TodoResult;
-// import point.zzicback.todo.application.mapper.TodoApplicationMapper;
 import point.zzicback.todo.domain.Todo;
 import point.zzicback.todo.domain.TodoRepository;
 
@@ -21,7 +20,6 @@ import point.zzicback.todo.domain.TodoRepository;
 public class TodoService {
   private final TodoRepository todoRepository;
   private final MemberService memberService;
-  // private final TodoApplicationMapper todoApplicationMapper;
 
   public Page<TodoResult> getTodoList(TodoListQuery query) {
     Page<Todo> todoPage = todoRepository.findByMemberIdAndDone(query.memberId(), query.done(), query.pageable());

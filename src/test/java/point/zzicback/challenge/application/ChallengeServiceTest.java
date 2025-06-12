@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.*;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.application.dto.command.UpdateChallengeCommand;
 import point.zzicback.challenge.application.dto.result.*;
@@ -106,12 +107,13 @@ class ChallengeServiceTest {
     @DisplayName("모든 챌린지 목록 조회 성공")
     void getChallenges_Success() {
         // when
-        List<ChallengeDto> challenges = challengeService.getChallenges();
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Challenge> challengePage = challengeService.getChallenges(pageable);
 
         // then
-        assertThat(challenges).hasSize(1);
-        assertThat(challenges.get(0).title()).isEqualTo("테스트 챌린지");
-        assertThat(challenges.get(0).description()).isEqualTo("테스트용 챌린지 설명");
+        assertThat(challengePage.getContent()).hasSize(1);
+        assertThat(challengePage.getContent().get(0).getTitle()).isEqualTo("테스트 챌린지");
+        assertThat(challengePage.getContent().get(0).getDescription()).isEqualTo("테스트용 챌린지 설명");
     }
 
     @Test
@@ -150,12 +152,12 @@ class ChallengeServiceTest {
     @DisplayName("단일 챌린지 조회 성공")
     void getChallenge_Success() {
         // when
-        ChallengeDto challenge = challengeService.getChallenge(testChallenge.getId());
+        Challenge challenge = challengeService.getChallenge(testChallenge.getId());
 
         // then
-        assertThat(challenge.id()).isEqualTo(testChallenge.getId());
-        assertThat(challenge.title()).isEqualTo("테스트 챌린지");
-        assertThat(challenge.description()).isEqualTo("테스트용 챌린지 설명");
+        assertThat(challenge.getId()).isEqualTo(testChallenge.getId());
+        assertThat(challenge.getTitle()).isEqualTo("테스트 챌린지");
+        assertThat(challenge.getDescription()).isEqualTo("테스트용 챌린지 설명");
     }
 
     @Test
@@ -243,14 +245,15 @@ class ChallengeServiceTest {
         assertThat(allParticipations).hasSize(1); // 이 라인에서 실패하면 참여자 데이터가 없음
         
         // when
-        List<ChallengeDetailDto> challenges = challengeService.getAllChallengesWithParticipants();
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Challenge> challengePage = challengeService.getAllChallengesWithParticipants(pageable);
 
         // then
-        assertThat(challenges).hasSize(1);
-        ChallengeDetailDto challenge = challenges.get(0);
-        assertThat(challenge.title()).isEqualTo("테스트 챌린지");
-        assertThat(challenge.participants()).hasSize(1);
-        assertThat(challenge.participants().get(0).nickname()).isEqualTo("tester");
+        assertThat(challengePage.getContent()).hasSize(1);
+        Challenge challenge = challengePage.getContent().get(0);
+        assertThat(challenge.getTitle()).isEqualTo("테스트 챌린지");
+        assertThat(challenge.getParticipations()).hasSize(1);
+        assertThat(challenge.getParticipations().get(0).getMember().getNickname()).isEqualTo("tester");
     }
 
     @Test

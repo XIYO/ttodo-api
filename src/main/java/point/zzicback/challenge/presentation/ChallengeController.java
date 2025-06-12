@@ -5,28 +5,28 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.challenge.application.ChallengeService;
 import point.zzicback.challenge.application.dto.command.*;
 import point.zzicback.challenge.application.dto.result.*;
+import point.zzicback.challenge.domain.Challenge;
 import point.zzicback.challenge.presentation.dto.CreateChallengeResponse;
+import point.zzicback.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
-
-import java.util.List;
 
 @Tag(name = "챌린지", description = "챌린지 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/challenges")
-@Transactional
 public class ChallengeController {
     
     private final ChallengeService challengeService;
     private final MemberService memberService;
+    private final ChallengePresentationMapper challengePresentationMapper;
 
     @Operation(summary = "챌린지 생성", description = "새로운 챌린지를 생성합니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 생성 성공")
@@ -39,27 +39,32 @@ public class ChallengeController {
     @Operation(summary = "모든 챌린지 조회", description = "등록된 모든 챌린지를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
     @GetMapping
-    @Transactional(readOnly = true)
-    public List<ChallengeDto> getChallenges() {
-        return challengeService.getChallenges();
+    public Page<ChallengeDto> getChallenges(@RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "10") int size,
+                                           @RequestParam(defaultValue = "id,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return challengeService.getChallenges(pageable).map(challengePresentationMapper::toDto);
     }
 
     @Operation(summary = "사용자별 챌린지 조회", description = "사용자의 참여 여부를 포함한 챌린지 목록을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "사용자 챌린지 목록 조회 성공")
     @GetMapping("/by-member")
-    @Transactional(readOnly = true)
-    public List<ChallengeJoinedDto> getChallengesByMember(@AuthenticationPrincipal MemberPrincipal principal) {
+    public Page<ChallengeJoinedDto> getChallengesByMember(@AuthenticationPrincipal MemberPrincipal principal,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size,
+                                                          @RequestParam(defaultValue = "id,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
         Member member = memberService.findVerifiedMember(principal.id());
-        return challengeService.getChallengesByMember(member);
+        return challengeService.getChallengesByMember(member, pageable);
     }
 
     @Operation(summary = "챌린지 상세 조회", description = "특정 챌린지의 상세 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 상세 조회 성공")
     @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
     @GetMapping("/{challengeId}")
-    @Transactional(readOnly = true)
     public ChallengeDto getChallenge(@PathVariable Long challengeId) {
-        return challengeService.getChallenge(challengeId);
+        Challenge challenge = challengeService.getChallenge(challengeId);
+        return challengePresentationMapper.toDto(challenge);
     }
 
     @Operation(summary = "챌린지 수정", description = "기존 챌린지 정보를 수정합니다.")
@@ -81,8 +86,17 @@ public class ChallengeController {
     @Operation(summary = "모든 챌린지와 참여자 조회", description = "모든 챌린지와 각 챌린지별 참여자 목록을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 및 참여자 목록 조회 성공")
     @GetMapping("/with-participants")
-    @Transactional(readOnly = true)
-    public List<ChallengeDetailDto> getAllChallengesWithParticipants() {
-        return challengeService.getAllChallengesWithParticipants();
+    public Page<ChallengeDetailDto> getAllChallengesWithParticipants(@RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "10") int size,
+                                                                    @RequestParam(defaultValue = "id,desc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return challengeService.getAllChallengesWithParticipants(pageable).map(challengePresentationMapper::toDetailDto);
+    }
+
+    private Pageable createPageable(int page, int size, String sort) {
+        String[] sortParams = sort.split(",");
+        String property = sortParams[0];
+        String direction = sortParams.length > 1 ? sortParams[1] : "desc";
+        return PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), property));
     }
 }

@@ -9,11 +9,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 
-import static java.time.DayOfWeek.MONDAY;
-import static java.time.DayOfWeek.SUNDAY;
-import static java.time.temporal.TemporalAdjusters.nextOrSame;
-import static java.time.temporal.TemporalAdjusters.previousOrSame;
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -84,12 +79,11 @@ public class ChallengeTodo {
             case DAILY:
                 return targetDate.equals(date);
             case WEEKLY:
-                LocalDate weekStart = targetDate.with(previousOrSame(MONDAY));
-                LocalDate weekEnd = weekStart.with(nextOrSame(SUNDAY));
-                return !date.isBefore(weekStart) && !date.isAfter(weekEnd);
+                LocalDate weekEnd = targetDate.plusWeeks(1);
+                return !date.isBefore(targetDate) && date.isBefore(weekEnd);
             case MONTHLY:
-                return targetDate.getYear() == date.getYear() &&
-                       targetDate.getMonth() == date.getMonth();
+                LocalDate monthEnd = targetDate.plusMonths(1);
+                return !date.isBefore(targetDate) && date.isBefore(monthEnd);
             default:
                 return false;
         }
