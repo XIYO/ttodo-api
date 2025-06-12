@@ -66,13 +66,18 @@ public class ChallengeController {
         }
     }
 
-    @Operation(summary = "챌린지 상세 조회", description = "특정 챌린지의 상세 정보를 조회합니다.")
+    @Operation(summary = "챌린지 상세 조회", description = "특정 챌린지의 상세 정보를 조회합니다. 인증된 사용자의 경우 참여 여부가 포함됩니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 상세 조회 성공")
     @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
     @GetMapping("/{challengeId}")
-    public ChallengeDto getChallenge(@PathVariable Long challengeId) {
-        Challenge challenge = challengeService.getChallenge(challengeId);
-        return challengePresentationMapper.toDto(challenge);
+    public ChallengeDto getChallenge(@PathVariable Long challengeId, @AuthenticationPrincipal MemberPrincipal principal) {
+        if (principal != null) {
+            Member member = memberService.findVerifiedMember(principal.id());
+            return challengeService.getChallengeWithParticipation(challengeId, member);
+        } else {
+            Challenge challenge = challengeService.getChallenge(challengeId);
+            return challengePresentationMapper.toDto(challenge);
+        }
     }
 
     @Operation(summary = "챌린지 수정", description = "기존 챌린지 정보를 수정합니다.")

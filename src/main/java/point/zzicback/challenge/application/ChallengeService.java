@@ -200,6 +200,26 @@ public class ChallengeService {
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
     }
 
+    @Transactional(readOnly = true)
+    public ChallengeDto getChallengeWithParticipation(Long challengeId, Member member) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
+        
+        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
+                .stream()
+                .map(participation -> participation.getChallenge().getId())
+                .toList();
+        
+        return new ChallengeDto(
+                challenge.getId(),
+                challenge.getTitle(),
+                challenge.getDescription(),
+                challenge.getStartDate(),
+                challenge.getEndDate(),
+                challenge.getPeriodType(),
+                participatedChallengeIds.contains(challenge.getId())
+        );
+    }
 
     public void updateChallenge(Long challengeId, UpdateChallengeCommand command) {
         Challenge challenge = challengeRepository.findById(challengeId)
