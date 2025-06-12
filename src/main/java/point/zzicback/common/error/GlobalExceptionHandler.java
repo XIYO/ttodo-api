@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(BusinessException.class)
   public ProblemDetail handleBusinessException(BusinessException ex) {
     ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-    detail.setTitle("Business Rule Violation");
+    detail.setTitle("요청 처리 실패");
     detail.setDetail(ex.getMessage());
     return detail;
   }

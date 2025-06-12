@@ -8,6 +8,8 @@ import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.ChallengeParticipationRepository;
 import point.zzicback.challenge.infrastructure.ChallengeTodoRepository;
 import point.zzicback.challenge.application.dto.result.ChallengeTodoDto;
+import point.zzicback.common.error.BusinessException;
+import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.domain.Member;
 
 import jakarta.persistence.EntityManager;
@@ -36,10 +38,11 @@ public class ChallengeTodoService {
         
         if (existingTodo.isPresent()) {
             ChallengeTodo todo = existingTodo.get();
-            if (!todo.isCompleted()) {
-                todo.complete(currentDate);
-                challengeTodoRepository.save(todo);
+            if (todo.isCompleted()) {
+                throw new BusinessException("이미 완료된 챌린지입니다.");
             }
+            todo.complete(currentDate);
+            challengeTodoRepository.save(todo);
         } else {
             LocalDate targetDate = (cp.getChallenge().getPeriodType() == PeriodType.DAILY) 
                     ? currentDate 
@@ -59,17 +62,17 @@ public class ChallengeTodoService {
 
         ChallengeParticipation participation = participationRepository
                 .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 챌린지에 참여하지 않았습니다."));
+                .orElseThrow(() -> new BusinessException("해당 챌린지를 완료하지 않았습니다."));
 
         ChallengeTodo challengeTodo;
         if (participation.getChallenge().getPeriodType() == PeriodType.DAILY) {
             challengeTodo = challengeTodoRepository
                     .findByChallengeParticipationAndTargetDate(participation, currentDate)
-                    .orElseThrow(() -> new IllegalArgumentException("챌린지 Todo를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new EntityNotFoundException("ChallengeTodo", "participation-" + participation.getId() + "-date-" + currentDate));
         } else {
             challengeTodo = challengeTodoRepository
                     .findByChallengeParticipation(participation)
-                    .orElseThrow(() -> new IllegalArgumentException("챌린지 Todo를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new EntityNotFoundException("ChallengeTodo", "participation-" + participation.getId()));
         }
 
         challengeTodoRepository.delete(challengeTodo);
@@ -235,12 +238,12 @@ public class ChallengeTodoService {
 
     ChallengeTodo createVirtualChallengeTodo(ChallengeParticipation participation) {
         if (participation == null) {
-            throw new IllegalArgumentException("ChallengeParticipation cannot be null");
+            throw new BusinessException("ChallengeParticipation cannot be null");
         }
         
         Challenge challenge = participation.getChallenge();
         if (challenge == null) {
-            throw new IllegalArgumentException("Challenge cannot be null");
+            throw new BusinessException("Challenge cannot be null");
         }
         
         LocalDate targetDate = calculateTargetDate(challenge.getPeriodType());
@@ -265,7 +268,7 @@ public class ChallengeTodoService {
 
         ChallengeParticipation participation = participationRepository
                 .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 챌린지에 참여하지 않았습니다."));
+                .orElseThrow(() -> new BusinessException("해당 챌린지에 참여하지 않았습니다."));
         
         completeChallenge(participation, currentDate);
     }

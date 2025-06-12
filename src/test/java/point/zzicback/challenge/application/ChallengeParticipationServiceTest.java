@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import point.zzicback.challenge.application.mapper.ChallengeApplicationMapperImpl;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
+import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.*;
 
 import java.time.LocalDate;
@@ -88,7 +89,7 @@ class ChallengeParticipationServiceTest {
         participationService.joinChallenge(testChallenge.getId(), testMember);
 
         assertThatThrownBy(() -> participationService.joinChallenge(testChallenge.getId(), testMember))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 참여중인 챌린지입니다.");
     }
 
@@ -109,7 +110,7 @@ class ChallengeParticipationServiceTest {
     @DisplayName("참여하지 않은 챌린지 중도하차 시 예외 발생")
     void leaveChallenge_NotParticipating() {
         assertThatThrownBy(() -> participationService.leaveChallenge(testChallenge.getId(), testMember))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("참여하지 않은 챌린지입니다.");
     }
 

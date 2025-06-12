@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.ChallengeParticipationRepository;
 import point.zzicback.challenge.infrastructure.ChallengeTodoRepository;
+import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.Member;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class ChallengeParticipationService {
         Challenge challenge = challengeService.findById(challengeId);
 
         if (participationRepository.existsByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)) {
-            throw new IllegalStateException("이미 참여중인 챌린지입니다.");
+            throw new BusinessException("이미 참여중인 챌린지입니다.");
         }
 
         ChallengeParticipation participation = ChallengeParticipation.builder()
@@ -40,7 +41,7 @@ public class ChallengeParticipationService {
     public void leaveChallenge(Long challengeId, Member member) {
         ChallengeParticipation participation = participationRepository
                 .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("참여하지 않은 챌린지입니다."));
+                .orElseThrow(() -> new BusinessException("참여하지 않은 챌린지입니다."));
 
         participation.leaveChallenge();
         participationRepository.save(participation);
