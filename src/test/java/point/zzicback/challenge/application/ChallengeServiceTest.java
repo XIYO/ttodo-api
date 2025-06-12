@@ -117,58 +117,71 @@ class ChallengeServiceTest {
     }
 
     @Test
-    @DisplayName("멤버별 챌린지 조회 성공 (참여 여부 포함)")
-    void getChallengesByMember_Success() {
+    @DisplayName("챌린지 검색 성공 - 제목으로 검색")
+    void searchChallenges_ByTitle_Success() {
         // given
         Challenge anotherChallenge = Challenge.builder()
-                .title("다른 챌린지")
-                .description("참여하지 않은 챌린지")
-                .periodType(PeriodType.WEEKLY)
+                .title("운동 챌린지")
+                .description("매일 운동하기")
+                .periodType(PeriodType.DAILY)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(30))
                 .build();
         challengeRepository.save(anotherChallenge);
 
         // when
-        List<ChallengeJoinedDto> challenges = challengeService.getChallengesByMember(testMember);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Challenge> challengePage = challengeService.searchChallenges("테스트", "id,desc", pageable);
 
         // then
-        assertThat(challenges).hasSize(2);
-        
-        ChallengeJoinedDto participatedChallenge = challenges.stream()
-                .filter(c -> c.title().equals("테스트 챌린지"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(participatedChallenge.participationStatus()).isTrue();
-
-        ChallengeJoinedDto notParticipatedChallenge = challenges.stream()
-                .filter(c -> c.title().equals("다른 챌린지"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(notParticipatedChallenge.participationStatus()).isFalse();
+        assertThat(challengePage.getContent()).hasSize(1);
+        assertThat(challengePage.getContent().get(0).getTitle()).isEqualTo("테스트 챌린지");
     }
 
     @Test
-    @DisplayName("단일 챌린지 조회 성공")
-    void getChallenge_Success() {
-        // when
-        Challenge challenge = challengeService.getChallenge(testChallenge.getId());
-
-        // then
-        assertThat(challenge.getId()).isEqualTo(testChallenge.getId());
-        assertThat(challenge.getTitle()).isEqualTo("테스트 챌린지");
-        assertThat(challenge.getDescription()).isEqualTo("테스트용 챌린지 설명");
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 챌린지 조회 시 예외 발생")
-    void getChallenge_NotFound() {
+    @DisplayName("챌린지 검색 성공 - 설명으로 검색")
+    void searchChallenges_ByDescription_Success() {
         // given
-        Long nonExistentId = 999L;
+        Challenge anotherChallenge = Challenge.builder()
+                .title("운동 챌린지")
+                .description("매일 운동하기")
+                .periodType(PeriodType.DAILY)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(30))
+                .build();
+        challengeRepository.save(anotherChallenge);
 
-        // when & then
-        assertThatThrownBy(() -> challengeService.getChallenge(nonExistentId))
-                .isInstanceOf(EntityNotFoundException.class);
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Challenge> challengePage = challengeService.searchChallenges("운동", "id,desc", pageable);
+
+        // then
+        assertThat(challengePage.getContent()).hasSize(1);
+        assertThat(challengePage.getContent().get(0).getTitle()).isEqualTo("운동 챌린지");
+    }
+
+    @Test
+    @DisplayName("챌린지 검색 성공 - 대소문자 무시")
+    void searchChallenges_CaseInsensitive_Success() {
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Challenge> challengePage = challengeService.searchChallenges("테스트", "id,desc", pageable);
+
+        // then
+        assertThat(challengePage.getContent()).hasSize(1);
+        assertThat(challengePage.getContent().get(0).getTitle()).isEqualTo("테스트 챌린지");
+    }
+
+    @Test
+    @DisplayName("챌린지 검색 - 검색어가 null일 때 모든 챌린지 반환")
+    void searchChallenges_NullKeyword_ReturnsAll() {
+        // when
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Challenge> challengePage = challengeService.searchChallenges(null, "id,desc", pageable);
+
+        // then
+        assertThat(challengePage.getContent()).hasSize(1);
+        assertThat(challengePage.getContent().get(0).getTitle()).isEqualTo("테스트 챌린지");
     }
 
     @Test

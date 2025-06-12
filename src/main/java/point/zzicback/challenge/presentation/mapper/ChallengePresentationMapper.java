@@ -3,7 +3,6 @@ package point.zzicback.challenge.presentation.mapper;
 import org.mapstruct.*;
 import point.zzicback.challenge.application.dto.result.*;
 import point.zzicback.challenge.domain.*;
-import point.zzicback.member.domain.Member;
 
 import java.util.List;
 
