@@ -25,7 +25,6 @@ public class ChallengeService {
     private final ChallengeRepository challengeRepository;
     private final ChallengeParticipationRepository challengeParticipationRepository;
 
-    //챌린지 생성
     public Long createChallenge(CreateChallengeCommand command) {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = calculateEndDate(startDate, command.periodType());
@@ -48,13 +47,23 @@ public class ChallengeService {
         };
     }
 
-    //챌린지 목록 조회
     @Transactional(readOnly = true)
     public Page<Challenge> getChallenges(Pageable pageable) {
         return challengeRepository.findAll(pageable);
     }
 
-    //참여 상태를 포함한 챌린지 목록 조회
+    @Transactional(readOnly = true)
+    public Page<Challenge> searchChallenges(String keyword, String sort, Pageable pageable) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return "popular".equals(sort) 
+                ? challengeRepository.findAllOrderedByPopularity(pageable)
+                : challengeRepository.findAll(pageable);
+        }
+        return "popular".equals(sort)
+            ? challengeRepository.searchByKeywordOrderedByPopularity(keyword.trim(), pageable)
+            : challengeRepository.searchByKeyword(keyword.trim(), pageable);
+    }
+
     @Transactional(readOnly = true)
     public Page<ChallengeDto> getChallengesWithParticipation(Member member, Pageable pageable) {
         Page<Challenge> challengePage = challengeRepository.findAll(pageable);
@@ -72,6 +81,72 @@ public class ChallengeService {
                 challenge.getPeriodType(),
                 participatedChallengeIds.contains(challenge.getId())
         ));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ChallengeDto> searchChallengesWithParticipation(Member member, String keyword, String sort, Pageable pageable) {
+        Page<Challenge> challengePage;
+        if (keyword == null || keyword.trim().isEmpty()) {
+            challengePage = "popular".equals(sort)
+                ? challengeRepository.findAllOrderedByPopularity(pageable)
+                : challengeRepository.findAll(pageable);
+        } else {
+            challengePage = "popular".equals(sort)
+                ? challengeRepository.searchByKeywordOrderedByPopularity(keyword.trim(), pageable)
+                : challengeRepository.searchByKeyword(keyword.trim(), pageable);
+        }
+        
+        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
+                .stream()
+                .map(participation -> participation.getChallenge().getId())
+                .toList();
+        
+        return challengePage.map(challenge -> new ChallengeDto(
+                challenge.getId(),
+                challenge.getTitle(),
+                challenge.getDescription(),
+                challenge.getStartDate(),
+                challenge.getEndDate(),
+                challenge.getPeriodType(),
+                participatedChallengeIds.contains(challenge.getId())
+        ));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ChallengeDto> searchChallengesWithFilter(Member member, String keyword, String sort, Boolean join, Pageable pageable) {
+        Page<Challenge> challengePage;
+        if (keyword == null || keyword.trim().isEmpty()) {
+            challengePage = "popular".equals(sort)
+                ? challengeRepository.findAllOrderedByPopularity(pageable)
+                : challengeRepository.findAll(pageable);
+        } else {
+            challengePage = "popular".equals(sort)
+                ? challengeRepository.searchByKeywordOrderedByPopularity(keyword.trim(), pageable)
+                : challengeRepository.searchByKeyword(keyword.trim(), pageable);
+        }
+        
+        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
+                .stream()
+                .map(participation -> participation.getChallenge().getId())
+                .toList();
+        
+        List<ChallengeDto> filteredChallenges = challengePage.getContent().stream()
+                .map(challenge -> {
+                    boolean isParticipated = participatedChallengeIds.contains(challenge.getId());
+                    return new ChallengeDto(
+                            challenge.getId(),
+                            challenge.getTitle(),
+                            challenge.getDescription(),
+                            challenge.getStartDate(),
+                            challenge.getEndDate(),
+                            challenge.getPeriodType(),
+                            isParticipated
+                    );
+                })
+                .filter(challengeDto -> join == null || join.equals(challengeDto.participationStatus()))
+                .toList();
+        
+        return new PageImpl<>(filteredChallenges, pageable, filteredChallenges.size());
     }
 
     @Transactional(readOnly = true)
@@ -126,7 +201,6 @@ public class ChallengeService {
     }
 
 
-    //챌린지 업데이트
     public void updateChallenge(Long challengeId, UpdateChallengeCommand command) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
@@ -134,20 +208,17 @@ public class ChallengeService {
         challengeRepository.save(challenge);
     }
 
-    //챌린지 삭제
     public void deleteChallenge(Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
         challengeRepository.delete(challenge);
     }
 
-    // 모든 챌린지와 각 챌린지별 참여자 목록 조회
     @Transactional(readOnly = true)
     public Page<Challenge> getAllChallengesWithParticipants(Pageable pageable) {
         return challengeRepository.findAllWithParticipations(pageable);
     }
 
-    // 챌린지 부분 수정 (PATCH)
     public void partialUpdateChallenge(Long challengeId, UpdateChallengeCommand command) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
