@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.*;
 import org.springframework.context.annotation.Import;
 import point.zzicback.challenge.application.dto.result.ChallengeTodoDto;
-import point.zzicback.challenge.application.mapper.ChallengeApplicationMapperImpl;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.*;
@@ -19,8 +18,7 @@ import static org.assertj.core.api.Assertions.*;
 @DataJpaTest
 @Import({
     ChallengeTodoService.class,
-    ChallengeService.class,
-    ChallengeApplicationMapperImpl.class
+    ChallengeService.class
 })
 class ChallengeTodoServiceTest {
 

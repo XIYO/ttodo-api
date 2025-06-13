@@ -11,7 +11,6 @@ import org.springframework.data.domain.*;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.application.dto.command.UpdateChallengeCommand;
 import point.zzicback.challenge.application.dto.result.*;
-import point.zzicback.challenge.application.mapper.ChallengeApplicationMapperImpl;
 import point.zzicback.challenge.domain.Challenge;
 import point.zzicback.challenge.domain.ChallengeParticipation;
 import point.zzicback.challenge.domain.PeriodType;
@@ -27,8 +26,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
 @Import({
-    ChallengeService.class,
-    ChallengeApplicationMapperImpl.class
+    ChallengeService.class
 })
 class ChallengeServiceTest {
 

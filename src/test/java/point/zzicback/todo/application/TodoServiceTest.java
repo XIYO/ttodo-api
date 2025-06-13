@@ -13,7 +13,6 @@ import org.springframework.data.domain.Sort;
 import point.zzicback.challenge.application.ChallengeParticipationService;
 import point.zzicback.challenge.application.ChallengeTodoService;
 import point.zzicback.challenge.application.ChallengeService;
-import point.zzicback.challenge.application.mapper.ChallengeApplicationMapperImpl;
 import point.zzicback.challenge.domain.Challenge;
 import point.zzicback.challenge.domain.ChallengeParticipation;
 import point.zzicback.challenge.domain.PeriodType;
@@ -43,9 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
     MemberService.class,
     ChallengeParticipationService.class,
     ChallengeTodoService.class,
-    ChallengeService.class,
-    ChallengeApplicationMapperImpl.class
-    // TodoApplicationMapperImpl.class  // MapStruct 구현체 제거
+    ChallengeService.class
 })
 class TodoServiceTest {
 
