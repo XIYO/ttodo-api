@@ -38,10 +38,10 @@ public class ChallengeController {
         return CreateChallengeResponse.of(challengeId);
     }
 
-    @Operation(summary = "모든 챌린지 조회", description = "등록된 모든 챌린지를 조회합니다. 인증된 사용자의 경우 참여 여부가 포함됩니다.")
+    @Operation(summary = "모든 챌린지 조회", description = "등록된 모든 챌린지를 조회합니다. 인증된 사용자의 경우 참여 여부가 포함되며, 성공률은 목록에서 제공되지 않습니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
     @GetMapping
-    public Page<ChallengeDto> getChallenges(@AuthenticationPrincipal MemberPrincipal principal,
+    public Page<?> getChallenges(@AuthenticationPrincipal MemberPrincipal principal,
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "10") int size,
                                            @Parameter(
@@ -62,11 +62,11 @@ public class ChallengeController {
             Member member = memberService.findVerifiedMember(principal.id());
             return challengeService.searchChallengesWithFilter(member, search, sort, join, pageable);
         } else {
-            return challengeService.searchChallenges(search, sort, pageable).map(challengePresentationMapper::toDto);
+            return challengeService.searchChallenges(search, sort, pageable).map(challengePresentationMapper::toListDto);
         }
     }
 
-    @Operation(summary = "챌린지 상세 조회", description = "특정 챌린지의 상세 정보를 조회합니다. 인증된 사용자의 경우 참여 여부가 포함됩니다.")
+    @Operation(summary = "챌린지 상세 조회", description = "특정 챌린지의 상세 정보를 조회합니다. 인증된 사용자의 경우 참여 여부와 성공률(챌린지 투두 완료율)이 포함됩니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 상세 조회 성공")
     @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
     @GetMapping("/{challengeId}")

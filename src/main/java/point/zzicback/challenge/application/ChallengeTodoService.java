@@ -243,9 +243,7 @@ public class ChallengeTodoService {
             throw new BusinessException("Challenge cannot be null");
         }
         
-        LocalDate targetDate = (challenge.getPeriodType() == PeriodType.DAILY) 
-                ? currentDate 
-                : calculateTargetDate(challenge.getPeriodType());
+        LocalDate targetDate = currentDate;
 
         return ChallengeTodo.builder()
                 .challengeParticipation(participation)
@@ -306,5 +304,11 @@ public class ChallengeTodoService {
 
     private boolean isWithinChallengeRange(Challenge challenge, LocalDate date) {
         return !date.isBefore(challenge.getStartDate()) && !date.isAfter(challenge.getEndDate());
+    }
+
+    @Transactional(readOnly = true)
+    public double calculateSuccessRate(Long challengeId) {
+        long completedParticipantCount = challengeTodoRepository.countCompletedParticipantsByChallengeId(challengeId);
+        return completedParticipantCount;
     }
 }

@@ -13,16 +13,18 @@ public enum PeriodType {
         };
     }
     
-    public PeriodRange calculatePeriod(LocalDate targetDate) {
+    public PeriodRange calculatePeriod(LocalDate currentDate) {
         return switch (this) {
-            case DAILY -> new PeriodRange(targetDate, targetDate);
+            case DAILY -> new PeriodRange(currentDate, currentDate);
             case WEEKLY -> {
-                LocalDate weekEnd = targetDate.plusWeeks(1).minusDays(1);
-                yield new PeriodRange(targetDate, weekEnd);
+                LocalDate weekStart = currentDate.with(java.time.DayOfWeek.MONDAY);
+                LocalDate weekEnd = weekStart.plusDays(6);
+                yield new PeriodRange(weekStart, weekEnd);
             }
             case MONTHLY -> {
-                LocalDate monthEnd = targetDate.plusMonths(1).minusDays(1);
-                yield new PeriodRange(targetDate, monthEnd);
+                LocalDate monthStart = currentDate.withDayOfMonth(1);
+                LocalDate monthEnd = currentDate.withDayOfMonth(currentDate.lengthOfMonth());
+                yield new PeriodRange(monthStart, monthEnd);
             }
         };
     }

@@ -9,6 +9,22 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ChallengePresentationMapper {
 
+    default ChallengeListDto toListDto(Challenge challenge) {
+        if (challenge == null) return null;
+        return new ChallengeListDto(
+                challenge.getId(),
+                challenge.getTitle(),
+                challenge.getDescription(),
+                challenge.getStartDate(),
+                challenge.getEndDate(),
+                challenge.getPeriodType(),
+                false,
+                (int) challenge.getParticipations().stream()
+                        .filter(participation -> participation.getJoinOut() == null)
+                        .count()
+        );
+    }
+
     default ChallengeDto toDto(Challenge challenge) {
         if (challenge == null) return null;
         return new ChallengeDto(
@@ -21,7 +37,8 @@ public interface ChallengePresentationMapper {
                 false,
                 (int) challenge.getParticipations().stream()
                         .filter(participation -> participation.getJoinOut() == null)
-                        .count()
+                        .count(),
+                null
         );
     }
 

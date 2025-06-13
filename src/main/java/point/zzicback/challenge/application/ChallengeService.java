@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.application.dto.command.UpdateChallengeCommand;
-import point.zzicback.challenge.application.dto.result.ChallengeDto;
+import point.zzicback.challenge.application.dto.result.*;
 import point.zzicback.challenge.application.dto.result.ChallengeJoinedDto;
 import point.zzicback.challenge.domain.Challenge;
 import point.zzicback.challenge.domain.PeriodType;
@@ -24,6 +24,7 @@ public class ChallengeService {
 
     private final ChallengeRepository challengeRepository;
     private final ChallengeParticipationRepository challengeParticipationRepository;
+    private final ChallengeTodoRepository challengeTodoRepository;
 
     public Long createChallenge(CreateChallengeCommand command) {
         LocalDate startDate = LocalDate.now();
@@ -65,7 +66,7 @@ public class ChallengeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChallengeDto> searchChallengesWithFilter(Member member, String keyword, String sort, Boolean join, Pageable pageable) {
+    public Page<ChallengeListDto> searchChallengesWithFilter(Member member, String keyword, String sort, Boolean join, Pageable pageable) {
         Page<Challenge> challengePage;
         if (keyword == null || keyword.trim().isEmpty()) {
             challengePage = "popular".equals(sort)
@@ -82,10 +83,15 @@ public class ChallengeService {
                 .map(participation -> participation.getChallenge().getId())
                 .toList();
         
-        List<ChallengeDto> filteredChallenges = challengePage.getContent().stream()
+        List<ChallengeListDto> filteredChallenges = challengePage.getContent().stream()
                 .map(challenge -> {
                     boolean isParticipated = participatedChallengeIds.contains(challenge.getId());
-                    return new ChallengeDto(
+                    
+                    int activeParticipantCount = (int) challenge.getParticipations().stream()
+                            .filter(participation -> participation.getJoinOut() == null)
+                            .count();
+                    
+                    return new ChallengeListDto(
                             challenge.getId(),
                             challenge.getTitle(),
                             challenge.getDescription(),
@@ -93,9 +99,7 @@ public class ChallengeService {
                             challenge.getEndDate(),
                             challenge.getPeriodType(),
                             isParticipated,
-                            (int) challenge.getParticipations().stream()
-                                    .filter(participation -> participation.getJoinOut() == null)
-                                    .count()
+                            activeParticipantCount
                     );
                 })
                 .filter(challengeDto -> join == null || join.equals(challengeDto.participationStatus()))
@@ -146,6 +150,21 @@ public class ChallengeService {
                 .map(participation -> participation.getChallenge().getId())
                 .toList();
         
+        // 현재 활동 중인 참여자 수
+        int activeParticipantCount = (int) challenge.getParticipations().stream()
+                .filter(participation -> participation.getJoinOut() == null)
+                .count();
+        
+        // 해당 챌린지에 참여한 전체 사람 수 (탈퇴자 포함)
+        int totalParticipantCount = challenge.getParticipations().size();
+        
+        // 챌린지 투두를 완료한 참여자 수
+        long completedParticipantCount = challengeTodoRepository.countCompletedParticipantsByChallengeId(challengeId);
+        
+        // 성공률 계산 (챌린지 투두를 완료한 참여자 / 전체 참여자)
+        float successRate = totalParticipantCount > 0 ? 
+                Math.round((float) completedParticipantCount / totalParticipantCount * 100) / 100.0f : 0.0f;
+        
         return new ChallengeDto(
                 challenge.getId(),
                 challenge.getTitle(),
@@ -154,9 +173,8 @@ public class ChallengeService {
                 challenge.getEndDate(),
                 challenge.getPeriodType(),
                 participatedChallengeIds.contains(challenge.getId()),
-                (int) challenge.getParticipations().stream()
-                        .filter(participation -> participation.getJoinOut() == null)
-                        .count()
+                activeParticipantCount,
+                successRate
         );
     }
 

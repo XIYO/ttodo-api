@@ -1,15 +1,9 @@
 package point.zzicback.member.domain;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.*;
 
-/**
- * Member 도메인을 위한 Repository 인터페이스
- * DDD 원칙에 따라 도메인 계층에 위치
- */
-public interface MemberRepository {
+public interface MemberRepository extends JpaRepository<Member, UUID> {
   Optional<Member> findByEmail(String email);
-  Optional<Member> findById(UUID id);
   boolean existsByEmail(String email);
-  Member save(Member member);
-  void deleteById(UUID id);
 }

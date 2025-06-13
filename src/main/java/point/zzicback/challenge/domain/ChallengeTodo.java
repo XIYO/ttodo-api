@@ -61,7 +61,7 @@ public class ChallengeTodo {
     }
 
     public PeriodType.PeriodRange getPeriod() {
-        return challengeParticipation.getChallenge().getPeriodType().calculatePeriod(targetDate);
+        return challengeParticipation.getChallenge().getPeriodType().calculatePeriod(LocalDate.now());
     }
 
     public boolean isInPeriod(PeriodType periodType, LocalDate date) {

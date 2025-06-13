@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.*;
 import point.zzicback.member.application.dto.command.*;
 import point.zzicback.member.domain.*;
+import point.zzicback.member.infrastructure.persistence.JpaMemberRepository;
 
 import java.util.*;
 
@@ -14,7 +15,7 @@ import java.util.*;
 @Transactional
 public class MemberService {
   private static final String MEMBER_ENTITY = "Member";
-  private final MemberRepository memberRepository;
+  private final JpaMemberRepository memberRepository;
 
   public Member createMember(CreateMemberCommand command) {
     Member member = Member.builder()
