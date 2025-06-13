@@ -8,6 +8,7 @@ import point.zzicback.challenge.application.dto.result.ChallengeTodoDto;
 import point.zzicback.challenge.application.mapper.ChallengeApplicationMapperImpl;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
+import point.zzicback.common.error.*;
 import point.zzicback.member.domain.*;
 
 import java.time.LocalDate;
@@ -90,7 +91,7 @@ class ChallengeTodoServiceTest {
         challengeTodoService.completeChallenge(participation, LocalDate.now());
 
         var todos = challengeTodoRepository.findAll();
-        assertThat(todos).hasSize(1); // 완료된 Todo 1개만 저장됨
+        assertThat(todos).hasSize(1);
         
         var completedTodo = todos.get(0);
         assertThat(completedTodo.getChallengeParticipation().getId()).isEqualTo(participation.getId());
@@ -106,7 +107,24 @@ class ChallengeTodoServiceTest {
         challengeTodoService.cancelCompleteChallenge(participation.getChallenge().getId(), testMember, LocalDate.now());
 
         var todos = challengeTodoRepository.findAll();
-        assertThat(todos).isEmpty(); // 완료 취소 시 Todo 삭제됨
+        assertThat(todos).isEmpty();
+        
+        // entityManager.clear() 후 member를 다시 조회
+        var refreshedMember = memberRepository.findById(testMember.getId()).orElseThrow();
+        
+        // Virtual todo 확인 - done이 false여야 함
+        var allTodos = challengeTodoService.getAllChallengeTodos(refreshedMember);
+        
+        // 디버깅을 위해 모든 todo 정보 출력
+        assertThat(allTodos).hasSize(3); // 3개 챌린지 모두 virtual todo가 나와야 함
+        
+        var canceledChallengeTodo = allTodos.stream()
+                .filter(dto -> dto.challengeTitle().equals(participation.getChallenge().getTitle()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected virtual todo not found for challenge: " + participation.getChallenge().getTitle()));
+        
+        assertThat(canceledChallengeTodo.done()).isFalse();
+        assertThat(canceledChallengeTodo.isPersisted()).isFalse();
     }
 
     @Test
@@ -118,7 +136,7 @@ class ChallengeTodoServiceTest {
         assertThat(allTodos).hasSize(3);
         assertThat(uncompletedTodos).hasSize(3);
         assertThat(allTodos.stream().allMatch(dto -> !dto.done())).isTrue();
-        assertThat(allTodos.stream().allMatch(dto -> !dto.isPersisted())).isTrue(); // 가상 Todo이므로 isPersisted = false
+        assertThat(allTodos.stream().allMatch(dto -> !dto.isPersisted())).isTrue();
 
         var periodTypes = allTodos.stream().map(ChallengeTodoDto::periodType).toList();
         assertThat(periodTypes).containsExactlyInAnyOrder(PeriodType.DAILY, PeriodType.WEEKLY, PeriodType.MONTHLY);
@@ -144,7 +162,7 @@ class ChallengeTodoServiceTest {
     @Test
     @DisplayName("완료/미완료 투두 혼재 - DAILY, WEEKLY, MONTHLY")
     void getTodos_Mixed() {
-        completeChallengeTodo(allParticipations.get(0)); // DAILY만 완료
+        completeChallengeTodo(allParticipations.get(0));
 
         var allTodos = challengeTodoService.getAllChallengeTodos(testMember);
         var uncompletedTodos = challengeTodoService.getUncompletedChallengeTodos(testMember);
@@ -158,11 +176,11 @@ class ChallengeTodoServiceTest {
         assertThat(completedTodos).hasSize(1);
         assertThat(incompleteTodos).hasSize(2);
         assertThat(completedTodos.get(0).periodType()).isEqualTo(PeriodType.DAILY);
-        assertThat(completedTodos.get(0).isPersisted()).isTrue(); // 완료된 Todo는 DB에 저장됨
+        assertThat(completedTodos.get(0).isPersisted()).isTrue();
 
         var incompletePeriodTypes = incompleteTodos.stream().map(ChallengeTodoDto::periodType).toList();
         assertThat(incompletePeriodTypes).containsExactlyInAnyOrder(PeriodType.WEEKLY, PeriodType.MONTHLY);
-        assertThat(incompleteTodos.stream().allMatch(dto -> !dto.isPersisted())).isTrue(); // 미완료 Todo는 가상 Todo
+        assertThat(incompleteTodos.stream().allMatch(dto -> !dto.isPersisted())).isTrue();
     }
 
     @Test
@@ -180,8 +198,8 @@ class ChallengeTodoServiceTest {
         assertThatThrownBy(() -> 
             challengeTodoService.cancelCompleteChallenge(participation.getChallenge().getId(), anotherMember, LocalDate.now())
         )
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("해당 챌린지에 참여하지 않았습니다.");
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("해당 챌린지를 완료하지 않았습니다.");
     }
 
     @Test
@@ -192,8 +210,7 @@ class ChallengeTodoServiceTest {
         assertThatThrownBy(() -> 
             challengeTodoService.cancelCompleteChallenge(participation.getChallenge().getId(), testMember, LocalDate.now())
         )
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("챌린지 Todo를 찾을 수 없습니다.");
+        .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -226,7 +243,7 @@ class ChallengeTodoServiceTest {
         assertThatThrownBy(() -> 
             challengeTodoService.completeChallenge(participation.getChallenge().getId(), testMember, LocalDate.now())
         )
-        .isInstanceOf(IllegalArgumentException.class)
+        .isInstanceOf(BusinessException.class)
         .hasMessage("해당 챌린지에 참여하지 않았습니다.");
     }
 }

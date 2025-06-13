@@ -57,6 +57,7 @@ public class ChallengeTodoService {
         }
     }
 
+    @Transactional
     public void cancelCompleteChallenge(Long challengeId, Member member, LocalDate currentDate) {
         challengeService.findById(challengeId);
 
@@ -146,41 +147,37 @@ public class ChallengeTodoService {
     }
 
     private Stream<ChallengeTodoDto> createChallengeTodoStream(ChallengeParticipation participation) {
-        try {
-            var virtualTodo = createVirtualChallengeTodo(participation);
-            LocalDate currentDate = LocalDate.now();
-            PeriodType periodType = participation.getChallenge().getPeriodType();
-            
-            if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
-                return Stream.empty();
-            }
-            
-            if (!virtualTodo.isInPeriod(periodType, currentDate)) {
-                return Stream.empty();
-            }
-            
-            var existingTodo = (periodType == PeriodType.DAILY) 
-                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
-                : challengeTodoRepository.findByChallengeParticipation(participation);
-                
-            if (existingTodo.isPresent()) {
-                ChallengeTodo actualTodo = existingTodo.get();
-                if (!actualTodo.isInPeriod(periodType, currentDate)) {
-                    return Stream.empty();
-                }
-                return Stream.of(ChallengeTodoDto.from(actualTodo));
-            } else {
-                return Stream.of(ChallengeTodoDto.from(virtualTodo));
-            }
-        } catch (Exception e) {
+        LocalDate currentDate = LocalDate.now();
+        var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
+        PeriodType periodType = participation.getChallenge().getPeriodType();
+        
+        if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
             return Stream.empty();
+        }
+        
+        if (!virtualTodo.isInPeriod(periodType, currentDate)) {
+            return Stream.empty();
+        }
+        
+        var existingTodo = (periodType == PeriodType.DAILY) 
+            ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
+            : challengeTodoRepository.findByChallengeParticipation(participation);
+
+        if (existingTodo.isPresent()) {
+            ChallengeTodo todo = existingTodo.get();
+            if (!todo.isInPeriod(periodType, currentDate)) {
+                return Stream.empty();
+            }
+            return Stream.of(ChallengeTodoDto.from(todo));
+        } else {
+            return Stream.of(ChallengeTodoDto.from(virtualTodo));
         }
     }
 
     private Stream<ChallengeTodoDto> createUncompletedChallengeTodoStream(ChallengeParticipation participation) {
         try {
-            var virtualTodo = createVirtualChallengeTodo(participation);
             LocalDate currentDate = LocalDate.now();
+            var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
             PeriodType periodType = participation.getChallenge().getPeriodType();
             
             if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
@@ -215,8 +212,8 @@ public class ChallengeTodoService {
 
     private Stream<ChallengeTodoDto> createCompletedChallengeTodoStream(ChallengeParticipation participation) {
         try {
-            var virtualTodo = createVirtualChallengeTodo(participation);
             LocalDate currentDate = LocalDate.now();
+            var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
             
             if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
                 return Stream.empty();
@@ -236,7 +233,7 @@ public class ChallengeTodoService {
         }
     }
 
-    ChallengeTodo createVirtualChallengeTodo(ChallengeParticipation participation) {
+    ChallengeTodo createVirtualChallengeTodo(ChallengeParticipation participation, LocalDate currentDate) {
         if (participation == null) {
             throw new BusinessException("ChallengeParticipation cannot be null");
         }
@@ -246,7 +243,9 @@ public class ChallengeTodoService {
             throw new BusinessException("Challenge cannot be null");
         }
         
-        LocalDate targetDate = calculateTargetDate(challenge.getPeriodType());
+        LocalDate targetDate = (challenge.getPeriodType() == PeriodType.DAILY) 
+                ? currentDate 
+                : calculateTargetDate(challenge.getPeriodType());
 
         return ChallengeTodo.builder()
                 .challengeParticipation(participation)
@@ -291,17 +290,17 @@ public class ChallengeTodoService {
         }
         
         return todos.stream()
-                .sorted(finalComparator != null ? finalComparator : Comparator.comparing(ChallengeTodoDto::id))
+                .sorted(finalComparator != null ? finalComparator : Comparator.comparing(ChallengeTodoDto::id, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }
 
     private Comparator<ChallengeTodoDto> getComparatorByProperty(String property) {
         return switch (property) {
-            case "challengeTitle" -> Comparator.comparing(ChallengeTodoDto::challengeTitle);
-            case "startDate" -> Comparator.comparing(ChallengeTodoDto::startDate);  
-            case "endDate" -> Comparator.comparing(ChallengeTodoDto::endDate);
-            case "periodType" -> Comparator.comparing(ChallengeTodoDto::periodType);
-            default -> Comparator.comparing(ChallengeTodoDto::id);
+            case "challengeTitle" -> Comparator.comparing(ChallengeTodoDto::challengeTitle, Comparator.nullsLast(String::compareTo));
+            case "startDate" -> Comparator.comparing(ChallengeTodoDto::startDate, Comparator.nullsLast(Comparator.naturalOrder()));  
+            case "endDate" -> Comparator.comparing(ChallengeTodoDto::endDate, Comparator.nullsLast(Comparator.naturalOrder()));
+            case "periodType" -> Comparator.comparing(ChallengeTodoDto::periodType, Comparator.nullsLast(Comparator.naturalOrder()));
+            default -> Comparator.comparing(ChallengeTodoDto::id, Comparator.nullsLast(Comparator.naturalOrder()));
         };
     }
 

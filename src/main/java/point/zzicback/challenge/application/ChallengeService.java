@@ -65,54 +65,6 @@ public class ChallengeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChallengeDto> getChallengesWithParticipation(Member member, Pageable pageable) {
-        Page<Challenge> challengePage = challengeRepository.findAll(pageable);
-        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
-                .stream()
-                .map(participation -> participation.getChallenge().getId())
-                .toList();
-        
-        return challengePage.map(challenge -> new ChallengeDto(
-                challenge.getId(),
-                challenge.getTitle(),
-                challenge.getDescription(),
-                challenge.getStartDate(),
-                challenge.getEndDate(),
-                challenge.getPeriodType(),
-                participatedChallengeIds.contains(challenge.getId())
-        ));
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ChallengeDto> searchChallengesWithParticipation(Member member, String keyword, String sort, Pageable pageable) {
-        Page<Challenge> challengePage;
-        if (keyword == null || keyword.trim().isEmpty()) {
-            challengePage = "popular".equals(sort)
-                ? challengeRepository.findAllOrderedByPopularity(pageable)
-                : challengeRepository.findAll(pageable);
-        } else {
-            challengePage = "popular".equals(sort)
-                ? challengeRepository.searchByKeywordOrderedByPopularity(keyword.trim(), pageable)
-                : challengeRepository.searchByKeyword(keyword.trim(), pageable);
-        }
-        
-        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
-                .stream()
-                .map(participation -> participation.getChallenge().getId())
-                .toList();
-        
-        return challengePage.map(challenge -> new ChallengeDto(
-                challenge.getId(),
-                challenge.getTitle(),
-                challenge.getDescription(),
-                challenge.getStartDate(),
-                challenge.getEndDate(),
-                challenge.getPeriodType(),
-                participatedChallengeIds.contains(challenge.getId())
-        ));
-    }
-
-    @Transactional(readOnly = true)
     public Page<ChallengeDto> searchChallengesWithFilter(Member member, String keyword, String sort, Boolean join, Pageable pageable) {
         Page<Challenge> challengePage;
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -140,7 +92,10 @@ public class ChallengeService {
                             challenge.getStartDate(),
                             challenge.getEndDate(),
                             challenge.getPeriodType(),
-                            isParticipated
+                            isParticipated,
+                            (int) challenge.getParticipations().stream()
+                                    .filter(participation -> participation.getJoinOut() == null)
+                                    .count()
                     );
                 })
                 .filter(challengeDto -> join == null || join.equals(challengeDto.participationStatus()))
@@ -171,25 +126,6 @@ public class ChallengeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChallengeJoinedDto> getChallengesByMember(Member member, Pageable pageable) {
-        Page<Challenge> challengePage = challengeRepository.findAll(pageable);
-        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
-                .stream()
-                .map(participation -> participation.getChallenge().getId())
-                .toList();
-        
-        return challengePage.map(challenge -> new ChallengeJoinedDto(
-                challenge.getId(),
-                challenge.getTitle(),
-                challenge.getDescription(),
-                challenge.getStartDate(),
-                challenge.getEndDate(),
-                challenge.getPeriodType(),
-                participatedChallengeIds.contains(challenge.getId())
-        ));
-    }
-
-    @Transactional(readOnly = true)
     public Challenge findById(Long challengeId) {
         return challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
@@ -217,7 +153,10 @@ public class ChallengeService {
                 challenge.getStartDate(),
                 challenge.getEndDate(),
                 challenge.getPeriodType(),
-                participatedChallengeIds.contains(challenge.getId())
+                participatedChallengeIds.contains(challenge.getId()),
+                (int) challenge.getParticipations().stream()
+                        .filter(participation -> participation.getJoinOut() == null)
+                        .count()
         );
     }
 

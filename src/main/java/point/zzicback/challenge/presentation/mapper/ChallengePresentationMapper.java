@@ -9,10 +9,8 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ChallengePresentationMapper {
 
-    @Mapping(target = "participationStatus", constant = "false")
-    ChallengeDto toDto(Challenge challenge);
-
-    default ChallengeDto toDtoWithParticipation(Challenge challenge, boolean participationStatus) {
+    default ChallengeDto toDto(Challenge challenge) {
+        if (challenge == null) return null;
         return new ChallengeDto(
                 challenge.getId(),
                 challenge.getTitle(),
@@ -20,7 +18,10 @@ public interface ChallengePresentationMapper {
                 challenge.getStartDate(),
                 challenge.getEndDate(),
                 challenge.getPeriodType(),
-                participationStatus
+                false,
+                (int) challenge.getParticipations().stream()
+                        .filter(participation -> participation.getJoinOut() == null)
+                        .count()
         );
     }
 
@@ -30,21 +31,22 @@ public interface ChallengePresentationMapper {
     @Mapping(target = "joinedAt", source = "joinedAt")
     ParticipantDto toParticipantDto(ChallengeParticipation participation);
 
-    @Mapping(target = "participants", source = "participations")
-    ChallengeDetailDto toDetailDto(Challenge challenge);
-
-    default ChallengeJoinedDto toJoinedDto(Challenge challenge, boolean participationStatus) {
-        return new ChallengeJoinedDto(
+    default ChallengeDetailDto toDetailDto(Challenge challenge) {
+        if (challenge == null) return null;
+        
+        List<ParticipantDto> activeParticipants = challenge.getParticipations().stream()
+                .filter(participation -> participation.getJoinOut() == null)
+                .map(this::toParticipantDto)
+                .toList();
+        
+        return new ChallengeDetailDto(
                 challenge.getId(),
                 challenge.getTitle(),
                 challenge.getDescription(),
                 challenge.getStartDate(),
                 challenge.getEndDate(),
                 challenge.getPeriodType(),
-                participationStatus
+                activeParticipants
         );
     }
-
-    List<ChallengeDto> toDto(List<Challenge> challenges);
-    List<ChallengeDetailDto> toDetailDto(List<Challenge> challenges);
 }

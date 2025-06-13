@@ -10,6 +10,7 @@ public record ChallengeDto(
         LocalDate startDate,
         LocalDate endDate,
         PeriodType periodType,
-        Boolean participationStatus
+        Boolean participationStatus,
+        Integer participantCount
 ) {
 }

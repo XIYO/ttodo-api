@@ -18,7 +18,7 @@ public class ChallengeTodo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     ChallengeParticipation challengeParticipation;
 
     @Column(nullable = false)
