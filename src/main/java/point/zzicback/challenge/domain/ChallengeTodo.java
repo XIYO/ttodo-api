@@ -56,16 +56,6 @@ public class ChallengeTodo {
         this.done = true;
     }
 
-    public void cancel(LocalDate currentDate) {
-        if (!isInPeriod(challengeParticipation.getChallenge().getPeriodType(), currentDate)) {
-            throw new IllegalStateException("챌린지 기간이 아닐 때는 취소할 수 없습니다.");
-        }
-        if (!this.done) {
-            throw new IllegalStateException("완료되지 않은 챌린지는 취소할 수 없습니다.");
-        }
-        this.done = false;
-    }
-
     public boolean isCompleted() {
         return this.done;
     }
