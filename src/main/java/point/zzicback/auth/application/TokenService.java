@@ -82,7 +82,7 @@ public class TokenService {
     try {
       jwtDecoder.decode(token);
       return true;
-    } catch (JwtException _) {
+    } catch (JwtException e) {
       return false;
     }
   }

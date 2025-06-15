@@ -2,7 +2,7 @@ package point.zzicback.member.presentation.mapper;
 
 import org.mapstruct.Mapper;
 import point.zzicback.member.application.dto.command.UpdateMemberCommand;
-import point.zzicback.member.application.dto.result.MemberDto;
+import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.presentation.dto.request.UpdateMemberRequest;
 import point.zzicback.member.presentation.dto.response.MemberResponse;
@@ -21,9 +21,9 @@ public interface MemberPresentationMapper {
     @Mapping(target = "nickname", source = "request.nickname")
     UpdateMemberCommand toCommand(UUID memberId, UpdateMemberRequest request);
 
-    /** Domain Member -> Application MemberDto 변환 */
-    MemberDto toDto(Member member);
+    /** Domain Member -> Application MemberResult 변환 */
+    MemberResult toResult(Member member);
 
-    /** Application MemberDto -> Presentation Response DTO 변환 */
-    MemberResponse toResponse(MemberDto dto);
+    /** Application MemberResult -> Presentation Response DTO 변환 */
+    MemberResponse toResponse(MemberResult dto);
 }

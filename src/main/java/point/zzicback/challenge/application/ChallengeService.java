@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.application.dto.command.UpdateChallengeCommand;
 import point.zzicback.challenge.application.dto.result.*;
-import point.zzicback.challenge.application.dto.result.ChallengeJoinedDto;
+import point.zzicback.challenge.application.dto.result.ChallengeJoinedResult;
 import point.zzicback.challenge.domain.Challenge;
 import point.zzicback.challenge.domain.PeriodType;
 import point.zzicback.challenge.infrastructure.*;
@@ -66,7 +66,7 @@ public class ChallengeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChallengeListDto> searchChallengesWithFilter(Member member, String keyword, String sort, Boolean join, Pageable pageable) {
+    public Page<ChallengeListResult> searchChallengesWithFilter(Member member, String keyword, String sort, Boolean join, Pageable pageable) {
         Page<Challenge> challengePage;
         if (keyword == null || keyword.trim().isEmpty()) {
             challengePage = "popular".equals(sort)
@@ -83,7 +83,7 @@ public class ChallengeService {
                 .map(participation -> participation.getChallenge().getId())
                 .toList();
         
-        List<ChallengeListDto> filteredChallenges = challengePage.getContent().stream()
+        List<ChallengeListResult> filteredChallenges = challengePage.getContent().stream()
                 .map(challenge -> {
                     boolean isParticipated = participatedChallengeIds.contains(challenge.getId());
                     
@@ -91,7 +91,7 @@ public class ChallengeService {
                             .filter(participation -> participation.getJoinOut() == null)
                             .count();
                     
-                    return new ChallengeListDto(
+                    return new ChallengeListResult(
                             challenge.getId(),
                             challenge.getTitle(),
                             challenge.getDescription(),
@@ -109,7 +109,7 @@ public class ChallengeService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChallengeJoinedDto> getChallengesByMember(Member member) {
+    public List<ChallengeJoinedResult> getChallengesByMember(Member member) {
         List<Challenge> allChallenges = challengeRepository.findAll();
         List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
                 .stream()
@@ -117,7 +117,7 @@ public class ChallengeService {
                 .toList();
         
         return allChallenges.stream()
-                .map(challenge -> new ChallengeJoinedDto(
+                .map(challenge -> new ChallengeJoinedResult(
                         challenge.getId(),
                         challenge.getTitle(),
                         challenge.getDescription(),
@@ -141,7 +141,7 @@ public class ChallengeService {
     }
 
     @Transactional(readOnly = true)
-    public ChallengeDto getChallengeWithParticipation(Long challengeId, Member member) {
+    public ChallengeResult getChallengeWithParticipation(Long challengeId, Member member) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
         
@@ -165,7 +165,7 @@ public class ChallengeService {
         float successRate = totalParticipantCount > 0 ? 
                 Math.round((float) completedParticipantCount / totalParticipantCount * 100) / 100.0f : 0.0f;
         
-        return new ChallengeDto(
+        return new ChallengeResult(
                 challenge.getId(),
                 challenge.getTitle(),
                 challenge.getDescription(),

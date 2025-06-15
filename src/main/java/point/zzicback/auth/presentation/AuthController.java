@@ -90,7 +90,7 @@ public class AuthController {
       }
       
       throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
-    } catch (Exception _) {
+    } catch (Exception e) {
       throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
     }
   }

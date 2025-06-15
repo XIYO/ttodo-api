@@ -5,7 +5,7 @@ import point.zzicback.challenge.domain.PeriodType;
 import java.time.LocalDate;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ChallengeDto(
+public record ChallengeResult(
         Long id,
         String title,
         String description,
@@ -13,7 +13,7 @@ public record ChallengeDto(
         LocalDate endDate,
         PeriodType periodType,
         Boolean participationStatus,
-        Integer participantCount,
+        Integer activeParticipantCount,
         Float successRate
 ) {
 }
