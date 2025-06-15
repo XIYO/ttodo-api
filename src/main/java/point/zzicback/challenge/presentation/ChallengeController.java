@@ -29,10 +29,10 @@ import point.zzicback.challenge.application.ChallengeService;
 import point.zzicback.challenge.application.ChallengeParticipationService;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.application.dto.command.UpdateChallengeCommand;
-import point.zzicback.challenge.application.dto.result.ChallengeDto;
-import point.zzicback.challenge.application.dto.result.ChallengeListDto;
-import point.zzicback.challenge.application.dto.result.ChallengeDetailDto;
-import point.zzicback.challenge.application.dto.result.ParticipantDto;
+import point.zzicback.challenge.application.dto.result.ChallengeResult;
+import point.zzicback.challenge.application.dto.result.ChallengeListResult;
+import point.zzicback.challenge.application.dto.result.ChallengeDetailResult;
+import point.zzicback.challenge.application.dto.result.ParticipantResult;
 import point.zzicback.challenge.presentation.dto.CreateChallengeRequest;
 import point.zzicback.challenge.presentation.dto.CreateChallengeResponse;
 import point.zzicback.challenge.presentation.dto.ParticipantResponse;
@@ -50,7 +50,7 @@ import java.time.LocalDate;
 @Tag(name = "챌린지", description = "챌린지 관련 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/challenges")
+@RequestMapping("/challenges")
 public class ChallengeController {
     
     private final ChallengeService challengeService;
@@ -84,7 +84,7 @@ public class ChallengeController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean join) {
         Pageable pageable = createPageable(page, size, sort);
-        Page<ChallengeListDto> pageDto;
+        Page<ChallengeListResult> pageDto;
         if (principal != null) {
             Member member = memberService.findVerifiedMember(principal.id());
             pageDto = challengeService.searchChallengesWithFilter(member, search, sort, join, pageable);
@@ -108,7 +108,7 @@ public class ChallengeController {
             var dto = challengeService.getChallengeWithParticipation(challengeId, member);
             response = challengePresentationMapper.toResponse(dto);
         } else {
-            var dto = challengePresentationMapper.toDto(
+            var dto = challengePresentationMapper.toResult(
                     challengeService.getChallenge(challengeId)
             );
             response = challengePresentationMapper.toResponse(dto);
@@ -145,7 +145,7 @@ public class ChallengeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ParticipantDto> pageDto = participationService.getParticipants(challengeId, pageable);
+        Page<ParticipantResult> pageDto = participationService.getParticipants(challengeId, pageable);
         return pageDto.map(challengePresentationMapper::toResponse);
     }
 
@@ -158,7 +158,7 @@ public class ChallengeController {
             @AuthenticationPrincipal MemberPrincipal principal) {
         Member member = memberService.findVerifiedMember(principal.id());
         var participation = participationService.joinChallenge(challengeId, member);
-        var dto = challengePresentationMapper.toParticipantDto(participation);
+        var dto = challengePresentationMapper.toParticipantResult(participation);
         return challengePresentationMapper.toResponse(dto);
     }
 

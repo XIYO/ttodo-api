@@ -8,7 +8,7 @@ import point.zzicback.challenge.infrastructure.ChallengeParticipationRepository;
 import point.zzicback.challenge.infrastructure.ChallengeTodoRepository;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.Member;
-import point.zzicback.challenge.application.dto.result.ParticipantDto;
+import point.zzicback.challenge.application.dto.result.ParticipantResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageImpl;
@@ -55,11 +55,11 @@ public class ChallengeParticipationService {
      * 특정 챌린지의 참여자 목록을 Application DTO로 반환
      */
     @Transactional(readOnly = true)
-    public Page<ParticipantDto> getParticipants(Long challengeId, Pageable pageable) {
+    public Page<ParticipantResult> getParticipants(Long challengeId, Pageable pageable) {
         Challenge challenge = challengeService.findById(challengeId);
-        List<ParticipantDto> participants = challenge.getParticipations().stream()
+        List<ParticipantResult> participants = challenge.getParticipations().stream()
                 .filter(p -> p.getJoinOut() == null)
-                .map(p -> new ParticipantDto(
+                .map(p -> new ParticipantResult(
                         p.getMember().getId(),
                         p.getMember().getEmail(),
                         p.getMember().getNickname(),
@@ -67,7 +67,7 @@ public class ChallengeParticipationService {
                 .toList();
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), participants.size());
-        List<ParticipantDto> pageList = participants.subList(start, end);
+        List<ParticipantResult> pageList = participants.subList(start, end);
         return new PageImpl<>(pageList, pageable, participants.size());
     }
 

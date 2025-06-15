@@ -2,14 +2,15 @@ package point.zzicback.challenge.application.dto.result;
 
 import point.zzicback.challenge.domain.PeriodType;
 import java.time.LocalDate;
+import java.util.List;
 
-public record ChallengeJoinedDto(
+public record ChallengeDetailResult(
         Long id,
         String title,
         String description,
         LocalDate startDate,
         LocalDate endDate,
         PeriodType periodType,
-        boolean participationStatus
+        List<ParticipantResult> participants
 ) {
 }

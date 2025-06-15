@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.UpdateMemberCommand;
-import point.zzicback.member.application.dto.result.MemberDto;
+import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.presentation.dto.request.UpdateMemberRequest;
 import point.zzicback.member.presentation.dto.response.MemberResponse;
 import point.zzicback.member.presentation.mapper.MemberPresentationMapper;
@@ -26,7 +26,7 @@ import java.util.UUID;
 @Tag(name = "멤버", description = "회원 관련 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/members")
+@RequestMapping("/members")
 public class MemberController {
 
     private final MemberService memberService;
@@ -54,7 +54,7 @@ public class MemberController {
     @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
     @GetMapping("/{memberId}")
     public MemberResponse getMember(@PathVariable UUID memberId) {
-        MemberDto dto = memberService.getMember(memberId);
+        MemberResult dto = memberService.getMember(memberId);
         return mapper.toResponse(dto);
     }
 

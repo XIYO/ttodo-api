@@ -3,7 +3,7 @@ package point.zzicback.challenge.application.dto.result;
 import point.zzicback.challenge.domain.PeriodType;
 import java.time.LocalDate;
 
-public record ChallengeTodoDto(
+public record ChallengeTodoResult(
         Long id,
         String challengeTitle,
         String challengeDescription,
@@ -13,7 +13,7 @@ public record ChallengeTodoDto(
         Boolean isPersisted,
         PeriodType periodType
 ) {
-    public static ChallengeTodoDto from(point.zzicback.challenge.domain.ChallengeTodo challengeTodo) {
+    public static ChallengeTodoResult from(point.zzicback.challenge.domain.ChallengeTodo challengeTodo) {
         // Null 체크로 NullPointerException 방지
         if (challengeTodo == null) {
             throw new IllegalArgumentException("ChallengeTodo cannot be null");
@@ -31,7 +31,7 @@ public record ChallengeTodoDto(
         
         var period = challengeTodo.getPeriod();
         
-        return new ChallengeTodoDto(
+        return new ChallengeTodoResult(
                 challengeTodo.getId(),
                 challenge.getTitle(),
                 challenge.getDescription(),

@@ -2,9 +2,9 @@ package point.zzicback.challenge.application.dto.result;
 
 import java.util.List;
 
-public record ChallengeParticipantsDto(
+public record ChallengeParticipantsResult(
         Long challengeId,
         String title,
-        List<ParticipantDto> participants
+        List<ParticipantResult> participants
 ) {
 }

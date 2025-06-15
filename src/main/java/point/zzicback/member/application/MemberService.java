@@ -11,7 +11,7 @@ import point.zzicback.member.infrastructure.persistence.JpaMemberRepository;
 import java.util.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import point.zzicback.member.application.dto.result.MemberDto;
+import point.zzicback.member.application.dto.result.MemberResult;
 
 @Service
 @RequiredArgsConstructor
@@ -64,14 +64,14 @@ public class MemberService {
   }
 
   @Transactional(readOnly = true)
-  public Page<MemberDto> getMembers(Pageable pageable) {
+  public Page<MemberResult> getMembers(Pageable pageable) {
     return memberRepository.findAll(pageable)
-            .map(member -> new MemberDto(member.getId(), member.getEmail(), member.getNickname()));
+            .map(member -> new MemberResult(member.getId(), member.getEmail(), member.getNickname()));
   }
 
   @Transactional(readOnly = true)
-  public MemberDto getMember(UUID memberId) {
+  public MemberResult getMember(UUID memberId) {
     var member = findByIdOrThrow(memberId);
-    return new MemberDto(member.getId(), member.getEmail(), member.getNickname());
+    return new MemberResult(member.getId(), member.getEmail(), member.getNickname());
   }
 }

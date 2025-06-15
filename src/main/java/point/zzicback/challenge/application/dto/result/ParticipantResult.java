@@ -3,7 +3,7 @@ package point.zzicback.challenge.application.dto.result;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ParticipantDto(
+public record ParticipantResult(
         UUID id,
         String email,
         String nickname,
