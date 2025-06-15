@@ -9,6 +9,9 @@ import point.zzicback.member.domain.*;
 import point.zzicback.member.infrastructure.persistence.JpaMemberRepository;
 
 import java.util.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import point.zzicback.member.application.dto.result.MemberDto;
 
 @Service
 @RequiredArgsConstructor
@@ -58,5 +61,17 @@ public class MemberService {
     Member member = memberRepository.findById(command.memberId())
         .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, command.memberId()));
     member.setNickname(command.nickname());
+  }
+
+  @Transactional(readOnly = true)
+  public Page<MemberDto> getMembers(Pageable pageable) {
+    return memberRepository.findAll(pageable)
+            .map(member -> new MemberDto(member.getId(), member.getEmail(), member.getNickname()));
+  }
+
+  @Transactional(readOnly = true)
+  public MemberDto getMember(UUID memberId) {
+    var member = findByIdOrThrow(memberId);
+    return new MemberDto(member.getId(), member.getEmail(), member.getNickname());
   }
 }
