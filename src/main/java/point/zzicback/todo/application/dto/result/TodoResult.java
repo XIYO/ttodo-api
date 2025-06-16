@@ -10,14 +10,13 @@ public record TodoResult(
         String title, 
         String description, 
         TodoStatus status,
-        Priority priority,
-        TodoCategory category,
-        String customCategory,
+        Integer priority,
+        Long categoryId,
+        String categoryName,
         LocalDate dueDate,
         RepeatType repeatType,
         Set<String> tags,
         String displayCategory,
-        String displayPriority,
         String displayStatus
 ) {
 }

@@ -20,14 +20,11 @@ public record UpdateTodoRequest(
         @Schema(description = "상태", example = "IN_PROGRESS")
         TodoStatus status,
         
-        @Schema(description = "우선순위", example = "MEDIUM")
-        Priority priority,
+        @Schema(description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", example = "1")
+        Integer priority,
         
-        @Schema(description = "카테고리 (OTHER 선택 시 customCategory 필수)", example = "LEARNING")
-        TodoCategory category,
-        
-        @Schema(description = "커스텀 카테고리명 (category가 OTHER일 때만 사용)", example = "내 프로젝트")
-        String customCategory,
+        @Schema(description = "카테고리 ID", example = "1")
+        Long categoryId,
         
         @Schema(description = "마감일", example = "2024-12-31")
         LocalDate dueDate,

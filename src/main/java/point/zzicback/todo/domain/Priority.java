@@ -6,9 +6,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Priority {
-    HIGH("높음"),
-    MEDIUM("보통"),
-    LOW("낮음");
+    _0("낮음", 0),
+    _1("보통", 1),
+    _2("높음", 2);
 
     private final String displayName;
+    private final int value;
 }

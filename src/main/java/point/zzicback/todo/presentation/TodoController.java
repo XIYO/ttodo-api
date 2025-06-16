@@ -64,7 +64,7 @@ public class TodoController {
 
   @PostMapping("/{memberId}/todos")
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Todo 생성", description = "새로운 Todo를 생성합니다. 카테고리가 OTHER인 경우 customCategory에 커스텀 카테고리명을 입력할 수 있습니다.")
+  @Operation(summary = "Todo 생성", description = "새로운 Todo를 생성합니다.")
   public void add(@PathVariable UUID memberId, 
                  @RequestParam @NotBlank @Size(max = 255)
                  @Parameter(description = "할일 제목", example = "영어 공부하기", required = true)
@@ -75,21 +75,16 @@ public class TodoController {
                  String description,
                  
                  @RequestParam(defaultValue = "IN_PROGRESS")
-                 @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED", "OVERDUE"}))
+                 @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED"}))
                  TodoStatus status,
                  
-                 @RequestParam(defaultValue = "MEDIUM")
-                 @Parameter(description = "우선순위", schema = @Schema(allowableValues = {"HIGH", "MEDIUM", "LOW"}))
-                 Priority priority,
+                 @RequestParam(required = false)
+                 @Parameter(description = "우선순위 (0:낮음, 1:보통, 2:높음)", schema = @Schema(allowableValues = {"0", "1", "2"}))
+                 Integer priority,
                  
                  @RequestParam(required = false)
-                 @Parameter(description = "카테고리 (OTHER 선택 시 customCategory 필수)", 
-                           schema = @Schema(allowableValues = {"PERSONAL", "WORK", "HEALTH", "LEARNING", "SHOPPING", "FAMILY", "OTHER"}))
-                 TodoCategory category,
-                 
-                 @RequestParam(required = false)
-                 @Parameter(description = "커스텀 카테고리명 (category가 OTHER일 때만 사용)", example = "내 프로젝트")
-                 String customCategory,
+                 @Parameter(description = "카테고리 ID", example = "1")
+                 Long categoryId,
                  
                  @RequestParam(required = false)
                  @Parameter(description = "마감일", example = "2026-01-01")
@@ -105,7 +100,7 @@ public class TodoController {
                  String tags) {
     
     CreateTodoRequest request = new CreateTodoRequest(
-        title, description, status, priority, category, customCategory, dueDate, repeatType,
+        title, description, status, priority, categoryId, dueDate, repeatType,
         parseTagsFromString(tags)
     );
     todoService.createTodo(todoPresentationMapper.toCommand(request, memberId));
@@ -113,7 +108,7 @@ public class TodoController {
 
   @PutMapping("/{memberId}/todos/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Todo 수정", description = "Todo를 전체 수정합니다. 카테고리가 OTHER인 경우 customCategory에 커스텀 카테고리명을 입력할 수 있습니다.")
+  @Operation(summary = "Todo 수정", description = "Todo를 전체 수정합니다.")
   public void modify(@PathVariable UUID memberId, 
                     @PathVariable Long id,
                     
@@ -126,24 +121,19 @@ public class TodoController {
                     String description,
                     
                     @RequestParam(required = false)
-                    @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED", "OVERDUE"}))
+                    @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED"}))
                     TodoStatus status,
                     
                     @RequestParam(required = false)
-                    @Parameter(description = "우선순위", schema = @Schema(allowableValues = {"HIGH", "MEDIUM", "LOW"}))
-                    Priority priority,
+                    @Parameter(description = "우선순위 (0:낮음, 1:보통, 2:높음)", schema = @Schema(allowableValues = {"0", "1", "2"}))
+                    Integer priority,
                     
                     @RequestParam(required = false)
-                    @Parameter(description = "카테고리 (OTHER 선택 시 customCategory 필수)", 
-                              schema = @Schema(allowableValues = {"PERSONAL", "WORK", "HEALTH", "LEARNING", "SHOPPING", "FAMILY", "OTHER"}))
-                    TodoCategory category,
+                    @Parameter(description = "카테고리 ID", example = "1")
+                    Long categoryId,
                     
                     @RequestParam(required = false)
-                    @Parameter(description = "커스텀 카테고리명 (category가 OTHER일 때만 사용)", example = "내 프로젝트")
-                    String customCategory,
-                    
-                    @RequestParam(required = false)
-                    @Parameter(description = "마감일", example = "2024-12-31")
+                    @Parameter(description = "마감일", example = "2026-01-01")
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate dueDate,
                     
@@ -156,7 +146,7 @@ public class TodoController {
                     String tags) {
     
     UpdateTodoRequest request = new UpdateTodoRequest(
-        title, description, status, priority, category, customCategory, dueDate, repeatType,
+        title, description, status, priority, categoryId, dueDate, repeatType,
         parseTagsFromString(tags)
     );
     todoService.updateTodo(todoPresentationMapper.toCommand(request, memberId, id));
@@ -164,7 +154,7 @@ public class TodoController {
 
   @PatchMapping("/{memberId}/todos/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Todo 부분 수정", description = "Todo를 부분 수정합니다. 카테고리가 OTHER인 경우 customCategory에 커스텀 카테고리명을 입력할 수 있습니다.")
+  @Operation(summary = "Todo 부분 수정", description = "Todo를 부분 수정합니다.")
   public void partialModify(@PathVariable UUID memberId, 
                            @PathVariable Long id,
                            
@@ -177,24 +167,19 @@ public class TodoController {
                            String description,
                            
                            @RequestParam(required = false)
-                           @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED", "OVERDUE"}))
+                           @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED"}))
                            TodoStatus status,
                            
                            @RequestParam(required = false)
-                           @Parameter(description = "우선순위", schema = @Schema(allowableValues = {"HIGH", "MEDIUM", "LOW"}))
-                           Priority priority,
+                           @Parameter(description = "우선순위 (0:낮음, 1:보통, 2:높음)", schema = @Schema(allowableValues = {"0", "1", "2"}))
+                           Integer priority,
                            
                            @RequestParam(required = false)
-                           @Parameter(description = "카테고리 (OTHER 선택 시 customCategory 필수)", 
-                                     schema = @Schema(allowableValues = {"PERSONAL", "WORK", "HEALTH", "LEARNING", "SHOPPING", "FAMILY", "OTHER"}))
-                           TodoCategory category,
+                           @Parameter(description = "카테고리 ID", example = "1")
+                           Long categoryId,
                            
                            @RequestParam(required = false)
-                           @Parameter(description = "커스텀 카테고리명 (category가 OTHER일 때만 사용)", example = "내 프로젝트")
-                           String customCategory,
-                           
-                           @RequestParam(required = false)
-                           @Parameter(description = "마감일", example = "2024-12-31")
+                           @Parameter(description = "마감일", example = "2026-01-01")
                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                            LocalDate dueDate,
                            
@@ -207,7 +192,7 @@ public class TodoController {
                            String tags) {
     
     UpdateTodoRequest request = new UpdateTodoRequest(
-        title, description, status, priority, category, customCategory, dueDate, repeatType,
+        title, description, status, priority, categoryId, dueDate, repeatType,
         parseTagsFromString(tags)
     );
     todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, memberId, id));

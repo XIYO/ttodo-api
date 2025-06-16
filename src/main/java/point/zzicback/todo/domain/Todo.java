@@ -2,6 +2,7 @@ package point.zzicback.todo.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import point.zzicback.category.domain.Category;
 import point.zzicback.member.domain.Member;
 
 import java.time.LocalDate;
@@ -26,13 +27,11 @@ public class Todo {
   @Column(nullable = false)
   private TodoStatus status = TodoStatus.IN_PROGRESS;
   
-  @Enumerated(EnumType.STRING)
-  private Priority priority;
+  private Integer priority;
   
-  @Enumerated(EnumType.STRING)
-  private TodoCategory category;
-  
-  private String customCategory;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "category_id")
+  private Category category;
   
   private LocalDate dueDate;
   
@@ -49,16 +48,15 @@ public class Todo {
   private Member member;
 
   @Builder
-  public Todo(Long id, String title, String description, TodoStatus status, Priority priority, 
-              TodoCategory category, String customCategory, LocalDate dueDate, RepeatType repeatType, 
+  public Todo(Long id, String title, String description, TodoStatus status, Integer priority, 
+              Category category, LocalDate dueDate, RepeatType repeatType, 
               Set<String> tags, Member member) {
     this.id = id;
     this.title = title;
     this.description = description;
     this.status = status != null ? status : TodoStatus.IN_PROGRESS;
-    this.priority = priority != null ? priority : Priority.MEDIUM;
+    this.priority = priority;
     this.category = category;
-    this.customCategory = customCategory;
     this.dueDate = dueDate;
     this.repeatType = repeatType;
     this.tags = tags != null ? tags : new HashSet<>();
@@ -67,17 +65,29 @@ public class Todo {
   
   @Transient
   public String getDisplayCategory() {
-    if (category == null) return null;
-    return category == TodoCategory.OTHER ? customCategory : category.getDisplayName();
-  }
-  
-  @Transient
-  public String getDisplayPriority() {
-    return priority != null ? priority.getDisplayName() : null;
+    return category != null ? category.getName() : null;
   }
   
   @Transient
   public String getDisplayStatus() {
     return status != null ? status.getDisplayName() : null;
+  }
+  
+  @Transient
+  public String getActualDisplayStatus() {
+    return getActualStatus().getDisplayName();
+  }
+  
+  @Transient
+  public TodoStatus getActualStatus() {
+    if (status == TodoStatus.COMPLETED) {
+      return TodoStatus.COMPLETED;
+    }
+    
+    if (dueDate != null && LocalDate.now().isAfter(dueDate)) {
+      return TodoStatus.OVERDUE;
+    }
+    
+    return status;
   }
 }

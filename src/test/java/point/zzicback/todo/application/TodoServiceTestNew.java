@@ -101,7 +101,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 "새로운 할일",
                 "새로운 설명",
-                null, null, null, null, null, null
+                null, null, null, null, null
         );
 
         // when
@@ -129,7 +129,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 TodoStatus.COMPLETED,
-                null, null, null, null, null, null
+                null, null, null, null, null
         );
 
         // when
@@ -152,7 +152,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 TodoStatus.COMPLETED,
-                null, null, null, null, null, null
+                null, null, null, null, null
         );
 
         // when & then

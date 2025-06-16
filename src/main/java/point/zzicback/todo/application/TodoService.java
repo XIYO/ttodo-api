@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import point.zzicback.category.domain.Category;
+import point.zzicback.category.infrastructure.CategoryRepository;
 import point.zzicback.common.error.*;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.todo.application.dto.command.*;
@@ -11,21 +13,25 @@ import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
 import point.zzicback.todo.domain.*;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class TodoService {
   private final TodoRepository todoRepository;
+  private final CategoryRepository categoryRepository;
   private final MemberService memberService;
 
   public Page<TodoResult> getTodoList(TodoListQuery query) {
     Page<Todo> todoPage;
     
-    // status 파라미터가 있으면 status 기준으로 필터링
-    if (query.status() != null) {
+    if (query.status() == TodoStatus.OVERDUE) {
+      todoPage = todoRepository.findOverdueTodos(query.memberId(), LocalDate.now(), query.pageable());
+    }
+    else if (query.status() != null) {
       todoPage = todoRepository.findByMemberIdAndStatus(query.memberId(), query.status(), query.pageable());
     }
-    // 전체 조회
     else {
       todoPage = todoRepository.findByMemberId(query.memberId(), query.pageable());
     }
@@ -40,34 +46,38 @@ public class TodoService {
   }
 
   private TodoResult toTodoResult(Todo todo) {
+    TodoStatus actualStatus = todo.getActualStatus();
     return new TodoResult(
             todo.getId(),
             todo.getTitle(),
             todo.getDescription(),
-            todo.getStatus(),
+            actualStatus,
             todo.getPriority(),
-            todo.getCategory(),
-            todo.getCustomCategory(),
+            todo.getCategory() != null ? todo.getCategory().getId() : null,
+            todo.getCategory() != null ? todo.getCategory().getName() : null,
             todo.getDueDate(),
             todo.getRepeatType(),
             todo.getTags(),
             todo.getDisplayCategory(),
-            todo.getDisplayPriority(),
-            todo.getDisplayStatus()
+            todo.getActualDisplayStatus()
     );
   }
 
   @Transactional
   public void createTodo(CreateTodoCommand command) {
-    validateCategoryAndCustomCategory(command.category(), command.customCategory());
-    
     var member = memberService.findVerifiedMember(command.memberId());
+    
+    Category category = null;
+    if (command.categoryId() != null) {
+      category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+              .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
+    }
+    
     Todo todo = Todo.builder()
             .title(command.title())
             .description(command.description())
             .priority(command.priority())
-            .category(command.category())
-            .customCategory(command.customCategory())
+            .category(category)
             .dueDate(command.dueDate())
             .repeatType(command.repeatType())
             .tags(command.tags())
@@ -78,16 +88,20 @@ public class TodoService {
 
   @Transactional
   public void updateTodo(UpdateTodoCommand command) {
-    validateCategoryAndCustomCategory(command.category(), command.customCategory());
-    
     Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
             .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
+    
+    Category category = null;
+    if (command.categoryId() != null) {
+      category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+              .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
+    }
+    
     todo.setTitle(command.title());
     todo.setDescription(command.description());
     todo.setStatus(command.status());
     todo.setPriority(command.priority());
-    todo.setCategory(command.category());
-    todo.setCustomCategory(command.customCategory());
+    todo.setCategory(category);
     todo.setDueDate(command.dueDate());
     todo.setRepeatType(command.repeatType());
     todo.setTags(command.tags());
@@ -98,11 +112,10 @@ public class TodoService {
     Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
             .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
     
-    // 부분 수정에서는 카테고리가 변경되는 경우에만 검증
-    if (command.category() != null) {
-      validateCategoryAndCustomCategory(command.category(), command.customCategory());
-      todo.setCategory(command.category());
-      todo.setCustomCategory(command.customCategory());
+    if (command.categoryId() != null) {
+      Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+              .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
+      todo.setCategory(category);
     }
     
     if (command.title() != null && !command.title().trim().isEmpty()) {
@@ -134,14 +147,5 @@ public class TodoService {
             .ifPresentOrElse(todo -> todoRepository.deleteById(query.todoId()), () -> {
               throw new EntityNotFoundException("Todo", query.todoId());
             });
-  }
-  
-  private void validateCategoryAndCustomCategory(TodoCategory category, String customCategory) {
-    if (category != null && category != TodoCategory.OTHER && customCategory != null && !customCategory.trim().isEmpty()) {
-      throw new BusinessException("커스텀 카테고리는 카테고리가 '기타'일 때만 입력할 수 있습니다.");
-    }
-    if (category == TodoCategory.OTHER && (customCategory == null || customCategory.trim().isEmpty())) {
-      throw new BusinessException("카테고리가 '기타'인 경우 커스텀 카테고리를 입력해야 합니다.");
-    }
   }
 }

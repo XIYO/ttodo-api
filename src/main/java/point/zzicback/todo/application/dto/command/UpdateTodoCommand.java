@@ -13,9 +13,8 @@ public record UpdateTodoCommand(
         @Size(max = 255) String title,
         @Size(max = 1000) String description, 
         TodoStatus status,
-        Priority priority,
-        TodoCategory category,
-        String customCategory,
+        Integer priority,
+        Long categoryId,
         LocalDate dueDate,
         RepeatType repeatType,
         Set<String> tags

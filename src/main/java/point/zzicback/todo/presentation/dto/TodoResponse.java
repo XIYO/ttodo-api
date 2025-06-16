@@ -20,14 +20,14 @@ public record TodoResponse(
         @Schema(description = "상태", example = "IN_PROGRESS", allowableValues = {"IN_PROGRESS", "COMPLETED", "OVERDUE"})
         TodoStatus status,
         
-        @Schema(description = "우선순위", example = "MEDIUM", allowableValues = {"HIGH", "MEDIUM", "LOW"})
-        Priority priority,
+        @Schema(description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", example = "1")
+        Integer priority,
         
-        @Schema(description = "카테고리", example = "LEARNING", allowableValues = {"PERSONAL", "WORK", "HEALTH", "LEARNING", "SHOPPING", "FAMILY", "OTHER"})
-        TodoCategory category,
+        @Schema(description = "카테고리 ID", example = "1")
+        Long categoryId,
         
-        @Schema(description = "커스텀 카테고리명 (category가 OTHER일 때만 표시)", example = "내 프로젝트")
-        String customCategory,
+        @Schema(description = "카테고리명", example = "학습")
+        String categoryName,
         
         @Schema(description = "마감일", example = "2024-12-31")
         LocalDate dueDate,
@@ -40,9 +40,6 @@ public record TodoResponse(
         
         @Schema(description = "표시용 카테고리명", example = "학습")
         String displayCategory,
-        
-        @Schema(description = "표시용 우선순위명", example = "보통")
-        String displayPriority,
         
         @Schema(description = "표시용 상태명", example = "진행중")
         String displayStatus
