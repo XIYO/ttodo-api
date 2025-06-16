@@ -10,7 +10,8 @@ import java.util.*;
  * DDD 원칙에 따라 도메인 계층에 위치
  */
 public interface TodoRepository extends JpaRepository<Todo, Long> {
-    Page<Todo> findByMemberIdAndDone(UUID memberId, Boolean done, Pageable pageable);
+    Page<Todo> findByMemberIdAndStatus(UUID memberId, TodoStatus status, Pageable pageable);
+    Page<Todo> findByMemberId(UUID memberId, Pageable pageable);
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
     Optional<Todo> findByMemberIdAndTitle(UUID memberId, String title);
 }

@@ -1,6 +1,41 @@
 package point.zzicback.todo.presentation.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
+import point.zzicback.todo.domain.*;
 
-public record UpdateTodoRequest(@Size(max = 255) String title, @Size(max = 1000) String description, Boolean done) {
+import java.time.LocalDate;
+import java.util.Set;
+
+@Schema(description = "Todo 수정 요청 DTO")
+public record UpdateTodoRequest(
+        @Size(max = 255) 
+        @Schema(description = "할일 제목", example = "영어 공부하기")
+        String title, 
+        
+        @Size(max = 1000) 
+        @Schema(description = "할일 설명", example = "토익 문제집 2장 풀기")
+        String description, 
+        
+        @Schema(description = "상태", example = "IN_PROGRESS")
+        TodoStatus status,
+        
+        @Schema(description = "우선순위", example = "MEDIUM")
+        Priority priority,
+        
+        @Schema(description = "카테고리 (OTHER 선택 시 customCategory 필수)", example = "LEARNING")
+        TodoCategory category,
+        
+        @Schema(description = "커스텀 카테고리명 (category가 OTHER일 때만 사용)", example = "내 프로젝트")
+        String customCategory,
+        
+        @Schema(description = "마감일", example = "2024-12-31")
+        LocalDate dueDate,
+        
+        @Schema(description = "반복 유형", example = "DAILY")
+        RepeatType repeatType,
+        
+        @Schema(description = "태그 목록", example = "[\"영어\", \"학습\"]")
+        Set<String> tags
+) {
 }

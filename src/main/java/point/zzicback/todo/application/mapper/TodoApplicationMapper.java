@@ -8,11 +8,12 @@ import point.zzicback.todo.domain.Todo;
 @Mapper(componentModel = "spring")
 public interface TodoApplicationMapper {
 
+    @Mapping(target = "displayCategory", source = "displayCategory")
     TodoResult toResult(Todo todo);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "member", ignore = true)
-    @Mapping(target = "done", constant = "false")
+    @Mapping(target = "status", constant = "IN_PROGRESS")
     Todo toEntity(CreateTodoCommand command);
 
     @Mapping(target = "id", ignore = true)

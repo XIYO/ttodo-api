@@ -142,11 +142,10 @@ public class ChallengeController {
         participationService.leaveChallenge(challengeId, member);
     }
 
-    @Operation(summary = "챌린지 투두 목록 조회", description = "특정 챌린지의 투두 내역을 조회합니다.")
+    @Operation(summary = "챌린지 투두 목록 조회", description = "사용자의 모든 챌린지 투두 내역을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 투두 목록 조회 성공")
-    @GetMapping("/{challengeId}/todos")
+    @GetMapping("/todos")
     public Page<ChallengeTodoResponse> getChallengeTodos(
-            @PathVariable Long challengeId,
             @AuthenticationPrincipal MemberPrincipal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -167,7 +166,7 @@ public class ChallengeController {
         Member member = memberService.findVerifiedMember(principal.id());
         todoService.completeChallenge(challengeId, member, LocalDate.now());
         // 재조회하여 응답 DTO 반환
-        return getChallengeTodos(challengeId, principal, 0, 1, "id,desc").getContent().get(0);
+        return getChallengeTodos(principal, 0, 1, "id,desc").getContent().get(0);
     }
 
     @Operation(summary = "챌린지 투두 상태 수정", description = "특정 챌린지 투두의 완료 여부를 수정합니다.")

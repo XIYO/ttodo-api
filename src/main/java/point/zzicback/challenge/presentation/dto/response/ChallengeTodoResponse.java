@@ -22,7 +22,7 @@ public record ChallengeTodoResponse(
         @Schema(description = "종료 날짜", example = "2024-01-31")
         LocalDate endDate,
         
-        @Schema(description = "완료 여부", example = "false")
+        @Schema(description = "완료 여부", example = "true")
         Boolean done,
         
         @Schema(description = "영속성 여부", example = "true")
