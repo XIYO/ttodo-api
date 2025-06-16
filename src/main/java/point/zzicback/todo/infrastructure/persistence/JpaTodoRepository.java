@@ -2,10 +2,7 @@ package point.zzicback.todo.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import point.zzicback.todo.domain.Todo;
-import point.zzicback.todo.domain.TodoRepository;
-
-import java.util.*;
+import point.zzicback.todo.domain.*;
 
 /**
  * JPA를 이용한 TodoRepository 구현체

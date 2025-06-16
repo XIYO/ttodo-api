@@ -11,6 +11,7 @@ import org.springframework.data.domain.*;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.application.dto.command.UpdateChallengeCommand;
 import point.zzicback.challenge.application.dto.result.*;
+import point.zzicback.challenge.application.mapper.ChallengeMapperImpl;
 import point.zzicback.challenge.domain.Challenge;
 import point.zzicback.challenge.domain.ChallengeParticipation;
 import point.zzicback.challenge.domain.PeriodType;
@@ -26,7 +27,8 @@ import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
 @Import({
-    ChallengeService.class
+    ChallengeService.class,
+    ChallengeMapperImpl.class
 })
 class ChallengeServiceTest {
 
@@ -296,10 +298,10 @@ class ChallengeServiceTest {
         testParticipation.leaveChallenge();
         participationRepository.save(testParticipation);
 
-        List<ChallengeJoinedDto> challenges = challengeService.getChallengesByMember(testMember);
+        List<ChallengeJoinedResult> challenges = challengeService.getChallengesByMember(testMember);
 
         assertThat(challenges).hasSize(1);
-        ChallengeJoinedDto challengeDto = challenges.get(0);
+        ChallengeJoinedResult challengeDto = challenges.get(0);
         assertThat(challengeDto.participationStatus()).isFalse();
     }
 
@@ -315,10 +317,10 @@ class ChallengeServiceTest {
                 .build();
         participationRepository.save(newParticipation);
 
-        List<ChallengeJoinedDto> challenges = challengeService.getChallengesByMember(testMember);
+        List<ChallengeJoinedResult> challenges = challengeService.getChallengesByMember(testMember);
 
         assertThat(challenges).hasSize(1);
-        ChallengeJoinedDto challengeDto = challenges.get(0);
+        ChallengeJoinedResult challengeDto = challenges.get(0);
         assertThat(challengeDto.participationStatus()).isTrue();
     }
 }

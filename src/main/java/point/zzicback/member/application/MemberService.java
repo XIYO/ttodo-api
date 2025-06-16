@@ -1,11 +1,13 @@
 package point.zzicback.member.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.*;
 import point.zzicback.member.application.dto.command.*;
-import point.zzicback.member.domain.*;
+import point.zzicback.member.application.dto.result.MemberResult;
+import point.zzicback.member.domain.Member;
 import point.zzicback.member.infrastructure.persistence.JpaMemberRepository;
 
 import java.util.*;
@@ -58,5 +60,17 @@ public class MemberService {
     Member member = memberRepository.findById(command.memberId())
         .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, command.memberId()));
     member.setNickname(command.nickname());
+  }
+
+  @Transactional(readOnly = true)
+  public Page<MemberResult> getMembers(Pageable pageable) {
+    return memberRepository.findAll(pageable)
+            .map(member -> new MemberResult(member.getId(), member.getEmail(), member.getNickname()));
+  }
+
+  @Transactional(readOnly = true)
+  public MemberResult getMember(UUID memberId) {
+    var member = findByIdOrThrow(memberId);
+    return new MemberResult(member.getId(), member.getEmail(), member.getNickname());
   }
 }

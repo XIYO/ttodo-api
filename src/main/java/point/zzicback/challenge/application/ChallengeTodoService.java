@@ -1,23 +1,20 @@
 package point.zzicback.challenge.application;
 
+import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import point.zzicback.challenge.application.dto.result.ChallengeTodoResult;
+import point.zzicback.challenge.application.mapper.ChallengeTodoMapper;
 import point.zzicback.challenge.domain.*;
-import point.zzicback.challenge.infrastructure.ChallengeParticipationRepository;
-import point.zzicback.challenge.infrastructure.ChallengeTodoRepository;
-import point.zzicback.challenge.application.dto.result.ChallengeTodoDto;
-import point.zzicback.common.error.BusinessException;
+import point.zzicback.challenge.infrastructure.*;
+import point.zzicback.common.error.*;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.domain.Member;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -27,6 +24,7 @@ public class ChallengeTodoService {
     private final ChallengeTodoRepository challengeTodoRepository;
     private final ChallengeParticipationRepository participationRepository;
     private final ChallengeService challengeService;
+    private final ChallengeTodoMapper challengeTodoMapper;
     
     @PersistenceContext
     private EntityManager entityManager;
@@ -90,7 +88,7 @@ public class ChallengeTodoService {
     }
     
     @Transactional(readOnly = true)
-    public List<ChallengeTodoDto> getAllChallengeTodos(Member member) {
+    public List<ChallengeTodoResult> getAllChallengeTodos(Member member) {
         List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
 
         return participations.stream()
@@ -99,17 +97,17 @@ public class ChallengeTodoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChallengeTodoDto> getAllChallengeTodos(Member member, Pageable pageable) {
-        List<ChallengeTodoDto> allTodos = getAllChallengeTodos(member);
+    public Page<ChallengeTodoResult> getAllChallengeTodos(Member member, Pageable pageable) {
+        List<ChallengeTodoResult> allTodos = getAllChallengeTodos(member);
         allTodos = applySorting(allTodos, pageable.getSort());
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allTodos.size());
-        List<ChallengeTodoDto> pagedTodos = allTodos.subList(start, end);
+        List<ChallengeTodoResult> pagedTodos = allTodos.subList(start, end);
         return new PageImpl<>(pagedTodos, pageable, allTodos.size());
     }
  
     @Transactional(readOnly = true)
-    public List<ChallengeTodoDto> getUncompletedChallengeTodos(Member member) {
+    public List<ChallengeTodoResult> getUncompletedChallengeTodos(Member member) {
         List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
 
         return participations.stream()
@@ -118,17 +116,17 @@ public class ChallengeTodoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChallengeTodoDto> getUncompletedChallengeTodos(Member member, Pageable pageable) {
-        List<ChallengeTodoDto> allTodos = getUncompletedChallengeTodos(member);
+    public Page<ChallengeTodoResult> getUncompletedChallengeTodos(Member member, Pageable pageable) {
+        List<ChallengeTodoResult> allTodos = getUncompletedChallengeTodos(member);
         allTodos = applySorting(allTodos, pageable.getSort());
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allTodos.size());
-        List<ChallengeTodoDto> pagedTodos = allTodos.subList(start, end);
+        List<ChallengeTodoResult> pagedTodos = allTodos.subList(start, end);
         return new PageImpl<>(pagedTodos, pageable, allTodos.size());
     }
 
     @Transactional(readOnly = true)
-    public List<ChallengeTodoDto> getCompletedChallengeTodos(Member member) {
+    public List<ChallengeTodoResult> getCompletedChallengeTodos(Member member) {
         List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
 
         return participations.stream()
@@ -137,16 +135,16 @@ public class ChallengeTodoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChallengeTodoDto> getCompletedChallengeTodos(Member member, Pageable pageable) {
-        List<ChallengeTodoDto> allTodos = getCompletedChallengeTodos(member);
+    public Page<ChallengeTodoResult> getCompletedChallengeTodos(Member member, Pageable pageable) {
+        List<ChallengeTodoResult> allTodos = getCompletedChallengeTodos(member);
         allTodos = applySorting(allTodos, pageable.getSort());
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allTodos.size());
-        List<ChallengeTodoDto> pagedTodos = allTodos.subList(start, end);
+        List<ChallengeTodoResult> pagedTodos = allTodos.subList(start, end);
         return new PageImpl<>(pagedTodos, pageable, allTodos.size());
     }
 
-    private Stream<ChallengeTodoDto> createChallengeTodoStream(ChallengeParticipation participation) {
+    private Stream<ChallengeTodoResult> createChallengeTodoStream(ChallengeParticipation participation) {
         LocalDate currentDate = LocalDate.now();
         var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
         PeriodType periodType = participation.getChallenge().getPeriodType();
@@ -168,13 +166,13 @@ public class ChallengeTodoService {
             if (!todo.isInPeriod(periodType, currentDate)) {
                 return Stream.empty();
             }
-            return Stream.of(ChallengeTodoDto.from(todo));
+            return Stream.of(challengeTodoMapper.toResult(todo));
         } else {
-            return Stream.of(ChallengeTodoDto.from(virtualTodo));
+            return Stream.of(challengeTodoMapper.toResult(virtualTodo));
         }
     }
 
-    private Stream<ChallengeTodoDto> createUncompletedChallengeTodoStream(ChallengeParticipation participation) {
+    private Stream<ChallengeTodoResult> createUncompletedChallengeTodoStream(ChallengeParticipation participation) {
         try {
             LocalDate currentDate = LocalDate.now();
             var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
@@ -198,19 +196,19 @@ public class ChallengeTodoService {
                     return Stream.empty();
                 }
                 if (!todo.isCompleted()) {
-                    return Stream.of(ChallengeTodoDto.from(todo));
+                    return Stream.of(challengeTodoMapper.toResult(todo));
                 } else {
                     return Stream.empty();
                 }
             } else {
-                return Stream.of(ChallengeTodoDto.from(virtualTodo));
+                return Stream.of(challengeTodoMapper.toResult(virtualTodo));
             }
         } catch (Exception e) {
             return Stream.empty();
         }
     }
 
-    private Stream<ChallengeTodoDto> createCompletedChallengeTodoStream(ChallengeParticipation participation) {
+    private Stream<ChallengeTodoResult> createCompletedChallengeTodoStream(ChallengeParticipation participation) {
         try {
             LocalDate currentDate = LocalDate.now();
             var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
@@ -223,9 +221,9 @@ public class ChallengeTodoService {
                 return Stream.empty();
             }
             
-            return challengeTodoRepository.findByChallengeParticipation(participation)
+        return challengeTodoRepository.findByChallengeParticipation(participation)
                     .filter(ChallengeTodo::isCompleted)
-                    .map(ChallengeTodoDto::from)
+                    .map(challengeTodoMapper::toResult)
                     .map(Stream::of)
                     .orElse(Stream.empty());
         } catch (Exception e) {
@@ -270,13 +268,13 @@ public class ChallengeTodoService {
         completeChallenge(participation, currentDate);
     }
 
-    private List<ChallengeTodoDto> applySorting(List<ChallengeTodoDto> todos, Sort sort) {
+    private List<ChallengeTodoResult> applySorting(List<ChallengeTodoResult> todos, Sort sort) {
         if (sort.isEmpty()) return todos;
         
-        Comparator<ChallengeTodoDto> finalComparator = null;
+        Comparator<ChallengeTodoResult> finalComparator = null;
         
         for (Sort.Order order : sort) {
-            Comparator<ChallengeTodoDto> currentComparator = getComparatorByProperty(order.getProperty());
+            Comparator<ChallengeTodoResult> currentComparator = getComparatorByProperty(order.getProperty());
             
             if (order.isDescending()) {
                 currentComparator = currentComparator.reversed();
@@ -288,17 +286,17 @@ public class ChallengeTodoService {
         }
         
         return todos.stream()
-                .sorted(finalComparator != null ? finalComparator : Comparator.comparing(ChallengeTodoDto::id, Comparator.nullsLast(Comparator.naturalOrder())))
+                .sorted(finalComparator != null ? finalComparator : Comparator.comparing(ChallengeTodoResult::id, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }
 
-    private Comparator<ChallengeTodoDto> getComparatorByProperty(String property) {
+    private Comparator<ChallengeTodoResult> getComparatorByProperty(String property) {
         return switch (property) {
-            case "challengeTitle" -> Comparator.comparing(ChallengeTodoDto::challengeTitle, Comparator.nullsLast(String::compareTo));
-            case "startDate" -> Comparator.comparing(ChallengeTodoDto::startDate, Comparator.nullsLast(Comparator.naturalOrder()));  
-            case "endDate" -> Comparator.comparing(ChallengeTodoDto::endDate, Comparator.nullsLast(Comparator.naturalOrder()));
-            case "periodType" -> Comparator.comparing(ChallengeTodoDto::periodType, Comparator.nullsLast(Comparator.naturalOrder()));
-            default -> Comparator.comparing(ChallengeTodoDto::id, Comparator.nullsLast(Comparator.naturalOrder()));
+            case "challengeTitle" -> Comparator.comparing(ChallengeTodoResult::challengeTitle, Comparator.nullsLast(String::compareTo));
+            case "startDate" -> Comparator.comparing(ChallengeTodoResult::startDate, Comparator.nullsLast(Comparator.naturalOrder()));  
+            case "endDate" -> Comparator.comparing(ChallengeTodoResult::endDate, Comparator.nullsLast(Comparator.naturalOrder()));
+            case "periodType" -> Comparator.comparing(ChallengeTodoResult::periodType, Comparator.nullsLast(Comparator.naturalOrder()));
+            default -> Comparator.comparing(ChallengeTodoResult::id, Comparator.nullsLast(Comparator.naturalOrder()));
         };
     }
 

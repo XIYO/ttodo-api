@@ -4,43 +4,85 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.zzicback.common.error.EntityNotFoundException;
+import point.zzicback.category.domain.Category;
+import point.zzicback.category.infrastructure.CategoryRepository;
+import point.zzicback.common.error.*;
 import point.zzicback.member.application.MemberService;
-import point.zzicback.todo.application.dto.command.CreateTodoCommand;
-import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
-import point.zzicback.todo.application.dto.query.TodoListQuery;
-import point.zzicback.todo.application.dto.query.TodoQuery;
+import point.zzicback.todo.application.dto.command.*;
+import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
-import point.zzicback.todo.domain.Todo;
-import point.zzicback.todo.domain.TodoRepository;
+import point.zzicback.todo.domain.*;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class TodoService {
   private final TodoRepository todoRepository;
+  private final CategoryRepository categoryRepository;
   private final MemberService memberService;
 
   public Page<TodoResult> getTodoList(TodoListQuery query) {
-    Page<Todo> todoPage = todoRepository.findByMemberIdAndDone(query.memberId(), query.done(), query.pageable());
-    return todoPage.map(todo -> new TodoResult(todo.getId(), todo.getTitle(), todo.getDescription(), todo.getDone()));
+    Page<Todo> todoPage;
+    
+    if (query.status() == TodoStatus.OVERDUE) {
+      todoPage = todoRepository.findOverdueTodos(query.memberId(), LocalDate.now(), query.pageable());
+    }
+    else if (query.status() != null) {
+      todoPage = todoRepository.findByMemberIdAndStatus(query.memberId(), query.status(), query.pageable());
+    }
+    else {
+      todoPage = todoRepository.findByMemberId(query.memberId(), query.pageable());
+    }
+    
+    return todoPage.map(this::toTodoResult);
   }
 
   public TodoResult getTodo(TodoQuery query) {
     return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
-            .map(todo -> new TodoResult(todo.getId(), todo.getTitle(), todo.getDescription(), todo.getDone()))
+            .map(this::toTodoResult)
             .orElseThrow(() -> new EntityNotFoundException("Todo", query.todoId()));
+  }
+
+  private TodoResult toTodoResult(Todo todo) {
+    TodoStatus actualStatus = todo.getActualStatus();
+    return new TodoResult(
+            todo.getId(),
+            todo.getTitle(),
+            todo.getDescription(),
+            actualStatus,
+            todo.getPriority(),
+            todo.getCategory() != null ? todo.getCategory().getId() : null,
+            todo.getCategory() != null ? todo.getCategory().getName() : null,
+            todo.getDueDate(),
+            todo.getRepeatType(),
+            todo.getTags(),
+            todo.getDisplayCategory(),
+            todo.getActualDisplayStatus()
+    );
   }
 
   @Transactional
   public void createTodo(CreateTodoCommand command) {
     var member = memberService.findVerifiedMember(command.memberId());
+    
+    Category category = null;
+    if (command.categoryId() != null) {
+      category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+              .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
+    }
+    
     Todo todo = Todo.builder()
             .title(command.title())
             .description(command.description())
-            .done(false)
+            .priority(command.priority())
+            .category(category)
+            .dueDate(command.dueDate())
+            .repeatType(command.repeatType())
+            .tags(command.tags())
+            .member(member)
             .build();
-    todo.setMember(member);
     todoRepository.save(todo);
   }
 
@@ -48,23 +90,54 @@ public class TodoService {
   public void updateTodo(UpdateTodoCommand command) {
     Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
             .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
+    
+    Category category = null;
+    if (command.categoryId() != null) {
+      category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+              .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
+    }
+    
     todo.setTitle(command.title());
     todo.setDescription(command.description());
-    todo.setDone(command.done());
+    todo.setStatus(command.status());
+    todo.setPriority(command.priority());
+    todo.setCategory(category);
+    todo.setDueDate(command.dueDate());
+    todo.setRepeatType(command.repeatType());
+    todo.setTags(command.tags());
   }
 
   @Transactional
   public void partialUpdateTodo(UpdateTodoCommand command) {
     Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
             .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
-    if (command.title() != null) {
+    
+    if (command.categoryId() != null) {
+      Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+              .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
+      todo.setCategory(category);
+    }
+    
+    if (command.title() != null && !command.title().trim().isEmpty()) {
       todo.setTitle(command.title());
     }
-    if (command.description() != null) {
+    if (command.description() != null && !command.description().trim().isEmpty()) {
       todo.setDescription(command.description());
     }
-    if (command.done() != null) {
-      todo.setDone(command.done());
+    if (command.status() != null) {
+      todo.setStatus(command.status());
+    }
+    if (command.priority() != null) {
+      todo.setPriority(command.priority());
+    }
+    if (command.dueDate() != null) {
+      todo.setDueDate(command.dueDate());
+    }
+    if (command.repeatType() != null) {
+      todo.setRepeatType(command.repeatType());
+    }
+    if (command.tags() != null) {
+      todo.setTags(command.tags());
     }
   }
 

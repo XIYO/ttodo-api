@@ -1,11 +1,12 @@
 package point.zzicback.challenge.application.dto.result;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import point.zzicback.challenge.domain.PeriodType;
-import java.time.LocalDate;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public record ChallengeDto(
+import java.time.LocalDate;
+import java.util.List;
+import point.zzicback.challenge.application.dto.result.ParticipantResult;
+
+public record ChallengeDetailResult(
         Long id,
         String title,
         String description,
@@ -13,7 +14,7 @@ public record ChallengeDto(
         LocalDate endDate,
         PeriodType periodType,
         Boolean participationStatus,
-        Integer participantCount,
-        Float successRate
+        Integer activeParticipantCount,
+        List<ParticipantResult> participants
 ) {
 }

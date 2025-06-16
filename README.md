@@ -1,6 +1,70 @@
 # ZZIC-BACK
 
-ZZIC 의 백엔드 서버입니다.
+ZZIC의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통한 동기부여 기능을 제공합니다.
+
+## 기술 스택
+
+### Backend
+- **Java 24** - 최신 Java 기능 활용
+- **Spring Boot 3.5.0** - 백엔드 프레임워크
+- **Spring Security** - 인증/인가 처리
+- **Spring Data JPA** - ORM 및 데이터베이스 연동
+- **Spring Data Redis** - 토큰 저장소 및 캐싱
+- **Spring Validation** - 입력 데이터 검증
+
+### Database
+- **PostgreSQL** - 운영 데이터베이스
+- **H2** - 개발/테스트 데이터베이스
+- **Redis** - 토큰 저장소 및 세션 관리
+
+### Documentation & Testing
+- **Swagger/OpenAPI 3** - API 문서화
+- **JUnit 5** - 단위 테스트
+- **Spring Boot Test** - 통합 테스트
+
+### Libraries
+- **Lombok** - 보일러플레이트 코드 제거
+- **MapStruct** - 객체 매핑
+- **JWT** - 토큰 기반 인증
+
+### DevOps
+- **Docker** - 컨테이너화
+- **Docker Compose** - 로컬 개발 환경
+- **GitHub Actions** - CI/CD
+- **GitHub Container Registry** - 이미지 저장소
+
+## 프로젝트 구조
+
+```
+src/
+├── main/java/point/zzicback/
+│   ├── auth/                    # 인증/인가 관련
+│   │   ├── application/         # 토큰 서비스
+│   │   ├── config/              # 인증 설정
+│   │   ├── domain/              # 인증 도메인
+│   │   ├── infrastructure/      # 토큰 저장소
+│   │   ├── presentation/        # 인증 API
+│   │   └── security/            # 보안 설정
+│   ├── member/                  # 회원 관리
+│   │   ├── application/         # 회원 서비스
+│   │   ├── domain/              # 회원 도메인
+│   │   └── infrastructure/      # 회원 데이터 저장소
+│   ├── todo/                    # 개인 TODO 관리
+│   │   ├── application/         # TODO 서비스
+│   │   ├── domain/              # TODO 도메인
+│   │   ├── infrastructure/      # TODO 데이터 저장소
+│   │   └── presentation/        # TODO API
+│   ├── challenge/               # 챌린지 관리
+│   │   ├── application/         # 챌린지 서비스
+│   │   ├── domain/              # 챌린지 도메인
+│   │   ├── infrastructure/      # 챌린지 데이터 저장소
+│   │   └── presentation/        # 챌린지 API
+│   └── common/                  # 공통 유틸리티
+│       ├── config/              # 공통 설정
+│       ├── error/               # 예외 처리
+│       └── validation/          # 검증 유틸리티
+└── test/                        # 테스트 코드
+```
 
 ## 토큰 저장소 설정
 
@@ -94,57 +158,170 @@ docker-compose -f docker-compose.local.yml down
 docker-compose -f docker-compose.local.yml down -v
 ```
 
-## 구현 목표
+## 주요 기능
 
-- TODO 생성
-- TODO 조회
-- TODO 수정
-- TODO 삭제
+- 사용자 인증 (회원가입, 로그인, 로그아웃, 토큰 갱신)
+- 개인 TODO 관리 (생성, 조회, 수정, 삭제)
+- 챌린지 관리 (생성, 조회, 수정, 삭제, 참여/탈퇴)
+- 챌린지 TODO 관리 (조회, 완료/취소)
 
 ## API 명세서
 
-| HTTP Method | Endpoint         | 설명                     | 요청 Body            | 응답 Body             | 상태 코드 및 설명                        |
-|-------------|------------------|--------------------------|----------------------|-----------------------|-----------------------------------------|
-| **GET**     | `/api/todo`      | Todo 목록 조회           | 없음                 | `List<TodoMainResponse>` | `200`: 성공적으로 Todo 목록을 조회함    |
-| **GET**     | `/api/todo/{id}` | 특정 Todo 조회           | 없음                 | `Todo`                | `200`: 성공적으로 Todo를 조회함<br>`404`: 해당 ID의 Todo를 찾을 수 없음 |
-| **POST**    | `/api/todo`      | Todo 등록                | `CreateTodoRequest`  | 없음                  | `201`: 성공적으로 Todo를 생성함<br>`400`: 잘못된 요청 데이터 |
-| **PUT**     | `/api/todo/{id}` | Todo 수정                | `UpdateTodoRequest`  | 없음                  | `204`: 성공적으로 Todo를 수정함<br>`400`: 잘못된 요청 데이터<br>`404`: 해당 ID의 Todo를 찾을 수 없음 |
-| **DELETE**  | `/api/todo/{id}` | Todo 삭제                | 없음                 | 없음                  | `204`: 성공적으로 Todo를 삭제함<br>`404`: 해당 ID의 Todo를 찾을 수 없음 |
+### 인증 (Authentication)
+| HTTP Method | Endpoint | 설명 | 요청 Body | 응답 Body | 상태 코드 |
+|-------------|----------|------|-----------|-----------|-----------|
+| **POST** | `/auth/sign-up` | 회원가입 및 자동 로그인 | `SignUpRequest` | 없음 (쿠키 설정) | `200`: 성공<br>`400`: 잘못된 요청<br>`409`: 이메일 중복 |
+| **POST** | `/auth/sign-in` | 로그인 | `SignInRequest` | 없음 (쿠키 설정) | `200`: 성공<br>`401`: 인증 실패 |
+| **POST** | `/auth/sign-out` | 로그아웃 | 없음 | 없음 | `200`: 성공 |
+| **GET** | `/auth/refresh` | 토큰 갱신 | 없음 | 없음 | `200`: 성공<br>`401`: 갱신 실패 |
+
+### 개인 TODO 관리
+| HTTP Method | Endpoint | 설명 | 요청 Body | 응답 Body | 상태 코드 |
+|-------------|----------|------|-----------|-----------|-----------|
+| **GET** | `/api/members/{memberId}/todos` | TODO 목록 조회 (페이징) | 없음 | `Page<TodoResponse>` | `200`: 성공 |
+| **GET** | `/api/members/{memberId}/todos/{id}` | 특정 TODO 조회 | 없음 | `TodoResponse` | `200`: 성공<br>`404`: 찾을 수 없음 |
+| **POST** | `/api/members/{memberId}/todos` | TODO 생성 | `CreateTodoRequest` | 없음 | `201`: 성공<br>`400`: 잘못된 요청 |
+| **PUT** | `/api/members/{memberId}/todos/{id}` | TODO 전체 수정 | `UpdateTodoRequest` | 없음 | `204`: 성공<br>`400`: 잘못된 요청<br>`404`: 찾을 수 없음 |
+| **PATCH** | `/api/members/{memberId}/todos/{id}` | TODO 부분 수정 | `UpdateTodoRequest` | 없음 | `204`: 성공<br>`400`: 잘못된 요청<br>`404`: 찾을 수 없음 |
+| **DELETE** | `/api/members/{memberId}/todos/{id}` | TODO 삭제 | 없음 | 없음 | `204`: 성공<br>`404`: 찾을 수 없음 |
+
+**쿼리 파라미터:**
+- `done`: 완료 상태 필터 (true/false, 기본값: false)
+- `page`: 페이지 번호 (기본값: 0)
+- `size`: 페이지 크기 (기본값: 10)
+- `sort`: 정렬 방식 (기본값: "id,desc")
+
+### 챌린지 관리
+| HTTP Method | Endpoint | 설명 | 요청 Body | 응답 Body | 상태 코드 |
+|-------------|----------|------|-----------|-----------|-----------|
+| **POST** | `/challenges` | 챌린지 생성 | `CreateChallengeCommand` | `CreateChallengeResponse` | `200`: 성공 |
+| **GET** | `/challenges` | 모든 챌린지 조회 (페이징) | 없음 | `Page<ChallengeDto>` | `200`: 성공 |
+| **GET** | `/challenges/{challengeId}` | 특정 챌린지 상세 조회 | 없음 | `ChallengeDto` | `200`: 성공<br>`404`: 찾을 수 없음 |
+| **PATCH** | `/challenges/{challengeId}` | 챌린지 수정 | `UpdateChallengeCommand` | 없음 | `200`: 성공<br>`404`: 찾을 수 없음 |
+| **DELETE** | `/challenges/{challengeId}` | 챌린지 삭제 | 없음 | 없음 | `200`: 성공<br>`404`: 찾을 수 없음 |
+| **GET** | `/challenges/with-participants` | 챌린지 및 참여자 목록 조회 | 없음 | `Page<ChallengeDetailDto>` | `200`: 성공 |
+
+**쿼리 파라미터:**
+- `page`: 페이지 번호 (기본값: 0)
+- `size`: 페이지 크기 (기본값: 10)
+- `sort`: 정렬 방식 ("latest", "popular", "id,desc", "id,asc")
+- `search`: 검색 키워드 (제목, 설명에서 검색)
+- `join`: 참여 필터 (true: 참여한 챌린지, false: 참여하지 않은 챌린지)
+
+### 챌린지 참여
+| HTTP Method | Endpoint | 설명 | 요청 Body | 응답 Body | 상태 코드 |
+|-------------|----------|------|-----------|-----------|-----------|
+| **POST** | `/challenge-participations/{challengeId}/join` | 챌린지 참여 | 없음 | 없음 | `200`: 성공<br>`400`: 이미 참여중<br>`404`: 찾을 수 없음 |
+| **DELETE** | `/challenge-participations/{challengeId}/leave` | 챌린지 탈퇴 | 없음 | 없음 | `200`: 성공<br>`400`: 참여하지 않음<br>`404`: 찾을 수 없음 |
+
+### 챌린지 TODO
+| HTTP Method | Endpoint | 설명 | 요청 Body | 응답 Body | 상태 코드 |
+|-------------|----------|------|-----------|-----------|-----------|
+| **GET** | `/challenge-todos` | 현재 기간 챌린지 TODO 조회 | 없음 | `Page<ChallengeTodoResponse>` | `200`: 성공 |
+| **GET** | `/challenge-todos/uncompleted` | 미완료 챌린지 TODO 조회 | 없음 | `Page<ChallengeTodoResponse>` | `200`: 성공 |
+| **GET** | `/challenge-todos/completed` | 완료된 챌린지 TODO 조회 | 없음 | `Page<ChallengeTodoResponse>` | `200`: 성공 |
+| **POST** | `/challenge-todos/{challengeId}/complete` | 챌린지 완료 처리 | 없음 | 없음 | `200`: 성공<br>`404`: 찾을 수 없음 |
+| **DELETE** | `/challenge-todos/{challengeId}/complete` | 챌린지 완료 취소 | 없음 | 없음 | `200`: 성공<br>`404`: 찾을 수 없음 |
+
+**쿼리 파라미터:**
+- `page`: 페이지 번호 (기본값: 0)
+- `size`: 페이지 크기 (기본값: 10)
+- `sort`: 정렬 방식 (기본값: "id,desc")
+
+## 인증 방식
+- **JWT 토큰**: HTTP-Only 쿠키로 관리
+- **리프레시 토큰**: 토큰 갱신을 위한 별도 쿠키
+- **보안**: 모든 API는 인증이 필요 (일부 챌린지 조회 API는 선택적 인증)
+
+## 접근 방법
+- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
+- **API 문서**: http://localhost:8080/v3/api-docs
 
 ## QA 목표
 
-- 각 API의 성공 및 실패 시나리오를 테스트합니다.
-- 예상 응답 코드와 실제 응답 코드가 일치하는지 확인합니다.
-- 요청 및 응답 데이터의 유효성을 검증합니다.
-
-## QA Checklist
-
-| 체크 | HTTP Method | Endpoint         | 테스트 케이스 설명                            | 예상 상태 코드 | 테스트 결과 |
-|------|-------------|------------------|-----------------------------------------------|----------------|-------------|
-| [ ]  | **GET**     | `/api/todo`      | Todo 목록을 성공적으로 조회합니다.             | `200 OK`       |             |
-| [ ]  | **GET**     | `/api/todo/{id}` | 특정 Todo를 성공적으로 조회합니다.             | `200 OK`       |             |
-| [ ]  | **GET**     | `/api/todo/{id}` | 존재하지 않는 Todo ID로 조회 시 오류 발생.     | `404 Not Found`|             |
-| [ ]  | **POST**    | `/api/todo`      | 올바른 데이터를 사용하여 Todo를 성공적으로 생성합니다. | `201 Created`  |             |
-| [ ]  | **POST**    | `/api/todo`      | 잘못된 데이터를 사용하여 Todo 생성 시 오류 발생. | `400 Bad Request`|             |
-| [ ]  | **PUT**     | `/api/todo/{id}` | 특정 Todo를 성공적으로 수정합니다.             | `204 No Content`|             |
-| [ ]  | **PUT**     | `/api/todo/{id}` | 존재하지 않는 Todo ID로 수정 시 오류 발생.     | `404 Not Found`|             |
-| [ ]  | **PUT**     | `/api/todo/{id}` | 잘못된 데이터를 사용하여 Todo 수정 시 오류 발생.| `400 Bad Request`|             |
-| [ ]  | **DELETE**  | `/api/todo/{id}` | 특정 Todo를 성공적으로 삭제합니다.             | `204 No Content`|             |
-| [ ]  | **DELETE**  | `/api/todo/{id}` | 존재하지 않는 Todo ID로 삭제 시 오류 발생.     | `404 Not Found`|             |
+각 API의 성공 및 실패 시나리오를 테스트하여 시스템의 안정성과 기능성을 검증합니다.
 
 ## QA 진행 방법
 
-1. **테스트 준비:**
-    - Swagger 또는 Postman을 사용하여 각 API에 대한 요청을 준비합니다.
-    - 테스트 데이터를 사전에 설정합니다.
+1. **테스트 준비**
+   - Swagger UI (http://localhost:8080/swagger-ui/index.html) 또는 Postman 사용
+   - 테스트용 사용자 계정 생성
+   - 테스트 데이터 준비
 
-2. **테스트 실행:**
-    - 각 테스트 케이스에 대해 API 요청을 실행합니다.
-    - 응답 상태 코드와 데이터를 확인합니다.
+2. **테스트 실행**
+   - 각 API 엔드포인트에 대한 정상/비정상 시나리오 테스트
+   - 응답 상태 코드 및 데이터 검증
+   - 인증이 필요한 API의 경우 토큰 검증
 
-3. **결과 기록:**
-    - 각 테스트 케이스의 결과를 테이블의 "테스트 결과" 열에 기록합니다.
-    - 성공한 테스트는 체크박스를 활성화합니다.
+3. **결과 기록**
+   - 테스트 결과 문서화
+   - 발견된 이슈 추적 및 해결
 
-4. **이슈 발생 시:**
-    - 발견된 문제를 기록하고, 개발자와 공유하여 수정합니다.
+## 주요 테스트 시나리오
+
+### 인증 테스트
+- 회원가입 성공/실패 케이스
+- 로그인 성공/실패 케이스
+- 토큰 갱신 테스트
+- 로그아웃 테스트
+
+### TODO 관리 테스트
+- CRUD 작업 테스트
+- 페이징 및 정렬 테스트
+- 권한 검증 (다른 사용자의 TODO 접근 제한)
+
+### 챌린지 관리 테스트
+- 챌린지 생성, 수정, 삭제 테스트
+- 챌린지 검색 및 필터링 테스트
+- 참여/탈퇴 기능 테스트
+- 챌린지 완료 처리 테스트
+
+### 에러 핸들링 테스트
+- 잘못된 요청 데이터 처리
+- 존재하지 않는 리소스 접근
+- 권한 없는 접근 시도
+- 서버 오류 상황 처리
+
+## 빠른 시작 가이드
+
+### 1. 프로젝트 클론 및 실행
+
+```bash
+# 프로젝트 클론
+git clone [repository-url]
+cd ZZIC-api
+
+# 애플리케이션 실행 (로컬 모드)
+./gradlew bootRun
+
+# 또는 Docker Compose로 실행
+./gradlew build
+docker-compose -f docker-compose.local.yml up -d
+```
+
+### 2. API 테스트
+
+1. **Swagger UI 접속**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+2. **회원가입**: `POST /auth/sign-up`으로 계정 생성
+3. **로그인**: 자동으로 로그인되며 쿠키에 토큰 저장
+4. **API 테스트**: 인증이 필요한 API들을 테스트
+
+### 3. 개발 시 주의사항
+
+- 개발 환경에서는 H2 인메모리 데이터베이스 사용
+- 운영 환경에서는 PostgreSQL과 Redis 필요
+- 모든 API는 JWT 토큰 기반 인증 필요 (일부 조회 API 제외)
+- 토큰은 HTTP-Only 쿠키로 관리되어 XSS 공격 방지
+
+## DDD 설계 개선 사항
+
+아래는 DDD 관점에서 엔드포인트 및 메서드 설계를 개선하기 위한 주요 제안사항입니다.
+
+- **Presentation과 Application 계층의 DTO 분리**: 현재 `ChallengeController` 등에서 Application Command 객체를 직접 요청 바디로 사용하고 있습니다. Presentation 전용 DTO(Request/Response)를 정의하고 Mapper를 통해 Command/Query 객체로 변환하여 계층 간 결합도를 낮추세요.
+- **일관된 엔드포인트 네이밍 및 구조**: `TodoController`는 `/api/members/...` prefix를 사용하지만, `ChallengeController`는 `/challenges`로 prefix 없이 사용합니다. 모든 API에 `/api/v1/` 등의 버전화된 prefix를 적용하고, 리소스 명칭 또한 복수형으로 일관되게 관리하세요.
+- **RESTful 리소스 설계 준수**: `/challenge-participations/{challengeId}/join`과 같은 RPC 스타일 엔드포인트 대신 `POST /challenges/{challengeId}/participants` 및 `DELETE /challenges/{challengeId}/participants/{memberId}` 형태로 자원을 명시적으로 표현하세요.
+- **공통 Pageable 및 Sort 처리 로직 추출**: 여러 컨트롤러에서 중복된 `Pageable` 생성 로직이 존재합니다. Presentation 계층에서 HandlerMethodArgumentResolver 등을 활용해 자동 바인딩하도록 리팩토링하세요.
+- **HTTP Status Code 통일성**: POST 생성 시 `201 Created`, PATCH/PUT/DELETE 무응답 시 `204 No Content`를 일관되게 사용하여 클라이언트 예측 가능성을 높이세요.
+- **리소스 계층 네스트 구조 개선**: Challenge Todo API가 최상위 엔드포인트로 분리되어 있지만, DDD 관점에서는 Challenge Aggregate의 서브 리소스로 간주할 수 있습니다. `GET /challenges/{challengeId}/todos` 형태로 계층적 리소스 구조를 검토하세요.
+- **필터 및 상태 파라미터 표준화**: 일부 API는 `done`(boolean), 일부는 별도 엔드포인트(`/uncompleted`, `/completed`)를 사용합니다. 쿼리 파라미터(`status=completed|uncompleted`)로 통합하여 API 수를 줄이고 일관성을 확보하세요.
+- **API 버전 관리 도입**: Breaking Change를 대비하여 URL 또는 Header 기반 API 버전 관리 전략(v1, v2 등)을 적용하는 것을 권장합니다.

@@ -1,9 +1,7 @@
 package point.zzicback.challenge.infrastructure;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.repository.*;
 import point.zzicback.challenge.domain.Challenge;
 
 import java.util.List;

@@ -7,8 +7,7 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import point.zzicback.auth.config.properties.JwtProperties;
-import point.zzicback.auth.domain.MemberPrincipal;
-import point.zzicback.auth.domain.TokenRepository;
+import point.zzicback.auth.domain.*;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
@@ -82,7 +81,7 @@ public class TokenService {
     try {
       jwtDecoder.decode(token);
       return true;
-    } catch (JwtException _) {
+    } catch (JwtException e) {
       return false;
     }
   }

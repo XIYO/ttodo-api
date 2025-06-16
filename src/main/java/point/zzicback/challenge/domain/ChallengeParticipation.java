@@ -5,8 +5,7 @@ import lombok.*;
 import point.zzicback.member.domain.Member;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -1,33 +1,35 @@
 package point.zzicback.challenge.presentation.mapper;
 
 import org.mapstruct.*;
+import point.zzicback.challenge.application.dto.command.*;
 import point.zzicback.challenge.application.dto.result.*;
 import point.zzicback.challenge.domain.*;
+import point.zzicback.challenge.presentation.dto.request.CreateChallengeRequest;
+import point.zzicback.challenge.presentation.dto.request.UpdateChallengeRequest;
+import point.zzicback.challenge.presentation.dto.response.ChallengeResponse;
+import point.zzicback.challenge.presentation.dto.response.ChallengeDetailResponse;
+import point.zzicback.challenge.presentation.dto.response.ParticipantResponse;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ChallengePresentationMapper {
 
-    default ChallengeListDto toListDto(Challenge challenge) {
-        if (challenge == null) return null;
-        return new ChallengeListDto(
-                challenge.getId(),
-                challenge.getTitle(),
-                challenge.getDescription(),
-                challenge.getStartDate(),
-                challenge.getEndDate(),
-                challenge.getPeriodType(),
-                false,
-                (int) challenge.getParticipations().stream()
-                        .filter(participation -> participation.getJoinOut() == null)
-                        .count()
-        );
-    }
+    /** Presentation 레이어 요청 DTO -> Application Command 변환 */
+    CreateChallengeCommand toCommand(CreateChallengeRequest request);
 
-    default ChallengeDto toDto(Challenge challenge) {
+    /** Presentation 레이어 요청 DTO -> Application Command 변환 */
+    UpdateChallengeCommand toCommand(UpdateChallengeRequest request);
+
+    /** Application 결과 DTO -> Presentation 응답 변환 */
+    ChallengeResponse toResponse(ChallengeListResult dto);
+
+    /** Application 상세 결과 DTO -> Presentation 응답 변환 */
+    ChallengeDetailResponse toResponse(ChallengeResult dto);
+
+    default ChallengeResult toResult(Challenge challenge) {
         if (challenge == null) return null;
-        return new ChallengeDto(
+        return new ChallengeResult(
                 challenge.getId(),
                 challenge.getTitle(),
                 challenge.getDescription(),
@@ -46,23 +48,28 @@ public interface ChallengePresentationMapper {
     @Mapping(target = "email", source = "member.email")
     @Mapping(target = "nickname", source = "member.nickname")
     @Mapping(target = "joinedAt", source = "joinedAt")
-    ParticipantDto toParticipantDto(ChallengeParticipation participation);
+    ParticipantResult toParticipantResult(ChallengeParticipation participation);
 
-    default ChallengeDetailDto toDetailDto(Challenge challenge) {
+    /** Application DTO -> Presentation 레이어 응답 DTO 변환 */
+    ParticipantResponse toResponse(ParticipantResult dto);
+
+    default ChallengeDetailResult toDetailResult(Challenge challenge) {
         if (challenge == null) return null;
         
-        List<ParticipantDto> activeParticipants = challenge.getParticipations().stream()
+        List<ParticipantResult> activeParticipants = challenge.getParticipations().stream()
                 .filter(participation -> participation.getJoinOut() == null)
-                .map(this::toParticipantDto)
+                .map(this::toParticipantResult)
                 .toList();
         
-        return new ChallengeDetailDto(
+        return new ChallengeDetailResult(
                 challenge.getId(),
                 challenge.getTitle(),
                 challenge.getDescription(),
                 challenge.getStartDate(),
                 challenge.getEndDate(),
                 challenge.getPeriodType(),
+                false,
+                activeParticipants.size(),
                 activeParticipants
         );
     }

@@ -7,9 +7,7 @@ import org.springframework.security.oauth2.server.resource.web.*;
 import org.springframework.stereotype.Component;
 import point.zzicback.auth.config.properties.JwtProperties;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j

@@ -6,45 +6,24 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import point.zzicback.challenge.application.ChallengeParticipationService;
-import point.zzicback.challenge.application.ChallengeTodoService;
-import point.zzicback.challenge.application.ChallengeService;
-import point.zzicback.challenge.domain.Challenge;
-import point.zzicback.challenge.domain.ChallengeParticipation;
-import point.zzicback.challenge.domain.PeriodType;
-import point.zzicback.challenge.infrastructure.ChallengeRepository;
+import org.springframework.data.domain.*;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.domain.Member;
-import point.zzicback.todo.application.dto.command.CreateTodoCommand;
-import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
-import point.zzicback.todo.application.dto.query.TodoListQuery;
-import point.zzicback.todo.application.dto.query.TodoQuery;
+import point.zzicback.todo.application.dto.command.*;
+import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
-// import point.zzicback.todo.application.mapper.TodoApplicationMapperImpl;
-import point.zzicback.todo.domain.Todo;
-import point.zzicback.todo.domain.TodoRepository;
+import point.zzicback.todo.domain.*;
 
-import java.time.LocalDate;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
 @Import({
     TodoService.class,
-    MemberService.class,
-    ChallengeParticipationService.class,
-    ChallengeTodoService.class,
-    ChallengeService.class
+    MemberService.class
 })
-class TodoServiceTest {
+class TodoServiceTestNew {
 
     @Autowired
     private TodoService todoService;
@@ -55,63 +34,62 @@ class TodoServiceTest {
     @Autowired
     private MemberService memberService;
 
-    @Autowired
-    private ChallengeRepository challengeRepository;
-
-    @Autowired
-    private ChallengeParticipationService participationService;
-
     private Member testMember;
     private Todo testTodo;
-    private Challenge testChallenge;
-    private ChallengeParticipation testParticipation;
 
     @BeforeEach
     void setUp() {
-        // 테스트용 멤버 생성
-        CreateMemberCommand createMemberCommand = new CreateMemberCommand("test@test.com", "password", "tester");
-        testMember = memberService.createMember(createMemberCommand);
+        // 테스트용 회원 생성
+        CreateMemberCommand memberCommand = new CreateMemberCommand("test@example.com", "password", "nickname");
+        testMember = memberService.createMember(memberCommand);
 
         // 테스트용 Todo 생성
         testTodo = Todo.builder()
                 .title("테스트 할일")
                 .description("테스트 설명")
-                .done(false)
+                .status(TodoStatus.IN_PROGRESS)
                 .member(testMember)
                 .build();
         todoRepository.save(testTodo);
-
-        // 테스트용 챌린지 생성 및 저장
-        testChallenge = Challenge.builder()
-                .title("테스트 챌린지")
-                .description("챌린지 설명")
-                .periodType(PeriodType.DAILY)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(30))
-                .build();
-        challengeRepository.save(testChallenge);
-
-        // 챌린지 참여 생성 및 저장 (participationService를 통해 저장)
-        participationService.joinChallenge(testChallenge.getId(), testMember);
     }
 
     @Test
-    @DisplayName("Todo 목록 조회 성공 (일반 Todo)")
-    void getTodoList_Success() {
+    @DisplayName("Todo 목록 조회 성공 - status로 필터링")
+    void getTodoListByStatus_Success() {
         // given
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
-        TodoListQuery query = TodoListQuery.of(testMember.getId(), false, pageable);
+        TodoListQuery query = TodoListQuery.of(testMember.getId(), TodoStatus.IN_PROGRESS, pageable);
 
         // when
         Page<TodoResult> result = todoService.getTodoList(query);
 
         // then
-        assertThat(result.getContent()).hasSize(1); // 일반 Todo 1개
+        assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0))
                 .satisfies(todo -> {
                     assertThat(todo.title()).isEqualTo("테스트 할일");
                     assertThat(todo.description()).isEqualTo("테스트 설명");
-                    assertThat(todo.done()).isFalse();
+                    assertThat(todo.status()).isEqualTo(TodoStatus.IN_PROGRESS);
+                });
+    }
+
+    @Test
+    @DisplayName("Todo 목록 조회 성공 - 전체 조회")
+    void getTodoListAll_Success() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
+        TodoListQuery query = TodoListQuery.ofAll(testMember.getId(), pageable);
+
+        // when
+        Page<TodoResult> result = todoService.getTodoList(query);
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0))
+                .satisfies(todo -> {
+                    assertThat(todo.title()).isEqualTo("테스트 할일");
+                    assertThat(todo.description()).isEqualTo("테스트 설명");
+                    assertThat(todo.status()).isEqualTo(TodoStatus.IN_PROGRESS);
                 });
     }
 
@@ -122,21 +100,22 @@ class TodoServiceTest {
         CreateTodoCommand command = new CreateTodoCommand(
                 testMember.getId(),
                 "새로운 할일",
-                "새로운 설명"
+                "새로운 설명",
+                null, null, null, null, null
         );
 
         // when
         todoService.createTodo(command);
 
         // then
-        List<Todo> todos = todoRepository.findByMemberIdAndDone(testMember.getId(), false, PageRequest.of(0, 10)).getContent();
-        assertThat(todos)
+        Page<Todo> todos = todoRepository.findByMemberId(testMember.getId(), PageRequest.of(0, 10));
+        assertThat(todos.getContent())
                 .filteredOn(todo -> todo.getTitle().equals("새로운 할일"))
                 .hasSize(1)
                 .first()
                 .satisfies(todo -> {
                     assertThat(todo.getDescription()).isEqualTo("새로운 설명");
-                    assertThat(todo.getDone()).isFalse();
+                    assertThat(todo.getStatus()).isEqualTo(TodoStatus.IN_PROGRESS);
                 });
     }
 
@@ -149,7 +128,8 @@ class TodoServiceTest {
                 testTodo.getId(),
                 "수정된 할일",
                 "수정된 설명",
-                true
+                TodoStatus.COMPLETED,
+                null, null, null, null, null
         );
 
         // when
@@ -159,7 +139,7 @@ class TodoServiceTest {
         Todo updatedTodo = todoRepository.findById(testTodo.getId()).orElseThrow();
         assertThat(updatedTodo.getTitle()).isEqualTo("수정된 할일");
         assertThat(updatedTodo.getDescription()).isEqualTo("수정된 설명");
-        assertThat(updatedTodo.getDone()).isTrue();
+        assertThat(updatedTodo.getStatus()).isEqualTo(TodoStatus.COMPLETED);
     }
 
     @Test
@@ -171,7 +151,8 @@ class TodoServiceTest {
                 999L,
                 "수정된 할일",
                 "수정된 설명",
-                true
+                TodoStatus.COMPLETED,
+                null, null, null, null, null
         );
 
         // when & then
@@ -187,5 +168,43 @@ class TodoServiceTest {
 
         // then
         assertThat(todoRepository.findById(testTodo.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 Todo 삭제 시 예외 발생")
+    void deleteTodo_NotFound() {
+        // given
+        TodoQuery query = TodoQuery.of(testMember.getId(), 999L);
+
+        // when & then
+        assertThatThrownBy(() -> todoService.deleteTodo(query))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Todo 조회 성공")
+    void getTodo_Success() {
+        // given
+        TodoQuery query = TodoQuery.of(testMember.getId(), testTodo.getId());
+
+        // when
+        TodoResult result = todoService.getTodo(query);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.title()).isEqualTo("테스트 할일");
+        assertThat(result.description()).isEqualTo("테스트 설명");
+        assertThat(result.status()).isEqualTo(TodoStatus.IN_PROGRESS);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 Todo 조회 시 예외 발생")
+    void getTodo_NotFound() {
+        // given
+        TodoQuery query = TodoQuery.of(testMember.getId(), 999L);
+
+        // when & then
+        assertThatThrownBy(() -> todoService.getTodo(query))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }

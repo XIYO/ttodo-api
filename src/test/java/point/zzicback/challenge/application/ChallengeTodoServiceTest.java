@@ -4,11 +4,13 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.*;
 import org.springframework.context.annotation.Import;
-import point.zzicback.challenge.application.dto.result.ChallengeTodoDto;
+import point.zzicback.challenge.application.mapper.ChallengeMapperImpl;
+import point.zzicback.challenge.application.mapper.ChallengeTodoMapperImpl;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.*;
 import point.zzicback.member.domain.*;
+import point.zzicback.challenge.application.dto.result.ChallengeTodoResult;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,7 +20,10 @@ import static org.assertj.core.api.Assertions.*;
 @DataJpaTest
 @Import({
     ChallengeTodoService.class,
-    ChallengeService.class
+    ChallengeService.class,
+    ChallengeMapperImpl.class,
+    ChallengeTodoMapperImpl.class
+
 })
 class ChallengeTodoServiceTest {
 
@@ -136,7 +141,7 @@ class ChallengeTodoServiceTest {
         assertThat(allTodos.stream().allMatch(dto -> !dto.done())).isTrue();
         assertThat(allTodos.stream().allMatch(dto -> !dto.isPersisted())).isTrue();
 
-        var periodTypes = allTodos.stream().map(ChallengeTodoDto::periodType).toList();
+        var periodTypes = allTodos.stream().map(ChallengeTodoResult::periodType).toList();
         assertThat(periodTypes).containsExactlyInAnyOrder(PeriodType.DAILY, PeriodType.WEEKLY, PeriodType.MONTHLY);
     }
 
@@ -150,10 +155,10 @@ class ChallengeTodoServiceTest {
 
         assertThat(allTodos).hasSize(3);
         assertThat(uncompletedTodos).isEmpty();
-        assertThat(allTodos.stream().allMatch(ChallengeTodoDto::done)).isTrue();
-        assertThat(allTodos.stream().allMatch(ChallengeTodoDto::isPersisted)).isTrue();
+        assertThat(allTodos.stream().allMatch(ChallengeTodoResult::done)).isTrue();
+        assertThat(allTodos.stream().allMatch(ChallengeTodoResult::isPersisted)).isTrue();
 
-        var periodTypes = allTodos.stream().map(ChallengeTodoDto::periodType).toList();
+        var periodTypes = allTodos.stream().map(ChallengeTodoResult::periodType).toList();
         assertThat(periodTypes).containsExactlyInAnyOrder(PeriodType.DAILY, PeriodType.WEEKLY, PeriodType.MONTHLY);
     }
 
@@ -168,7 +173,7 @@ class ChallengeTodoServiceTest {
         assertThat(allTodos).hasSize(3);
         assertThat(uncompletedTodos).hasSize(2);
 
-        var completedTodos = allTodos.stream().filter(ChallengeTodoDto::done).toList();
+        var completedTodos = allTodos.stream().filter(ChallengeTodoResult::done).toList();
         var incompleteTodos = allTodos.stream().filter(dto -> !dto.done()).toList();
 
         assertThat(completedTodos).hasSize(1);
@@ -176,7 +181,7 @@ class ChallengeTodoServiceTest {
         assertThat(completedTodos.get(0).periodType()).isEqualTo(PeriodType.DAILY);
         assertThat(completedTodos.get(0).isPersisted()).isTrue();
 
-        var incompletePeriodTypes = incompleteTodos.stream().map(ChallengeTodoDto::periodType).toList();
+        var incompletePeriodTypes = incompleteTodos.stream().map(ChallengeTodoResult::periodType).toList();
         assertThat(incompletePeriodTypes).containsExactlyInAnyOrder(PeriodType.WEEKLY, PeriodType.MONTHLY);
         assertThat(incompleteTodos.stream().allMatch(dto -> !dto.isPersisted())).isTrue();
     }
@@ -226,7 +231,7 @@ class ChallengeTodoServiceTest {
         assertThat(todosAfterLeaving).hasSize(2);
         
         var remainingPeriodTypes = todosAfterLeaving.stream()
-                .map(ChallengeTodoDto::periodType)
+                .map(ChallengeTodoResult::periodType)
                 .toList();
         assertThat(remainingPeriodTypes).containsExactlyInAnyOrder(PeriodType.WEEKLY, PeriodType.MONTHLY);
     }

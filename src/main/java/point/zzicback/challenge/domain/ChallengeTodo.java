@@ -1,13 +1,9 @@
 package point.zzicback.challenge.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.LocalDateTime;
-import java.time.LocalDate;
+import java.time.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

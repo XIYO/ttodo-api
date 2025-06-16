@@ -1,16 +1,16 @@
 package point.zzicback.challenge.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import point.zzicback.challenge.application.dto.result.ParticipantResult;
 import point.zzicback.challenge.domain.*;
-import point.zzicback.challenge.infrastructure.ChallengeParticipationRepository;
-import point.zzicback.challenge.infrastructure.ChallengeTodoRepository;
+import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.Member;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +45,26 @@ public class ChallengeParticipationService {
 
         participation.leaveChallenge();
         participationRepository.save(participation);
+    }
+
+    /**
+     * 특정 챌린지의 참여자 목록을 Application DTO로 반환
+     */
+    @Transactional(readOnly = true)
+    public Page<ParticipantResult> getParticipants(Long challengeId, Pageable pageable) {
+        Challenge challenge = challengeService.findById(challengeId);
+        List<ParticipantResult> participants = challenge.getParticipations().stream()
+                .filter(p -> p.getJoinOut() == null)
+                .map(p -> new ParticipantResult(
+                        p.getMember().getId(),
+                        p.getMember().getEmail(),
+                        p.getMember().getNickname(),
+                        p.getJoinedAt()))
+                .toList();
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), participants.size());
+        List<ParticipantResult> pageList = participants.subList(start, end);
+        return new PageImpl<>(pageList, pageable, participants.size());
     }
 
     // 참여자가 챌린지 간격에 의해 해야할 챌린지 투두를 출력

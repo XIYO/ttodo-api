@@ -5,8 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import point.zzicback.member.domain.Member;
 
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 
 public record MemberPrincipal(
         @Schema(description = "회원 고유 ID", example = "b1a2c3d4-e5f6-7890-1234-56789abcdef0") UUID id,
