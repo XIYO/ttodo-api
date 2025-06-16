@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.challenge.application.dto.command.*;
 import point.zzicback.challenge.application.dto.result.*;
+import point.zzicback.challenge.application.mapper.ChallengeMapper;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.EntityNotFoundException;
@@ -22,6 +23,7 @@ public class ChallengeService {
     private final ChallengeRepository challengeRepository;
     private final ChallengeParticipationRepository challengeParticipationRepository;
     private final ChallengeTodoRepository challengeTodoRepository;
+    private final ChallengeMapper challengeMapper;
 
     public Long createChallenge(CreateChallengeCommand command) {
         LocalDate startDate = LocalDate.now();
@@ -83,21 +85,10 @@ public class ChallengeService {
         List<ChallengeListResult> filteredChallenges = challengePage.getContent().stream()
                 .map(challenge -> {
                     boolean isParticipated = participatedChallengeIds.contains(challenge.getId());
-                    
                     int activeParticipantCount = (int) challenge.getParticipations().stream()
                             .filter(participation -> participation.getJoinOut() == null)
                             .count();
-                    
-                    return new ChallengeListResult(
-                            challenge.getId(),
-                            challenge.getTitle(),
-                            challenge.getDescription(),
-                            challenge.getStartDate(),
-                            challenge.getEndDate(),
-                            challenge.getPeriodType(),
-                            isParticipated,
-                            activeParticipantCount
-                    );
+                    return challengeMapper.toListResult(challenge, isParticipated, activeParticipantCount);
                 })
                 .filter(challengeDto -> join == null || join.equals(challengeDto.participationStatus()))
                 .toList();
@@ -114,13 +105,8 @@ public class ChallengeService {
                 .toList();
         
         return allChallenges.stream()
-                .map(challenge -> new ChallengeJoinedResult(
-                        challenge.getId(),
-                        challenge.getTitle(),
-                        challenge.getDescription(),
-                        challenge.getStartDate(),
-                        challenge.getEndDate(),
-                        challenge.getPeriodType(),
+                .map(challenge -> challengeMapper.toJoinedResult(
+                        challenge,
                         participatedChallengeIds.contains(challenge.getId())
                 ))
                 .toList();
@@ -162,14 +148,10 @@ public class ChallengeService {
         float successRate = totalParticipantCount > 0 ? 
                 Math.round((float) completedParticipantCount / totalParticipantCount * 100) / 100.0f : 0.0f;
         
-        return new ChallengeResult(
-                challenge.getId(),
-                challenge.getTitle(),
-                challenge.getDescription(),
-                challenge.getStartDate(),
-                challenge.getEndDate(),
-                challenge.getPeriodType(),
-                participatedChallengeIds.contains(challenge.getId()),
+        boolean isParticipated = participatedChallengeIds.contains(challenge.getId());
+        return challengeMapper.toResult(
+                challenge,
+                isParticipated,
                 activeParticipantCount,
                 successRate
         );

@@ -296,10 +296,10 @@ class ChallengeServiceTest {
         testParticipation.leaveChallenge();
         participationRepository.save(testParticipation);
 
-        List<ChallengeJoinedDto> challenges = challengeService.getChallengesByMember(testMember);
+        List<ChallengeJoinedResult> challenges = challengeService.getChallengesByMember(testMember);
 
         assertThat(challenges).hasSize(1);
-        ChallengeJoinedDto challengeDto = challenges.get(0);
+        ChallengeJoinedResult challengeDto = challenges.get(0);
         assertThat(challengeDto.participationStatus()).isFalse();
     }
 
@@ -315,10 +315,10 @@ class ChallengeServiceTest {
                 .build();
         participationRepository.save(newParticipation);
 
-        List<ChallengeJoinedDto> challenges = challengeService.getChallengesByMember(testMember);
+        List<ChallengeJoinedResult> challenges = challengeService.getChallengesByMember(testMember);
 
         assertThat(challenges).hasSize(1);
-        ChallengeJoinedDto challengeDto = challenges.get(0);
+        ChallengeJoinedResult challengeDto = challenges.get(0);
         assertThat(challengeDto.participationStatus()).isTrue();
     }
 }

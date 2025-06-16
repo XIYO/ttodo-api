@@ -6,6 +6,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.challenge.application.dto.result.ChallengeTodoResult;
+import point.zzicback.challenge.application.mapper.ChallengeTodoMapper;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.*;
@@ -23,6 +24,7 @@ public class ChallengeTodoService {
     private final ChallengeTodoRepository challengeTodoRepository;
     private final ChallengeParticipationRepository participationRepository;
     private final ChallengeService challengeService;
+    private final ChallengeTodoMapper challengeTodoMapper;
     
     @PersistenceContext
     private EntityManager entityManager;
@@ -164,9 +166,9 @@ public class ChallengeTodoService {
             if (!todo.isInPeriod(periodType, currentDate)) {
                 return Stream.empty();
             }
-            return Stream.of(ChallengeTodoResult.from(todo));
+            return Stream.of(challengeTodoMapper.toResult(todo));
         } else {
-            return Stream.of(ChallengeTodoResult.from(virtualTodo));
+            return Stream.of(challengeTodoMapper.toResult(virtualTodo));
         }
     }
 
@@ -194,12 +196,12 @@ public class ChallengeTodoService {
                     return Stream.empty();
                 }
                 if (!todo.isCompleted()) {
-                    return Stream.of(ChallengeTodoResult.from(todo));
+                    return Stream.of(challengeTodoMapper.toResult(todo));
                 } else {
                     return Stream.empty();
                 }
             } else {
-                return Stream.of(ChallengeTodoResult.from(virtualTodo));
+                return Stream.of(challengeTodoMapper.toResult(virtualTodo));
             }
         } catch (Exception e) {
             return Stream.empty();
@@ -219,9 +221,9 @@ public class ChallengeTodoService {
                 return Stream.empty();
             }
             
-            return challengeTodoRepository.findByChallengeParticipation(participation)
+        return challengeTodoRepository.findByChallengeParticipation(participation)
                     .filter(ChallengeTodo::isCompleted)
-                    .map(ChallengeTodoResult::from)
+                    .map(challengeTodoMapper::toResult)
                     .map(Stream::of)
                     .orElse(Stream.empty());
         } catch (Exception e) {

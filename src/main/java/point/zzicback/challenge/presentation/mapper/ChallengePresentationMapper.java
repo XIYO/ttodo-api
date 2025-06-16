@@ -4,7 +4,11 @@ import org.mapstruct.*;
 import point.zzicback.challenge.application.dto.command.*;
 import point.zzicback.challenge.application.dto.result.*;
 import point.zzicback.challenge.domain.*;
-import point.zzicback.challenge.presentation.dto.*;
+import point.zzicback.challenge.presentation.dto.request.CreateChallengeRequest;
+import point.zzicback.challenge.presentation.dto.request.UpdateChallengeRequest;
+import point.zzicback.challenge.presentation.dto.response.ChallengeResponse;
+import point.zzicback.challenge.presentation.dto.response.ChallengeDetailResponse;
+import point.zzicback.challenge.presentation.dto.response.ParticipantResponse;
 
 import java.util.List;
 
@@ -64,6 +68,8 @@ public interface ChallengePresentationMapper {
                 challenge.getStartDate(),
                 challenge.getEndDate(),
                 challenge.getPeriodType(),
+                false,
+                activeParticipants.size(),
                 activeParticipants
         );
     }

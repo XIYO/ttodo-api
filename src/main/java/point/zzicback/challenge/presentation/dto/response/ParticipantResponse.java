@@ -1,13 +1,10 @@
-package point.zzicback.challenge.presentation.dto;
+package point.zzicback.challenge.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * 챌린지 참여자 응답 DTO
- */
 @Schema(description = "챌린지 참여자 응답 DTO")
 public record ParticipantResponse(
     @Schema(description = "회원 ID", example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")

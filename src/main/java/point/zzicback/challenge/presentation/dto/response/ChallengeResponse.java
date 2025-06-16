@@ -1,13 +1,10 @@
-package point.zzicback.challenge.presentation.dto;
+package point.zzicback.challenge.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import point.zzicback.challenge.domain.PeriodType;
 
 import java.time.LocalDate;
 
-/**
- * 챌린지 요약 응답 (리스트)
- */
 @Schema(description = "챌린지 요약 응답 DTO")
 public record ChallengeResponse(
     @Schema(description = "챌린지 ID", example = "1")
