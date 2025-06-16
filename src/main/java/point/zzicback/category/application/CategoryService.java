@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.category.application.command.*;
@@ -26,6 +27,11 @@ public class CategoryService {
                 .stream()
                 .map(this::toCategoryResponse)
                 .toList();
+    }
+    
+    public Page<CategoryResponse> getCategories(UUID memberId, Pageable pageable) {
+        return categoryRepository.findByMemberId(memberId, pageable)
+                .map(this::toCategoryResponse);
     }
     
     public CategoryResponse getCategory(UUID memberId, Long categoryId) {

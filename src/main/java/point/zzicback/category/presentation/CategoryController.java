@@ -6,13 +6,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.category.application.CategoryService;
 import point.zzicback.category.application.command.*;
 import point.zzicback.category.presentation.dto.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,9 +25,13 @@ public class CategoryController {
     @GetMapping
     @Operation(summary = "카테고리 목록 조회", description = "사용자의 모든 카테고리를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "카테고리 목록 조회 성공")
-    public List<CategoryResponse> getCategories(
-            @Parameter(description = "회원 ID") @PathVariable UUID memberId) {
-        return categoryService.getCategories(memberId);
+    public Page<CategoryResponse> getCategories(
+            @Parameter(description = "회원 ID") @PathVariable UUID memberId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name,asc") String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        return categoryService.getCategories(memberId, pageable);
     }
     
     @GetMapping("/{categoryId}")
@@ -72,5 +76,12 @@ public class CategoryController {
             @Parameter(description = "카테고리 ID") @PathVariable Long categoryId) {
         DeleteCategoryCommand command = new DeleteCategoryCommand(memberId, categoryId);
         categoryService.deleteCategory(command);
+    }
+    
+    private Pageable createPageable(int page, int size, String sort) {
+        String[] sortParams = sort.split(",");
+        String property = sortParams[0];
+        String direction = sortParams.length > 1 ? sortParams[1] : "asc";
+        return PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), property));
     }
 }
