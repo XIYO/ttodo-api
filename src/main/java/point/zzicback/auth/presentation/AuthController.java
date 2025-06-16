@@ -17,6 +17,7 @@ import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.domain.Member;
+import point.zzicback.todo.config.TodoInitializer;
 
 import java.util.List;
 
@@ -27,11 +28,13 @@ import java.util.List;
 @Transactional
 public class AuthController {
   private static final String USER_ROLE = "ROLE_USER";
+  private static final String ANON_EMAIL = "anon@zzic.com";
   
   private final MemberService memberService;
   private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
   private final CookieService cookieService;
+  private final TodoInitializer todoInitializer;
 
   @Operation(summary = "사인-업 및 사인-인", description = "사인-업을 진행하고 즉시 사인-인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
   @ApiResponse(responseCode = "200", description = "사인-업 및 사인-인 성공, 쿠키에 토큰 발급")
@@ -56,6 +59,11 @@ public class AuthController {
     Member member = authenticateMember(request.email(), request.password());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
     MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
+    
+    if (ANON_EMAIL.equals(request.email())) {
+      todoInitializer.createDefaultTodosForMember(member);
+    }
+    
     authenticateWithCookies(memberPrincipal, response);
   }
 
