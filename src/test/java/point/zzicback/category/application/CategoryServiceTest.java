@@ -71,22 +71,23 @@ class CategoryServiceTest {
     }
 
     @Test
-    @DisplayName("중복된 카테고리명으로 생성 시 예외 발생")
+    @DisplayName("중복된 카테고리명으로 생성 시 기존 카테고리 반환")
     void createCategory_DuplicateName() {
         CreateCategoryCommand command1 = new CreateCategoryCommand(
                 testMember.getId(),
                 "업무"
         );
-        categoryService.createCategory(command1);
+        CategoryResponse firstResponse = categoryService.createCategory(command1);
 
         CreateCategoryCommand command2 = new CreateCategoryCommand(
                 testMember.getId(),
                 "업무"
         );
+        CategoryResponse secondResponse = categoryService.createCategory(command2);
 
-        assertThatThrownBy(() -> categoryService.createCategory(command2))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("이미 존재하는 카테고리명입니다.");
+        assertThat(firstResponse.id()).isEqualTo(secondResponse.id());
+        assertThat(firstResponse.name()).isEqualTo(secondResponse.name());
+        assertThat(firstResponse.name()).isEqualTo("업무");
     }
 
     @Test

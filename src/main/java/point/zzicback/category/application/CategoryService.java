@@ -1,5 +1,8 @@
 package point.zzicback.category.application;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,9 +13,6 @@ import point.zzicback.category.presentation.dto.CategoryResponse;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,8 +36,9 @@ public class CategoryService {
     
     @Transactional
     public CategoryResponse createCategory(CreateCategoryCommand command) {
-        if (categoryRepository.existsByNameAndMemberId(command.name(), command.memberId())) {
-            throw new BusinessException("이미 존재하는 카테고리명입니다.");
+        Optional<Category> existingCategory = categoryRepository.findByNameAndMemberId(command.name(), command.memberId());
+        if (existingCategory.isPresent()) {
+            return toCategoryResponse(existingCategory.get());
         }
         
         Member member = memberService.findByIdOrThrow(command.memberId());
