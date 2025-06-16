@@ -1,17 +1,16 @@
 package point.zzicback.member.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.*;
 import point.zzicback.member.application.dto.command.*;
-import point.zzicback.member.domain.*;
+import point.zzicback.member.application.dto.result.MemberResult;
+import point.zzicback.member.domain.Member;
 import point.zzicback.member.infrastructure.persistence.JpaMemberRepository;
 
 import java.util.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import point.zzicback.member.application.dto.result.MemberResult;
 
 @Service
 @RequiredArgsConstructor

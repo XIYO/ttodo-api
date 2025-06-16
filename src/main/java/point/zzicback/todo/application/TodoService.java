@@ -6,13 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.application.MemberService;
-import point.zzicback.todo.application.dto.command.CreateTodoCommand;
-import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
-import point.zzicback.todo.application.dto.query.TodoListQuery;
-import point.zzicback.todo.application.dto.query.TodoQuery;
+import point.zzicback.todo.application.dto.command.*;
+import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
-import point.zzicback.todo.domain.Todo;
-import point.zzicback.todo.domain.TodoRepository;
+import point.zzicback.todo.domain.*;
 
 @Service
 @RequiredArgsConstructor

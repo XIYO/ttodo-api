@@ -2,6 +2,7 @@ package point.zzicback.challenge.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import point.zzicback.challenge.domain.PeriodType;
+
 import java.time.LocalDate;
 import java.util.List;
 

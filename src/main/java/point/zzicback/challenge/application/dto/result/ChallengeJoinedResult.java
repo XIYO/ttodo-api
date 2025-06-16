@@ -1,6 +1,7 @@
 package point.zzicback.challenge.application.dto.result;
 
 import point.zzicback.challenge.domain.PeriodType;
+
 import java.time.LocalDate;
 
 public record ChallengeJoinedResult(

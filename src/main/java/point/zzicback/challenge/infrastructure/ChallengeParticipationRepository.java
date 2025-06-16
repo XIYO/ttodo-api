@@ -4,8 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import point.zzicback.challenge.domain.ChallengeParticipation;
 import point.zzicback.member.domain.Member;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface ChallengeParticipationRepository extends JpaRepository<ChallengeParticipation, Long> {
     Optional<ChallengeParticipation> findByMemberAndChallenge_Id(Member member, Long challengeId);

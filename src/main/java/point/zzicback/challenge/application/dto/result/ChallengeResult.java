@@ -2,6 +2,7 @@ package point.zzicback.challenge.application.dto.result;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import point.zzicback.challenge.domain.PeriodType;
+
 import java.time.LocalDate;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

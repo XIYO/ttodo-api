@@ -1,10 +1,7 @@
 package point.zzicback.todo.application.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import point.zzicback.todo.application.dto.command.CreateTodoCommand;
-import point.zzicback.todo.application.dto.command.UpdateTodoCommand;
+import org.mapstruct.*;
+import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
 import point.zzicback.todo.domain.Todo;
 

@@ -1,20 +1,16 @@
 package point.zzicback.challenge.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import point.zzicback.challenge.application.dto.result.ParticipantResult;
 import point.zzicback.challenge.domain.*;
-import point.zzicback.challenge.infrastructure.ChallengeParticipationRepository;
-import point.zzicback.challenge.infrastructure.ChallengeTodoRepository;
+import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.Member;
-import point.zzicback.challenge.application.dto.result.ParticipantResult;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageImpl;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service

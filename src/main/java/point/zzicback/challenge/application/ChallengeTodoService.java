@@ -1,23 +1,19 @@
 package point.zzicback.challenge.application;
 
+import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.zzicback.challenge.domain.*;
-import point.zzicback.challenge.infrastructure.ChallengeParticipationRepository;
-import point.zzicback.challenge.infrastructure.ChallengeTodoRepository;
 import point.zzicback.challenge.application.dto.result.ChallengeTodoResult;
-import point.zzicback.common.error.BusinessException;
+import point.zzicback.challenge.domain.*;
+import point.zzicback.challenge.infrastructure.*;
+import point.zzicback.common.error.*;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.domain.Member;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service

@@ -2,10 +2,9 @@ package point.zzicback.member.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import point.zzicback.member.domain.Member;
-import point.zzicback.member.domain.MemberRepository;
+import point.zzicback.member.domain.*;
 
-import java.util.*;
+import java.util.UUID;
 
 /**
  * JPA를 이용한 MemberRepository 구현체
