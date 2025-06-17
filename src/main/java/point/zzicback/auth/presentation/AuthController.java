@@ -50,7 +50,27 @@ public class AuthController {
     authenticateWithCookies(memberPrincipal, response);
   }
 
-  @Operation(summary = "사인-인", description = "사인-인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.")
+  @Operation(
+      summary = "사인-인", 
+      description = "사인-인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.",
+      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "사인-인 정보",
+          required = true,
+          content = @io.swagger.v3.oas.annotations.media.Content(
+              mediaType = "application/json",
+              schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = SignInRequest.class),
+              examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                  name = "로그인 예시",
+                  value = """
+                      {
+                        "email": "anon@zzic.com",
+                        "password": ""
+                      }
+                      """
+              )
+          )
+      )
+  )
   @ApiResponse(responseCode = "200", description = "사인-인 성공, 쿠키에 토큰 발급")
   @ApiResponse(responseCode = "401", description = "인증 실패")
   @PostMapping("/sign-in")
