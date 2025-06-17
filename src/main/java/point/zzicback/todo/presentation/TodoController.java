@@ -1,11 +1,10 @@
 package point.zzicback.todo.presentation;
 
 import io.swagger.v3.oas.annotations.*;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import io.swagger.v3.oas.annotations.media.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.todo.application.TodoService;
@@ -14,9 +13,7 @@ import point.zzicback.todo.domain.*;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
-import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/members")
@@ -62,139 +59,119 @@ public class TodoController {
     return todoPresentationMapper.toResponse(todoService.getTodo(TodoQuery.of(memberId, id)));
   }
 
-  @PostMapping("/{memberId}/todos")
+  @PostMapping(value = "/{memberId}/todos", consumes = {"application/json", "application/x-www-form-urlencoded"})
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Todo 생성", description = "새로운 Todo를 생성합니다.")
+  @Operation(
+      summary = "Todo 생성", 
+      description = "새로운 Todo를 생성합니다.",
+      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Todo 생성 정보",
+          required = true,
+          content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = CreateTodoRequest.class),
+                  examples = @ExampleObject(
+                      name = "JSON 예시",
+                      value = """
+                          {
+                            "title": "영어 공부하기",
+                            "description": "토익 문제집 2장 풀어보기",
+                            "status": "IN_PROGRESS",
+                            "priority": 1,
+                            "categoryId": 1,
+                            "dueDate": "2026-01-01",
+                            "repeatType": "NONE",
+                            "tags": ["영어", "학습"]
+                          }
+                          """
+                  )
+              ),
+              @Content(
+                  mediaType = "application/x-www-form-urlencoded",
+                  schema = @Schema(implementation = CreateTodoRequest.class)
+              )
+          }
+      )
+  )
   public void add(@PathVariable UUID memberId, 
-                 @RequestParam @NotBlank @Size(max = 255)
-                 @Parameter(description = "할일 제목", example = "영어 공부하기", required = true)
-                 String title,
-                 
-                 @RequestParam(required = false) @Size(max = 1000)
-                 @Parameter(description = "할일 설명", example = "토익 문제집 2장 풀기")
-                 String description,
-                 
-                 @RequestParam(defaultValue = "IN_PROGRESS")
-                 @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED"}))
-                 TodoStatus status,
-                 
-                 @RequestParam(required = false)
-                 @Parameter(description = "우선순위 (0:낮음, 1:보통, 2:높음)", schema = @Schema(allowableValues = {"0", "1", "2"}))
-                 Integer priority,
-                 
-                 @RequestParam(required = false)
-                 @Parameter(description = "카테고리 ID", example = "1")
-                 Long categoryId,
-                 
-                 @RequestParam(required = false)
-                 @Parameter(description = "마감일", example = "2026-01-01")
-                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                 LocalDate dueDate,
-                 
-                 @RequestParam(defaultValue = "NONE")
-                 @Parameter(description = "반복 유형", schema = @Schema(allowableValues = {"NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"}))
-                 RepeatType repeatType,
-                 
-                 @RequestParam(required = false)
-                 @Parameter(description = "태그 목록 (쉼표로 구분)", example = "영어,학습")
-                 String tags) {
-    
-    CreateTodoRequest request = new CreateTodoRequest(
-        title, description, status, priority, categoryId, dueDate, repeatType,
-        parseTagsFromString(tags)
-    );
+                 @Valid @RequestBody CreateTodoRequest request) {
     todoService.createTodo(todoPresentationMapper.toCommand(request, memberId));
   }
 
-  @PutMapping("/{memberId}/todos/{id}")
+  @PutMapping(value = "/{memberId}/todos/{id}", consumes = {"application/json", "application/x-www-form-urlencoded"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Todo 수정", description = "Todo를 전체 수정합니다.")
+  @Operation(
+      summary = "Todo 수정", 
+      description = "Todo를 전체 수정합니다.",
+      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Todo 수정 정보",
+          required = true,
+          content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = UpdateTodoRequest.class),
+                  examples = @ExampleObject(
+                      name = "JSON 예시",
+                      value = """
+                          {
+                            "title": "영어 공부하기 (수정)",
+                            "description": "토익 문제집 3장 풀어보기",
+                            "status": "COMPLETED",
+                            "priority": 2,
+                            "categoryId": 1,
+                            "dueDate": "2026-01-02",
+                            "repeatType": "DAILY",
+                            "tags": ["영어", "학습", "토익"]
+                          }
+                          """
+                  )
+              ),
+              @Content(
+                  mediaType = "application/x-www-form-urlencoded",
+                  schema = @Schema(implementation = UpdateTodoRequest.class)
+              )
+          }
+      )
+  )
   public void modify(@PathVariable UUID memberId, 
                     @PathVariable Long id,
-                    
-                    @RequestParam @NotBlank @Size(max = 255)
-                    @Parameter(description = "할일 제목", example = "영어 공부하기", required = true)
-                    String title,
-                    
-                    @RequestParam(required = false) @Size(max = 1000)
-                    @Parameter(description = "할일 설명", example = "토익 문제집 2장 풀기")
-                    String description,
-                    
-                    @RequestParam(required = false)
-                    @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED"}))
-                    TodoStatus status,
-                    
-                    @RequestParam(required = false)
-                    @Parameter(description = "우선순위 (0:낮음, 1:보통, 2:높음)", schema = @Schema(allowableValues = {"0", "1", "2"}))
-                    Integer priority,
-                    
-                    @RequestParam(required = false)
-                    @Parameter(description = "카테고리 ID", example = "1")
-                    Long categoryId,
-                    
-                    @RequestParam(required = false)
-                    @Parameter(description = "마감일", example = "2026-01-01")
-                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    LocalDate dueDate,
-                    
-                    @RequestParam(required = false)
-                    @Parameter(description = "반복 유형", schema = @Schema(allowableValues = {"NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"}))
-                    RepeatType repeatType,
-                    
-                    @RequestParam(required = false)
-                    @Parameter(description = "태그 목록 (쉼표로 구분)", example = "영어,학습")
-                    String tags) {
-    
-    UpdateTodoRequest request = new UpdateTodoRequest(
-        title, description, status, priority, categoryId, dueDate, repeatType,
-        parseTagsFromString(tags)
-    );
+                    @Valid @RequestBody UpdateTodoRequest request) {
     todoService.updateTodo(todoPresentationMapper.toCommand(request, memberId, id));
   }
 
-  @PatchMapping("/{memberId}/todos/{id}")
+  @PatchMapping(value = "/{memberId}/todos/{id}", consumes = {"application/json", "application/x-www-form-urlencoded"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Todo 부분 수정", description = "Todo를 부분 수정합니다.")
+  @Operation(
+      summary = "Todo 부분 수정", 
+      description = "Todo를 부분 수정합니다.",
+      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          description = "Todo 부분 수정 정보 (수정할 필드만 포함)",
+          required = true,
+          content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = UpdateTodoRequest.class),
+                  examples = @ExampleObject(
+                      name = "JSON 예시",
+                      value = """
+                          {
+                            "status": "COMPLETED",
+                            "priority": 2
+                          }
+                          """
+                  )
+              ),
+              @Content(
+                  mediaType = "application/x-www-form-urlencoded",
+                  schema = @Schema(implementation = UpdateTodoRequest.class)
+              )
+          }
+      )
+  )
   public void partialModify(@PathVariable UUID memberId, 
                            @PathVariable Long id,
-                           
-                           @RequestParam(required = false) @Size(max = 255)
-                           @Parameter(description = "할일 제목", example = "영어 공부하기")
-                           String title,
-                           
-                           @RequestParam(required = false) @Size(max = 1000)
-                           @Parameter(description = "할일 설명", example = "토익 문제집 2장 풀기")
-                           String description,
-                           
-                           @RequestParam(required = false)
-                           @Parameter(description = "상태", schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED"}))
-                           TodoStatus status,
-                           
-                           @RequestParam(required = false)
-                           @Parameter(description = "우선순위 (0:낮음, 1:보통, 2:높음)", schema = @Schema(allowableValues = {"0", "1", "2"}))
-                           Integer priority,
-                           
-                           @RequestParam(required = false)
-                           @Parameter(description = "카테고리 ID", example = "1")
-                           Long categoryId,
-                           
-                           @RequestParam(required = false)
-                           @Parameter(description = "마감일", example = "2026-01-01")
-                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                           LocalDate dueDate,
-                           
-                           @RequestParam(required = false)
-                           @Parameter(description = "반복 유형", schema = @Schema(allowableValues = {"NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"}))
-                           RepeatType repeatType,
-                           
-                           @RequestParam(required = false)
-                           @Parameter(description = "태그 목록 (쉼표로 구분)", example = "영어,학습")
-                           String tags) {
-    
-    UpdateTodoRequest request = new UpdateTodoRequest(
-        title, description, status, priority, categoryId, dueDate, repeatType,
-        parseTagsFromString(tags)
-    );
+                           @Valid @RequestBody UpdateTodoRequest request) {
     todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, memberId, id));
   }
 
@@ -203,15 +180,5 @@ public class TodoController {
   @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제합니다.")
   public void remove(@PathVariable UUID memberId, @PathVariable Long id) {
     todoService.deleteTodo(TodoQuery.of(memberId, id));
-  }
-  
-  private Set<String> parseTagsFromString(String tags) {
-    if (tags == null || tags.trim().isEmpty()) {
-      return null;
-    }
-    return Arrays.stream(tags.split(","))
-            .map(String::trim)
-            .filter(tag -> !tag.isEmpty())
-            .collect(Collectors.toSet());
   }
 }
