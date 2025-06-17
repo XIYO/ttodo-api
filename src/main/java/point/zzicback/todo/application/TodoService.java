@@ -11,9 +11,11 @@ import point.zzicback.member.application.MemberService;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
+import point.zzicback.todo.application.dto.result.TodoStatistics;
 import point.zzicback.todo.domain.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -168,5 +170,16 @@ public class TodoService {
             .ifPresentOrElse(todo -> todoRepository.deleteById(query.todoId()), () -> {
               throw new EntityNotFoundException("Todo", query.todoId());
             });
+  }
+  
+  public TodoStatistics getTodoStatistics(UUID memberId) {
+    updateOverdueTodos();
+    
+    long total = todoRepository.countByMemberId(memberId);
+    long inProgress = todoRepository.countInProgressByMemberId(memberId);
+    long completed = todoRepository.countCompletedByMemberId(memberId);
+    long overdue = todoRepository.countOverdueByMemberId(memberId, LocalDate.now());
+    
+    return new TodoStatistics(total, inProgress, completed, overdue);
   }
 }

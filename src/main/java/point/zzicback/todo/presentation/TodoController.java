@@ -234,4 +234,11 @@ public class TodoController {
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
     todoService.deleteTodo(TodoQuery.of(principal.id(), id));
   }
+  
+  @GetMapping("/statistics")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Todo 통계 조회", description = "사용자의 Todo 상태별 통계를 조회합니다.")
+  public TodoStatisticsResponse getStatistics(@AuthenticationPrincipal MemberPrincipal principal) {
+    return todoPresentationMapper.toStatisticsResponse(todoService.getTodoStatistics(principal.id()));
+  }
 }

@@ -34,5 +34,17 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     @Modifying
     @Query("UPDATE Todo t SET t.status = 2 WHERE t.status = 0 AND t.dueDate < :currentDate")
     int updateOverdueTodos(@Param("currentDate") LocalDate currentDate);
+    
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId")
+    long countByMemberId(@Param("memberId") UUID memberId);
+    
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.status = 0")
+    long countInProgressByMemberId(@Param("memberId") UUID memberId);
+    
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.status = 1")
+    long countCompletedByMemberId(@Param("memberId") UUID memberId);
+    
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND (t.status = 2 OR (t.status = 0 AND t.dueDate < :currentDate))")
+    long countOverdueByMemberId(@Param("memberId") UUID memberId, @Param("currentDate") LocalDate currentDate);
 }
 

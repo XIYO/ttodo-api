@@ -3,7 +3,10 @@ package point.zzicback.todo.presentation.mapper;
 import org.mapstruct.*;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
-import point.zzicback.todo.presentation.dto.*;
+import point.zzicback.todo.application.dto.result.TodoStatistics;
+import point.zzicback.todo.presentation.dto.CreateTodoRequest;
+import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
+import point.zzicback.todo.presentation.dto.TodoStatisticsResponse;
 
 import java.util.UUID;
 
@@ -17,4 +20,6 @@ public interface TodoPresentationMapper {
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
+  
+  TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics);
 }
