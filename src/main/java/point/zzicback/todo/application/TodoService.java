@@ -24,14 +24,14 @@ public class TodoService {
   private final MemberService memberService;
 
   public Page<TodoResult> getTodoList(TodoListQuery query) {
+    updateOverdueTodos();
+    
     Page<Todo> todoPage;
     
     boolean hasFilters = query.status() != null || query.categoryId() != null || 
                         query.priority() != null || (query.keyword() != null && !query.keyword().trim().isEmpty());
     
-    if (query.status() == TodoStatus.OVERDUE) {
-      todoPage = todoRepository.findOverdueTodos(query.memberId(), LocalDate.now(), query.pageable());
-    } else if (hasFilters) {
+    if (hasFilters) {
       todoPage = todoRepository.findByFilters(
           query.memberId(), 
           query.status(), 
@@ -48,13 +48,20 @@ public class TodoService {
   }
 
   public TodoResult getTodo(TodoQuery query) {
+    updateOverdueTodos();
+    
     return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
             .map(this::toTodoResult)
             .orElseThrow(() -> new EntityNotFoundException("Todo", query.todoId()));
   }
 
+  @Transactional
+  private void updateOverdueTodos() {
+    todoRepository.updateOverdueTodos(LocalDate.now());
+  }
+
   private TodoResult toTodoResult(Todo todo) {
-    TodoStatus actualStatus = todo.getActualStatus();
+    Integer actualStatus = todo.getActualStatus();
     return new TodoResult(
             todo.getId(),
             todo.getTitle(),
@@ -96,6 +103,8 @@ public class TodoService {
 
   @Transactional
   public void updateTodo(UpdateTodoCommand command) {
+    updateOverdueTodos();
+    
     Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
             .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
     
@@ -117,6 +126,8 @@ public class TodoService {
 
   @Transactional
   public void partialUpdateTodo(UpdateTodoCommand command) {
+    updateOverdueTodos();
+    
     Todo todo = todoRepository.findByIdAndMemberId(command.todoId(), command.memberId())
             .orElseThrow(() -> new EntityNotFoundException("Todo", command.todoId()));
     
@@ -151,6 +162,8 @@ public class TodoService {
 
   @Transactional
   public void deleteTodo(TodoQuery query) {
+    updateOverdueTodos();
+    
     todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
             .ifPresentOrElse(todo -> todoRepository.deleteById(query.todoId()), () -> {
               throw new EntityNotFoundException("Todo", query.todoId());

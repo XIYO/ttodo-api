@@ -23,9 +23,8 @@ public class Todo {
   
   private String description;
   
-  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private TodoStatus status = TodoStatus.IN_PROGRESS;
+  private Integer status = 0;
   
   private Integer priority;
   
@@ -48,13 +47,13 @@ public class Todo {
   private Member member;
 
   @Builder
-  public Todo(Long id, String title, String description, TodoStatus status, Integer priority, 
+  public Todo(Long id, String title, String description, Integer status, Integer priority, 
               Category category, LocalDate dueDate, RepeatType repeatType, 
               Set<String> tags, Member member) {
     this.id = id;
     this.title = title;
     this.description = description;
-    this.status = status != null ? status : TodoStatus.IN_PROGRESS;
+    this.status = status != null ? status : 0;
     this.priority = priority;
     this.category = category;
     this.dueDate = dueDate;
@@ -70,24 +69,26 @@ public class Todo {
   
   @Transient
   public String getDisplayStatus() {
-    return status != null ? status.getDisplayName() : null;
+    return switch (status) {
+      case 0 -> "진행중";
+      case 1 -> "완료";
+      case 2 -> "지연";
+      default -> "알 수 없음";
+    };
   }
   
   @Transient
   public String getActualDisplayStatus() {
-    return getActualStatus().getDisplayName();
+    return switch (getActualStatus()) {
+      case 0 -> "진행중";
+      case 1 -> "완료";
+      case 2 -> "지연";
+      default -> "알 수 없음";
+    };
   }
   
   @Transient
-  public TodoStatus getActualStatus() {
-    if (status == TodoStatus.COMPLETED) {
-      return TodoStatus.COMPLETED;
-    }
-    
-    if (dueDate != null && LocalDate.now().isAfter(dueDate)) {
-      return TodoStatus.OVERDUE;
-    }
-    
+  public Integer getActualStatus() {
     return status;
   }
 }

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.todo.application.TodoService;
 import point.zzicback.todo.application.dto.query.*;
-import point.zzicback.todo.domain.*;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
@@ -29,10 +28,10 @@ public class TodoController {
           @AuthenticationPrincipal MemberPrincipal principal,
           
           @RequestParam(required = false)
-          @Parameter(description = "할일 상태 필터", 
-                     schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED", "OVERDUE"}),
-                     example = "IN_PROGRESS")
-          TodoStatus status,
+          @Parameter(description = "할일 상태 필터 (0: 진행중, 1: 완료, 2: 지연)", 
+                     schema = @Schema(allowableValues = {"0", "1", "2"}),
+                     example = "0")
+          Integer status,
           
           @RequestParam(required = false)
           @Parameter(description = "카테고리 ID 필터", example = "1")

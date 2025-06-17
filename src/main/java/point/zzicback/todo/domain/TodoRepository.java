@@ -12,15 +12,8 @@ import java.util.*;
  * DDD 원칙에 따라 도메인 계층에 위치
  */
 public interface TodoRepository extends JpaRepository<Todo, Long> {
-    Page<Todo> findByMemberIdAndStatus(UUID memberId, TodoStatus status, Pageable pageable);
     Page<Todo> findByMemberId(UUID memberId, Pageable pageable);
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
-    long countByMemberId(UUID memberId);
-
-    Optional<Todo> findByMemberIdAndTitle(UUID memberId, String title);
-
-    @Query("SELECT t FROM Todo t WHERE t.member.id = :memberId AND t.status = 'IN_PROGRESS' AND t.dueDate < :currentDate")
-    Page<Todo> findOverdueTodos(@Param("memberId") UUID memberId, @Param("currentDate") LocalDate currentDate, Pageable pageable);
     
     @Query("""
         SELECT t FROM Todo t WHERE t.member.id = :memberId
@@ -32,10 +25,14 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
         """)
     Page<Todo> findByFilters(@Param("memberId") UUID memberId, 
-                           @Param("status") TodoStatus status,
+                           @Param("status") Integer status,
                            @Param("categoryId") Long categoryId,
                            @Param("priority") Integer priority,
                            @Param("keyword") String keyword,
                            Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Todo t SET t.status = 2 WHERE t.status = 0 AND t.dueDate < :currentDate")
+    int updateOverdueTodos(@Param("currentDate") LocalDate currentDate);
 }
 

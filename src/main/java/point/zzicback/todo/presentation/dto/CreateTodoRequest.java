@@ -3,7 +3,7 @@ package point.zzicback.todo.presentation.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import point.zzicback.todo.domain.*;
+import point.zzicback.todo.domain.RepeatType;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -48,12 +48,12 @@ public class CreateTodoRequest {
     private String description;
     
     @Schema(
-        description = "상태", 
-        example = "IN_PROGRESS", 
-        defaultValue = "IN_PROGRESS", 
-        allowableValues = {"IN_PROGRESS", "COMPLETED"}
+        description = "상태 (0: 진행중, 1: 완료)", 
+        example = "0", 
+        defaultValue = "0", 
+        allowableValues = {"0", "1"}
     )
-    private TodoStatus status;
+    private Integer status;
     
     @Schema(
         description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", 

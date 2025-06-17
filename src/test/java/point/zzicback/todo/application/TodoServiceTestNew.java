@@ -47,7 +47,7 @@ class TodoServiceTestNew {
         testTodo = Todo.builder()
                 .title("테스트 할일")
                 .description("테스트 설명")
-                .status(TodoStatus.IN_PROGRESS)
+                .status(0)
                 .member(testMember)
                 .build();
         todoRepository.save(testTodo);
@@ -58,7 +58,7 @@ class TodoServiceTestNew {
     void getTodoListByStatus_Success() {
         // given
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
-        TodoListQuery query = TodoListQuery.of(testMember.getId(), TodoStatus.IN_PROGRESS, pageable);
+        TodoListQuery query = TodoListQuery.of(testMember.getId(), 0, pageable);
 
         // when
         Page<TodoResult> result = todoService.getTodoList(query);
@@ -69,7 +69,7 @@ class TodoServiceTestNew {
                 .satisfies(todo -> {
                     assertThat(todo.title()).isEqualTo("테스트 할일");
                     assertThat(todo.description()).isEqualTo("테스트 설명");
-                    assertThat(todo.status()).isEqualTo(TodoStatus.IN_PROGRESS);
+                    assertThat(todo.status()).isEqualTo(0);
                 });
     }
 
@@ -89,7 +89,7 @@ class TodoServiceTestNew {
                 .satisfies(todo -> {
                     assertThat(todo.title()).isEqualTo("테스트 할일");
                     assertThat(todo.description()).isEqualTo("테스트 설명");
-                    assertThat(todo.status()).isEqualTo(TodoStatus.IN_PROGRESS);
+                    assertThat(todo.status()).isEqualTo(0);
                 });
     }
 
@@ -115,7 +115,7 @@ class TodoServiceTestNew {
                 .first()
                 .satisfies(todo -> {
                     assertThat(todo.getDescription()).isEqualTo("새로운 설명");
-                    assertThat(todo.getStatus()).isEqualTo(TodoStatus.IN_PROGRESS);
+                    assertThat(todo.getStatus()).isEqualTo(0);
                 });
     }
 
@@ -128,7 +128,7 @@ class TodoServiceTestNew {
                 testTodo.getId(),
                 "수정된 할일",
                 "수정된 설명",
-                TodoStatus.COMPLETED,
+                1,
                 null, null, null, null, null
         );
 
@@ -139,7 +139,7 @@ class TodoServiceTestNew {
         Todo updatedTodo = todoRepository.findById(testTodo.getId()).orElseThrow();
         assertThat(updatedTodo.getTitle()).isEqualTo("수정된 할일");
         assertThat(updatedTodo.getDescription()).isEqualTo("수정된 설명");
-        assertThat(updatedTodo.getStatus()).isEqualTo(TodoStatus.COMPLETED);
+        assertThat(updatedTodo.getStatus()).isEqualTo(1);
     }
 
     @Test
@@ -151,7 +151,7 @@ class TodoServiceTestNew {
                 999L,
                 "수정된 할일",
                 "수정된 설명",
-                TodoStatus.COMPLETED,
+                1,
                 null, null, null, null, null
         );
 
@@ -194,7 +194,7 @@ class TodoServiceTestNew {
         assertThat(result).isNotNull();
         assertThat(result.title()).isEqualTo("테스트 할일");
         assertThat(result.description()).isEqualTo("테스트 설명");
-        assertThat(result.status()).isEqualTo(TodoStatus.IN_PROGRESS);
+        assertThat(result.status()).isEqualTo(0);
     }
 
     @Test

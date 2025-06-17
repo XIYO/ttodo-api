@@ -15,7 +15,7 @@ public interface TodoApplicationMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "member", ignore = true)
-    @Mapping(target = "status", constant = "IN_PROGRESS")
+    @Mapping(target = "status", constant = "0")
     Todo toEntity(CreateTodoCommand command);
 
     @Mapping(target = "id", ignore = true)
