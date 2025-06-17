@@ -16,7 +16,7 @@ import point.zzicback.category.application.command.*;
 import point.zzicback.category.presentation.dto.*;
 
 @RestController
-@RequestMapping("members/categories")
+@RequestMapping("categories")
 @RequiredArgsConstructor
 @Tag(name = "카테고리", description = "카테고리 관리 API")
 public class CategoryController {

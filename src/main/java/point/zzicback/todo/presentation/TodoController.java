@@ -16,13 +16,13 @@ import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
 @RestController
-@RequestMapping("/members")
+@RequestMapping("/todos")
 @RequiredArgsConstructor
 public class TodoController {
   private final TodoService todoService;
   private final TodoPresentationMapper todoPresentationMapper;
 
-  @GetMapping("/todos")
+  @GetMapping
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Todo 목록 조회", description = "사용자의 Todo 목록을 조회합니다. status 파라미터로 상태별 필터링이 가능합니다.")
   public Page<TodoResponse> getAll(
@@ -52,14 +52,14 @@ public class TodoController {
     return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }
 
-  @GetMapping("/todos/{id}")
+  @GetMapping("/{id}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Todo 상세 조회", description = "특정 Todo의 상세 정보를 조회합니다.")
   public TodoResponse getTodo(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
     return todoPresentationMapper.toResponse(todoService.getTodo(TodoQuery.of(principal.id(), id)));
   }
 
-  @PostMapping(value = "/todos", consumes = {"application/json"})
+  @PostMapping(consumes = {"application/json"})
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
       summary = "Todo 생성 (JSON)", 
@@ -93,7 +93,7 @@ public class TodoController {
     todoService.createTodo(todoPresentationMapper.toCommand(request, principal.id()));
   }
 
-  @PostMapping(value = "/todos", consumes = {"application/x-www-form-urlencoded"})
+  @PostMapping(consumes = {"application/x-www-form-urlencoded"})
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
       summary = "Todo 생성 (Form)", 
@@ -112,7 +112,7 @@ public class TodoController {
     todoService.createTodo(todoPresentationMapper.toCommand(request, principal.id()));
   }
 
-  @PutMapping(value = "/todos/{id}", consumes = {"application/json"})
+  @PutMapping(value = "/{id}", consumes = {"application/json"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 수정 (JSON)", 
@@ -147,7 +147,7 @@ public class TodoController {
     todoService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-  @PutMapping(value = "/todos/{id}", consumes = {"application/x-www-form-urlencoded"})
+  @PutMapping(value = "/{id}", consumes = {"application/x-www-form-urlencoded"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 수정 (Form)", 
@@ -167,7 +167,7 @@ public class TodoController {
     todoService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-  @PatchMapping(value = "/todos/{id}", consumes = {"application/json"})
+  @PatchMapping(value = "/{id}", consumes = {"application/json"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 부분 수정 (JSON)", 
@@ -196,7 +196,7 @@ public class TodoController {
     todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-  @PatchMapping(value = "/todos/{id}", consumes = {"application/x-www-form-urlencoded"})
+  @PatchMapping(value = "/{id}", consumes = {"application/x-www-form-urlencoded"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 부분 수정 (Form)", 
@@ -216,7 +216,7 @@ public class TodoController {
     todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-  @DeleteMapping("/todos/{id}")
+  @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제합니다.")
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
