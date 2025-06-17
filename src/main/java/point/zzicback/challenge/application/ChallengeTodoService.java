@@ -268,6 +268,28 @@ public class ChallengeTodoService {
         completeChallenge(participation, currentDate);
     }
 
+    @Transactional(readOnly = true)
+    public ChallengeTodoResult getChallengeTodoByChallenge(Long challengeId, Member member, LocalDate currentDate) {
+        challengeService.findById(challengeId);
+
+        ChallengeParticipation participation = participationRepository
+                .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
+                .orElseThrow(() -> new BusinessException("해당 챌린지에 참여하지 않았습니다."));
+
+        // 기존 완료된 투두를 찾아서 반환
+        Optional<ChallengeTodo> existingTodo = (participation.getChallenge().getPeriodType() == PeriodType.DAILY)
+                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
+                : challengeTodoRepository.findByChallengeParticipation(participation);
+
+        if (existingTodo.isPresent()) {
+            return challengeTodoMapper.toResult(existingTodo.get());
+        } else {
+            // 가상 투두 생성 및 반환 (완료되지 않은 상태)
+            ChallengeTodo virtualTodo = createVirtualChallengeTodo(participation, currentDate);
+            return challengeTodoMapper.toResult(virtualTodo);
+        }
+    }
+
     private List<ChallengeTodoResult> applySorting(List<ChallengeTodoResult> todos, Sort sort) {
         if (sort.isEmpty()) return todos;
         

@@ -22,9 +22,14 @@ public interface ChallengePresentationMapper {
     UpdateChallengeCommand toCommand(UpdateChallengeRequest request);
 
     /** Application 결과 DTO -> Presentation 응답 변환 */
+    @Mapping(target = "participated", source = "participationStatus")
+    @Mapping(target = "participantCount", source = "activeParticipantCount")
     ChallengeResponse toResponse(ChallengeListResult dto);
 
     /** Application 상세 결과 DTO -> Presentation 응답 변환 */
+    @Mapping(target = "participated", source = "participationStatus")
+    @Mapping(target = "participantCount", source = "activeParticipantCount")
+    @Mapping(target = "participants", ignore = true)
     ChallengeDetailResponse toResponse(ChallengeResult dto);
 
     default ChallengeResult toResult(Challenge challenge) {

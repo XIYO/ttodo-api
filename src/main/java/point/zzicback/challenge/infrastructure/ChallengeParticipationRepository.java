@@ -7,15 +7,8 @@ import point.zzicback.member.domain.Member;
 import java.util.*;
 
 public interface ChallengeParticipationRepository extends JpaRepository<ChallengeParticipation, Long> {
-    Optional<ChallengeParticipation> findByMemberAndChallenge_Id(Member member, Long challengeId);
-    List<ChallengeParticipation> findByChallenge_Id(Long challengeId);
-    boolean existsByMemberAndChallenge_Id(Member member, Long challengeId);
-
-    List<ChallengeParticipation> findByMember(Member member);
-
     // 활성 참여자 조회 (joinOut이 null인 경우)
     List<ChallengeParticipation> findByMemberAndJoinOutIsNull(Member member);
     Optional<ChallengeParticipation> findByMemberAndChallenge_IdAndJoinOutIsNull(Member member, Long challengeId);
     boolean existsByMemberAndChallenge_IdAndJoinOutIsNull(Member member, Long challengeId);
-    long countByChallenge_IdAndJoinOutIsNull(Long challengeId);
 }

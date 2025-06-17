@@ -8,15 +8,6 @@ import java.util.List;
 
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
-    @Query(value = "SELECT c.* FROM challenge c LEFT JOIN challenge_participation p ON c.id = p.challenge_id AND p.join_out IS NULL " +
-           "GROUP BY c.id " +
-           "ORDER BY COUNT(p.id) DESC, c.start_date DESC", 
-           nativeQuery = true)
-    List<Challenge> findAllOrderedByPopularityNative(); // 네이티브 쿼리로 인기 챌린지 조회 
-
-    @Query("SELECT DISTINCT c FROM Challenge c LEFT JOIN FETCH c.participations p LEFT JOIN FETCH p.member")
-    List<Challenge> findAllWithParticipations();
-
     @Query(value = "SELECT DISTINCT c FROM Challenge c LEFT JOIN FETCH c.participations p LEFT JOIN FETCH p.member",
            countQuery = "SELECT COUNT(DISTINCT c) FROM Challenge c")
     Page<Challenge> findAllWithParticipations(Pageable pageable);

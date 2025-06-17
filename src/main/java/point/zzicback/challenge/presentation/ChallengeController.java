@@ -47,7 +47,6 @@ public class ChallengeController {
 
     @Operation(summary = "모든 챌린지 조회", description = "등록된 모든 챌린지를 조회합니다. 인증된 사용자의 경우 참여 여부가 포함되며, 성공률은 목록에서 제공되지 않습니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
-    @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
     @GetMapping
     public Page<ChallengeResponse> getChallenges(
             @AuthenticationPrincipal MemberPrincipal principal,
@@ -58,8 +57,14 @@ public class ChallengeController {
             @RequestParam(required = false) Boolean join) {
         Pageable pageable = createPageable(page, size, sort);
         Page<ChallengeListResult> pageDto;
-        Member member = memberService.findVerifiedMember(principal.id());
-        pageDto = challengeService.searchChallengesWithFilter(member, search, sort, join, pageable);
+        
+        if (principal != null) {
+            Member member = memberService.findVerifiedMember(principal.id());
+            pageDto = challengeService.searchChallengesWithFilter(member, search, sort, join, pageable);
+        } else {
+            pageDto = challengeService.searchChallengesWithFilter(null, search, sort, join, pageable);
+        }
+        
         return pageDto.map(challengePresentationMapper::toResponse);
     }
 
@@ -165,8 +170,8 @@ public class ChallengeController {
             @AuthenticationPrincipal MemberPrincipal principal) {
         Member member = memberService.findVerifiedMember(principal.id());
         todoService.completeChallenge(challengeId, member, LocalDate.now());
-        // 재조회하여 응답 DTO 반환
-        return getChallengeTodos(principal, 0, 1, "id,desc").getContent().get(0);
+        var todoResult = todoService.getChallengeTodoByChallenge(challengeId, member, LocalDate.now());
+        return todoMapper.toResponse(todoResult);
     }
 
     @Operation(summary = "챌린지 투두 상태 수정", description = "특정 챌린지 투두의 완료 여부를 수정합니다.")
