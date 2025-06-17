@@ -15,6 +15,8 @@ public record ChallengeResult(
         PeriodType periodType,
         Boolean participationStatus,
         Integer activeParticipantCount,
-        Float successRate
+        Float successRate,
+        Integer completedCount,
+        Integer totalCount
 ) {
 }

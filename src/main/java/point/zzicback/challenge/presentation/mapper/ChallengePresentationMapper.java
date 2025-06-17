@@ -29,6 +29,8 @@ public interface ChallengePresentationMapper {
     /** Application 상세 결과 DTO -> Presentation 응답 변환 */
     @Mapping(target = "participated", source = "participationStatus")
     @Mapping(target = "participantCount", source = "activeParticipantCount")
+    @Mapping(target = "completedCount", source = "completedCount")
+    @Mapping(target = "totalCount", source = "totalCount")
     @Mapping(target = "participants", ignore = true)
     ChallengeDetailResponse toResponse(ChallengeResult dto);
 
@@ -45,6 +47,8 @@ public interface ChallengePresentationMapper {
                 (int) challenge.getParticipations().stream()
                         .filter(participation -> participation.getJoinOut() == null)
                         .count(),
+                null,
+                null,
                 null
         );
     }

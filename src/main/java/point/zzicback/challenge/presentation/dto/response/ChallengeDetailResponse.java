@@ -27,6 +27,10 @@ public record ChallengeDetailResponse(
     int participantCount,
     @Schema(description = "성공률 (투두 완료율)", example = "0.75")
     float successRate,
+    @Schema(description = "완료한 참여자 수", example = "10")
+    int completedCount,
+    @Schema(description = "전체 참여자 수", example = "30")
+    int totalCount,
     @Schema(description = "참여자 목록 (페이지네이션)")
     List<ParticipantResponse> participants
 ) {}

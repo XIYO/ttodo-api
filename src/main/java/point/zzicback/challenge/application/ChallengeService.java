@@ -153,7 +153,9 @@ public class ChallengeService {
                 challenge,
                 isParticipated,
                 activeParticipantCount,
-                successRate
+                successRate,
+                (int) completedParticipantCount,
+                totalParticipantCount
         );
     }
 

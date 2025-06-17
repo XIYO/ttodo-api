@@ -43,12 +43,16 @@ public interface ChallengeMapper {
      * @param participationStatus whether the member has participated
      * @param activeParticipantCount count of active participants
      * @param successRate completion rate
+     * @param completedCount count of participants who completed challenge todos
+     * @param totalCount total count of participants (including those who left)
      * @return detailed result DTO
      */
     @Mapping(target = "participationStatus", source = "participationStatus")
     @Mapping(target = "activeParticipantCount", source = "activeParticipantCount")
     @Mapping(target = "successRate", source = "successRate")
-    ChallengeResult toResult(Challenge challenge, boolean participationStatus, int activeParticipantCount, float successRate);
+    @Mapping(target = "completedCount", source = "completedCount")
+    @Mapping(target = "totalCount", source = "totalCount")
+    ChallengeResult toResult(Challenge challenge, boolean participationStatus, int activeParticipantCount, float successRate, int completedCount, int totalCount);
 
     /**
      * Convert Challenge to ChallengeDetailResult including participant details.
