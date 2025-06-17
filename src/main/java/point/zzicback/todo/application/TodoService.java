@@ -26,13 +26,21 @@ public class TodoService {
   public Page<TodoResult> getTodoList(TodoListQuery query) {
     Page<Todo> todoPage;
     
+    boolean hasFilters = query.status() != null || query.categoryId() != null || 
+                        query.priority() != null || (query.keyword() != null && !query.keyword().trim().isEmpty());
+    
     if (query.status() == TodoStatus.OVERDUE) {
       todoPage = todoRepository.findOverdueTodos(query.memberId(), LocalDate.now(), query.pageable());
-    }
-    else if (query.status() != null) {
-      todoPage = todoRepository.findByMemberIdAndStatus(query.memberId(), query.status(), query.pageable());
-    }
-    else {
+    } else if (hasFilters) {
+      todoPage = todoRepository.findByFilters(
+          query.memberId(), 
+          query.status(), 
+          query.categoryId(), 
+          query.priority(), 
+          query.keyword(), 
+          query.pageable()
+      );
+    } else {
       todoPage = todoRepository.findByMemberId(query.memberId(), query.pageable());
     }
     

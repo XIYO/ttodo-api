@@ -24,7 +24,7 @@ public class TodoController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Todo 목록 조회", description = "사용자의 Todo 목록을 조회합니다. status 파라미터로 상태별 필터링이 가능합니다.")
+  @Operation(summary = "Todo 목록 조회", description = "사용자의 Todo 목록을 조회합니다. 다양한 조건으로 필터링이 가능합니다.")
   public Page<TodoResponse> getAll(
           @AuthenticationPrincipal MemberPrincipal principal,
           
@@ -33,6 +33,21 @@ public class TodoController {
                      schema = @Schema(allowableValues = {"IN_PROGRESS", "COMPLETED", "OVERDUE"}),
                      example = "IN_PROGRESS")
           TodoStatus status,
+          
+          @RequestParam(required = false)
+          @Parameter(description = "카테고리 ID 필터", example = "1")
+          Long categoryId,
+          
+          @RequestParam(required = false)
+          @Parameter(description = "우선순위 필터 (0: 낮음, 1: 보통, 2: 높음)", 
+                     schema = @Schema(allowableValues = {"0", "1", "2"}),
+                     example = "1")
+          Integer priority,
+          
+          @RequestParam(required = false)
+          @Parameter(description = "검색 키워드 (제목, 설명에서 검색)", 
+                     example = "영어")
+          String search,
           
           @RequestParam(defaultValue = "0") int page, 
           @RequestParam(defaultValue = "10") int size,
@@ -45,9 +60,7 @@ public class TodoController {
             : Sort.Direction.ASC;
     Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
     
-    TodoListQuery query = status != null 
-        ? TodoListQuery.of(principal.id(), status, pageable)
-        : TodoListQuery.ofAll(principal.id(), pageable);
+    TodoListQuery query = TodoListQuery.of(principal.id(), status, categoryId, priority, search, pageable);
     
     return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }

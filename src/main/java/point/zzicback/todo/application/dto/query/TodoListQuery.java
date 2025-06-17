@@ -5,16 +5,28 @@ import point.zzicback.todo.domain.TodoStatus;
 
 import java.util.UUID;
 
-public record TodoListQuery(UUID memberId, Boolean done, TodoStatus status, Pageable pageable) {
+public record TodoListQuery(UUID memberId, Boolean done, TodoStatus status, Long categoryId, Integer priority, String keyword, Pageable pageable) {
   public static TodoListQuery of(UUID memberId, Boolean done, Pageable pageable) {
-    return new TodoListQuery(memberId, done, null, pageable);
+    return new TodoListQuery(memberId, done, null, null, null, null, pageable);
   }
   
   public static TodoListQuery of(UUID memberId, TodoStatus status, Pageable pageable) {
-    return new TodoListQuery(memberId, null, status, pageable);
+    return new TodoListQuery(memberId, null, status, null, null, null, pageable);
+  }
+  
+  public static TodoListQuery of(UUID memberId, TodoStatus status, String keyword, Pageable pageable) {
+    return new TodoListQuery(memberId, null, status, null, null, keyword, pageable);
+  }
+  
+  public static TodoListQuery of(UUID memberId, String keyword, Pageable pageable) {
+    return new TodoListQuery(memberId, null, null, null, null, keyword, pageable);
+  }
+  
+  public static TodoListQuery of(UUID memberId, TodoStatus status, Long categoryId, Integer priority, String keyword, Pageable pageable) {
+    return new TodoListQuery(memberId, null, status, categoryId, priority, keyword, pageable);
   }
   
   public static TodoListQuery ofAll(UUID memberId, Pageable pageable) {
-    return new TodoListQuery(memberId, null, null, pageable);
+    return new TodoListQuery(memberId, null, null, null, null, null, pageable);
   }
 }

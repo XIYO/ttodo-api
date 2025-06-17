@@ -21,5 +21,21 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     @Query("SELECT t FROM Todo t WHERE t.member.id = :memberId AND t.status = 'IN_PROGRESS' AND t.dueDate < :currentDate")
     Page<Todo> findOverdueTodos(@Param("memberId") UUID memberId, @Param("currentDate") LocalDate currentDate, Pageable pageable);
+    
+    @Query("""
+        SELECT t FROM Todo t WHERE t.member.id = :memberId
+        AND (:status IS NULL OR t.status = :status)
+        AND (:categoryId IS NULL OR t.category.id = :categoryId)
+        AND (:priority IS NULL OR t.priority = :priority)
+        AND (:keyword IS NULL OR :keyword = '' OR 
+             LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
+             LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        """)
+    Page<Todo> findByFilters(@Param("memberId") UUID memberId, 
+                           @Param("status") TodoStatus status,
+                           @Param("categoryId") Long categoryId,
+                           @Param("priority") Integer priority,
+                           @Param("keyword") String keyword,
+                           Pageable pageable);
 }
 
