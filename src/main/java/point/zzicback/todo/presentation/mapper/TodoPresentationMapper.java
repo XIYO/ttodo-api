@@ -8,6 +8,7 @@ import point.zzicback.todo.presentation.dto.CreateTodoRequest;
 import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
 import point.zzicback.todo.presentation.dto.TodoStatisticsResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 @Mapper(componentModel = "spring")
@@ -24,5 +25,14 @@ public interface TodoPresentationMapper {
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
   
-  TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics);
+  default TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics) {
+    List<TodoStatisticsResponse.StatisticsItem> content = List.of(
+        new TodoStatisticsResponse.StatisticsItem("진행중", statistics.inProgress()),
+        new TodoStatisticsResponse.StatisticsItem("기간초과", statistics.overdue()),
+        new TodoStatisticsResponse.StatisticsItem("완료", statistics.completed()),
+        new TodoStatisticsResponse.StatisticsItem("전체", statistics.total())
+    );
+    
+    return new TodoStatisticsResponse(content);
+  }
 }

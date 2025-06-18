@@ -237,7 +237,43 @@ public class TodoController {
   
   @GetMapping("/statistics")
   @ResponseStatus(HttpStatus.OK)
-  @Operation(summary = "Todo 통계 조회", description = "사용자의 Todo 상태별 통계를 조회합니다.")
+  @Operation(
+      summary = "Todo 통계 조회", 
+      description = "사용자의 Todo 상태별 통계를 조회합니다.",
+      responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(
+          responseCode = "200",
+          description = "통계 조회 성공",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = TodoStatisticsResponse.class),
+              examples = @ExampleObject(
+                  name = "응답 예시",
+                  value = """
+                      {
+                        "content": [
+                          {
+                            "statisticsName": "진행중",
+                            "statisticsValue": 0
+                          },
+                          {
+                            "statisticsName": "기간초과",
+                            "statisticsValue": 4
+                          },
+                          {
+                            "statisticsName": "완료",
+                            "statisticsValue": 2
+                          },
+                          {
+                            "statisticsName": "전체",
+                            "statisticsValue": 6
+                          }
+                        ]
+                      }
+                      """
+              )
+          )
+      )
+  )
   public TodoStatisticsResponse getStatistics(@AuthenticationPrincipal MemberPrincipal principal) {
     return todoPresentationMapper.toStatisticsResponse(todoService.getTodoStatistics(principal.id()));
   }
