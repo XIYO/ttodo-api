@@ -13,10 +13,13 @@ import java.util.UUID;
 @Mapper(componentModel = "spring")
 public interface TodoPresentationMapper {
   @Mapping(target = "memberId", source = "memberId")
+  @Mapping(target = "priority", source = "request.priorityId")
   CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "todoId", source = "todoId")
+  @Mapping(target = "status", source = "request.statusId")
+  @Mapping(target = "priority", source = "request.priorityId")
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);

@@ -23,10 +23,11 @@ public class Todo {
   
   private String description;
   
-  @Column(nullable = false)
-  private Integer status = 0;
+  @Column(name = "status", nullable = false)
+  private Integer statusId = 0;
   
-  private Integer priority;
+  @Column(name = "priority")
+  private Integer priorityId;
   
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
@@ -47,14 +48,14 @@ public class Todo {
   private Member member;
 
   @Builder
-  public Todo(Long id, String title, String description, Integer status, Integer priority, 
+  public Todo(Long id, String title, String description, Integer statusId, Integer priorityId, 
               Category category, LocalDate dueDate, RepeatType repeatType, 
               Set<String> tags, Member member) {
     this.id = id;
     this.title = title;
     this.description = description;
-    this.status = status != null ? status : 0;
-    this.priority = priority;
+    this.statusId = statusId != null ? statusId : 0;
+    this.priorityId = priorityId;
     this.category = category;
     this.dueDate = dueDate;
     this.repeatType = repeatType;
@@ -69,7 +70,7 @@ public class Todo {
   
   @Transient
   public String getDisplayStatus() {
-    return switch (status) {
+    return switch (statusId) {
       case 0 -> "진행중";
       case 1 -> "완료";
       case 2 -> "지연";
@@ -89,6 +90,6 @@ public class Todo {
   
   @Transient
   public Integer getActualStatus() {
-    return status;
+    return statusId;
   }
 }

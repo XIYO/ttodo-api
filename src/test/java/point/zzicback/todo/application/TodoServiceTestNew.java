@@ -47,7 +47,7 @@ class TodoServiceTestNew {
         testTodo = Todo.builder()
                 .title("테스트 할일")
                 .description("테스트 설명")
-                .status(0)
+                .statusId(0)
                 .member(testMember)
                 .build();
         todoRepository.save(testTodo);
@@ -115,7 +115,7 @@ class TodoServiceTestNew {
                 .first()
                 .satisfies(todo -> {
                     assertThat(todo.getDescription()).isEqualTo("새로운 설명");
-                    assertThat(todo.getStatus()).isEqualTo(0);
+                    assertThat(todo.getStatusId()).isEqualTo(0);
                 });
     }
 
@@ -139,7 +139,7 @@ class TodoServiceTestNew {
         Todo updatedTodo = todoRepository.findById(testTodo.getId()).orElseThrow();
         assertThat(updatedTodo.getTitle()).isEqualTo("수정된 할일");
         assertThat(updatedTodo.getDescription()).isEqualTo("수정된 설명");
-        assertThat(updatedTodo.getStatus()).isEqualTo(1);
+        assertThat(updatedTodo.getStatusId()).isEqualTo(1);
     }
 
     @Test

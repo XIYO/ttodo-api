@@ -17,8 +17,8 @@ import java.util.Set;
         {
           "title": "영어 공부하기",
           "description": "토익 문제집 2장 풀기",
-          "status": "IN_PROGRESS",
-          "priority": 1,
+          "statusId": 0,
+          "priorityId": 1,
           "categoryId": 1,
           "dueDate": "2026-01-01",
           "repeatType": "NONE",
@@ -53,7 +53,7 @@ public class CreateTodoRequest {
         defaultValue = "0", 
         allowableValues = {"0", "1"}
     )
-    private Integer status;
+    private Integer statusId;
     
     @Schema(
         description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", 
@@ -62,7 +62,7 @@ public class CreateTodoRequest {
         minimum = "0",
         maximum = "2"
     )
-    private Integer priority;
+    private Integer priorityId;
     
     @Schema(
         description = "카테고리 ID", 

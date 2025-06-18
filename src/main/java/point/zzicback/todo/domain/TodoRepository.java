@@ -17,9 +17,9 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     
     @Query("""
         SELECT t FROM Todo t WHERE t.member.id = :memberId
-        AND (:status IS NULL OR t.status = :status)
+        AND (:status IS NULL OR t.statusId = :status)
         AND (:categoryId IS NULL OR t.category.id = :categoryId)
-        AND (:priority IS NULL OR t.priority = :priority)
+        AND (:priority IS NULL OR t.priorityId = :priority)
         AND (:keyword IS NULL OR :keyword = '' OR 
              LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
@@ -32,19 +32,19 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
                            Pageable pageable);
 
     @Modifying
-    @Query("UPDATE Todo t SET t.status = 2 WHERE t.status = 0 AND t.dueDate < :currentDate")
+    @Query("UPDATE Todo t SET t.statusId = 2 WHERE t.statusId = 0 AND t.dueDate < :currentDate")
     int updateOverdueTodos(@Param("currentDate") LocalDate currentDate);
     
     @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId")
     long countByMemberId(@Param("memberId") UUID memberId);
     
-    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.status = 0")
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.statusId = 0")
     long countInProgressByMemberId(@Param("memberId") UUID memberId);
     
-    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.status = 1")
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.statusId = 1")
     long countCompletedByMemberId(@Param("memberId") UUID memberId);
     
-    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND (t.status = 2 OR (t.status = 0 AND t.dueDate < :currentDate))")
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND (t.statusId = 2 OR (t.statusId = 0 AND t.dueDate < :currentDate))")
     long countOverdueByMemberId(@Param("memberId") UUID memberId, @Param("currentDate") LocalDate currentDate);
 }
 

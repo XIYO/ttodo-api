@@ -141,8 +141,8 @@ public class TodoController {
                       {
                         "title": "영어 공부하기 (수정)",
                         "description": "토익 문제집 3장 풀어보기",
-                        "status": "COMPLETED",
-                        "priority": 2,
+                        "statusId": 1,
+                        "priorityId": 2,
                         "categoryId": 1,
                         "dueDate": "2026-01-02",
                         "repeatType": "DAILY",
@@ -194,8 +194,8 @@ public class TodoController {
                   name = "JSON 예시",
                   value = """
                       {
-                        "status": "COMPLETED",
-                        "priority": 2
+                        "statusId": 1,
+                        "priorityId": 2
                       }
                       """
               )

@@ -72,8 +72,8 @@ public class TodoService {
     };
     
     String priorityName = null;
-    if (todo.getPriority() != null) {
-      priorityName = switch (todo.getPriority()) {
+    if (todo.getPriorityId() != null) {
+      priorityName = switch (todo.getPriorityId()) {
         case 0 -> "낮음";
         case 1 -> "보통";
         case 2 -> "높음";
@@ -87,7 +87,7 @@ public class TodoService {
             todo.getDescription(),
             actualStatus,
             statusName,
-            todo.getPriority(),
+            todo.getPriorityId(),
             priorityName,
             todo.getCategory() != null ? todo.getCategory().getId() : null,
             todo.getCategory() != null ? todo.getCategory().getName() : null,
@@ -110,7 +110,7 @@ public class TodoService {
     Todo todo = Todo.builder()
             .title(command.title())
             .description(command.description())
-            .priority(command.priority())
+            .priorityId(command.priority())
             .category(category)
             .dueDate(command.dueDate())
             .repeatType(command.repeatType())
@@ -135,8 +135,8 @@ public class TodoService {
     
     todo.setTitle(command.title());
     todo.setDescription(command.description());
-    todo.setStatus(command.status());
-    todo.setPriority(command.priority());
+    todo.setStatusId(command.status());
+    todo.setPriorityId(command.priority());
     todo.setCategory(category);
     todo.setDueDate(command.dueDate());
     todo.setRepeatType(command.repeatType());
@@ -163,10 +163,10 @@ public class TodoService {
       todo.setDescription(command.description());
     }
     if (command.status() != null) {
-      todo.setStatus(command.status());
+      todo.setStatusId(command.status());
     }
     if (command.priority() != null) {
-      todo.setPriority(command.priority());
+      todo.setPriorityId(command.priority());
     }
     if (command.dueDate() != null) {
       todo.setDueDate(command.dueDate());
