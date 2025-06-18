@@ -89,8 +89,19 @@ public class CreateTodoRequest {
     
     @Schema(
         description = "태그 목록", 
-        example = "[\"영어\", \"학습\"]",
-        type = "array"
+        example = "영어,학습",
+        type = "string"
     )
+    @Setter(AccessLevel.NONE)
     private Set<String> tags;
+    
+    public void setTags(String tagsString) {
+        if (tagsString != null && !tagsString.trim().isEmpty()) {
+            this.tags = Set.of(tagsString.split(","))
+                .stream()
+                .map(String::trim)
+                .filter(tag -> !tag.isEmpty())
+                .collect(java.util.stream.Collectors.toSet());
+        }
+    }
 }

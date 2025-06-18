@@ -64,19 +64,36 @@ public class TodoService {
 
   private TodoResult toTodoResult(Todo todo) {
     Integer actualStatus = todo.getActualStatus();
+    String statusName = switch (actualStatus) {
+      case 0 -> "진행중";
+      case 1 -> "완료";
+      case 2 -> "지연";
+      default -> "알 수 없음";
+    };
+    
+    String priorityName = null;
+    if (todo.getPriority() != null) {
+      priorityName = switch (todo.getPriority()) {
+        case 0 -> "낮음";
+        case 1 -> "보통";
+        case 2 -> "높음";
+        default -> "알 수 없음";
+      };
+    }
+    
     return new TodoResult(
             todo.getId(),
             todo.getTitle(),
             todo.getDescription(),
             actualStatus,
+            statusName,
             todo.getPriority(),
+            priorityName,
             todo.getCategory() != null ? todo.getCategory().getId() : null,
             todo.getCategory() != null ? todo.getCategory().getName() : null,
             todo.getDueDate(),
             todo.getRepeatType(),
-            todo.getTags(),
-            todo.getDisplayCategory(),
-            todo.getActualDisplayStatus()
+            todo.getTags()
     );
   }
 

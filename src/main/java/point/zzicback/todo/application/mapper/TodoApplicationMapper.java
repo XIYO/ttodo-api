@@ -8,7 +8,10 @@ import point.zzicback.todo.domain.Todo;
 @Mapper(componentModel = "spring")
 public interface TodoApplicationMapper {
 
-    @Mapping(target = "displayCategory", source = "displayCategory")
+    @Mapping(target = "statusId", source = "status")
+    @Mapping(target = "statusName", ignore = true)
+    @Mapping(target = "priorityId", source = "priority")
+    @Mapping(target = "priorityName", ignore = true)
     @Mapping(target = "categoryId", expression = "java(todo.getCategory() != null ? todo.getCategory().getId() : null)")
     @Mapping(target = "categoryName", expression = "java(todo.getCategory() != null ? todo.getCategory().getName() : null)")
     TodoResult toResult(Todo todo);

@@ -69,7 +69,7 @@ class TodoServiceTestNew {
                 .satisfies(todo -> {
                     assertThat(todo.title()).isEqualTo("테스트 할일");
                     assertThat(todo.description()).isEqualTo("테스트 설명");
-                    assertThat(todo.status()).isEqualTo(0);
+                    assertThat(todo.statusId()).isEqualTo(0);
                 });
     }
 
@@ -89,7 +89,7 @@ class TodoServiceTestNew {
                 .satisfies(todo -> {
                     assertThat(todo.title()).isEqualTo("테스트 할일");
                     assertThat(todo.description()).isEqualTo("테스트 설명");
-                    assertThat(todo.status()).isEqualTo(0);
+                    assertThat(todo.statusId()).isEqualTo(0);
                 });
     }
 
@@ -194,7 +194,7 @@ class TodoServiceTestNew {
         assertThat(result).isNotNull();
         assertThat(result.title()).isEqualTo("테스트 할일");
         assertThat(result.description()).isEqualTo("테스트 설명");
-        assertThat(result.status()).isEqualTo(0);
+        assertThat(result.statusId()).isEqualTo(0);
     }
 
     @Test

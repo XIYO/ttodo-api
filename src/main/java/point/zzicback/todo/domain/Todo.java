@@ -34,7 +34,7 @@ public class Todo {
   
   private LocalDate dueDate;
   
-  @Enumerated(EnumType.STRING)
+  @Enumerated(EnumType.ORDINAL)
   private RepeatType repeatType;
   
   @ElementCollection

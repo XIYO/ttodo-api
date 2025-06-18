@@ -109,7 +109,7 @@ public class TodoController {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
       summary = "Todo 생성 (Form)", 
-      description = "새로운 Todo를 생성합니다.",
+      description = "새로운 Todo를 생성합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습).",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Todo 생성 정보",
           required = true,
@@ -163,7 +163,7 @@ public class TodoController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 수정 (Form)", 
-      description = "Todo를 전체 수정합니다.",
+      description = "Todo를 전체 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Todo 수정 정보",
           required = true,
@@ -212,7 +212,7 @@ public class TodoController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 부분 수정 (Form)", 
-      description = "Todo를 부분 수정합니다.",
+      description = "Todo를 부분 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Todo 부분 수정 정보 (수정할 필드만 포함)",
           required = true,

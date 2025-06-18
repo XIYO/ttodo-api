@@ -18,10 +18,16 @@ public record TodoResponse(
         String description, 
         
         @Schema(description = "상태 (0: 진행중, 1: 완료, 2: 지연)", example = "0", allowableValues = {"0", "1", "2"})
-        Integer status,
+        Integer statusId,
+        
+        @Schema(description = "상태명", example = "진행중")
+        String statusName,
         
         @Schema(description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", example = "1")
-        Integer priority,
+        Integer priorityId,
+        
+        @Schema(description = "우선순위명", example = "보통")
+        String priorityName,
         
         @Schema(description = "카테고리 ID", example = "1")
         Long categoryId,
@@ -36,12 +42,6 @@ public record TodoResponse(
         RepeatType repeatType,
         
         @Schema(description = "태그 목록", example = "[\"영어\", \"학습\"]")
-        Set<String> tags,
-        
-        @Schema(description = "표시용 카테고리명", example = "학습")
-        String displayCategory,
-        
-        @Schema(description = "표시용 상태명", example = "진행중")
-        String displayStatus
+        Set<String> tags
 ) {
 }
