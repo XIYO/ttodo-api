@@ -1,7 +1,7 @@
 package point.zzicback.todo.application;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.category.domain.Category;
@@ -15,7 +15,7 @@ import point.zzicback.todo.application.dto.result.TodoStatistics;
 import point.zzicback.todo.domain.*;
 
 import java.time.LocalDate;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +58,7 @@ public class TodoService {
   }
 
   @Transactional
-  private void updateOverdueTodos() {
+  protected void updateOverdueTodos() {
     todoRepository.updateOverdueTodos(LocalDate.now());
   }
 
@@ -198,5 +198,9 @@ public class TodoService {
     long overdue = todoRepository.countOverdueByMemberId(memberId, LocalDate.now());
     
     return new TodoStatistics(total, inProgress, completed, overdue);
+  }
+  
+  public Page<String> getTags(UUID memberId, Pageable pageable) {
+    return todoRepository.findDistinctTagsByMemberId(memberId, pageable);
   }
 }

@@ -275,6 +275,6 @@ public class TodoController {
       )
   )
   public TodoStatisticsResponse getStatistics(@AuthenticationPrincipal MemberPrincipal principal) {
-    return todoPresentationMapper.toStatisticsResponse(todoService.getTodoStatistics(principal.id()));
+      return todoPresentationMapper.toStatisticsResponse(todoService.getTodoStatistics(principal.id()));
   }
 }

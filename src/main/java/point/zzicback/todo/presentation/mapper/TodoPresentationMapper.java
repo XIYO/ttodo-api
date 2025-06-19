@@ -8,22 +8,33 @@ import point.zzicback.todo.presentation.dto.CreateTodoRequest;
 import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
 import point.zzicback.todo.presentation.dto.TodoStatisticsResponse;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {Arrays.class, java.util.stream.Collectors.class})
 public interface TodoPresentationMapper {
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "priority", source = "request.priorityId")
+  @Mapping(target = "tags", expression = "java(parseTagsString(request.getTags()))")
   CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "todoId", source = "todoId")
   @Mapping(target = "status", source = "request.statusId")
   @Mapping(target = "priority", source = "request.priorityId")
+  @Mapping(target = "tags", expression = "java(parseTagsString(request.getTags()))")
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
+  
+  default Set<String> parseTagsString(String tagsString) {
+    if (tagsString == null || tagsString.trim().isEmpty()) {
+      return null;
+    }
+    return Arrays.stream(tagsString.split(","))
+        .map(String::trim)
+        .filter(tag -> !tag.isEmpty())
+        .collect(java.util.stream.Collectors.toSet());
+  }
   
   default TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics) {
     List<TodoStatisticsResponse.StatisticsItem> content = List.of(

@@ -6,7 +6,6 @@ import lombok.*;
 import point.zzicback.todo.domain.RepeatType;
 
 import java.time.LocalDate;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +21,7 @@ import java.util.Set;
           "categoryId": 1,
           "dueDate": "2026-01-02",
           "repeatType": "DAILY",
-          "tags": ["영어", "학습", "토익"]
+          "tags": "영어,학습,토익"
         }
         """
 )
@@ -83,20 +82,9 @@ public class UpdateTodoRequest {
     private RepeatType repeatType;
     
     @Schema(
-        description = "태그 목록", 
+        description = "태그 목록 (콤마로 구분)", 
         example = "영어,학습,토익",
         type = "string"
     )
-    @Setter(AccessLevel.NONE)
-    private Set<String> tags;
-    
-    public void setTags(String tagsString) {
-        if (tagsString != null && !tagsString.trim().isEmpty()) {
-            this.tags = Set.of(tagsString.split(","))
-                .stream()
-                .map(String::trim)
-                .filter(tag -> !tag.isEmpty())
-                .collect(java.util.stream.Collectors.toSet());
-        }
-    }
+    private String tags;
 }
