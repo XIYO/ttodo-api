@@ -1,12 +1,14 @@
 package point.zzicback.member.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.common.error.*;
 import point.zzicback.member.application.dto.command.*;
 import point.zzicback.member.application.dto.result.MemberResult;
+import point.zzicback.member.application.event.MemberCreatedEvent;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.infrastructure.persistence.JpaMemberRepository;
 
@@ -18,6 +20,7 @@ import java.util.*;
 public class MemberService {
   private static final String MEMBER_ENTITY = "Member";
   private final JpaMemberRepository memberRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   public Member createMember(CreateMemberCommand command) {
     Member member = Member.builder()
@@ -25,7 +28,15 @@ public class MemberService {
         .password(command.password())
         .nickname(command.nickname())
         .build();
-    return memberRepository.save(member);
+    Member savedMember = memberRepository.save(member);
+    
+    eventPublisher.publishEvent(new MemberCreatedEvent(
+        savedMember.getId(), 
+        savedMember.getEmail(), 
+        savedMember.getNickname()
+    ));
+    
+    return savedMember;
   }
 
   @Transactional(readOnly = true)
