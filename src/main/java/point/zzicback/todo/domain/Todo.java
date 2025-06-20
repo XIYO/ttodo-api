@@ -2,14 +2,18 @@ package point.zzicback.todo.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import point.zzicback.category.domain.Category;
 import point.zzicback.member.domain.Member;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
@@ -47,6 +51,10 @@ public class Todo {
   @JoinColumn(name = "member_id", nullable = false)
   private Member member;
 
+  @CreatedDate
+  @Column(updatable = false)
+  private LocalDateTime createdAt;
+
   @Builder
   public Todo(Long id, String title, String description, Integer statusId, Integer priorityId, 
               Category category, LocalDate dueDate, RepeatType repeatType, 
@@ -62,32 +70,7 @@ public class Todo {
     this.tags = tags != null ? tags : new HashSet<>();
     this.member = member;
   }
-  
-  @Transient
-  public String getDisplayCategory() {
-    return category != null ? category.getName() : null;
-  }
-  
-  @Transient
-  public String getDisplayStatus() {
-    return switch (statusId) {
-      case 0 -> "진행중";
-      case 1 -> "완료";
-      case 2 -> "지연";
-      default -> "알 수 없음";
-    };
-  }
-  
-  @Transient
-  public String getActualDisplayStatus() {
-    return switch (getActualStatus()) {
-      case 0 -> "진행중";
-      case 1 -> "완료";
-      case 2 -> "지연";
-      default -> "알 수 없음";
-    };
-  }
-  
+
   @Transient
   public Integer getActualStatus() {
     return statusId;

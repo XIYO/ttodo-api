@@ -12,7 +12,19 @@ import java.util.*;
  * DDD 원칙에 따라 도메인 계층에 위치
  */
 public interface TodoRepository extends JpaRepository<Todo, Long> {
-    Page<Todo> findByMemberId(UUID memberId, Pageable pageable);
+    @Query("""
+        SELECT t FROM Todo t WHERE t.member.id = :memberId
+        ORDER BY 
+          CASE t.statusId 
+            WHEN 2 THEN 0 
+            WHEN 0 THEN 1 
+            WHEN 1 THEN 2 
+            ELSE 3 END,
+          t.dueDate ASC,
+          t.createdAt ASC
+        """)
+    Page<Todo> findByMemberId(@Param("memberId") UUID memberId, Pageable pageable);
+
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
     
     @Query("""
@@ -23,6 +35,14 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
         AND (:keyword IS NULL OR :keyword = '' OR 
              LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        ORDER BY 
+          CASE t.statusId 
+            WHEN 2 THEN 0 
+            WHEN 0 THEN 1 
+            WHEN 1 THEN 2 
+            ELSE 3 END,
+          t.dueDate ASC,
+          t.createdAt ASC
         """)
     Page<Todo> findByFilters(@Param("memberId") UUID memberId, 
                            @Param("status") Integer status,
