@@ -1,5 +1,7 @@
 package point.zzicback.member.application.event;
 
+import java.util.List;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +16,10 @@ public class MemberEventHandler {
 
     @EventListener
     public void handleMemberCreated(MemberCreatedEvent event) {
-        CreateCategoryCommand command = new CreateCategoryCommand(event.memberId(), "기본");
-        categoryService.createCategory(command);
+        List<String> categoryNames = List.of("기본", "개인", "업무");
+        categoryNames.forEach(name -> {
+            CreateCategoryCommand command = new CreateCategoryCommand(event.memberId(), name);
+            categoryService.createCategory(command);
+        });
     }
 }

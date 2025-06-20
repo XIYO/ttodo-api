@@ -42,7 +42,7 @@ public class Todo {
   @Enumerated(EnumType.ORDINAL)
   private RepeatType repeatType;
   
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "todo_tags", joinColumns = @JoinColumn(name = "todo_id"))
   @Column(name = "tag")
   private Set<String> tags = new HashSet<>();

@@ -28,13 +28,14 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
     
     @Query("""
-        SELECT t FROM Todo t WHERE t.member.id = :memberId
+        SELECT DISTINCT t FROM Todo t LEFT JOIN t.tags tag WHERE t.member.id = :memberId
         AND (:status IS NULL OR t.statusId = :status)
         AND (:categoryId IS NULL OR t.category.id = :categoryId)
         AND (:priority IS NULL OR t.priorityId = :priority)
         AND (:keyword IS NULL OR :keyword = '' OR 
              LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
-             LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+             LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+             LOWER(tag) LIKE LOWER(CONCAT('%', :keyword, '%')))
         ORDER BY 
           CASE t.statusId 
             WHEN 2 THEN 0 

@@ -40,7 +40,7 @@ public class TodoController {
                      example = "1")
           Integer priorityId,
           @RequestParam(required = false)
-          @Parameter(description = "검색 키워드 (제목, 설명에서 검색)", 
+          @Parameter(description = "검색 키워드 (제목, 설명, 태그에서 검색)", 
                      example = "영어")
           String keyword,
           @RequestParam(defaultValue = "0") int page, 

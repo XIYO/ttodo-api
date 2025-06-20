@@ -11,6 +11,7 @@ import point.zzicback.challenge.domain.PeriodType;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.domain.Member;
+import point.zzicback.todo.config.TodoInitializer;
 
 @Slf4j
 @Component
@@ -21,6 +22,7 @@ public class AnonMemberInitializer implements ApplicationRunner {
   private final ChallengeService challengeService;
   private final ChallengeParticipationService participationService;
   private final ChallengeTodoService challengeTodoService;
+  private final TodoInitializer todoInitializer;
   private final java.util.Random random = new java.util.Random();
 
   @Override
@@ -37,6 +39,10 @@ public class AnonMemberInitializer implements ApplicationRunner {
 
     Member member = createOrFindMember("anon@zzic.com", "", "익명의 찍찍이");
     members[0] = member;
+    
+    // 첫 번째 익명 사용자에게만 기본 할일 생성
+    todoInitializer.createDefaultTodosForMember(member);
+    
     for (int i = 1; i < 11; i++) {
       String email = "anon" + (i + 1) + "@zzic.com";
       String nickname = switch (i) {
