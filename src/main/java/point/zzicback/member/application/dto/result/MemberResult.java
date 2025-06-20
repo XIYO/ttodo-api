@@ -8,5 +8,6 @@ import java.util.UUID;
 public record MemberResult(
         UUID id,
         String email,
-        String nickname
+        String nickname,
+        String introduction
 ) {}

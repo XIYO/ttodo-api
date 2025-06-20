@@ -22,4 +22,6 @@ public class Member {
   private String nickname;
   @Column(nullable = false)
   private String password;
+  @Column(length = 500)
+  private String introduction;
 }

@@ -40,7 +40,7 @@ class TodoServiceTestNew {
     @BeforeEach
     void setUp() {
         // 테스트용 회원 생성
-        CreateMemberCommand memberCommand = new CreateMemberCommand("test@example.com", "password", "nickname");
+        CreateMemberCommand memberCommand = new CreateMemberCommand("test@example.com", "password", "nickname", null);
         testMember = memberService.createMember(memberCommand);
 
         // 테스트용 Todo 생성
@@ -65,7 +65,7 @@ class TodoServiceTestNew {
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0))
+        assertThat(result.getContent().getFirst())
                 .satisfies(todo -> {
                     assertThat(todo.title()).isEqualTo("테스트 할일");
                     assertThat(todo.description()).isEqualTo("테스트 설명");
@@ -85,7 +85,7 @@ class TodoServiceTestNew {
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0))
+        assertThat(result.getContent().getFirst())
                 .satisfies(todo -> {
                     assertThat(todo.title()).isEqualTo("테스트 할일");
                     assertThat(todo.description()).isEqualTo("테스트 설명");

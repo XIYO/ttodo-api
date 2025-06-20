@@ -110,7 +110,8 @@ public class AnonMemberInitializer implements ApplicationRunner {
       CreateMemberCommand command = new CreateMemberCommand(
           email,
           passwordEncoder.encode(password),
-          nickname
+          nickname,
+          null
       );
       Member member = memberService.createMember(command);
       log.info("Created member: {}", nickname);

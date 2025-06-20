@@ -18,6 +18,7 @@ public interface MemberPresentationMapper {
     /** Presentation 요청 DTO -> Application Command 변환 */
     @Mapping(target = "memberId", source = "memberId")
     @Mapping(target = "nickname", source = "request.nickname")
+    @Mapping(target = "introduction", source = "request.introduction")
     UpdateMemberCommand toCommand(UUID memberId, UpdateMemberRequest request);
 
     /** Domain Member -> Application MemberResult 변환 */

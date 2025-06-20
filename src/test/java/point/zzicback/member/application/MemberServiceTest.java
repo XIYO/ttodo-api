@@ -24,7 +24,7 @@ class MemberServiceTest {
   @Test
   @DisplayName("회원 생성 성공")
   void createMemberSuccess() {
-    CreateMemberCommand command = new CreateMemberCommand("test@example.com", "password", "nickname");
+    CreateMemberCommand command = new CreateMemberCommand("test@example.com", "password", "nickname", null);
     memberService.createMember(command);
     Member member = memberService.findByEmailOrThrow("test@example.com");
     assertEquals("test@example.com", member.getEmail());
@@ -33,9 +33,21 @@ class MemberServiceTest {
   }
 
   @Test
+  @DisplayName("소개글과 함께 회원 생성 성공")
+  void createMemberWithIntroductionSuccess() {
+    CreateMemberCommand command = new CreateMemberCommand("intro@example.com", "password", "nickname", "안녕하세요! 새로운 회원입니다.");
+    memberService.createMember(command);
+    Member member = memberService.findByEmailOrThrow("intro@example.com");
+    assertEquals("intro@example.com", member.getEmail());
+    assertEquals("password", member.getPassword());
+    assertEquals("nickname", member.getNickname());
+    assertEquals("안녕하세요! 새로운 회원입니다.", member.getIntroduction());
+  }
+
+  @Test
   @DisplayName("이메일로 회원 조회 성공")
   void findByEmailSuccess() {
-    CreateMemberCommand command = new CreateMemberCommand("find@example.com", "password", "nickname");
+    CreateMemberCommand command = new CreateMemberCommand("find@example.com", "password", "nickname", null);
     memberService.createMember(command);
     Member member = memberService.findByEmailOrThrow("find@example.com");
     assertEquals("find@example.com", member.getEmail());
@@ -50,7 +62,7 @@ class MemberServiceTest {
   @Test
   @DisplayName("회원 ID로 회원 조회 성공")
   void findVerifiedMemberSuccess() {
-    CreateMemberCommand command = new CreateMemberCommand("verified@example.com", "password", "nickname");
+    CreateMemberCommand command = new CreateMemberCommand("verified@example.com", "password", "nickname", null);
     memberService.createMember(command);
     Member created = memberService.findByEmailOrThrow("verified@example.com");
     Member member = memberService.findVerifiedMember(created.getId());
@@ -67,19 +79,46 @@ class MemberServiceTest {
   @Test
   @DisplayName("회원 정보 업데이트")
   void updateMember() {
-    CreateMemberCommand command = new CreateMemberCommand("update@example.com", "password", "nickname");
+    CreateMemberCommand command = new CreateMemberCommand("update@example.com", "password", "nickname", null);
     memberService.createMember(command);
     Member member = memberService.findByEmailOrThrow("update@example.com");
-    UpdateMemberCommand updateCommand = new UpdateMemberCommand(member.getId(), "newNickname");
+    UpdateMemberCommand updateCommand = new UpdateMemberCommand(member.getId(), "newNickname", "새로운 소개글");
     memberService.updateMember(updateCommand);
     Member updated = memberService.findByEmailOrThrow("update@example.com");
     assertEquals("newNickname", updated.getNickname());
+    assertEquals("새로운 소개글", updated.getIntroduction());
+  }
+
+  @Test
+  @DisplayName("닉네임만 업데이트")
+  void updateMemberNicknameOnly() {
+    CreateMemberCommand command = new CreateMemberCommand("nickname-only@example.com", "password", "oldNickname", null);
+    memberService.createMember(command);
+    Member member = memberService.findByEmailOrThrow("nickname-only@example.com");
+    UpdateMemberCommand updateCommand = new UpdateMemberCommand(member.getId(), "newNickname", null);
+    memberService.updateMember(updateCommand);
+    Member updated = memberService.findByEmailOrThrow("nickname-only@example.com");
+    assertEquals("newNickname", updated.getNickname());
+    assertNull(updated.getIntroduction());
+  }
+
+  @Test
+  @DisplayName("소개글만 업데이트")
+  void updateMemberIntroductionOnly() {
+    CreateMemberCommand command = new CreateMemberCommand("intro-only@example.com", "password", "nickname", null);
+    memberService.createMember(command);
+    Member member = memberService.findByEmailOrThrow("intro-only@example.com");
+    UpdateMemberCommand updateCommand = new UpdateMemberCommand(member.getId(), null, "새로운 소개글");
+    memberService.updateMember(updateCommand);
+    Member updated = memberService.findByEmailOrThrow("intro-only@example.com");
+    assertEquals("nickname", updated.getNickname());
+    assertEquals("새로운 소개글", updated.getIntroduction());
   }
 
   @Test
   @DisplayName("이메일로 회원 조회 Optional - 존재하는 경우")
   void findByEmailOptionalExists() {
-    CreateMemberCommand command = new CreateMemberCommand("optional@example.com", "password", "nickname");
+    CreateMemberCommand command = new CreateMemberCommand("optional@example.com", "password", "nickname", null);
     memberService.createMember(command);
     Optional<Member> member = memberService.findByEmail("optional@example.com");
     assertTrue(member.isPresent());
@@ -96,7 +135,7 @@ class MemberServiceTest {
   @Test
   @DisplayName("ID로 회원 조회 Optional - 존재하는 경우")
   void findByIdOptionalExists() {
-    CreateMemberCommand command = new CreateMemberCommand("id-optional@example.com", "password", "nickname");
+    CreateMemberCommand command = new CreateMemberCommand("id-optional@example.com", "password", "nickname", null);
     memberService.createMember(command);
     Member created = memberService.findByEmailOrThrow("id-optional@example.com");
     Optional<Member> member = memberService.findById(created.getId());

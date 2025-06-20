@@ -55,7 +55,7 @@ public class MemberController {
         return mapper.toResponse(dto);
     }
 
-    @Operation(summary = "회원 정보 수정", description = "회원 닉네임을 수정합니다.")
+    @Operation(summary = "회원 정보 수정", description = "회원 닉네임과 소개글을 수정합니다.")
     @ApiResponse(responseCode = "204", description = "회원 정보 수정 성공")
     @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
     @PatchMapping("/{memberId}")

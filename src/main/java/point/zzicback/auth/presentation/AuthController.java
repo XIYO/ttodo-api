@@ -42,7 +42,7 @@ public class AuthController {
   @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
   @PostMapping("/sign-up")
   public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
-    CreateMemberCommand signUpCommand = new CreateMemberCommand(request.email(), passwordEncoder.encode(request.password()), request.nickname());
+    CreateMemberCommand signUpCommand = new CreateMemberCommand(request.email(), passwordEncoder.encode(request.password()), request.nickname(), request.introduction());
     memberService.createMember(signUpCommand);
     Member member = authenticateMember(request.email(), request.password());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));

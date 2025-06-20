@@ -27,6 +27,7 @@ public class MemberService {
         .email(command.email())
         .password(command.password())
         .nickname(command.nickname())
+        .introduction(command.introduction())
         .build();
     Member savedMember = memberRepository.save(member);
     
@@ -70,18 +71,24 @@ public class MemberService {
   public void updateMember(UpdateMemberCommand command) {
     Member member = memberRepository.findById(command.memberId())
         .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, command.memberId()));
-    member.setNickname(command.nickname());
+    
+    if (command.hasNickname()) {
+      member.setNickname(command.nickname());
+    }
+    if (command.hasIntroduction()) {
+      member.setIntroduction(command.introduction());
+    }
   }
 
   @Transactional(readOnly = true)
   public Page<MemberResult> getMembers(Pageable pageable) {
     return memberRepository.findAll(pageable)
-            .map(member -> new MemberResult(member.getId(), member.getEmail(), member.getNickname()));
+            .map(member -> new MemberResult(member.getId(), member.getEmail(), member.getNickname(), member.getIntroduction()));
   }
 
   @Transactional(readOnly = true)
   public MemberResult getMember(UUID memberId) {
     var member = findByIdOrThrow(memberId);
-    return new MemberResult(member.getId(), member.getEmail(), member.getNickname());
+    return new MemberResult(member.getId(), member.getEmail(), member.getNickname(), member.getIntroduction());
   }
 }
