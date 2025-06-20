@@ -19,13 +19,13 @@ public interface TodoApplicationMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "member", ignore = true)
     @Mapping(target = "statusId", constant = "0")
-    @Mapping(target = "priorityId", source = "priority")
+    @Mapping(target = "priorityId", source = "priorityId")
     Todo toEntity(CreateTodoCommand command);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "member", ignore = true)
-    @Mapping(target = "statusId", source = "status")
-    @Mapping(target = "priorityId", source = "priority")
+    @Mapping(target = "statusId", source = "statusId")
+    @Mapping(target = "priorityId", source = "priorityId")
     @Mapping(target = "category", ignore = true)
     void updateEntity(UpdateTodoCommand command, @MappingTarget Todo todo);
 }

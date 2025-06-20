@@ -31,7 +31,7 @@ public class TodoController {
           @Parameter(description = "할일 상태 필터 (0: 진행중, 1: 완료, 2: 지연)", 
                      schema = @Schema(allowableValues = {"0", "1", "2"}),
                      example = "0")
-          Integer status,
+          Integer statusId,
           
           @RequestParam(required = false)
           @Parameter(description = "카테고리 ID 필터", example = "1")
@@ -41,12 +41,12 @@ public class TodoController {
           @Parameter(description = "우선순위 필터 (0: 낮음, 1: 보통, 2: 높음)", 
                      schema = @Schema(allowableValues = {"0", "1", "2"}),
                      example = "1")
-          Integer priority,
+          Integer priorityId,
           
           @RequestParam(required = false)
           @Parameter(description = "검색 키워드 (제목, 설명에서 검색)", 
                      example = "영어")
-          String search,
+          String keyword,
           
           @RequestParam(defaultValue = "0") int page, 
           @RequestParam(defaultValue = "10") int size,
@@ -59,7 +59,7 @@ public class TodoController {
             : Sort.Direction.ASC;
     Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
     
-    TodoListQuery query = TodoListQuery.of(principal.id(), status, categoryId, priority, search, pageable);
+    TodoListQuery query = TodoListQuery.of(principal.id(), statusId, categoryId, priorityId, keyword, pageable);
     
     return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }

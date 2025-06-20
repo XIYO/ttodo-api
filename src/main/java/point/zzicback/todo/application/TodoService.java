@@ -30,15 +30,15 @@ public class TodoService {
     
     Page<Todo> todoPage;
     
-    boolean hasFilters = query.status() != null || query.categoryId() != null || 
-                        query.priority() != null || (query.keyword() != null && !query.keyword().trim().isEmpty());
+    boolean hasFilters = query.statusId() != null || query.categoryId() != null || 
+                        query.priorityId() != null || (query.keyword() != null && !query.keyword().trim().isEmpty());
     
     if (hasFilters) {
       todoPage = todoRepository.findByFilters(
           query.memberId(), 
-          query.status(), 
+          query.statusId(), 
           query.categoryId(), 
-          query.priority(), 
+          query.priorityId(), 
           query.keyword(), 
           query.pageable()
       );
@@ -110,7 +110,7 @@ public class TodoService {
     Todo todo = Todo.builder()
             .title(command.title())
             .description(command.description())
-            .priorityId(command.priority())
+            .priorityId(command.priorityId())
             .category(category)
             .dueDate(command.dueDate())
             .repeatType(command.repeatType())
@@ -135,8 +135,8 @@ public class TodoService {
     
     todo.setTitle(command.title());
     todo.setDescription(command.description());
-    todo.setStatusId(command.status());
-    todo.setPriorityId(command.priority());
+    todo.setStatusId(command.statusId());
+    todo.setPriorityId(command.priorityId());
     todo.setCategory(category);
     todo.setDueDate(command.dueDate());
     todo.setRepeatType(command.repeatType());
@@ -162,11 +162,11 @@ public class TodoService {
     if (command.description() != null && !command.description().trim().isEmpty()) {
       todo.setDescription(command.description());
     }
-    if (command.status() != null) {
-      todo.setStatusId(command.status());
+    if (command.statusId() != null) {
+      todo.setStatusId(command.statusId());
     }
-    if (command.priority() != null) {
-      todo.setPriorityId(command.priority());
+    if (command.priorityId() != null) {
+      todo.setPriorityId(command.priorityId());
     }
     if (command.dueDate() != null) {
       todo.setDueDate(command.dueDate());

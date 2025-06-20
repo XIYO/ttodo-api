@@ -13,14 +13,14 @@ import java.util.*;
 @Mapper(componentModel = "spring", imports = {Arrays.class, java.util.stream.Collectors.class})
 public interface TodoPresentationMapper {
   @Mapping(target = "memberId", source = "memberId")
-  @Mapping(target = "priority", source = "request.priorityId")
+  @Mapping(target = "priorityId", source = "request.priorityId")
   @Mapping(target = "tags", expression = "java(parseTagsString(request.getTags()))")
   CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "todoId", source = "todoId")
-  @Mapping(target = "status", source = "request.statusId")
-  @Mapping(target = "priority", source = "request.priorityId")
+  @Mapping(target = "statusId", source = "request.statusId")
+  @Mapping(target = "priorityId", source = "request.priorityId")
   @Mapping(target = "tags", expression = "java(parseTagsString(request.getTags()))")
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
