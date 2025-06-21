@@ -40,18 +40,14 @@ public class TodoService {
           query.categoryId(),
           query.priorityId(),
           query.keyword(),
+          query.hideStatusIds(),
           query.pageable()
       );
     } else {
-      todoPage = todoRepository.findByMemberId(query.memberId(), query.pageable());
+      todoPage = todoRepository.findByMemberId(query.memberId(), query.hideStatusIds(), query.pageable());
     }
 
-    List<TodoResult> results = todoPage.getContent().stream()
-            .filter(todo -> query.hideStatusIds() == null || !query.hideStatusIds().contains(todo.getActualStatus()))
-            .map(this::toTodoResult)
-            .toList();
-
-    return new PageImpl<>(results, todoPage.getPageable(), results.size());
+    return todoPage.map(this::toTodoResult);
   }
 
   public TodoResult getTodo(TodoQuery query) {

@@ -14,6 +14,7 @@ import java.util.*;
 public interface TodoRepository extends JpaRepository<Todo, Long> {
     @Query("""
         SELECT t FROM Todo t WHERE t.member.id = :memberId
+        AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
         ORDER BY 
           CASE t.statusId 
             WHEN 2 THEN 0 
@@ -23,7 +24,9 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
           t.dueDate ASC,
           t.createdAt ASC
         """)
-    Page<Todo> findByMemberId(@Param("memberId") UUID memberId, Pageable pageable);
+    Page<Todo> findByMemberId(@Param("memberId") UUID memberId,
+                             @Param("hideStatusIds") List<Integer> hideStatusIds,
+                             Pageable pageable);
 
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
     
@@ -36,6 +39,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
              LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
              LOWER(tag) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
         ORDER BY 
           CASE t.statusId 
             WHEN 2 THEN 0 
@@ -50,6 +54,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
                            @Param("categoryId") Long categoryId,
                            @Param("priorityId") Integer priorityId,
                            @Param("keyword") String keyword,
+                           @Param("hideStatusIds") List<Integer> hideStatusIds,
                            Pageable pageable);
 
     @Modifying
@@ -71,4 +76,3 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     @Query("SELECT DISTINCT tag FROM Todo t JOIN t.tags tag WHERE t.member.id = :memberId")
     Page<String> findDistinctTagsByMemberId(@Param("memberId") UUID memberId, Pageable pageable);
 }
-
