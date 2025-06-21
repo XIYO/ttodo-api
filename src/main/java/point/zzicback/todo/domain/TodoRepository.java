@@ -4,7 +4,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -28,8 +28,8 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
         """)
     Page<Todo> findByMemberId(@Param("memberId") UUID memberId,
                              @Param("hideStatusIds") List<Integer> hideStatusIds,
-                             @Param("startDate") LocalDate startDate,
-                             @Param("endDate") LocalDate endDate,
+                             @Param("startDate") Instant startDate,
+                             @Param("endDate") Instant endDate,
                              Pageable pageable);
 
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
@@ -61,13 +61,13 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
                            @Param("priorityId") Integer priorityId,
                            @Param("keyword") String keyword,
                            @Param("hideStatusIds") List<Integer> hideStatusIds,
-                           @Param("startDate") LocalDate startDate,
-                           @Param("endDate") LocalDate endDate,
+                           @Param("startDate") Instant startDate,
+                           @Param("endDate") Instant endDate,
                            Pageable pageable);
 
     @Modifying
     @Query("UPDATE Todo t SET t.statusId = 2 WHERE t.statusId = 0 AND t.dueDate < :currentDate")
-    int updateOverdueTodos(@Param("currentDate") LocalDate currentDate);
+    int updateOverdueTodos(@Param("currentDate") Instant currentDate);
     
     @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId")
     long countByMemberId(@Param("memberId") UUID memberId);
@@ -79,7 +79,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     long countCompletedByMemberId(@Param("memberId") UUID memberId);
     
     @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND (t.statusId = 2 OR (t.statusId = 0 AND t.dueDate < :currentDate))")
-    long countOverdueByMemberId(@Param("memberId") UUID memberId, @Param("currentDate") LocalDate currentDate);
+    long countOverdueByMemberId(@Param("memberId") UUID memberId, @Param("currentDate") Instant currentDate);
     
     @Query("SELECT DISTINCT tag FROM Todo t JOIN t.tags tag WHERE t.member.id = :memberId")
     Page<String> findDistinctTagsByMemberId(@Param("memberId") UUID memberId, Pageable pageable);

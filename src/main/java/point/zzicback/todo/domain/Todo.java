@@ -7,8 +7,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import point.zzicback.category.domain.Category;
 import point.zzicback.member.domain.Member;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,7 +36,7 @@ public class Todo {
   @JoinColumn(name = "category_id")
   private Category category;
   
-  private LocalDate dueDate;
+  private Instant dueDate;
   
   @Enumerated(EnumType.ORDINAL)
   private RepeatType repeatType;
@@ -53,11 +52,11 @@ public class Todo {
 
   @CreatedDate
   @Column(updatable = false)
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 
   @Builder
   public Todo(Long id, String title, String description, Integer statusId, Integer priorityId, 
-              Category category, LocalDate dueDate, RepeatType repeatType, 
+              Category category, Instant dueDate, RepeatType repeatType,
               Set<String> tags, Member member) {
     this.id = id;
     this.title = title;

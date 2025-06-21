@@ -2,13 +2,13 @@ package point.zzicback.todo.application.dto.query;
 
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 public record TodoListQuery(UUID memberId, Boolean done, Integer statusId, Long categoryId,
                             Integer priorityId, String keyword, List<Integer> hideStatusIds,
-                            LocalDate startDate, LocalDate endDate,
+                            Instant startDate, Instant endDate,
                             Pageable pageable) {
   public static TodoListQuery of(UUID memberId, Boolean done, Pageable pageable) {
     return new TodoListQuery(memberId, done, null, null, null, null, null, null, null, pageable);
@@ -42,7 +42,7 @@ public record TodoListQuery(UUID memberId, Boolean done, Integer statusId, Long 
 
   public static TodoListQuery of(UUID memberId, Integer statusId, Long categoryId,
                                  Integer priorityId, String keyword, List<Integer> hideStatusIds,
-                                 LocalDate startDate, LocalDate endDate,
+                                 Instant startDate, Instant endDate,
                                  Pageable pageable) {
     return new TodoListQuery(memberId, null, statusId, categoryId, priorityId, keyword,
             hideStatusIds, startDate, endDate, pageable);

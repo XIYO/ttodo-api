@@ -2,7 +2,7 @@ package point.zzicback.todo.application.dto.result;
 
 import point.zzicback.todo.domain.RepeatType;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Set;
 
 public record TodoResult(
@@ -15,7 +15,7 @@ public record TodoResult(
         String priorityName,
         Long categoryId,
         String categoryName,
-        LocalDate dueDate,
+        Instant dueDate,
         RepeatType repeatType,
         Set<String> tags
 ) {

@@ -15,7 +15,7 @@ import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -44,13 +44,21 @@ public class TodoController {
                      example = "1")
           Integer priorityId,
           @RequestParam(required = false)
-          @Parameter(description = "검색 시작일", example = "2024-01-01")
-          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate startDate,
+          @Parameter(
+              description = "검색 시작 시각",
+              example = "2024-01-01T00:00:00Z",
+              schema = @Schema(type = "string", format = "date-time")
+          )
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant startDate,
           @RequestParam(required = false)
-          @Parameter(description = "검색 종료일", example = "2024-01-31")
-          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate endDate,
+          @Parameter(
+              description = "검색 종료 시각",
+              example = "2024-01-31T23:59:59Z",
+              schema = @Schema(type = "string", format = "date-time")
+          )
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant endDate,
           @RequestParam(required = false)
           @Parameter(description = "검색 키워드 (제목, 설명, 태그에서 검색)",
                      example = "영어")
@@ -93,7 +101,7 @@ public class TodoController {
                         "status": "IN_PROGRESS",
                         "priority": 1,
                         "categoryId": 1,
-                        "dueDate": "2026-01-01",
+                        "dueDate": "2026-01-01T00:00:00Z",
                         "repeatType": "NONE",
                         "tags": ["영어", "학습"]
                       }
@@ -146,7 +154,7 @@ public class TodoController {
                         "statusId": 1,
                         "priorityId": 2,
                         "categoryId": 1,
-                        "dueDate": "2026-01-02",
+                        "dueDate": "2026-01-02T00:00:00Z",
                         "repeatType": "DAILY",
                         "tags": ["영어", "학습", "토익"]
                       }

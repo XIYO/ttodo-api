@@ -14,7 +14,7 @@ import point.zzicback.todo.application.dto.result.TodoResult;
 import point.zzicback.todo.application.dto.result.TodoStatistics;
 import point.zzicback.todo.domain.*;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -68,7 +68,7 @@ public class TodoService {
 
   @Transactional
   protected void updateOverdueTodos() {
-    todoRepository.updateOverdueTodos(LocalDate.now());
+    todoRepository.updateOverdueTodos(Instant.now());
   }
 
   private TodoResult toTodoResult(Todo todo) {
@@ -204,7 +204,7 @@ public class TodoService {
     long total = todoRepository.countByMemberId(memberId);
     long inProgress = todoRepository.countInProgressByMemberId(memberId);
     long completed = todoRepository.countCompletedByMemberId(memberId);
-    long overdue = todoRepository.countOverdueByMemberId(memberId, LocalDate.now());
+    long overdue = todoRepository.countOverdueByMemberId(memberId, Instant.now());
     
     return new TodoStatistics(total, inProgress, completed, overdue);
   }

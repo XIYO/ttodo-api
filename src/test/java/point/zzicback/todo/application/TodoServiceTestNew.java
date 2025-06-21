@@ -7,7 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
@@ -49,7 +50,7 @@ class TodoServiceTestNew {
                 .title("테스트 할일")
                 .description("테스트 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now())
+                .dueDate(Instant.now().plus(1, ChronoUnit.DAYS))
                 .member(testMember)
                 .build();
         todoRepository.save(testTodo);
@@ -209,14 +210,14 @@ class TodoServiceTestNew {
                 .title("추가 할일")
                 .description("다른 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now().plusDays(7))
+                .dueDate(Instant.now().plus(7, ChronoUnit.DAYS))
                 .member(testMember)
                 .build();
         todoRepository.save(extraTodo);
 
         Pageable pageable = PageRequest.of(0, 10);
-        LocalDate start = LocalDate.now().plusDays(1);
-        LocalDate end = LocalDate.now().plusDays(3);
+        Instant start = Instant.now().plus(1, ChronoUnit.DAYS);
+        Instant end = Instant.now().plus(3, ChronoUnit.DAYS);
         TodoListQuery query = TodoListQuery.of(
                 testMember.getId(), null, null, null, null,
                 null, start, end, pageable);
@@ -231,7 +232,7 @@ class TodoServiceTestNew {
         // adjust range to include first todo
         query = TodoListQuery.of(
                 testMember.getId(), null, null, null, null,
-                null, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), pageable);
+                null, Instant.now().minus(1, ChronoUnit.DAYS), Instant.now().plus(1, ChronoUnit.DAYS), pageable);
         result = todoService.getTodoList(query);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().title()).isEqualTo("테스트 할일");
