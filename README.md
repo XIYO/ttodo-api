@@ -59,6 +59,15 @@ src/
 │   │   ├── domain/              # 챌린지 도메인
 │   │   ├── infrastructure/      # 챌린지 데이터 저장소
 │   │   └── presentation/        # 챌린지 API
+│   ├── experience/              # 경험치 관리
+│   │   ├── application/         # 경험치 서비스
+│   │   ├── domain/              # 경험치 도메인
+│   │   └── infrastructure/      # 경험치 저장소
+│   ├── level/                   # 레벨 정의
+│   │   ├── application/         # 레벨 서비스
+│   │   ├── domain/              # 레벨 도메인
+│   │   ├── infrastructure/      # 레벨 저장소
+│   │   └── config/              # 초기화 설정
 │   └── common/                  # 공통 유틸리티
 │       ├── config/              # 공통 설정
 │       ├── error/               # 예외 처리
