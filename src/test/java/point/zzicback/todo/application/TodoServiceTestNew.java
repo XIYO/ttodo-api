@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
+import java.time.LocalDate;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
@@ -48,6 +49,7 @@ class TodoServiceTestNew {
                 .title("테스트 할일")
                 .description("테스트 설명")
                 .statusId(0)
+                .dueDate(LocalDate.now())
                 .member(testMember)
                 .build();
         todoRepository.save(testTodo);
@@ -108,7 +110,9 @@ class TodoServiceTestNew {
         todoService.createTodo(command);
 
         // then
-        Page<Todo> todos = todoRepository.findByMemberId(testMember.getId(), PageRequest.of(0, 10));
+        Page<Todo> todos = todoRepository.findByMemberId(
+                testMember.getId(), null, null, null,
+                PageRequest.of(0, 10));
         assertThat(todos.getContent())
                 .filteredOn(todo -> todo.getTitle().equals("새로운 할일"))
                 .hasSize(1)
@@ -195,6 +199,42 @@ class TodoServiceTestNew {
         assertThat(result.title()).isEqualTo("테스트 할일");
         assertThat(result.description()).isEqualTo("테스트 설명");
         assertThat(result.statusId()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("Todo 목록 조회 성공 - 날짜 범위 필터링")
+    void getTodoListByDateRange() {
+        // given
+        Todo extraTodo = Todo.builder()
+                .title("추가 할일")
+                .description("다른 설명")
+                .statusId(0)
+                .dueDate(LocalDate.now().plusDays(7))
+                .member(testMember)
+                .build();
+        todoRepository.save(extraTodo);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        LocalDate start = LocalDate.now().plusDays(1);
+        LocalDate end = LocalDate.now().plusDays(3);
+        TodoListQuery query = TodoListQuery.of(
+                testMember.getId(), null, null, null, null,
+                null, start, end, pageable);
+
+        // when
+        Page<TodoResult> result = todoService.getTodoList(query);
+
+        // then
+        assertThat(result.getContent())
+                .hasSize(0);
+
+        // adjust range to include first todo
+        query = TodoListQuery.of(
+                testMember.getId(), null, null, null, null,
+                null, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), pageable);
+        result = todoService.getTodoList(query);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("테스트 할일");
     }
 
     @Test

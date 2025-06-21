@@ -15,17 +15,21 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     @Query("""
         SELECT t FROM Todo t WHERE t.member.id = :memberId
         AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
-        ORDER BY 
-          CASE t.statusId 
-            WHEN 2 THEN 0 
-            WHEN 0 THEN 1 
-            WHEN 1 THEN 2 
+        AND (:startDate IS NULL OR t.dueDate >= :startDate)
+        AND (:endDate IS NULL OR t.dueDate <= :endDate)
+        ORDER BY
+          CASE t.statusId
+            WHEN 2 THEN 0
+            WHEN 0 THEN 1
+            WHEN 1 THEN 2
             ELSE 3 END,
           t.dueDate ASC,
           t.createdAt ASC
         """)
     Page<Todo> findByMemberId(@Param("memberId") UUID memberId,
                              @Param("hideStatusIds") List<Integer> hideStatusIds,
+                             @Param("startDate") LocalDate startDate,
+                             @Param("endDate") LocalDate endDate,
                              Pageable pageable);
 
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
@@ -40,11 +44,13 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
              LOWER(tag) LIKE LOWER(CONCAT('%', :keyword, '%')))
         AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
-        ORDER BY 
-          CASE t.statusId 
-            WHEN 2 THEN 0 
-            WHEN 0 THEN 1 
-            WHEN 1 THEN 2 
+        AND (:startDate IS NULL OR t.dueDate >= :startDate)
+        AND (:endDate IS NULL OR t.dueDate <= :endDate)
+        ORDER BY
+          CASE t.statusId
+            WHEN 2 THEN 0
+            WHEN 0 THEN 1
+            WHEN 1 THEN 2
             ELSE 3 END,
           t.dueDate ASC,
           t.createdAt ASC
@@ -55,6 +61,8 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
                            @Param("priorityId") Integer priorityId,
                            @Param("keyword") String keyword,
                            @Param("hideStatusIds") List<Integer> hideStatusIds,
+                           @Param("startDate") LocalDate startDate,
+                           @Param("endDate") LocalDate endDate,
                            Pageable pageable);
 
     @Modifying
