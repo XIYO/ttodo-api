@@ -31,7 +31,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
         SELECT DISTINCT t FROM Todo t LEFT JOIN t.tags tag WHERE t.member.id = :memberId
         AND (:status IS NULL OR t.statusId = :status)
         AND (:categoryId IS NULL OR t.category.id = :categoryId)
-        AND (:priority IS NULL OR t.priorityId = :priority)
+        AND (:priorityId IS NULL OR t.priorityId = :priorityId)
         AND (:keyword IS NULL OR :keyword = '' OR 
              LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
@@ -48,7 +48,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     Page<Todo> findByFilters(@Param("memberId") UUID memberId, 
                            @Param("status") Integer status,
                            @Param("categoryId") Long categoryId,
-                           @Param("priority") Integer priority,
+                           @Param("priorityId") Integer priorityId,
                            @Param("keyword") String keyword,
                            Pageable pageable);
 
