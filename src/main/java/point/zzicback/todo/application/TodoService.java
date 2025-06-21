@@ -35,18 +35,23 @@ public class TodoService {
     
     if (hasFilters) {
       todoPage = todoRepository.findByFilters(
-          query.memberId(), 
-          query.statusId(), 
-          query.categoryId(), 
-          query.priorityId(), 
-          query.keyword(), 
+          query.memberId(),
+          query.statusId(),
+          query.categoryId(),
+          query.priorityId(),
+          query.keyword(),
           query.pageable()
       );
     } else {
       todoPage = todoRepository.findByMemberId(query.memberId(), query.pageable());
     }
-    
-    return todoPage.map(this::toTodoResult);
+
+    List<TodoResult> results = todoPage.getContent().stream()
+            .filter(todo -> query.hideStatusIds() == null || !query.hideStatusIds().contains(todo.getActualStatus()))
+            .map(this::toTodoResult)
+            .toList();
+
+    return new PageImpl<>(results, todoPage.getPageable(), results.size());
   }
 
   public TodoResult getTodo(TodoQuery query) {

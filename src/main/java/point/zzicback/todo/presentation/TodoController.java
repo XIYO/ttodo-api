@@ -14,6 +14,8 @@ import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/todos")
 @RequiredArgsConstructor
@@ -40,13 +42,16 @@ public class TodoController {
                      example = "1")
           Integer priorityId,
           @RequestParam(required = false)
-          @Parameter(description = "검색 키워드 (제목, 설명, 태그에서 검색)", 
+          @Parameter(description = "검색 키워드 (제목, 설명, 태그에서 검색)",
                      example = "영어")
           String keyword,
-          @RequestParam(defaultValue = "0") int page, 
+          @RequestParam(required = false)
+          @Parameter(description = "숨길 상태 ID 목록", example = "1,2")
+          List<Integer> hideStatusIds,
+          @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "10") int size) {
     Pageable pageable = PageRequest.of(page, size);
-    TodoListQuery query = TodoListQuery.of(principal.id(), statusId, categoryId, priorityId, keyword, pageable);
+    TodoListQuery query = TodoListQuery.of(principal.id(), statusId, categoryId, priorityId, keyword, hideStatusIds, pageable);
     return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }
 

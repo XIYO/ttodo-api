@@ -190,6 +190,7 @@ docker-compose -f docker-compose.local.yml down -v
 - `page`: 페이지 번호 (기본값: 0)
 - `size`: 페이지 크기 (기본값: 10)
 - `sort`: 정렬 방식 (기본값: "id,desc")
+- `hideStatusIds`: 숨길 상태 ID 목록 (예: `1,2`)
 
 ### 챌린지 관리
 | HTTP Method | Endpoint | 설명 | 요청 Body | 응답 Body | 상태 코드 |
