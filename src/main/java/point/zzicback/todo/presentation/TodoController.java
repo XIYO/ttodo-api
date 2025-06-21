@@ -84,83 +84,77 @@ public class TodoController {
   @PostMapping(consumes = {"application/json"})
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-      summary = "Todo 생성 (JSON)", 
-      description = "새로운 Todo를 생성합니다.",
-      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Todo 생성 정보",
-          required = true,
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = CreateTodoRequest.class),
-              examples = @ExampleObject(
-                  name = "JSON 예시",
-                  value = """
-                      {
-                        "title": "영어 공부하기",
-                        "description": "토익 문제집 2장 풀어보기",
-                        "status": "IN_PROGRESS",
-                        "priority": 1,
-                        "categoryId": 1,
-                        "dueDate": "2026-01-01T00:00:00Z",
-                        "repeatType": "NONE",
-                        "tags": ["영어", "학습"]
-                      }
-                      """
-              )
-          )
-      )
-  )
-  public void add(@AuthenticationPrincipal MemberPrincipal principal, 
-                 @Valid @RequestBody CreateTodoRequest request) {
-    todoService.createTodo(todoPresentationMapper.toCommand(request, principal.id()));
-  }
-
-  @PostMapping(consumes = {"application/x-www-form-urlencoded"})
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-      summary = "Todo 생성 (Form)", 
+      summary = "Todo 생성",
       description = "새로운 Todo를 생성합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습).",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Todo 생성 정보",
           required = true,
-          content = @Content(
-              mediaType = "application/x-www-form-urlencoded",
-              schema = @Schema(implementation = CreateTodoRequest.class)
-          )
+          content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = CreateTodoRequest.class),
+                  examples = @ExampleObject(
+                      name = "JSON 예시",
+                      value = """
+                          {
+                            \"title\": \"영어 공부하기\",
+                            \"description\": \"토익 문제집 2장 풀어보기\",
+                            \"status\": \"IN_PROGRESS\",
+                            \"priority\": 1,
+                            \"categoryId\": 1,
+                            \"dueDate\": \"2026-01-01T00:00:00Z\",
+                            \"repeatType\": \"NONE\",
+                            \"tags\": [\"영어\", \"학습\"]
+                          }
+                          """
+                  )
+              ),
+              @Content(
+                  mediaType = "application/x-www-form-urlencoded",
+                  schema = @Schema(implementation = CreateTodoRequest.class)
+              )
+          }
       )
   )
-  public void addForm(@AuthenticationPrincipal MemberPrincipal principal,
-                     @Valid @ModelAttribute CreateTodoRequest request) {
+  public void add(@AuthenticationPrincipal MemberPrincipal principal,
+                 @Valid @RequestBody CreateTodoRequest request) {
     todoService.createTodo(todoPresentationMapper.toCommand(request, principal.id()));
   }
+
 
   @PutMapping(value = "/{id}", consumes = {"application/json"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-      summary = "Todo 수정 (JSON)", 
-      description = "Todo를 전체 수정합니다.",
+      summary = "Todo 수정",
+      description = "Todo를 전체 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Todo 수정 정보",
           required = true,
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = UpdateTodoRequest.class),
-              examples = @ExampleObject(
-                  name = "JSON 예시",
-                  value = """
-                      {
-                        "title": "영어 공부하기 (수정)",
-                        "description": "토익 문제집 3장 풀어보기",
-                        "statusId": 1,
-                        "priorityId": 2,
-                        "categoryId": 1,
-                        "dueDate": "2026-01-02T00:00:00Z",
-                        "repeatType": "DAILY",
-                        "tags": ["영어", "학습", "토익"]
-                      }
-                      """
+          content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = UpdateTodoRequest.class),
+                  examples = @ExampleObject(
+                      name = "JSON 예시",
+                      value = """
+                          {
+                            \"title\": \"영어 공부하기 (수정)\",
+                            \"description\": \"토익 문제집 3장 풀어보기\",
+                            \"statusId\": 1,
+                            \"priorityId\": 2,
+                            \"categoryId\": 1,
+                            \"dueDate\": \"2026-01-02T00:00:00Z\",
+                            \"repeatType\": \"DAILY\",
+                            \"tags\": [\"영어\", \"학습\", \"토익\"]
+                          }
+                          """
+                  )
+              ),
+              @Content(
+                  mediaType = "application/x-www-form-urlencoded",
+                  schema = @Schema(implementation = UpdateTodoRequest.class)
               )
-          )
+          }
       )
   )
   public void modify(@AuthenticationPrincipal MemberPrincipal principal,
@@ -169,47 +163,34 @@ public class TodoController {
     todoService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-  @PutMapping(value = "/{id}", consumes = {"application/x-www-form-urlencoded"})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-      summary = "Todo 수정 (Form)", 
-      description = "Todo를 전체 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
-      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Todo 수정 정보",
-          required = true,
-          content = @Content(
-              mediaType = "application/x-www-form-urlencoded",
-              schema = @Schema(implementation = UpdateTodoRequest.class)
-          )
-      )
-  )
-  public void modifyForm(@AuthenticationPrincipal MemberPrincipal principal,
-                        @PathVariable Long id,
-                        @Valid @ModelAttribute UpdateTodoRequest request) {
-    todoService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
-  }
 
   @PatchMapping(value = "/{id}", consumes = {"application/json"})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-      summary = "Todo 부분 수정 (JSON)", 
-      description = "Todo를 부분 수정합니다.",
+      summary = "Todo 부분 수정",
+      description = "Todo를 부분 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "Todo 부분 수정 정보 (수정할 필드만 포함)",
           required = true,
-          content = @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = UpdateTodoRequest.class),
-              examples = @ExampleObject(
-                  name = "JSON 예시",
-                  value = """
-                      {
-                        "statusId": 1,
-                        "priorityId": 2
-                      }
-                      """
+          content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = UpdateTodoRequest.class),
+                  examples = @ExampleObject(
+                      name = "JSON 예시",
+                      value = """
+                          {
+                            \"statusId\": 1,
+                            \"priorityId\": 2
+                          }
+                          """
+                  )
+              ),
+              @Content(
+                  mediaType = "application/x-www-form-urlencoded",
+                  schema = @Schema(implementation = UpdateTodoRequest.class)
               )
-          )
+          }
       )
   )
   public void partialModify(@AuthenticationPrincipal MemberPrincipal principal,
@@ -218,25 +199,6 @@ public class TodoController {
     todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-  @PatchMapping(value = "/{id}", consumes = {"application/x-www-form-urlencoded"})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-      summary = "Todo 부분 수정 (Form)", 
-      description = "Todo를 부분 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
-      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Todo 부분 수정 정보 (수정할 필드만 포함)",
-          required = true,
-          content = @Content(
-              mediaType = "application/x-www-form-urlencoded",
-              schema = @Schema(implementation = UpdateTodoRequest.class)
-          )
-      )
-  )
-  public void partialModifyForm(@AuthenticationPrincipal MemberPrincipal principal,
-                               @PathVariable Long id,
-                               @Valid @ModelAttribute UpdateTodoRequest request) {
-    todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
-  }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
