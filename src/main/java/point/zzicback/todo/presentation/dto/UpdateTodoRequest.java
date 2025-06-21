@@ -19,7 +19,7 @@ import java.time.Instant;
           "statusId": 1,
           "priorityId": 2,
           "categoryId": 1,
-          "dueDate": "2026-01-02",
+          "dueDate": "2026-01-02T00:00:00Z",
           "repeatType": "DAILY",
           "tags": "영어,학습,토익"
         }

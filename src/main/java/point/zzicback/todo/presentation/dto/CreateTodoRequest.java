@@ -19,7 +19,7 @@ import java.time.Instant;
           "statusId": 0,
           "priorityId": 1,
           "categoryId": 1,
-          "dueDate": "2026-01-01",
+          "dueDate": "2026-01-01T00:00:00Z",
           "repeatType": "NONE",
           "tags": "영어,학습"
         }
