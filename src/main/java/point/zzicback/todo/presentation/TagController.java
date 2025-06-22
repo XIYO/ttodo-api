@@ -60,20 +60,23 @@ public class TagController {
     )
     public Page<String> getTags(
             @AuthenticationPrincipal MemberPrincipal principal,
-            @RequestParam(defaultValue = "0") 
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") 
+            @RequestParam(required = false)
+            @Parameter(description = "카테고리 ID", example = "1")
+            Long categoryId,
+            @RequestParam(defaultValue = "0")
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             int page,
-            @RequestParam(defaultValue = "10") 
-            @Parameter(description = "페이지 크기", example = "10") 
+            @RequestParam(defaultValue = "10")
+            @Parameter(description = "페이지 크기", example = "10")
             int size,
-            @RequestParam(defaultValue = "asc") 
-            @Parameter(description = "정렬 방향 (asc: 오름차순, desc: 내림차순)", example = "asc") 
+            @RequestParam(defaultValue = "asc")
+            @Parameter(description = "정렬 방향 (asc: 오름차순, desc: 내림차순)", example = "asc")
             String direction) {
         
         Sort sort = direction.equalsIgnoreCase("desc") ? 
             Sort.by("tag").descending() : Sort.by("tag").ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        return todoService.getTags(principal.id(), pageable);
+        return todoService.getTags(principal.id(), categoryId, pageable);
     }
 }

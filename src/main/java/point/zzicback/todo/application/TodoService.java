@@ -209,7 +209,7 @@ public class TodoService {
     return new TodoStatistics(total, inProgress, completed, overdue);
   }
   
-  public Page<String> getTags(UUID memberId, Pageable pageable) {
-    return todoRepository.findDistinctTagsByMemberId(memberId, pageable);
+  public Page<String> getTags(UUID memberId, Long categoryId, Pageable pageable) {
+    return todoRepository.findDistinctTagsByMemberId(memberId, categoryId, pageable);
   }
 }
