@@ -31,18 +31,21 @@ public class TodoController {
   public Page<TodoResponse> getAll(
           @AuthenticationPrincipal MemberPrincipal principal,
           @RequestParam(required = false)
-          @Parameter(description = "할일 상태 필터 (0: 진행중, 1: 완료, 2: 지연)", 
-                     schema = @Schema(allowableValues = {"0", "1", "2"}),
-                     example = "0")
-          Integer statusId,
+          @Parameter(
+              description = "할일 상태 필터 목록 (0: 진행중, 1: 완료, 2: 지연)",
+              array = @ArraySchema(schema = @Schema(allowableValues = {"0", "1", "2"})),
+              example = "0,1")
+          List<Integer> statusIds,
           @RequestParam(required = false)
-          @Parameter(description = "카테고리 ID 필터", example = "1")
-          Long categoryId,
+          @Parameter(description = "카테고리 ID 필터 목록", example = "1,2")
+          List<Long> categoryIds,
           @RequestParam(required = false)
-          @Parameter(description = "우선순위 필터 (0: 낮음, 1: 보통, 2: 높음)",
-                     schema = @Schema(allowableValues = {"0", "1", "2"}),
-                     example = "1")
-          Integer priorityId,
+          @Parameter(description = "우선순위 필터 목록 (0: 낮음, 1: 보통, 2: 높음)",
+                     array = @ArraySchema(schema = @Schema(allowableValues = {"0", "1", "2"})))
+          List<Integer> priorityIds,
+          @RequestParam(required = false)
+          @Parameter(description = "태그 필터", example = "학습,운동")
+          List<String> tags,
           @RequestParam(required = false)
           @Parameter(
               description = "검색 시작 시각",
@@ -69,8 +72,17 @@ public class TodoController {
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "10") int size) {
     Pageable pageable = PageRequest.of(page, size);
-    TodoListQuery query = TodoListQuery.of(principal.id(), statusId, categoryId,
-        priorityId, keyword, hideStatusIds, startDate, endDate, pageable);
+    TodoListQuery query = new TodoListQuery(
+        principal.id(),
+        statusIds,
+        categoryIds,
+        priorityIds,
+        tags,
+        keyword,
+        hideStatusIds,
+        startDate,
+        endDate,
+        pageable);
     return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }
 

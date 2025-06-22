@@ -36,11 +36,12 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     
     @Query("""
         SELECT DISTINCT t FROM Todo t LEFT JOIN t.tags tag WHERE t.member.id = :memberId
-        AND (:status IS NULL OR t.statusId = :status)
-        AND (:categoryId IS NULL OR t.category.id = :categoryId)
-        AND (:priorityId IS NULL OR t.priorityId = :priorityId)
-        AND (:keyword IS NULL OR :keyword = '' OR 
-             LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR 
+        AND (:statuses IS NULL OR t.statusId IN :statuses)
+        AND (:categoryIds IS NULL OR t.category.id IN :categoryIds)
+        AND (:priorityIds IS NULL OR t.priorityId IN :priorityIds)
+        AND (:tags IS NULL OR tag IN :tags)
+        AND (:keyword IS NULL OR :keyword = '' OR
+             LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
              LOWER(tag) LIKE LOWER(CONCAT('%', :keyword, '%')))
         AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
@@ -55,10 +56,11 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
           t.dueDate ASC,
           t.createdAt ASC
         """)
-    Page<Todo> findByFilters(@Param("memberId") UUID memberId, 
-                           @Param("status") Integer status,
-                           @Param("categoryId") Long categoryId,
-                           @Param("priorityId") Integer priorityId,
+    Page<Todo> findByFilters(@Param("memberId") UUID memberId,
+                           @Param("statuses") List<Integer> statuses,
+                           @Param("categoryIds") List<Long> categoryIds,
+                           @Param("priorityIds") List<Integer> priorityIds,
+                           @Param("tags") List<String> tags,
                            @Param("keyword") String keyword,
                            @Param("hideStatusIds") List<Integer> hideStatusIds,
                            @Param("startDate") Instant startDate,

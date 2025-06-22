@@ -30,16 +30,21 @@ public class TodoService {
     
     Page<Todo> todoPage;
     
-    boolean hasFilters = query.statusId() != null || query.categoryId() != null ||
-                        query.priorityId() != null || (query.keyword() != null && !query.keyword().trim().isEmpty()) ||
-                        query.startDate() != null || query.endDate() != null;
+    boolean hasFilters =
+        (query.statusIds() != null && !query.statusIds().isEmpty()) ||
+        (query.categoryIds() != null && !query.categoryIds().isEmpty()) ||
+        (query.priorityIds() != null && !query.priorityIds().isEmpty()) ||
+        (query.tags() != null && !query.tags().isEmpty()) ||
+        (query.keyword() != null && !query.keyword().trim().isEmpty()) ||
+        query.startDate() != null || query.endDate() != null;
     
     if (hasFilters) {
       todoPage = todoRepository.findByFilters(
           query.memberId(),
-          query.statusId(),
-          query.categoryId(),
-          query.priorityId(),
+          query.statusIds(),
+          query.categoryIds(),
+          query.priorityIds(),
+          query.tags(),
           query.keyword(),
           query.hideStatusIds(),
           query.startDate(),
