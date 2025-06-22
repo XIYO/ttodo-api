@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.todo.application.TodoService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/tags")
@@ -61,8 +62,8 @@ public class TagController {
     public Page<String> getTags(
             @AuthenticationPrincipal MemberPrincipal principal,
             @RequestParam(required = false)
-            @Parameter(description = "카테고리 ID", example = "1")
-            Long categoryId,
+            @Parameter(description = "카테고리 ID 목록 (중복 허용)", example = "1,2")
+            List<Long> categoryIds,
             @RequestParam(defaultValue = "0")
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             int page,
@@ -77,6 +78,6 @@ public class TagController {
             Sort.by("tag").descending() : Sort.by("tag").ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        return todoService.getTags(principal.id(), categoryId, pageable);
+        return todoService.getTags(principal.id(), categoryIds, pageable);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
@@ -17,6 +18,9 @@ import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.TodoResult;
 import point.zzicback.todo.domain.*;
+import point.zzicback.category.domain.Category;
+import point.zzicback.category.infrastructure.CategoryRepository;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -32,6 +36,9 @@ class TodoServiceTestNew {
 
     @Autowired
     private TodoRepository todoRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Autowired
     private MemberService memberService;
@@ -247,5 +254,47 @@ class TodoServiceTestNew {
         // when & then
         assertThatThrownBy(() -> todoService.getTodo(query))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("여러 카테고리 ID로 태그 목록 조회")
+    void getTagsByMultipleCategories() {
+        Category category1 = categoryRepository.save(Category.builder()
+                .name("업무")
+                .member(testMember)
+                .build());
+        Category category2 = categoryRepository.save(Category.builder()
+                .name("개인")
+                .member(testMember)
+                .build());
+
+        Todo todo1 = Todo.builder()
+                .title("첫 번째")
+                .description("첫 번째 설명")
+                .statusId(0)
+                .category(category1)
+                .dueDate(Instant.now().plus(1, ChronoUnit.DAYS))
+                .tags(Set.of("tagA"))
+                .member(testMember)
+                .build();
+        Todo todo2 = Todo.builder()
+                .title("두 번째")
+                .description("두 번째 설명")
+                .statusId(0)
+                .category(category2)
+                .dueDate(Instant.now().plus(2, ChronoUnit.DAYS))
+                .tags(Set.of("tagB"))
+                .member(testMember)
+                .build();
+        todoRepository.save(todo1);
+        todoRepository.save(todo2);
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("tag"));
+        Page<String> result = todoService.getTags(
+                testMember.getId(),
+                List.of(category1.getId(), category1.getId(), category2.getId()),
+                pageable);
+
+        assertThat(result.getContent()).containsExactlyInAnyOrder("tagA", "tagB");
     }
 }

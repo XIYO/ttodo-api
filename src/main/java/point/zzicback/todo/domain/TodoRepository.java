@@ -82,8 +82,8 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     long countOverdueByMemberId(@Param("memberId") UUID memberId, @Param("currentDate") Instant currentDate);
     
     @Query("SELECT DISTINCT tag FROM Todo t JOIN t.tags tag WHERE t.member.id = :memberId " +
-           "AND (:categoryId IS NULL OR t.category.id = :categoryId)")
+           "AND (:categoryIds IS NULL OR t.category.id IN :categoryIds)")
     Page<String> findDistinctTagsByMemberId(@Param("memberId") UUID memberId,
-                                            @Param("categoryId") Long categoryId,
+                                            @Param("categoryIds") List<Long> categoryIds,
                                             Pageable pageable);
 }
