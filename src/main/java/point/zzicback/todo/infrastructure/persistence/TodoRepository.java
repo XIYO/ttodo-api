@@ -5,7 +5,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import point.zzicback.todo.domain.Todo;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -25,12 +26,13 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             WHEN 1 THEN 2
             ELSE 3 END,
           t.dueDate ASC,
+          t.dueTime ASC,
           t.createdAt ASC
         """)
     Page<Todo> findByMemberId(@Param("memberId") UUID memberId,
                              @Param("hideStatusIds") List<Integer> hideStatusIds,
-                             @Param("startDate") Instant startDate,
-                             @Param("endDate") Instant endDate,
+                             @Param("startDate") LocalDate startDate,
+                             @Param("endDate") LocalDate endDate,
                              Pageable pageable);
 
     Optional<Todo> findByIdAndMemberId(Long todoId, UUID memberId);
@@ -55,6 +57,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             WHEN 1 THEN 2
             ELSE 3 END,
           t.dueDate ASC,
+          t.dueTime ASC,
           t.createdAt ASC
         """)
     Page<Todo> findByFilters(@Param("memberId") UUID memberId,
@@ -64,13 +67,13 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
                            @Param("tags") List<String> tags,
                            @Param("keyword") String keyword,
                            @Param("hideStatusIds") List<Integer> hideStatusIds,
-                           @Param("startDate") Instant startDate,
-                           @Param("endDate") Instant endDate,
+                           @Param("startDate") LocalDate startDate,
+                           @Param("endDate") LocalDate endDate,
                            Pageable pageable);
 
     @Modifying
-    @Query("UPDATE Todo t SET t.statusId = 2 WHERE t.statusId = 0 AND t.dueDate < :currentDate")
-    int updateOverdueTodos(@Param("currentDate") Instant currentDate);
+    @Query("UPDATE Todo t SET t.statusId = 2 WHERE t.statusId = 0 AND (t.dueDate < :currentDate OR (t.dueDate = :currentDate AND t.dueTime IS NOT NULL AND t.dueTime < :currentTime))")
+    int updateOverdueTodos(@Param("currentDate") LocalDate currentDate, @Param("currentTime") LocalTime currentTime);
     
     @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId")
     long countByMemberId(@Param("memberId") UUID memberId);
@@ -81,8 +84,8 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.statusId = 1")
     long countCompletedByMemberId(@Param("memberId") UUID memberId);
     
-    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND (t.statusId = 2 OR (t.statusId = 0 AND t.dueDate < :currentDate))")
-    long countOverdueByMemberId(@Param("memberId") UUID memberId, @Param("currentDate") Instant currentDate);
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND (t.statusId = 2 OR (t.statusId = 0 AND (t.dueDate < :currentDate OR (t.dueDate = :currentDate AND t.dueTime IS NOT NULL AND t.dueTime < :currentTime))))")
+    long countOverdueByMemberId(@Param("memberId") UUID memberId, @Param("currentDate") LocalDate currentDate, @Param("currentTime") LocalTime currentTime);
     
     @Query("SELECT DISTINCT tag FROM Todo t JOIN t.tags tag WHERE t.member.id = :memberId " +
            "AND (:categoryIds IS NULL OR t.category.id IN :categoryIds)")

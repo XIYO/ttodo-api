@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
 import java.util.*;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Collections;
@@ -61,7 +61,7 @@ class TodoServiceTestNew {
                 .title("테스트 할일")
                 .description("테스트 설명")
                 .statusId(0)
-                .dueDate(Instant.now().plus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plus(1, ChronoUnit.DAYS))
                 .tags(Set.of("학습"))
                 .member(testMember)
                 .build();
@@ -184,7 +184,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 "새로운 할일",
                 "새로운 설명",
-                null, null, null, null, null
+                null, null, null, null, null, null
         );
 
         // when
@@ -214,7 +214,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 1,
-                null, null, null, null, null
+                null, null, null, null, null, null
         );
 
         // when
@@ -237,7 +237,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 1,
-                null, null, null, null, null
+                null, null, null, null, null, null
         );
 
         // when & then
@@ -290,14 +290,14 @@ class TodoServiceTestNew {
                 .title("추가 할일")
                 .description("다른 설명")
                 .statusId(0)
-                .dueDate(Instant.now().plus(7, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plus(7, ChronoUnit.DAYS))
                 .member(testMember)
                 .build();
         todoRepository.save(extraTodo);
 
         Pageable pageable = PageRequest.of(0, 10);
-        Instant start = Instant.now().plus(1, ChronoUnit.DAYS);
-        Instant end = Instant.now().plus(3, ChronoUnit.DAYS);
+        LocalDate start = LocalDate.now().plus(1, ChronoUnit.DAYS);
+        LocalDate end = LocalDate.now().plus(3, ChronoUnit.DAYS);
         TodoSearchQuery query = new TodoSearchQuery(
                 testMember.getId(),
                 null,
@@ -315,7 +315,7 @@ class TodoServiceTestNew {
 
         // then
         assertThat(result.getContent())
-                .hasSize(0);
+                .hasSize(1);
 
         // adjust range to include first todo
         query = new TodoSearchQuery(
@@ -326,8 +326,8 @@ class TodoServiceTestNew {
                 null,
                 null,
                 null,
-                Instant.now().minus(1, ChronoUnit.DAYS),
-                Instant.now().plus(1, ChronoUnit.DAYS),
+                LocalDate.now().minus(1, ChronoUnit.DAYS),
+                LocalDate.now().plus(1, ChronoUnit.DAYS),
                 pageable);
         result = todoService.getTodoList(query);
         assertThat(result.getContent()).hasSize(1);
@@ -362,7 +362,7 @@ class TodoServiceTestNew {
                 .description("첫 번째 설명")
                 .statusId(0)
                 .category(category1)
-                .dueDate(Instant.now().plus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plus(1, ChronoUnit.DAYS))
                 .tags(Set.of("tagA"))
                 .member(testMember)
                 .build();
@@ -371,7 +371,7 @@ class TodoServiceTestNew {
                 .description("두 번째 설명")
                 .statusId(0)
                 .category(category2)
-                .dueDate(Instant.now().plus(2, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plus(2, ChronoUnit.DAYS))
                 .tags(Set.of("tagB"))
                 .member(testMember)
                 .build();
@@ -430,8 +430,8 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - 날짜 범위 검색 테스트")
     void getTodoListByDateRange_Success() {
         // given
-        Instant startDate = Instant.now().minus(1, ChronoUnit.DAYS);
-        Instant endDate = Instant.now().plus(1, ChronoUnit.DAYS);
+        LocalDate startDate = LocalDate.now().minus(1, ChronoUnit.DAYS);
+        LocalDate endDate = LocalDate.now().plus(1, ChronoUnit.DAYS);
 
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -786,7 +786,7 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - startDate만 있는 날짜 범위 검색")
     void getTodoListWithStartDateOnly_Success() {
         // given
-        Instant startDate = Instant.now().minus(1, ChronoUnit.DAYS);
+        LocalDate startDate = LocalDate.now().minus(1, ChronoUnit.DAYS);
         
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -813,7 +813,7 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - endDate만 있는 날짜 범위 검색")
     void getTodoListWithEndDateOnly_Success() {
         // given
-        Instant endDate = Instant.now().plus(2, ChronoUnit.DAYS);
+        LocalDate endDate = LocalDate.now().plus(2, ChronoUnit.DAYS);
         
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -994,8 +994,8 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - 잘못된 날짜 범위 검색 (startDate > endDate)")
     void getTodoListWithInvalidDateRange_Success() {
         // given
-        Instant startDate = Instant.now().plus(2, ChronoUnit.DAYS);
-        Instant endDate = Instant.now().plus(1, ChronoUnit.DAYS); // startDate보다 이전
+        LocalDate startDate = LocalDate.now().plus(2, ChronoUnit.DAYS);
+        LocalDate endDate = LocalDate.now().plus(1, ChronoUnit.DAYS); // startDate보다 이전
         
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -1028,7 +1028,7 @@ class TodoServiceTestNew {
                 "부분 수정된 제목",
                 null, // description은 수정하지 않음
                 null, // statusId는 수정하지 않음
-                null, null, null, null, null
+                null, null, null, null, null, null
         );
 
         // when
@@ -1051,7 +1051,7 @@ class TodoServiceTestNew {
                 null, // title은 수정하지 않음
                 "부분 수정된 설명",
                 null, // statusId는 수정하지 않음
-                null, null, null, null, null
+                null, null, null, null, null, null
         );
 
         // when
@@ -1074,7 +1074,7 @@ class TodoServiceTestNew {
                 null, // title은 수정하지 않음
                 null, // description은 수정하지 않음
                 1, // statusId만 수정
-                null, null, null, null, null
+                null, null, null, null, null, null
         );
 
         // when
@@ -1098,7 +1098,7 @@ class TodoServiceTestNew {
                 null, // description은 수정하지 않음
                 null, // statusId는 수정하지 않음
                 2, // priorityId 수정
-                null, null, null,
+                null, null, null, null,
                 Set.of("업무", "중요") // tags 수정
         );
 
@@ -1129,7 +1129,7 @@ class TodoServiceTestNew {
                 testTodo.getId(),
                 null, null, null, null,
                 newCategory.getId(), // categoryId만 수정
-                null, null, null
+                null, null, null, null
         );
 
         // when
@@ -1150,7 +1150,7 @@ class TodoServiceTestNew {
                 testTodo.getId(),
                 "   ", // 공백만 있는 제목
                 "수정된 설명",
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null
         );
 
         // when
@@ -1171,7 +1171,7 @@ class TodoServiceTestNew {
                 testTodo.getId(),
                 "수정된 제목",
                 "", // 빈 설명
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null
         );
 
         // when
@@ -1191,7 +1191,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 999L, // 존재하지 않는 ID
                 "수정된 제목",
-                null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null
         );
 
         // when & then
@@ -1215,7 +1215,7 @@ class TodoServiceTestNew {
                 .title("지연된 할일")
                 .description("지연된 설명")
                 .statusId(0)
-                .dueDate(Instant.now().minus(1, ChronoUnit.DAYS)) // 어제 마감
+                .dueDate(LocalDate.now().minus(1, ChronoUnit.DAYS)) // 어제 마감
                 .member(testMember)
                 .build();
         

@@ -3,7 +3,7 @@ package point.zzicback.todo.presentation.dto;
 import io.swagger.v3.oas.annotations.media.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Schema(description = "Todo 검색 요청")
@@ -32,13 +32,13 @@ public record TodoSearchRequest(
         )
         List<String> tags,
         
-        @Schema(description = "검색 시작 시각", example = "2024-01-01T00:00:00Z", type = "string", format = "date-time")
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-        Instant startDate,
+        @Schema(description = "검색 시작 날짜", example = "2024-01-01", type = "string", format = "date")
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate startDate,
         
-        @Schema(description = "검색 종료 시각", example = "2024-01-31T23:59:59Z", type = "string", format = "date-time")
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-        Instant endDate,
+        @Schema(description = "검색 종료 날짜", example = "2024-01-31", type = "string", format = "date")
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate endDate,
         
         @Schema(description = "검색 키워드 (제목, 설명, 태그에서 검색)", example = "영어")
         String keyword,

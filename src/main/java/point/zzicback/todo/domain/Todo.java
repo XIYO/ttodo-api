@@ -3,11 +3,14 @@ package point.zzicback.todo.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import point.zzicback.category.domain.Category;
 import point.zzicback.member.domain.Member;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Entity
@@ -35,7 +38,9 @@ public class Todo {
   @JoinColumn(name = "category_id")
   private Category category;
   
-  private Instant dueDate;
+  private LocalDate dueDate;
+
+  private LocalTime dueTime;
   
   @Enumerated(EnumType.ORDINAL)
   private RepeatType repeatType;
@@ -53,9 +58,12 @@ public class Todo {
   @Column(updatable = false)
   private Instant createdAt;
 
+  @LastModifiedDate
+  private Instant updatedAt;
+
   @Builder
-  public Todo(Long id, String title, String description, Integer statusId, Integer priorityId, 
-              Category category, Instant dueDate, RepeatType repeatType,
+  public Todo(Long id, String title, String description, Integer statusId, Integer priorityId,
+              Category category, LocalDate dueDate, LocalTime dueTime, RepeatType repeatType,
               Set<String> tags, Member member) {
     this.id = id;
     this.title = title;
@@ -64,6 +72,7 @@ public class Todo {
     this.priorityId = priorityId;
     this.category = category;
     this.dueDate = dueDate;
+    this.dueTime = dueTime;
     this.repeatType = repeatType;
     this.tags = tags != null ? tags : new HashSet<>();
     this.member = member;

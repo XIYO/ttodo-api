@@ -2,7 +2,8 @@ package point.zzicback.todo.application.dto.command;
 
 import point.zzicback.todo.domain.RepeatType;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 public record UpdateTodoCommand(
@@ -13,7 +14,8 @@ public record UpdateTodoCommand(
         Integer statusId,
         Integer priorityId,
         Long categoryId,
-        Instant dueDate,
+        LocalDate dueDate,
+        LocalTime dueTime,
         RepeatType repeatType,
         Set<String> tags
 ) {

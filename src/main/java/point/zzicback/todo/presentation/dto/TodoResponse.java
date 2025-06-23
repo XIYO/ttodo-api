@@ -3,7 +3,8 @@ package point.zzicback.todo.presentation.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import point.zzicback.todo.domain.RepeatType;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Set;
 
 @Schema(description = "Todo 응답 DTO")
@@ -35,8 +36,11 @@ public record TodoResponse(
         @Schema(description = "카테고리명", example = "학습")
         String categoryName,
         
-        @Schema(description = "마감 시각", example = "2024-12-31T23:59:59Z")
-        Instant dueDate,
+        @Schema(description = "마감 날짜", example = "2024-12-31")
+        LocalDate dueDate,
+
+        @Schema(description = "마감 시간", example = "18:00")
+        LocalTime dueTime,
         
         @Schema(description = "반복 유형", example = "DAILY")
         RepeatType repeatType,

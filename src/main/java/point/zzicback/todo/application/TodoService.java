@@ -14,7 +14,7 @@ import point.zzicback.todo.application.dto.result.*;
 import point.zzicback.todo.domain.Todo;
 import point.zzicback.todo.infrastructure.persistence.TodoRepository;
 
-import java.time.Instant;
+import java.time.*;
 import java.util.*;
 
 @Service
@@ -73,7 +73,9 @@ public class TodoService {
 
   @Transactional
   protected void updateOverdueTodos() {
-    todoRepository.updateOverdueTodos(Instant.now());
+    LocalDate today = LocalDate.now();
+    LocalTime nowTime = LocalTime.now();
+    todoRepository.updateOverdueTodos(today, nowTime);
   }
 
   private TodoResult toTodoResult(Todo todo) {
@@ -106,6 +108,7 @@ public class TodoService {
             todo.getCategory() != null ? todo.getCategory().getId() : null,
             todo.getCategory() != null ? todo.getCategory().getName() : null,
             todo.getDueDate(),
+            todo.getDueTime(),
             todo.getRepeatType(),
             todo.getTags()
     );
@@ -127,6 +130,7 @@ public class TodoService {
             .priorityId(command.priorityId())
             .category(category)
             .dueDate(command.dueDate())
+            .dueTime(command.dueTime())
             .repeatType(command.repeatType())
             .tags(command.tags())
             .member(member)
@@ -153,6 +157,7 @@ public class TodoService {
     todo.setPriorityId(command.priorityId());
     todo.setCategory(category);
     todo.setDueDate(command.dueDate());
+    todo.setDueTime(command.dueTime());
     todo.setRepeatType(command.repeatType());
     todo.setTags(command.tags());
   }
@@ -185,6 +190,9 @@ public class TodoService {
     if (command.dueDate() != null) {
       todo.setDueDate(command.dueDate());
     }
+    if (command.dueTime() != null) {
+      todo.setDueTime(command.dueTime());
+    }
     if (command.repeatType() != null) {
       todo.setRepeatType(command.repeatType());
     }
@@ -209,7 +217,7 @@ public class TodoService {
     long total = todoRepository.countByMemberId(memberId);
     long inProgress = todoRepository.countInProgressByMemberId(memberId);
     long completed = todoRepository.countCompletedByMemberId(memberId);
-    long overdue = todoRepository.countOverdueByMemberId(memberId, Instant.now());
+    long overdue = todoRepository.countOverdueByMemberId(memberId, LocalDate.now(), LocalTime.now());
     
     return new TodoStatistics(total, inProgress, completed, overdue);
   }

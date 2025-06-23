@@ -5,7 +5,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import point.zzicback.todo.domain.RepeatType;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
@@ -67,11 +68,18 @@ public class UpdateTodoRequest {
     private Long categoryId;
 
     @Schema(
-        description = "마감 시각(UTC)",
-        example = "2026-01-01T00:00:00Z",
-        format = "date-time"
+        description = "마감 날짜",
+        example = "2026-01-01",
+        format = "date"
     )
-    private Instant dueDate;
+    private LocalDate dueDate;
+
+    @Schema(
+        description = "마감 시간",
+        example = "18:00",
+        format = "time"
+    )
+    private LocalTime dueTime;
     
     @Schema(
         description = "반복 유형", 
