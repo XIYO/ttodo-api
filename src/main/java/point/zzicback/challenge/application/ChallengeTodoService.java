@@ -1,6 +1,7 @@
 package point.zzicback.challenge.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.*;
 import point.zzicback.common.error.EntityNotFoundException;
+import point.zzicback.experience.application.event.ChallengeTodoCompletedEvent;
 import point.zzicback.member.domain.Member;
 
 import java.time.LocalDate;
@@ -24,6 +26,7 @@ public class ChallengeTodoService {
     private final ChallengeParticipationRepository participationRepository;
     private final ChallengeService challengeService;
     private final ChallengeTodoMapper challengeTodoMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void completeChallenge(ChallengeParticipation cp, LocalDate currentDate) {
         Optional<ChallengeTodo> existingTodo = (cp.getChallenge().getPeriodType() == PeriodType.DAILY)
@@ -37,6 +40,13 @@ public class ChallengeTodoService {
             }
             todo.complete(currentDate);
             challengeTodoRepository.save(todo);
+            
+            // 챌린지 투두 완료 이벤트 발생
+            eventPublisher.publishEvent(new ChallengeTodoCompletedEvent(
+                    cp.getMember().getId(),
+                    cp.getChallenge().getId(),
+                    cp.getChallenge().getTitle()
+            ));
         } else {
             LocalDate targetDate = cp.getChallenge().getPeriodType().calculateTargetDate(currentDate);
                     
@@ -46,6 +56,13 @@ public class ChallengeTodoService {
                     .build();
             newTodo.complete(currentDate);
             challengeTodoRepository.save(newTodo);
+            
+            // 챌린지 투두 완료 이벤트 발생
+            eventPublisher.publishEvent(new ChallengeTodoCompletedEvent(
+                    cp.getMember().getId(),
+                    cp.getChallenge().getId(),
+                    cp.getChallenge().getTitle()
+            ));
         }
     }
 
@@ -111,12 +128,10 @@ public class ChallengeTodoService {
         if (challenge == null) {
             throw new BusinessException("Challenge cannot be null");
         }
-        
-        LocalDate targetDate = currentDate;
 
         return ChallengeTodo.builder()
                 .challengeParticipation(participation)
-                .targetDate(targetDate)
+                .targetDate(currentDate)
                 .build();
     }
 

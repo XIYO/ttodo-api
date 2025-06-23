@@ -18,4 +18,8 @@ public class LevelService {
                 .max(java.util.Comparator.comparingInt(Level::getRequiredExp))
                 .orElse(null);
     }
+
+    public Level getNextLevel(int currentLevel) {
+        return levelRepository.findById(currentLevel + 1).orElse(null);
+    }
 }
