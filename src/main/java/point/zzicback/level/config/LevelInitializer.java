@@ -2,8 +2,7 @@ package point.zzicback.level.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.*;
 import org.springframework.stereotype.Component;
 import point.zzicback.level.domain.Level;
 import point.zzicback.level.infrastructure.LevelRepository;

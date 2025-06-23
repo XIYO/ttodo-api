@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 import point.zzicback.category.domain.Category;
 import point.zzicback.category.infrastructure.CategoryRepository;
 import point.zzicback.member.domain.Member;
-import point.zzicback.todo.domain.*;
+import point.zzicback.todo.domain.Todo;
+import point.zzicback.todo.infrastructure.persistence.TodoRepository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

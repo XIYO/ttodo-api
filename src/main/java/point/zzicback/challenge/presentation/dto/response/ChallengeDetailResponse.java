@@ -5,7 +5,6 @@ import point.zzicback.challenge.domain.PeriodType;
 
 import java.time.LocalDate;
 import java.util.List;
-import point.zzicback.challenge.presentation.dto.response.ParticipantResponse;
 
 @Schema(description = "챌린지 상세 응답 DTO")
 public record ChallengeDetailResponse(

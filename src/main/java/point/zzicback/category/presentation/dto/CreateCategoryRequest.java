@@ -1,8 +1,7 @@
 package point.zzicback.category.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 @Schema(description = "카테고리 생성 요청")
 public record CreateCategoryRequest(

@@ -1,7 +1,6 @@
 package point.zzicback.challenge.application.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import point.zzicback.challenge.application.dto.result.ChallengeTodoResult;
 import point.zzicback.challenge.domain.ChallengeTodo;
 

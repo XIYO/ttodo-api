@@ -4,8 +4,6 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import point.zzicback.challenge.domain.Challenge;
 
-import java.util.List;
-
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
     @Query(value = "SELECT DISTINCT c FROM Challenge c LEFT JOIN FETCH c.participations p LEFT JOIN FETCH p.member",

@@ -1,8 +1,9 @@
-package point.zzicback.todo.domain;
+package point.zzicback.todo.infrastructure.persistence;
 
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+import point.zzicback.todo.domain.Todo;
 
 import java.time.Instant;
 import java.util.*;

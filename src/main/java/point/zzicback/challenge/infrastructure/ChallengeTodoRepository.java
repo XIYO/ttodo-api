@@ -5,7 +5,7 @@ import org.springframework.data.repository.query.Param;
 import point.zzicback.challenge.domain.*;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Optional;
 
 public interface ChallengeTodoRepository extends JpaRepository<ChallengeTodo, Long> {
 

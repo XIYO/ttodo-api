@@ -1,13 +1,12 @@
 package point.zzicback.member.application.event;
 
-import java.util.List;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 import point.zzicback.category.application.CategoryService;
 import point.zzicback.category.application.command.CreateCategoryCommand;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor

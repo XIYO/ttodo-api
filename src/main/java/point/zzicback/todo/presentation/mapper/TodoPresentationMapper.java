@@ -1,16 +1,15 @@
 package point.zzicback.todo.presentation.mapper;
 
 import org.mapstruct.*;
+import org.springframework.data.domain.PageRequest;
 import point.zzicback.todo.application.dto.command.*;
-import point.zzicback.todo.application.dto.result.TodoResult;
-import point.zzicback.todo.application.dto.result.TodoStatistics;
-import point.zzicback.todo.presentation.dto.CreateTodoRequest;
-import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
-import point.zzicback.todo.presentation.dto.TodoStatisticsResponse;
+import point.zzicback.todo.application.dto.query.TodoSearchQuery;
+import point.zzicback.todo.application.dto.result.*;
+import point.zzicback.todo.presentation.dto.*;
 
 import java.util.*;
 
-@Mapper(componentModel = "spring", imports = {Arrays.class, java.util.stream.Collectors.class})
+@Mapper(componentModel = "spring", imports = {Arrays.class, java.util.stream.Collectors.class, PageRequest.class})
 public interface TodoPresentationMapper {
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "priorityId", source = "request.priorityId")
@@ -23,6 +22,10 @@ public interface TodoPresentationMapper {
   @Mapping(target = "priorityId", source = "request.priorityId")
   @Mapping(target = "tags", expression = "java(parseTagsString(request.getTags()))")
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
+
+  @Mapping(target = "memberId", source = "memberId")
+  @Mapping(target = "pageable", expression = "java(PageRequest.of(request.page(), request.size()))")
+  TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
   

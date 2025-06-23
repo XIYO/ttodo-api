@@ -3,10 +3,9 @@ package point.zzicback.todo.application.dto.query;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-public record TodoListQuery(
+public record TodoSearchQuery(
         UUID memberId,
         List<Integer> statusIds,
         List<Long> categoryIds,

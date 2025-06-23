@@ -1,8 +1,5 @@
 package point.zzicback.category.application;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -14,6 +11,8 @@ import point.zzicback.category.presentation.dto.CategoryResponse;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor

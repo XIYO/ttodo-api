@@ -10,9 +10,9 @@ import point.zzicback.common.error.*;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.*;
-import point.zzicback.todo.application.dto.result.TodoResult;
-import point.zzicback.todo.application.dto.result.TodoStatistics;
-import point.zzicback.todo.domain.*;
+import point.zzicback.todo.application.dto.result.*;
+import point.zzicback.todo.domain.Todo;
+import point.zzicback.todo.infrastructure.persistence.TodoRepository;
 
 import java.time.Instant;
 import java.util.*;
@@ -25,7 +25,7 @@ public class TodoService {
   private final CategoryRepository categoryRepository;
   private final MemberService memberService;
 
-  public Page<TodoResult> getTodoList(TodoListQuery query) {
+  public Page<TodoResult> getTodoList(TodoSearchQuery query) {
     updateOverdueTodos();
     
     Page<Todo> todoPage;

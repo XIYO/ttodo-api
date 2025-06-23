@@ -10,7 +10,7 @@ import point.zzicback.member.application.dto.command.*;
 import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.application.event.MemberCreatedEvent;
 import point.zzicback.member.domain.Member;
-import point.zzicback.member.infrastructure.persistence.JpaMemberRepository;
+import point.zzicback.member.infrastructure.persistence.MemberRepository;
 
 import java.util.*;
 
@@ -19,7 +19,7 @@ import java.util.*;
 @Transactional
 public class MemberService {
   private static final String MEMBER_ENTITY = "Member";
-  private final JpaMemberRepository memberRepository;
+  private final MemberRepository memberRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   public Member createMember(CreateMemberCommand command) {

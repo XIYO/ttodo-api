@@ -1,6 +1,7 @@
-package point.zzicback.member.domain;
+package point.zzicback.member.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import point.zzicback.member.domain.Member;
 
 import java.util.*;
 

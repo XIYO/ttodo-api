@@ -4,7 +4,6 @@ import point.zzicback.challenge.domain.PeriodType;
 
 import java.time.LocalDate;
 import java.util.List;
-import point.zzicback.challenge.application.dto.result.ParticipantResult;
 
 public record ChallengeDetailResult(
         Long id,

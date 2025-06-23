@@ -1,14 +1,8 @@
 package point.zzicback.challenge.application.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import point.zzicback.challenge.application.dto.result.ChallengeJoinedResult;
-import point.zzicback.challenge.application.dto.result.ChallengeListResult;
-import point.zzicback.challenge.application.dto.result.ChallengeResult;
-import point.zzicback.challenge.application.dto.result.ChallengeDetailResult;
-import point.zzicback.challenge.application.dto.result.ParticipantResult;
-import point.zzicback.challenge.domain.Challenge;
-import point.zzicback.challenge.domain.ChallengeParticipation;
+import org.mapstruct.*;
+import point.zzicback.challenge.application.dto.result.*;
+import point.zzicback.challenge.domain.*;
 
 import java.util.List;
 

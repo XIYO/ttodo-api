@@ -1,12 +1,13 @@
 package point.zzicback.todo.presentation;
 
-import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
@@ -15,12 +16,10 @@ import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
-import java.time.Instant;
-import java.util.List;
-
 @RestController
 @RequestMapping("/todos")
 @RequiredArgsConstructor
+@Tag(name = "Todo", description = "할일 관리 API")
 public class TodoController {
   private final TodoService todoService;
   private final TodoPresentationMapper todoPresentationMapper;
@@ -30,60 +29,9 @@ public class TodoController {
   @Operation(summary = "Todo 목록 조회", description = "사용자의 Todo 목록을 조회합니다. 다양한 조건으로 필터링이 가능합니다.")
   public Page<TodoResponse> getAll(
           @AuthenticationPrincipal MemberPrincipal principal,
-          @RequestParam(required = false)
-          @Parameter(
-              description = "할일 상태 필터 목록 (0: 진행중, 1: 완료, 2: 지연)",
-              array = @ArraySchema(schema = @Schema(allowableValues = {"0", "1", "2"})),
-              example = "0,1")
-          List<Integer> statusIds,
-          @RequestParam(required = false)
-          @Parameter(description = "카테고리 ID 필터 목록", example = "1,2")
-          List<Long> categoryIds,
-          @RequestParam(required = false)
-          @Parameter(description = "우선순위 필터 목록 (0: 낮음, 1: 보통, 2: 높음)",
-                     array = @ArraySchema(schema = @Schema(allowableValues = {"0", "1", "2"})))
-          List<Integer> priorityIds,
-          @RequestParam(required = false)
-          @Parameter(description = "태그 필터", example = "학습,운동")
-          List<String> tags,
-          @RequestParam(required = false)
-          @Parameter(
-              description = "검색 시작 시각",
-              example = "2024-01-01T00:00:00Z",
-              schema = @Schema(type = "string", format = "date-time")
-          )
-          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          Instant startDate,
-          @RequestParam(required = false)
-          @Parameter(
-              description = "검색 종료 시각",
-              example = "2024-01-31T23:59:59Z",
-              schema = @Schema(type = "string", format = "date-time")
-          )
-          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          Instant endDate,
-          @RequestParam(required = false)
-          @Parameter(description = "검색 키워드 (제목, 설명, 태그에서 검색)",
-                     example = "영어")
-          String keyword,
-          @RequestParam(required = false)
-          @Parameter(description = "숨길 상태 ID 목록", example = "1,2")
-          List<Integer> hideStatusIds,
-          @RequestParam(defaultValue = "0") int page,
-          @RequestParam(defaultValue = "10") int size) {
-    Pageable pageable = PageRequest.of(page, size);
-    TodoListQuery query = new TodoListQuery(
-        principal.id(),
-        statusIds,
-        categoryIds,
-        priorityIds,
-        tags,
-        keyword,
-        hideStatusIds,
-        startDate,
-        endDate,
-        pageable);
-    return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
+          @ParameterObject @Valid TodoSearchRequest req) {
+      TodoSearchQuery query = todoPresentationMapper.toQuery(req, principal.id());
+      return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }
 
   @GetMapping("/{id}")
@@ -93,121 +41,62 @@ public class TodoController {
     return todoPresentationMapper.toResponse(todoService.getTodo(TodoQuery.of(principal.id(), id)));
   }
 
-  @PostMapping(consumes = {"application/json"})
+  @PostMapping(
+    consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
+  )
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
-      summary = "Todo 생성",
-      description = "새로운 Todo를 생성합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습).",
+      summary = "Todo 생성", 
+      description = "새로운 Todo를 생성합니다.",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Todo 생성 정보",
-          required = true,
           content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = CreateTodoRequest.class),
-                  examples = @ExampleObject(
-                      name = "JSON 예시",
-                      value = """
-                          {
-                            \"title\": \"영어 공부하기\",
-                            \"description\": \"토익 문제집 2장 풀어보기\",
-                            \"status\": \"IN_PROGRESS\",
-                            \"priority\": 1,
-                            \"categoryId\": 1,
-                            \"dueDate\": \"2026-01-01T00:00:00Z\",
-                            \"repeatType\": \"NONE\",
-                            \"tags\": [\"영어\", \"학습\"]
-                          }
-                          """
-                  )
-              ),
-              @Content(
-                  mediaType = "application/x-www-form-urlencoded",
-                  schema = @Schema(implementation = CreateTodoRequest.class)
-              )
+              @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CreateTodoRequest.class)),
+              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = CreateTodoRequest.class))
           }
       )
   )
   public void add(@AuthenticationPrincipal MemberPrincipal principal,
-                 @Valid @RequestBody CreateTodoRequest request) {
+                  @Valid CreateTodoRequest request) {
     todoService.createTodo(todoPresentationMapper.toCommand(request, principal.id()));
   }
 
 
-  @PutMapping(value = "/{id}", consumes = {"application/json"})
+  @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-      summary = "Todo 수정",
-      description = "Todo를 전체 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
+      summary = "Todo 수정", 
+      description = "Todo를 전체 수정합니다.",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Todo 수정 정보",
-          required = true,
           content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = UpdateTodoRequest.class),
-                  examples = @ExampleObject(
-                      name = "JSON 예시",
-                      value = """
-                          {
-                            \"title\": \"영어 공부하기 (수정)\",
-                            \"description\": \"토익 문제집 3장 풀어보기\",
-                            \"statusId\": 1,
-                            \"priorityId\": 2,
-                            \"categoryId\": 1,
-                            \"dueDate\": \"2026-01-02T00:00:00Z\",
-                            \"repeatType\": \"DAILY\",
-                            \"tags\": [\"영어\", \"학습\", \"토익\"]
-                          }
-                          """
-                  )
-              ),
-              @Content(
-                  mediaType = "application/x-www-form-urlencoded",
-                  schema = @Schema(implementation = UpdateTodoRequest.class)
-              )
+              @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class)),
+              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class))
           }
       )
   )
   public void modify(@AuthenticationPrincipal MemberPrincipal principal,
-                    @PathVariable Long id,
-                    @Valid @RequestBody UpdateTodoRequest request) {
+                     @PathVariable Long id,
+                     @Valid UpdateTodoRequest request) {
     todoService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-
-  @PatchMapping(value = "/{id}", consumes = {"application/json"})
+  @PatchMapping(
+      value = "/{id}",
+      consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
+  )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-      summary = "Todo 부분 수정",
-      description = "Todo를 부분 수정합니다. 태그는 쉼표로 구분하여 입력하세요 (예: 영어,학습,토익).",
+      summary = "Todo 부분 수정", 
+      description = "Todo를 부분 수정합니다.",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          description = "Todo 부분 수정 정보 (수정할 필드만 포함)",
-          required = true,
-          content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = UpdateTodoRequest.class),
-                  examples = @ExampleObject(
-                      name = "JSON 예시",
-                      value = """
-                          {
-                            \"statusId\": 1,
-                            \"priorityId\": 2
-                          }
-                          """
-                  )
-              ),
-              @Content(
-                  mediaType = "application/x-www-form-urlencoded",
-                  schema = @Schema(implementation = UpdateTodoRequest.class)
-              )
-          }
+          content = @Content(
+              mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+              schema = @Schema(implementation = UpdateTodoRequest.class)
+          )
       )
   )
   public void partialModify(@AuthenticationPrincipal MemberPrincipal principal,
-                           @PathVariable Long id,
-                           @Valid @RequestBody UpdateTodoRequest request) {
+                            @PathVariable Long id,
+                            @Valid UpdateTodoRequest request) {
     todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 

@@ -3,7 +3,7 @@ package point.zzicback.member.domain.validation;
 import jakarta.validation.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import point.zzicback.member.domain.MemberRepository;
+import point.zzicback.member.infrastructure.persistence.MemberRepository;
 
 @Component
 @RequiredArgsConstructor
