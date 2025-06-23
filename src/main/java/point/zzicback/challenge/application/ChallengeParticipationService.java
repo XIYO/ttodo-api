@@ -11,14 +11,12 @@ import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.domain.Member;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ChallengeParticipationService {
     private final ChallengeParticipationRepository participationRepository;
-    private final ChallengeTodoRepository challengeTodoRepository;
     private final ChallengeService challengeService;
 
     // 참여
@@ -65,16 +63,6 @@ public class ChallengeParticipationService {
         int end = Math.min(start + pageable.getPageSize(), participants.size());
         List<ParticipantResult> pageList = participants.subList(start, end);
         return new PageImpl<>(pageList, pageable, participants.size());
-    }
-
-    // 참여자가 챌린지 간격에 의해 해야할 챌린지 투두를 출력
-    public List<ChallengeTodo> getChallengeTodos(Member member) {
-        return participationRepository.findByMemberAndJoinOutIsNull(member)
-                .stream()
-                .map(participation -> challengeTodoRepository.findByChallengeParticipation(participation))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
     }
 }
 
