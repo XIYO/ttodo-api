@@ -1,12 +1,13 @@
 package point.zzicback.member.presentation;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.UpdateMemberCommand;
@@ -58,11 +59,17 @@ public class MemberController {
     @Operation(summary = "회원 정보 수정", description = "회원 닉네임과 소개글을 수정합니다.")
     @ApiResponse(responseCode = "204", description = "회원 정보 수정 성공")
     @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
-    @PatchMapping("/{memberId}")
+    @PatchMapping(value = "/{memberId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+        content = {
+            @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateMemberRequest.class)),
+            @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateMemberRequest.class))
+        }
+    )
     public void updateMember(
             @PathVariable UUID memberId,
-            @Valid @RequestBody UpdateMemberRequest request) {
+            @Valid UpdateMemberRequest request) {
         UpdateMemberCommand command = mapper.toCommand(memberId, request);
         memberService.updateMember(command);
     }

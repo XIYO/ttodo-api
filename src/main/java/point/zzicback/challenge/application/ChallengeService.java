@@ -47,22 +47,7 @@ public class ChallengeService {
         };
     }
 
-    @Transactional(readOnly = true)
-    public Page<Challenge> getChallenges(Pageable pageable) {
-        return challengeRepository.findAll(pageable);
-    }
 
-    @Transactional(readOnly = true)
-    public Page<Challenge> searchChallenges(String keyword, String sort, Pageable pageable) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return "popular".equals(sort) 
-                ? challengeRepository.findAllOrderedByPopularity(pageable)
-                : challengeRepository.findAll(pageable);
-        }
-        return "popular".equals(sort)
-            ? challengeRepository.searchByKeywordOrderedByPopularity(keyword.trim(), pageable)
-            : challengeRepository.searchByKeyword(keyword.trim(), pageable);
-    }
 
     @Transactional(readOnly = true)
     public Page<ChallengeListResult> searchChallengesWithFilter(Member member, String keyword, String sort, Boolean join, Pageable pageable) {
@@ -94,22 +79,6 @@ public class ChallengeService {
                 .toList();
         
         return new PageImpl<>(filteredChallenges, pageable, filteredChallenges.size());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ChallengeJoinedResult> getChallengesByMember(Member member) {
-        List<Challenge> allChallenges = challengeRepository.findAll();
-        List<Long> participatedChallengeIds = challengeParticipationRepository.findByMemberAndJoinOutIsNull(member)
-                .stream()
-                .map(participation -> participation.getChallenge().getId())
-                .toList();
-        
-        return allChallenges.stream()
-                .map(challenge -> challengeMapper.toJoinedResult(
-                        challenge,
-                        participatedChallengeIds.contains(challenge.getId())
-                ))
-                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -159,12 +128,6 @@ public class ChallengeService {
         );
     }
 
-    public void updateChallenge(Long challengeId, UpdateChallengeCommand command) {
-        Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new EntityNotFoundException("Challenge", challengeId));
-        challenge.update(command.title(), command.description(), command.periodType());
-        challengeRepository.save(challenge);
-    }
 
     public void deleteChallenge(Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)

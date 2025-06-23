@@ -7,8 +7,6 @@ import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.presentation.dto.request.*;
 import point.zzicback.challenge.presentation.dto.response.*;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface ChallengePresentationMapper {
 
@@ -16,6 +14,8 @@ public interface ChallengePresentationMapper {
     CreateChallengeCommand toCommand(CreateChallengeRequest request);
 
     /** Presentation 레이어 요청 DTO -> Application Command 변환 */
+    @Mapping(target = "title", expression = "java(emptyStringToNull(request.title()))")
+    @Mapping(target = "description", expression = "java(emptyStringToNull(request.description()))")
     UpdateChallengeCommand toCommand(UpdateChallengeRequest request);
 
     /** Application 결과 DTO -> Presentation 응답 변환 */
@@ -58,25 +58,8 @@ public interface ChallengePresentationMapper {
 
     /** Application DTO -> Presentation 레이어 응답 DTO 변환 */
     ParticipantResponse toResponse(ParticipantResult dto);
-
-    default ChallengeDetailResult toDetailResult(Challenge challenge) {
-        if (challenge == null) return null;
-        
-        List<ParticipantResult> activeParticipants = challenge.getParticipations().stream()
-                .filter(participation -> participation.getJoinOut() == null)
-                .map(this::toParticipantResult)
-                .toList();
-        
-        return new ChallengeDetailResult(
-                challenge.getId(),
-                challenge.getTitle(),
-                challenge.getDescription(),
-                challenge.getStartDate(),
-                challenge.getEndDate(),
-                challenge.getPeriodType(),
-                false,
-                activeParticipants.size(),
-                activeParticipants
-        );
+    
+    default String emptyStringToNull(String value) {
+        return (value == null || value.trim().isEmpty()) ? null : value;
     }
 }

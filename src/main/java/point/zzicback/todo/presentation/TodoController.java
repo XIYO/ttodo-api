@@ -50,8 +50,8 @@ public class TodoController {
       description = "새로운 Todo를 생성합니다.",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           content = {
-              @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CreateTodoRequest.class)),
-              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = CreateTodoRequest.class))
+              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = CreateTodoRequest.class)),
+              @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CreateTodoRequest.class))
           }
       )
   )
@@ -61,15 +61,15 @@ public class TodoController {
   }
 
 
-  @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+  @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 수정", 
       description = "Todo를 전체 수정합니다.",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           content = {
-              @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class)),
-              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class))
+              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class)),
+              @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class))
           }
       )
   )
@@ -88,10 +88,10 @@ public class TodoController {
       summary = "Todo 부분 수정", 
       description = "Todo를 부분 수정합니다.",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          content = @Content(
-              mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-              schema = @Schema(implementation = UpdateTodoRequest.class)
-          )
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class)),
+              @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class))
+          }
       )
   )
   public void partialModify(@AuthenticationPrincipal MemberPrincipal principal,

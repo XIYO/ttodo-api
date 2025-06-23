@@ -1,12 +1,13 @@
 package point.zzicback.challenge.presentation;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
@@ -34,12 +35,21 @@ public class ChallengeController {
     private final ChallengeTodoService todoService;
     private final ChallengeTodoPresentationMapper todoMapper;
 
-    @Operation(summary = "챌린지 생성", description = "새로운 챌린지를 생성합니다.")
+    @Operation(
+        summary = "챌린지 생성", 
+        description = "새로운 챌린지를 생성합니다.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = {
+                @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = CreateChallengeRequest.class)),
+                @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CreateChallengeRequest.class))
+            }
+        )
+    )
     @ApiResponse(responseCode = "201", description = "챌린지 생성 성공")
-    @PostMapping
+    @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
     @ResponseStatus(HttpStatus.CREATED)
     public CreateChallengeResponse createChallenge(
-            @Valid @RequestBody CreateChallengeRequest request) {
+            @Valid CreateChallengeRequest request) {
         CreateChallengeCommand command = challengePresentationMapper.toCommand(request);
         Long challengeId = challengeService.createChallenge(command);
         return CreateChallengeResponse.of(challengeId);
@@ -90,14 +100,23 @@ public class ChallengeController {
         return response;
     }
 
-    @Operation(summary = "챌린지 수정", description = "기존 챌린지 정보를 수정합니다.")
+    @Operation(
+        summary = "챌린지 수정", 
+        description = "기존 챌린지 정보를 수정합니다.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = {
+                @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateChallengeRequest.class)),
+                @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateChallengeRequest.class))
+            }
+        )
+    )
     @ApiResponse(responseCode = "204", description = "챌린지 수정 성공")
     @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
-    @PatchMapping("/{challengeId}")
+    @PatchMapping(value = "/{challengeId}", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateChallenge(
             @PathVariable Long challengeId,
-            @Valid @RequestBody UpdateChallengeRequest request) {
+            @Valid UpdateChallengeRequest request) {
         UpdateChallengeCommand command = challengePresentationMapper.toCommand(request);
         challengeService.partialUpdateChallenge(challengeId, command);
     }
@@ -161,10 +180,9 @@ public class ChallengeController {
                 .map(todoMapper::toResponse);
     }
 
-    @Operation(summary = "챌린지 투두 생성/완료 처리", description = "특정 챌린지 투두를 생성하거나 완료 상태로 변경합니다.")
-    @ApiResponse(responseCode = "201", description = "챌린지 투두 생성/완료 성공")
-    @PostMapping("/{challengeId}/todos")
-    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "챌린지 투두 완료 처리", description = "특정 챌린지 투두를 완료 상태로 변경합니다.")
+    @ApiResponse(responseCode = "200", description = "챌린지 투두 완료 성공")
+    @PatchMapping("/{challengeId}/todos")
     public ChallengeTodoResponse completeChallengeTodo(
             @PathVariable Long challengeId,
             @AuthenticationPrincipal MemberPrincipal principal) {
@@ -174,33 +192,15 @@ public class ChallengeController {
         return todoMapper.toResponse(todoResult);
     }
 
-    @Operation(summary = "챌린지 투두 상태 수정", description = "특정 챌린지 투두의 완료 여부를 수정합니다.")
-    @ApiResponse(responseCode = "204", description = "챌린지 투두 수정 성공")
-    @PatchMapping("/{challengeId}/todos/{todoId}")
+    @Operation(summary = "챌린지 투두 완료 취소", description = "특정 챌린지 투두의 완료를 취소합니다.")
+    @ApiResponse(responseCode = "204", description = "챌린지 투두 완료 취소 성공")
+    @DeleteMapping("/todos/{todoId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateChallengeTodo(
-            @PathVariable Long challengeId,
-            @PathVariable Long todoId,
-            @AuthenticationPrincipal MemberPrincipal principal,
-            @Valid @RequestBody UpdateChallengeTodoRequest request) {
-        Member member = memberService.findVerifiedMember(principal.id());
-        if (Boolean.TRUE.equals(request.done())) {
-            todoService.completeChallenge(challengeId, member, LocalDate.now());
-        } else {
-            todoService.cancelCompleteChallenge(challengeId, member, LocalDate.now());
-        }
-    }
-
-    @Operation(summary = "챌린지 투두 삭제", description = "특정 챌린지 투두를 삭제합니다.")
-    @ApiResponse(responseCode = "204", description = "챌린지 투두 삭제 성공")
-    @DeleteMapping("/{challengeId}/todos/{todoId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteChallengeTodo(
-            @PathVariable Long challengeId,
+    public void cancelChallengeTodo(
             @PathVariable Long todoId,
             @AuthenticationPrincipal MemberPrincipal principal) {
         Member member = memberService.findVerifiedMember(principal.id());
-        todoService.cancelCompleteChallenge(challengeId, member, LocalDate.now());
+        todoService.cancelCompleteChallenge(todoId, member);
     }
     private Pageable createPageable(int page, int size, String sort) {
         return switch (sort) {

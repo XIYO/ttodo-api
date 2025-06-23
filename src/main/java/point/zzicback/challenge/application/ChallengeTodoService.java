@@ -1,6 +1,5 @@
 package point.zzicback.challenge.application;
 
-import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -25,12 +24,9 @@ public class ChallengeTodoService {
     private final ChallengeParticipationRepository participationRepository;
     private final ChallengeService challengeService;
     private final ChallengeTodoMapper challengeTodoMapper;
-    
-    @PersistenceContext
-    private EntityManager entityManager;
 
     public void completeChallenge(ChallengeParticipation cp, LocalDate currentDate) {
-        var existingTodo = (cp.getChallenge().getPeriodType() == PeriodType.DAILY)
+        Optional<ChallengeTodo> existingTodo = (cp.getChallenge().getPeriodType() == PeriodType.DAILY)
                 ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(cp, currentDate)
                 : challengeTodoRepository.findByChallengeParticipation(cp);
         
@@ -42,9 +38,7 @@ public class ChallengeTodoService {
             todo.complete(currentDate);
             challengeTodoRepository.save(todo);
         } else {
-            LocalDate targetDate = (cp.getChallenge().getPeriodType() == PeriodType.DAILY) 
-                    ? currentDate 
-                    : calculateTargetDate(cp.getChallenge().getPeriodType());
+            LocalDate targetDate = cp.getChallenge().getPeriodType().calculateTargetDate(currentDate);
                     
             ChallengeTodo newTodo = ChallengeTodo.builder()
                     .challengeParticipation(cp)
@@ -56,87 +50,23 @@ public class ChallengeTodoService {
     }
 
     @Transactional
-    public void cancelCompleteChallenge(Long challengeId, Member member, LocalDate currentDate) {
-        challengeService.findById(challengeId);
-
-        ChallengeParticipation participation = participationRepository
-                .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
-                .orElseThrow(() -> new BusinessException("해당 챌린지를 완료하지 않았습니다."));
-
-        ChallengeTodo challengeTodo;
-        if (participation.getChallenge().getPeriodType() == PeriodType.DAILY) {
-            challengeTodo = challengeTodoRepository
-                    .findByChallengeParticipationAndTargetDate(participation, currentDate)
-                    .orElseThrow(() -> new EntityNotFoundException("ChallengeTodo", "participation-" + participation.getId() + "-date-" + currentDate));
-        } else {
-            challengeTodo = challengeTodoRepository
-                    .findByChallengeParticipation(participation)
-                    .orElseThrow(() -> new EntityNotFoundException("ChallengeTodo", "participation-" + participation.getId()));
+    public void cancelCompleteChallenge(Long todoId, Member member) {
+        ChallengeTodo challengeTodo = challengeTodoRepository.findById(todoId)
+                .orElseThrow(() -> new EntityNotFoundException("ChallengeTodo", todoId));
+        
+        if (!challengeTodo.getChallengeParticipation().getMember().equals(member)) {
+            throw new BusinessException("해당 투두에 대한 권한이 없습니다.");
         }
-
+        
         challengeTodoRepository.delete(challengeTodo);
-    }
-
-    public boolean isCompletedInPeriod(ChallengeParticipation cp, LocalDate date) {
-        var todoOptional = (cp.getChallenge().getPeriodType() == PeriodType.DAILY)
-                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(cp, date)
-                : challengeTodoRepository.findByChallengeParticipation(cp);
-                
-        return todoOptional
-                .map(todo -> todo.isInPeriod(cp.getChallenge().getPeriodType(), date) && todo.isCompleted())
-                .orElse(false);
     }
     
     @Transactional(readOnly = true)
-    public List<ChallengeTodoResult> getAllChallengeTodos(Member member) {
+    public Page<ChallengeTodoResult> getAllChallengeTodos(Member member, Pageable pageable) {
         List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
-
-        return participations.stream()
+        List<ChallengeTodoResult> allTodos = participations.stream()
                 .flatMap(this::createChallengeTodoStream)
                 .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ChallengeTodoResult> getAllChallengeTodos(Member member, Pageable pageable) {
-        List<ChallengeTodoResult> allTodos = getAllChallengeTodos(member);
-        allTodos = applySorting(allTodos, pageable.getSort());
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), allTodos.size());
-        List<ChallengeTodoResult> pagedTodos = allTodos.subList(start, end);
-        return new PageImpl<>(pagedTodos, pageable, allTodos.size());
-    }
- 
-    @Transactional(readOnly = true)
-    public List<ChallengeTodoResult> getUncompletedChallengeTodos(Member member) {
-        List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
-
-        return participations.stream()
-                .flatMap(this::createUncompletedChallengeTodoStream)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ChallengeTodoResult> getUncompletedChallengeTodos(Member member, Pageable pageable) {
-        List<ChallengeTodoResult> allTodos = getUncompletedChallengeTodos(member);
-        allTodos = applySorting(allTodos, pageable.getSort());
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), allTodos.size());
-        List<ChallengeTodoResult> pagedTodos = allTodos.subList(start, end);
-        return new PageImpl<>(pagedTodos, pageable, allTodos.size());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ChallengeTodoResult> getCompletedChallengeTodos(Member member) {
-        List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
-
-        return participations.stream()
-                .flatMap(this::createCompletedChallengeTodoStream)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ChallengeTodoResult> getCompletedChallengeTodos(Member member, Pageable pageable) {
-        List<ChallengeTodoResult> allTodos = getCompletedChallengeTodos(member);
         allTodos = applySorting(allTodos, pageable.getSort());
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allTodos.size());
@@ -146,7 +76,7 @@ public class ChallengeTodoService {
 
     private Stream<ChallengeTodoResult> createChallengeTodoStream(ChallengeParticipation participation) {
         LocalDate currentDate = LocalDate.now();
-        var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
+        ChallengeTodo virtualTodo = createVirtualChallengeTodo(participation, currentDate);
         PeriodType periodType = participation.getChallenge().getPeriodType();
         
         if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
@@ -157,7 +87,7 @@ public class ChallengeTodoService {
             return Stream.empty();
         }
         
-        var existingTodo = (periodType == PeriodType.DAILY) 
+        Optional<ChallengeTodo> existingTodo = (periodType == PeriodType.DAILY) 
             ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
             : challengeTodoRepository.findByChallengeParticipation(participation);
 
@@ -169,65 +99,6 @@ public class ChallengeTodoService {
             return Stream.of(challengeTodoMapper.toResult(todo));
         } else {
             return Stream.of(challengeTodoMapper.toResult(virtualTodo));
-        }
-    }
-
-    private Stream<ChallengeTodoResult> createUncompletedChallengeTodoStream(ChallengeParticipation participation) {
-        try {
-            LocalDate currentDate = LocalDate.now();
-            var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
-            PeriodType periodType = participation.getChallenge().getPeriodType();
-            
-            if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
-                return Stream.empty();
-            }
-            
-            if (!virtualTodo.isInPeriod(periodType, currentDate)) {
-                return Stream.empty();
-            }
-            
-            var existingTodo = (periodType == PeriodType.DAILY) 
-                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
-                : challengeTodoRepository.findByChallengeParticipation(participation);
-
-            if (existingTodo.isPresent()) {
-                ChallengeTodo todo = existingTodo.get();
-                if (!todo.isInPeriod(periodType, currentDate)) {
-                    return Stream.empty();
-                }
-                if (!todo.isCompleted()) {
-                    return Stream.of(challengeTodoMapper.toResult(todo));
-                } else {
-                    return Stream.empty();
-                }
-            } else {
-                return Stream.of(challengeTodoMapper.toResult(virtualTodo));
-            }
-        } catch (Exception e) {
-            return Stream.empty();
-        }
-    }
-
-    private Stream<ChallengeTodoResult> createCompletedChallengeTodoStream(ChallengeParticipation participation) {
-        try {
-            LocalDate currentDate = LocalDate.now();
-            var virtualTodo = createVirtualChallengeTodo(participation, currentDate);
-            
-            if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
-                return Stream.empty();
-            }
-            
-            if (!virtualTodo.isInPeriod(participation.getChallenge().getPeriodType(), currentDate)) {
-                return Stream.empty();
-            }
-            
-        return challengeTodoRepository.findByChallengeParticipation(participation)
-                    .filter(ChallengeTodo::isCompleted)
-                    .map(challengeTodoMapper::toResult)
-                    .map(Stream::of)
-                    .orElse(Stream.empty());
-        } catch (Exception e) {
-            return Stream.empty();
         }
     }
 
@@ -247,15 +118,6 @@ public class ChallengeTodoService {
                 .challengeParticipation(participation)
                 .targetDate(targetDate)
                 .build();
-    }
-
-    private LocalDate calculateTargetDate(PeriodType periodType) {
-        LocalDate today = LocalDate.now();
-        return switch (periodType) {
-            case DAILY -> today;
-            case WEEKLY -> today;
-            case MONTHLY -> today;
-        };
     }
 
     public void completeChallenge(Long challengeId, Member member, LocalDate currentDate) {
@@ -324,11 +186,5 @@ public class ChallengeTodoService {
 
     private boolean isWithinChallengeRange(Challenge challenge, LocalDate date) {
         return !date.isBefore(challenge.getStartDate()) && !date.isAfter(challenge.getEndDate());
-    }
-
-    @Transactional(readOnly = true)
-    public double calculateSuccessRate(Long challengeId) {
-        long completedParticipantCount = challengeTodoRepository.countCompletedParticipantsByChallengeId(challengeId);
-        return completedParticipantCount;
     }
 }
