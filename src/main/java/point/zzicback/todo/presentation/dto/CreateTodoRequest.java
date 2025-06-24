@@ -31,8 +31,7 @@ public class CreateTodoRequest {
     @Size(max = 255) 
     @Schema(
         description = "할일 제목", 
-        example = "영어 공부하기", 
-        required = true,
+        example = "영어 공부하기",
         minLength = 1,
         maxLength = 255
     )
