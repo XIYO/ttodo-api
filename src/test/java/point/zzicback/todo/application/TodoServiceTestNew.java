@@ -190,7 +190,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 "새로운 할일",
                 "새로운 설명",
-                null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null
         );
 
         // when
@@ -220,7 +220,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 1,
-                null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null
         );
 
         // when
@@ -243,7 +243,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 1,
-                null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null
         );
 
         // when & then
@@ -1281,10 +1281,11 @@ class TodoServiceTestNew {
                 1, null, 
                 LocalDate.now(), 
                 null,
-                RepeatTypeConstants.DAILY, // 매일 반복
-                1, // 1일 간격
-                LocalDate.now(), // 반복 시작일
-                LocalDate.now().plusDays(7), // 7일 후 종료
+                RepeatTypeConstants.DAILY,
+                1,
+                LocalDate.now(),
+                LocalDate.now().plusDays(7),
+                null,
                 Set.of("운동", "건강")
         );
 

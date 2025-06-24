@@ -49,7 +49,7 @@ public class RepeatTodoService {
     
     @Transactional
     public void createRepeatTodo(Todo todo, Integer repeatType, Integer repeatInterval, 
-                                LocalDate repeatStartDate, LocalDate repeatEndDate, Member member) {
+                                LocalDate repeatStartDate, LocalDate repeatEndDate, Member member, Set<Integer> daysOfWeek) {
         RepeatTodo repeatTodo = RepeatTodo.builder()
                 .todo(todo)
                 .repeatType(repeatType)
@@ -57,6 +57,7 @@ public class RepeatTodoService {
                 .repeatStartDate(repeatStartDate)
                 .repeatEndDate(repeatEndDate)
                 .member(member)
+                .daysOfWeek(daysOfWeek)
                 .build();
         
         repeatTodoRepository.save(repeatTodo);
@@ -72,6 +73,12 @@ public class RepeatTodoService {
     
     public List<LocalDate> generateVirtualDates(RepeatTodo repeatTodo, LocalDate startDate, LocalDate endDate) {
         List<LocalDate> dates = new ArrayList<>();
+        
+        if (repeatTodo.getRepeatType() == RepeatTypeConstants.WEEKLY && 
+            repeatTodo.getDaysOfWeek() != null && !repeatTodo.getDaysOfWeek().isEmpty()) {
+            return generateWeeklyVirtualDates(repeatTodo, startDate, endDate);
+        }
+        
         LocalDate current = repeatTodo.getRepeatStartDate();
         
         while (!current.isAfter(endDate) && 
@@ -82,6 +89,36 @@ public class RepeatTodoService {
             current = getNextDate(current, repeatTodo.getRepeatType(), repeatTodo.getRepeatInterval());
         }
         
+        return dates;
+    }
+    
+    private List<LocalDate> generateWeeklyVirtualDates(RepeatTodo repeatTodo, LocalDate startDate, LocalDate endDate) {
+        List<LocalDate> dates = new ArrayList<>();
+        LocalDate weekStart = repeatTodo.getRepeatStartDate();
+        
+        while (weekStart.getDayOfWeek().getValue() != 7) {
+            weekStart = weekStart.minusDays(1);
+        }
+        
+        LocalDate currentWeek = weekStart;
+        
+        while (!currentWeek.isAfter(endDate) && 
+               (repeatTodo.getRepeatEndDate() == null || !currentWeek.isAfter(repeatTodo.getRepeatEndDate()))) {
+            
+            for (Integer dayOfWeek : repeatTodo.getDaysOfWeek()) {
+                LocalDate dateForDay = currentWeek.plusDays(dayOfWeek);
+                
+                if (!dateForDay.isBefore(startDate) && !dateForDay.isAfter(endDate) &&
+                    !dateForDay.isBefore(repeatTodo.getRepeatStartDate()) &&
+                    (repeatTodo.getRepeatEndDate() == null || !dateForDay.isAfter(repeatTodo.getRepeatEndDate()))) {
+                    dates.add(dateForDay);
+                }
+            }
+            
+            currentWeek = currentWeek.plusWeeks(repeatTodo.getRepeatInterval());
+        }
+        
+        dates.sort(LocalDate::compareTo);
         return dates;
     }
     

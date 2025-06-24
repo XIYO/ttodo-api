@@ -72,7 +72,8 @@ class RepeatTodoServiceTest {
                 1,
                 startDate,
                 endDate,
-                testMember
+                testMember,
+                null
         );
 
         List<RepeatTodo> repeatTodos = repeatTodoRepository.findByMemberIdAndIsActiveTrue(testMember.getId());
@@ -96,7 +97,8 @@ class RepeatTodoServiceTest {
                 2,
                 LocalDate.of(2024, 1, 1),
                 LocalDate.of(2024, 2, 1),
-                testMember
+                testMember,
+                null
         );
 
         List<RepeatTodo> activeRepeatTodos = repeatTodoService.getActiveRepeatTodos(testMember.getId());

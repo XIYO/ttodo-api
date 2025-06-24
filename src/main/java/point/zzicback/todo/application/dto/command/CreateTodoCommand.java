@@ -16,6 +16,7 @@ public record CreateTodoCommand(
         Integer repeatInterval,
         LocalDate repeatStartDate,
         LocalDate repeatEndDate,
+        Set<Integer> daysOfWeek,
         Set<String> tags
 ) {
 }

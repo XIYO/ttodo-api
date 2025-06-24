@@ -9,6 +9,7 @@ import point.zzicback.member.domain.Member;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.*;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -36,6 +37,11 @@ public class RepeatTodo {
     @Column(name = "repeat_end_date")
     private LocalDate repeatEndDate;
     
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "repeat_todo_days_of_week", joinColumns = @JoinColumn(name = "repeat_todo_id"))
+    @Column(name = "day_of_week")
+    private Set<Integer> daysOfWeek = new HashSet<>();
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -52,7 +58,7 @@ public class RepeatTodo {
     
     @Builder
     public RepeatTodo(Todo todo, Integer repeatType, Integer repeatInterval, 
-                     LocalDate repeatStartDate, LocalDate repeatEndDate, Member member, Boolean isActive) {
+                     LocalDate repeatStartDate, LocalDate repeatEndDate, Member member, Boolean isActive, Set<Integer> daysOfWeek) {
         this.todo = todo;
         this.repeatType = repeatType;
         this.repeatInterval = repeatInterval;
@@ -60,5 +66,6 @@ public class RepeatTodo {
         this.repeatEndDate = repeatEndDate;
         this.member = member;
         this.isActive = isActive != null ? isActive : true;
+        this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
     }
 }

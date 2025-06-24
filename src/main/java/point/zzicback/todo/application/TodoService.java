@@ -126,6 +126,7 @@ public class TodoService {
             repeatTodo != null ? repeatTodo.getRepeatType() : null,
             repeatTodo != null ? repeatTodo.getRepeatInterval() : null,
             repeatTodo != null ? repeatTodo.getRepeatEndDate() : null,
+            repeatTodo != null ? repeatTodo.getDaysOfWeek() : null,
             todo.getOriginalTodoId(),
             todo.getTags()
     );
@@ -165,7 +166,8 @@ public class TodoService {
               command.repeatInterval(),
               command.repeatStartDate(),
               command.repeatEndDate(),
-              member
+              member,
+              command.daysOfWeek()
       );
     }
   }
@@ -375,6 +377,7 @@ public class TodoService {
             repeatTodo.getRepeatType(),
             repeatTodo.getRepeatInterval(),
             repeatTodo.getRepeatEndDate(),
+            repeatTodo.getDaysOfWeek(),
             originalTodo.getId(),
             originalTodo.getTags()
     );

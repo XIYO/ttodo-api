@@ -19,6 +19,7 @@ public record TodoResult(
         Integer repeatType,
         Integer repeatInterval,
         LocalDate repeatEndDate,
+        Set<Integer> daysOfWeek,
         Long originalTodoId,
         Set<String> tags
 ) {

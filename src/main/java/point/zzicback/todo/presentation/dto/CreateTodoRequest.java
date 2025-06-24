@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -71,7 +72,7 @@ public class CreateTodoRequest {
 
     @Schema(
         description = "마감 날짜",
-        example = "2026-01-01",
+        example = "2025-12-31",
         format = "date"
     )
     private LocalDate dueDate;
@@ -97,14 +98,20 @@ public class CreateTodoRequest {
     private Integer repeatInterval;
     
     @Schema(
+        description = "매주 반복 시 선택된 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)",
+        example = "[1, 3, 5]"
+    )
+    private Set<Integer> daysOfWeek;
+    
+    @Schema(
         description = "반복 시작일", 
-        example = "2026-01-01"
+        example = "2025-06-01"
     )
     private LocalDate repeatStartDate;
     
     @Schema(
         description = "반복 종료일", 
-        example = "2026-12-31"
+        example = "2025-12-31"
     )
     private LocalDate repeatEndDate;
     
