@@ -14,7 +14,6 @@ import point.zzicback.todo.domain.Todo;
 import point.zzicback.todo.infrastructure.persistence.TodoRepository;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 

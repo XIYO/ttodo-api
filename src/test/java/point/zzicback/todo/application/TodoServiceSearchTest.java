@@ -18,7 +18,6 @@ import point.zzicback.category.domain.Category;
 import point.zzicback.category.infrastructure.CategoryRepository;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.Arrays;
 
