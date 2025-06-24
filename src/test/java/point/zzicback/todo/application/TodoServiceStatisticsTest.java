@@ -65,7 +65,7 @@ class TodoServiceStatisticsTest {
                 .title("지연된 할일")
                 .description("지연된 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now().minus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().minusDays(1))
                 .member(testMember)
                 .build();
         

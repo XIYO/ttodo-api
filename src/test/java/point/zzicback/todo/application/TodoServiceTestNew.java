@@ -68,7 +68,7 @@ class TodoServiceTestNew {
                 .title("테스트 할일")
                 .description("테스트 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now().plus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(1))
                 .tags(Set.of("학습"))
                 .member(testMember)
                 .build();
@@ -297,14 +297,14 @@ class TodoServiceTestNew {
                 .title("추가 할일")
                 .description("다른 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now().plus(7, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(7))
                 .member(testMember)
                 .build();
         todoRepository.save(extraTodo);
 
         Pageable pageable = PageRequest.of(0, 10);
-        LocalDate start = LocalDate.now().plus(1, ChronoUnit.DAYS);
-        LocalDate end = LocalDate.now().plus(3, ChronoUnit.DAYS);
+        LocalDate start = LocalDate.now().plusDays(1);
+        LocalDate end = LocalDate.now().plusDays(3);
         TodoSearchQuery query = new TodoSearchQuery(
                 testMember.getId(),
                 null,
@@ -333,8 +333,8 @@ class TodoServiceTestNew {
                 null,
                 null,
                 null,
-                LocalDate.now().minus(1, ChronoUnit.DAYS),
-                LocalDate.now().plus(1, ChronoUnit.DAYS),
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(1),
                 pageable);
         result = todoService.getTodoList(query);
         assertThat(result.getContent()).hasSize(1);
@@ -369,7 +369,7 @@ class TodoServiceTestNew {
                 .description("첫 번째 설명")
                 .statusId(0)
                 .category(category1)
-                .dueDate(LocalDate.now().plus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(1))
                 .tags(Set.of("tagA"))
                 .member(testMember)
                 .build();
@@ -378,7 +378,7 @@ class TodoServiceTestNew {
                 .description("두 번째 설명")
                 .statusId(0)
                 .category(category2)
-                .dueDate(LocalDate.now().plus(2, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(2))
                 .tags(Set.of("tagB"))
                 .member(testMember)
                 .build();
@@ -437,8 +437,8 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - 날짜 범위 검색 테스트")
     void getTodoListByDateRange_Success() {
         // given
-        LocalDate startDate = LocalDate.now().minus(1, ChronoUnit.DAYS);
-        LocalDate endDate = LocalDate.now().plus(1, ChronoUnit.DAYS);
+        LocalDate startDate = LocalDate.now().minusDays(1);
+        LocalDate endDate = LocalDate.now().plusDays(1);
 
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -793,7 +793,7 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - startDate만 있는 날짜 범위 검색")
     void getTodoListWithStartDateOnly_Success() {
         // given
-        LocalDate startDate = LocalDate.now().minus(1, ChronoUnit.DAYS);
+        LocalDate startDate = LocalDate.now().minusDays(1);
         
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -820,7 +820,7 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - endDate만 있는 날짜 범위 검색")
     void getTodoListWithEndDateOnly_Success() {
         // given
-        LocalDate endDate = LocalDate.now().plus(2, ChronoUnit.DAYS);
+        LocalDate endDate = LocalDate.now().plusDays(2);
         
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -1001,8 +1001,8 @@ class TodoServiceTestNew {
     @DisplayName("TodoSearchQuery - 잘못된 날짜 범위 검색 (startDate > endDate)")
     void getTodoListWithInvalidDateRange_Success() {
         // given
-        LocalDate startDate = LocalDate.now().plus(2, ChronoUnit.DAYS);
-        LocalDate endDate = LocalDate.now().plus(1, ChronoUnit.DAYS); // startDate보다 이전
+        LocalDate startDate = LocalDate.now().plusDays(2);
+        LocalDate endDate = LocalDate.now().plusDays(1); // startDate보다 이전
         
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -1222,7 +1222,7 @@ class TodoServiceTestNew {
                 .title("지연된 할일")
                 .description("지연된 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now().minus(1, ChronoUnit.DAYS)) // 어제 마감
+                .dueDate(LocalDate.now().minusDays(1)) // 어제 마감
                 .member(testMember)
                 .build();
         
@@ -1354,7 +1354,7 @@ class TodoServiceTestNew {
             List<RepeatTodo> repeatTodos = repeatTodoService.getActiveRepeatTodos(testMember.getId());
             
             if (!repeatTodos.isEmpty()) {
-                RepeatTodo repeatTodo = repeatTodos.get(0);
+                RepeatTodo repeatTodo = repeatTodos.getFirst();
                 assertThat(repeatTodo.getRepeatType()).isEqualTo(RepeatTypeConstants.DAILY);
                 assertThat(repeatTodo.getRepeatInterval()).isEqualTo(1);
                 
@@ -1458,8 +1458,8 @@ class TodoServiceTestNew {
 
         // then - 실제 투두 1개만 있어야 함 (가상 투두 생성 안됨)
         assertThat(todos.getContent()).hasSize(1);
-        assertThat(todos.getContent().get(0).title()).isEqualTo("매주 회의");
-        assertThat(todos.getContent().get(0).title()).doesNotContain("(반복)");
+        assertThat(todos.getContent().getFirst().title()).isEqualTo("매주 회의");
+        assertThat(todos.getContent().getFirst().title()).doesNotContain("(반복)");
     }
 
     @Test

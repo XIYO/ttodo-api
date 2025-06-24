@@ -31,9 +31,6 @@ public class RepeatTodoService {
             throw new BusinessException("이미 완료된 투두입니다");
         }
         
-        RepeatTodo repeatTodo = repeatTodoRepository.findByTodoId(originalTodoId)
-                .orElse(null);
-        
         Todo completedTodo = Todo.builder()
                 .title(originalTodo.getTitle())
                 .description(originalTodo.getDescription())

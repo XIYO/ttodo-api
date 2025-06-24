@@ -170,7 +170,7 @@ class TodoServiceVirtualTest {
         Page<TodoResult> result = todoService.getTodoList(query);
         
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).title()).contains("영어");
+        assertThat(result.getContent().getFirst().title()).contains("영어");
     }
 
     @Test

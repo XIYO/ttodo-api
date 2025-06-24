@@ -53,7 +53,7 @@ class TodoServicePartialUpdateTest {
                 .title("테스트 할일")
                 .description("테스트 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now().plus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(1))
                 .tags(Set.of("학습"))
                 .member(testMember)
                 .build();

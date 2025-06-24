@@ -78,7 +78,7 @@ class RepeatTodoServiceTest {
         List<RepeatTodo> repeatTodos = repeatTodoRepository.findByMemberIdAndIsActiveTrue(testMember.getId());
         assertThat(repeatTodos).hasSize(1);
 
-        RepeatTodo repeatTodo = repeatTodos.get(0);
+        RepeatTodo repeatTodo = repeatTodos.getFirst();
         assertThat(repeatTodo.getTodo().getId()).isEqualTo(testTodo.getId());
         assertThat(repeatTodo.getRepeatType()).isEqualTo(RepeatTypeConstants.DAILY);
         assertThat(repeatTodo.getRepeatInterval()).isEqualTo(1);
@@ -101,8 +101,8 @@ class RepeatTodoServiceTest {
 
         List<RepeatTodo> activeRepeatTodos = repeatTodoService.getActiveRepeatTodos(testMember.getId());
         assertThat(activeRepeatTodos).hasSize(1);
-        assertThat(activeRepeatTodos.get(0).getRepeatType()).isEqualTo(RepeatTypeConstants.WEEKLY);
-        assertThat(activeRepeatTodos.get(0).getRepeatInterval()).isEqualTo(2);
+        assertThat(activeRepeatTodos.getFirst().getRepeatType()).isEqualTo(RepeatTypeConstants.WEEKLY);
+        assertThat(activeRepeatTodos.getFirst().getRepeatInterval()).isEqualTo(2);
     }
 
     @Test

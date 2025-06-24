@@ -245,11 +245,6 @@ public class TodoService {
   }
 
   @Transactional
-  public void completeVirtualTodoByOriginalId(UUID memberId, Long originalTodoId) {
-    repeatTodoService.completeRepeatTodo(memberId, originalTodoId, LocalDate.now());
-  }
-
-  @Transactional
   public TodoResult completeVirtualTodo(CompleteVirtualTodoCommand command) {
     repeatTodoService.completeRepeatTodo(
         command.memberId(), 
@@ -281,7 +276,7 @@ public class TodoService {
   private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
     List<TodoResult> realTodos = todoPage.getContent().stream()
             .map(this::toTodoResult)
-            .collect(Collectors.toList());
+            .toList();
     
     List<TodoResult> virtualTodos = generateVirtualTodos(query);
     

@@ -55,7 +55,7 @@ class TodoServiceSearchTest {
                 .title("테스트 할일")
                 .description("테스트 설명")
                 .statusId(0)
-                .dueDate(LocalDate.now().plus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(1))
                 .tags(Set.of("학습"))
                 .member(testMember)
                 .build();
@@ -133,8 +133,8 @@ class TodoServiceSearchTest {
     @Test
     @DisplayName("TodoSearchQuery - 날짜 범위 검색 테스트")
     void getTodoListByDateRange_Success() {
-        LocalDate startDate = LocalDate.now().minus(1, ChronoUnit.DAYS);
-        LocalDate endDate = LocalDate.now().plus(1, ChronoUnit.DAYS);
+        LocalDate startDate = LocalDate.now().minusDays(1);
+        LocalDate endDate = LocalDate.now().plusDays(1);
 
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -206,8 +206,8 @@ class TodoServiceSearchTest {
     @Test
     @DisplayName("TodoSearchQuery - 잘못된 날짜 범위 검색")
     void getTodoListWithInvalidDateRange_Success() {
-        LocalDate startDate = LocalDate.now().plus(2, ChronoUnit.DAYS);
-        LocalDate endDate = LocalDate.now().plus(1, ChronoUnit.DAYS);
+        LocalDate startDate = LocalDate.now().plusDays(2);
+        LocalDate endDate = LocalDate.now().plusDays(1);
         
         Pageable pageable = PageRequest.of(0, 10);
         TodoSearchQuery query = new TodoSearchQuery(
@@ -239,7 +239,7 @@ class TodoServiceSearchTest {
                 .description("첫 번째 설명")
                 .statusId(0)
                 .category(category1)
-                .dueDate(LocalDate.now().plus(1, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(1))
                 .tags(Set.of("tagA"))
                 .member(testMember)
                 .build();
@@ -248,7 +248,7 @@ class TodoServiceSearchTest {
                 .description("두 번째 설명")
                 .statusId(0)
                 .category(category2)
-                .dueDate(LocalDate.now().plus(2, ChronoUnit.DAYS))
+                .dueDate(LocalDate.now().plusDays(2))
                 .tags(Set.of("tagB"))
                 .member(testMember)
                 .build();
