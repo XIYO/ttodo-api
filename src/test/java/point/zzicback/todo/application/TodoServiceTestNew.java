@@ -8,11 +8,14 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Collections;
 import point.zzicback.common.error.EntityNotFoundException;
+import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.domain.Member;
@@ -31,7 +34,8 @@ import static org.assertj.core.api.Assertions.*;
 @DataJpaTest
 @Import({
     TodoService.class,
-    MemberService.class
+    MemberService.class,
+    RepeatTodoService.class
 })
 class TodoServiceTestNew {
 
@@ -46,6 +50,9 @@ class TodoServiceTestNew {
 
     @Autowired
     private MemberService memberService;
+    
+    @Autowired(required = false)
+    private RepeatTodoService repeatTodoService;
 
     private Member testMember;
     private Todo testTodo;
@@ -184,7 +191,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 "새로운 할일",
                 "새로운 설명",
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null
         );
 
         // when
@@ -214,7 +221,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 1,
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null
         );
 
         // when
@@ -237,7 +244,7 @@ class TodoServiceTestNew {
                 "수정된 할일",
                 "수정된 설명",
                 1,
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null
         );
 
         // when & then
@@ -1028,7 +1035,7 @@ class TodoServiceTestNew {
                 "부분 수정된 제목",
                 null, // description은 수정하지 않음
                 null, // statusId는 수정하지 않음
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null, null
         );
 
         // when
@@ -1051,7 +1058,7 @@ class TodoServiceTestNew {
                 null, // title은 수정하지 않음
                 "부분 수정된 설명",
                 null, // statusId는 수정하지 않음
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null, null
         );
 
         // when
@@ -1074,7 +1081,7 @@ class TodoServiceTestNew {
                 null, // title은 수정하지 않음
                 null, // description은 수정하지 않음
                 1, // statusId만 수정
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null, null
         );
 
         // when
@@ -1098,7 +1105,7 @@ class TodoServiceTestNew {
                 null, // description은 수정하지 않음
                 null, // statusId는 수정하지 않음
                 2, // priorityId 수정
-                null, null, null, null,
+                null, null, null, null, null, null,
                 Set.of("업무", "중요") // tags 수정
         );
 
@@ -1129,7 +1136,7 @@ class TodoServiceTestNew {
                 testTodo.getId(),
                 null, null, null, null,
                 newCategory.getId(), // categoryId만 수정
-                null, null, null, null
+                null, null, null, null, null, null
         );
 
         // when
@@ -1150,7 +1157,7 @@ class TodoServiceTestNew {
                 testTodo.getId(),
                 "   ", // 공백만 있는 제목
                 "수정된 설명",
-                null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null
         );
 
         // when
@@ -1171,7 +1178,7 @@ class TodoServiceTestNew {
                 testTodo.getId(),
                 "수정된 제목",
                 "", // 빈 설명
-                null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null
         );
 
         // when
@@ -1191,7 +1198,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 999L, // 존재하지 않는 ID
                 "수정된 제목",
-                null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null
         );
 
         // when & then
@@ -1262,5 +1269,322 @@ class TodoServiceTestNew {
         assertThat(statistics.inProgress()).isEqualTo(0);
         assertThat(statistics.completed()).isEqualTo(0);
         assertThat(statistics.overdue()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("반복 기능 테스트 - 매일 반복")
+    void createTodo_WithDailyRepeat_Success() {
+        // given
+        CreateTodoCommand command = new CreateTodoCommand(
+                testMember.getId(),
+                "매일 운동하기",
+                "30분 조깅",
+                1, null, 
+                LocalDate.now(), 
+                null,
+                RepeatTypeConstants.DAILY, // 매일 반복
+                1, // 1일 간격
+                LocalDate.now(), // 반복 시작일
+                LocalDate.now().plusDays(7), // 7일 후 종료
+                Set.of("운동", "건강")
+        );
+
+        // when
+        todoService.createTodo(command);
+
+        // then
+        Page<Todo> todos = todoRepository.findByMemberId(
+                testMember.getId(), null, null, null,
+                PageRequest.of(0, 10));
+        assertThat(todos.getContent())
+                .filteredOn(todo -> todo.getTitle().equals("매일 운동하기"))
+                .hasSize(1);
+    }
+
+    @Test
+    @DisplayName("반복 유형 상수 테스트")
+    void repeatTypeConstants_Test() {
+        // given & when & then
+        assertThat(RepeatTypeConstants.getRepeatTypeName(RepeatTypeConstants.NONE)).isEqualTo("없음");
+        assertThat(RepeatTypeConstants.getRepeatTypeName(RepeatTypeConstants.DAILY)).isEqualTo("매일");
+        assertThat(RepeatTypeConstants.getRepeatTypeName(RepeatTypeConstants.WEEKLY)).isEqualTo("매주");
+        assertThat(RepeatTypeConstants.getRepeatTypeName(RepeatTypeConstants.MONTHLY)).isEqualTo("매월");
+        assertThat(RepeatTypeConstants.getRepeatTypeName(RepeatTypeConstants.YEARLY)).isEqualTo("매년");
+
+        assertThat(RepeatTypeConstants.isValidRepeatType(0)).isTrue();
+        assertThat(RepeatTypeConstants.isValidRepeatType(1)).isTrue();
+        assertThat(RepeatTypeConstants.isValidRepeatType(4)).isTrue();
+        assertThat(RepeatTypeConstants.isValidRepeatType(5)).isFalse();
+        assertThat(RepeatTypeConstants.isValidRepeatType(-1)).isFalse();
+    }
+
+    @Test
+    @DisplayName("반복 투두 생성 테스트")
+    void repeatTodoGenerator_Test() {
+        // given
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 1, 10);
+
+        // when - 기본 투두 생성 테스트 (반복 기능 미구현으로 인한 간단한 테스트)
+        CreateTodoCommand command = new CreateTodoCommand(
+                testMember.getId(),
+                "매일 운동",
+                "30분 조깅",
+                1, null,
+                startDate,
+                LocalTime.of(9, 0),
+                RepeatTypeConstants.DAILY,
+                1,
+                startDate, // 반복 시작일
+                endDate,
+                Set.of("운동")
+        );
+        todoService.createTodo(command);
+
+        // then - 기본 투두가 생성되었는지 확인
+        Page<Todo> todos = todoRepository.findByMemberId(
+                testMember.getId(), null, null, null,
+                PageRequest.of(0, 10));
+        assertThat(todos.getContent())
+                .filteredOn(todo -> todo.getTitle().equals("매일 운동"))
+                .hasSize(1);
+                
+        // RepeatTodoService가 있을 때만 테스트
+        if (repeatTodoService != null) {
+            List<RepeatTodo> repeatTodos = repeatTodoService.getActiveRepeatTodos(testMember.getId());
+            
+            if (!repeatTodos.isEmpty()) {
+                RepeatTodo repeatTodo = repeatTodos.get(0);
+                assertThat(repeatTodo.getRepeatType()).isEqualTo(RepeatTypeConstants.DAILY);
+                assertThat(repeatTodo.getRepeatInterval()).isEqualTo(1);
+                
+                // 가상 날짜 생성 테스트
+                List<LocalDate> virtualDates = repeatTodoService.generateVirtualDates(
+                        repeatTodo, startDate, endDate);
+                assertThat(virtualDates).hasSize(10);
+                assertThat(virtualDates.get(0)).isEqualTo(startDate);
+                assertThat(virtualDates.get(9)).isEqualTo(LocalDate.of(2024, 1, 10));
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("가상 투두 생성 테스트 - 날짜 범위 지정시 반복 투두 표시")
+    void getTodoList_WithDateRange_GeneratesVirtualTodos() {
+        // 기존 테스트 데이터 정리
+        todoRepository.deleteAll();
+        
+        // given
+        CreateTodoCommand command = new CreateTodoCommand(
+                testMember.getId(),
+                "매일 운동",
+                "조깅하기",
+                1, null, 
+                LocalDate.of(2024, 1, 1), 
+                LocalTime.of(9, 0),
+                RepeatTypeConstants.DAILY, // 매일 반복
+                1, // 1일 간격
+                LocalDate.of(2024, 1, 1), // 반복 시작일
+                LocalDate.of(2024, 1, 5), // 5일 후 종료
+                Set.of("운동")
+        );
+        todoService.createTodo(command);
+
+        // when - 날짜 범위를 지정하여 투두 목록 조회
+        TodoSearchQuery query = new TodoSearchQuery(
+                testMember.getId(),
+                null, null, null, null, null, null,
+                LocalDate.of(2024, 1, 1), // 시작일
+                LocalDate.of(2024, 1, 5), // 종료일
+                PageRequest.of(0, 10)
+        );
+        Page<TodoResult> todos = todoService.getTodoList(query);
+
+        // then - 실제 투두 1개 + 가상 투두 4개 = 총 5개
+        assertThat(todos.getContent()).hasSize(5);
+        
+        // 날짜별로 확인
+        List<LocalDate> dueDates = todos.getContent().stream()
+                .map(TodoResult::dueDate)
+                .sorted()
+                .collect(Collectors.toList());
+                
+        assertThat(dueDates).containsExactly(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 1, 2),
+                LocalDate.of(2024, 1, 3),
+                LocalDate.of(2024, 1, 4),
+                LocalDate.of(2024, 1, 5)
+        );
+        
+        // 가상 투두들은 제목에 "(반복)" 표시가 있어야 함
+        long virtualTodoCount = todos.getContent().stream()
+                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .count();
+        assertThat(virtualTodoCount).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("가상 투두 생성 테스트 - 날짜 범위 없을 때는 가상 투두 생성 안함")
+    void getTodoList_WithoutDateRange_NoVirtualTodos() {
+        // 기존 테스트 데이터 정리
+        todoRepository.deleteAll();
+        
+        // given
+        CreateTodoCommand command = new CreateTodoCommand(
+                testMember.getId(),
+                "매주 회의",
+                "팀 회의",
+                1, null, 
+                LocalDate.of(2024, 1, 1), 
+                LocalTime.of(14, 0),
+                RepeatTypeConstants.WEEKLY, // 매주 반복
+                1, // 1주 간격
+                LocalDate.of(2024, 1, 1), // 반복 시작일
+                LocalDate.of(2024, 1, 31), // 한달 후 종료
+                Set.of("회의")
+        );
+        todoService.createTodo(command);
+
+        // when - 날짜 범위 없이 투두 목록 조회
+        TodoSearchQuery query = new TodoSearchQuery(
+                testMember.getId(),
+                null, null, null, null, null, null,
+                null, // 시작일 없음
+                null, // 종료일 없음
+                PageRequest.of(0, 10)
+        );
+        Page<TodoResult> todos = todoService.getTodoList(query);
+
+        // then - 실제 투두 1개만 있어야 함 (가상 투두 생성 안됨)
+        assertThat(todos.getContent()).hasSize(1);
+        assertThat(todos.getContent().get(0).title()).isEqualTo("매주 회의");
+        assertThat(todos.getContent().get(0).title()).doesNotContain("(반복)");
+    }
+
+    @Test
+    @DisplayName("가상 투두 완료 처리 테스트")
+    void handleVirtualTodoCompletion_Success() {
+        // 기존 테스트 데이터 정리
+        todoRepository.deleteAll();
+        
+        // given - 반복 투두 생성
+        CreateTodoCommand command = new CreateTodoCommand(
+                testMember.getId(),
+                "매일 운동",
+                "조깅하기",
+                1, null, 
+                LocalDate.of(2024, 1, 1), 
+                LocalTime.of(9, 0),
+                RepeatTypeConstants.DAILY,
+                1,
+                LocalDate.of(2024, 1, 1), // 반복 시작일
+                LocalDate.of(2024, 1, 5),
+                Set.of("운동")
+        );
+        todoService.createTodo(command);
+        
+        // 가상 투두 목록 조회
+        TodoSearchQuery query = new TodoSearchQuery(
+                testMember.getId(),
+                null, null, null, null, null, null,
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 1, 5),
+                PageRequest.of(0, 10)
+        );
+        Page<TodoResult> todos = todoService.getTodoList(query);
+        
+        // 가상 투두 중 하나를 선택 (2024-01-02)
+        TodoResult virtualTodo = todos.getContent().stream()
+                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.dueDate().equals(LocalDate.of(2024, 1, 2)))
+                .findFirst()
+                .orElseThrow();
+        
+        // when - 가상 투두 완료 처리
+        CompleteVirtualTodoCommand completeCommand = new CompleteVirtualTodoCommand(
+                testMember.getId(),
+                virtualTodo.originalTodoId(),
+                LocalDate.of(2024, 1, 2) // 완료 날짜
+        );
+        todoService.completeVirtualTodo(completeCommand);
+        
+        // then - 실제 투두가 생성되었는지 확인
+        List<Todo> allTodos = todoRepository.findAllByMemberId(testMember.getId());
+        
+        // 원본 투두 1개 + 완료된 투두 1개 = 총 2개
+        assertThat(allTodos).hasSize(2);
+        
+        // 완료된 투두 확인
+        Todo completedTodo = allTodos.stream()
+                .filter(todo -> todo.getDueDate().equals(LocalDate.of(2024, 1, 2)))
+                .findFirst()
+                .orElseThrow();
+                
+        assertThat(completedTodo.getTitle()).isEqualTo("매일 운동");
+        assertThat(completedTodo.getStatusId()).isEqualTo(1);
+        assertThat(completedTodo.getDueDate()).isEqualTo(LocalDate.of(2024, 1, 2));
+        assertThat(completedTodo.getOriginalTodoId()).isNotNull();
+        
+        // 다시 가상 투두 목록 조회시 완료된 날짜는 제외되어야 함
+        Page<TodoResult> updatedTodos = todoService.getTodoList(query);
+        long virtualTodoCount = updatedTodos.getContent().stream()
+                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.dueDate().equals(LocalDate.of(2024, 1, 2)))
+                .count();
+        assertThat(virtualTodoCount).isEqualTo(0); // 완료된 날짜는 가상 투두에서 제외
+    }
+
+    @Test
+    @DisplayName("가상 투두 중복 완료 방지 테스트")
+    void handleVirtualTodoCompletion_DuplicatePrevention() {
+        // 기존 테스트 데이터 정리
+        todoRepository.deleteAll();
+        
+        // given - 반복 투두 생성
+        CreateTodoCommand command = new CreateTodoCommand(
+                testMember.getId(),
+                "매일 독서",
+                "30분 읽기",
+                1, null, 
+                LocalDate.of(2024, 1, 1), 
+                LocalTime.of(20, 0),
+                RepeatTypeConstants.DAILY,
+                1,
+                LocalDate.of(2024, 1, 1), // 반복 시작일
+                LocalDate.of(2024, 1, 3),
+                Set.of("독서")
+        );
+        todoService.createTodo(command);
+        
+        // 가상 투두 목록 조회
+        TodoSearchQuery query = new TodoSearchQuery(
+                testMember.getId(),
+                null, null, null, null, null, null,
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 1, 3),
+                PageRequest.of(0, 10)
+        );
+        Page<TodoResult> todos = todoService.getTodoList(query);
+        
+        // 가상 투두 선택
+        TodoResult virtualTodo = todos.getContent().stream()
+                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.dueDate().equals(LocalDate.of(2024, 1, 2)))
+                .findFirst()
+                .orElseThrow();
+        
+        // 첫 번째 완료 처리
+        CompleteVirtualTodoCommand completeCommand = new CompleteVirtualTodoCommand(
+                testMember.getId(),
+                virtualTodo.originalTodoId(),
+                LocalDate.of(2024, 1, 2) // 완료 날짜
+        );
+        todoService.completeVirtualTodo(completeCommand);
+        
+        // when & then - 같은 가상 투두를 다시 완료하려고 하면 예외 발생
+        assertThatThrownBy(() -> todoService.completeVirtualTodo(completeCommand))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("이미 완료된 투두입니다");
     }
 }

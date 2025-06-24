@@ -182,7 +182,7 @@ public class ChallengeController {
 
     @Operation(summary = "챌린지 투두 완료 처리", description = "특정 챌린지 투두를 완료 상태로 변경합니다.")
     @ApiResponse(responseCode = "200", description = "챌린지 투두 완료 성공")
-    @PatchMapping("/{challengeId}/todos")
+    @PostMapping("/{challengeId}/todos")
     public ChallengeTodoResponse completeChallengeTodo(
             @PathVariable Long challengeId,
             @AuthenticationPrincipal MemberPrincipal principal) {

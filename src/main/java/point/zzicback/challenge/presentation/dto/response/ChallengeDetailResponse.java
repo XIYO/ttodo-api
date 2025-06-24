@@ -14,9 +14,9 @@ public record ChallengeDetailResponse(
     String title,
     @Schema(description = "챌린지 설명", example = "매일 만보를 걸으면 인증!")
     String description,
-    @Schema(description = "시작 날짜", example = "2024-01-01")
+    @Schema(description = "시작 날짜", example = "2025-06-01")
     LocalDate startDate,
-    @Schema(description = "종료 날짜", example = "2024-01-07")
+    @Schema(description = "종료 날짜", example = "2025-12-31")
     LocalDate endDate,
     @Schema(description = "기간 타입", example = "DAILY")
     PeriodType periodType,

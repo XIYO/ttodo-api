@@ -3,7 +3,6 @@ package point.zzicback.todo.presentation.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import point.zzicback.todo.domain.RepeatType;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -82,11 +81,23 @@ public class UpdateTodoRequest {
     private LocalTime dueTime;
     
     @Schema(
-        description = "반복 유형", 
-        example = "DAILY", 
-        allowableValues = {"NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"}
+        description = "반복 유형 (0: 반복 안함, 1: 데일리, 2: 위클리, 3: 먼슬리, 4: 이얼리)", 
+        example = "0", 
+        allowableValues = {"0", "1", "2", "3", "4"}
     )
-    private RepeatType repeatType;
+    private Integer repeatType;
+    
+    @Schema(
+        description = "반복 간격 (일 단위)", 
+        example = "1"
+    )
+    private Integer repeatInterval;
+    
+    @Schema(
+        description = "반복 종료일", 
+        example = "2026-12-31"
+    )
+    private LocalDate repeatEndDate;
     
     @Schema(
         description = "태그 목록 (콤마로 구분)", 

@@ -42,8 +42,8 @@ public class Todo {
 
   private LocalTime dueTime;
   
-  @Enumerated(EnumType.ORDINAL)
-  private RepeatType repeatType;
+  @Column(name = "original_todo_id")
+  private Long originalTodoId;
   
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "todo_tags", joinColumns = @JoinColumn(name = "todo_id"))
@@ -63,8 +63,7 @@ public class Todo {
 
   @Builder
   public Todo(Long id, String title, String description, Integer statusId, Integer priorityId,
-              Category category, LocalDate dueDate, LocalTime dueTime, RepeatType repeatType,
-              Set<String> tags, Member member) {
+              Category category, LocalDate dueDate, LocalTime dueTime, Long originalTodoId, Set<String> tags, Member member) {
     this.id = id;
     this.title = title;
     this.description = description;
@@ -73,7 +72,7 @@ public class Todo {
     this.category = category;
     this.dueDate = dueDate;
     this.dueTime = dueTime;
-    this.repeatType = repeatType;
+    this.originalTodoId = originalTodoId;
     this.tags = tags != null ? tags : new HashSet<>();
     this.member = member;
   }

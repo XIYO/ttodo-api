@@ -1,7 +1,6 @@
 package point.zzicback.todo.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import point.zzicback.todo.domain.RepeatType;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -36,14 +35,23 @@ public record TodoResponse(
         @Schema(description = "카테고리명", example = "학습")
         String categoryName,
         
-        @Schema(description = "마감 날짜", example = "2024-12-31")
+        @Schema(description = "마감 날짜", example = "2026-12-31")
         LocalDate dueDate,
 
         @Schema(description = "마감 시간", example = "18:00")
         LocalTime dueTime,
         
-        @Schema(description = "반복 유형", example = "DAILY")
-        RepeatType repeatType,
+        @Schema(description = "반복 유형 (0: 반복 안함, 1: 데일리, 2: 위클리, 3: 먼슬리, 4: 이얼리)", example = "0")
+        Integer repeatType,
+        
+        @Schema(description = "반복 간격 (일 단위)", example = "1")
+        Integer repeatInterval,
+        
+        @Schema(description = "반복 종료일", example = "2026-12-31")
+        LocalDate repeatEndDate,
+        
+        @Schema(description = "원본 할일 ID (가상 할일인 경우)", example = "1")
+        Long originalTodoId,
         
         @Schema(description = "태그 목록", example = "[\"영어\", \"학습\"]")
         Set<String> tags

@@ -39,7 +39,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     
     @Query("""
         SELECT DISTINCT t FROM Todo t LEFT JOIN t.tags tag WHERE t.member.id = :memberId
-        AND (:statuses IS NULL OR t.statusId IN :statuses)
+        AND (:statusIds IS NULL OR t.statusId IN :statusIds)
         AND (:categoryIds IS NULL OR t.category.id IN :categoryIds)
         AND (:priorityIds IS NULL OR t.priorityId IN :priorityIds)
         AND (:tags IS NULL OR tag IN :tags)
@@ -61,7 +61,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
           t.createdAt ASC
         """)
     Page<Todo> findByFilters(@Param("memberId") UUID memberId,
-                           @Param("statuses") List<Integer> statuses,
+                           @Param("statusIds") List<Integer> statusIds,
                            @Param("categoryIds") List<Long> categoryIds,
                            @Param("priorityIds") List<Integer> priorityIds,
                            @Param("tags") List<String> tags,
@@ -92,4 +92,14 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     Page<String> findDistinctTagsByMemberId(@Param("memberId") UUID memberId,
                                             @Param("categoryIds") List<Long> categoryIds,
                                             Pageable pageable);
+    
+    @Query("SELECT t FROM Todo t WHERE t.member.id = :memberId")
+    List<Todo> findAllByMemberId(@Param("memberId") UUID memberId);
+    
+    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t WHERE t.member.id = :memberId AND t.dueDate = :dueDate AND t.originalTodoId = :originalTodoId AND t.statusId = 1")
+    boolean existsByMemberIdAndDueDateAndOriginalTodoId(@Param("memberId") UUID memberId, @Param("dueDate") LocalDate dueDate, @Param("originalTodoId") Long originalTodoId);
+
+    Optional<Todo> findByMemberIdAndDueDateAndOriginalTodoId(UUID memberId, LocalDate dueDate, Long originalTodoId);
+    
+    void deleteAllByMemberId(UUID memberId);
 }

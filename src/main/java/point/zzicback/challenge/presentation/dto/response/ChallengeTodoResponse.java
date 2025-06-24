@@ -16,10 +16,10 @@ public record ChallengeTodoResponse(
         @Schema(description = "챌린지 설명", example = "매일 30분 이상 운동하기")
         String challengeDescription,
         
-        @Schema(description = "시작 날짜", example = "2024-01-01")
+        @Schema(description = "시작 날짜", example = "2025-01-01")
         LocalDate startDate,
         
-        @Schema(description = "종료 날짜", example = "2024-01-31")
+        @Schema(description = "종료 날짜", example = "2025-12-31")
         LocalDate endDate,
         
         @Schema(description = "완료 여부", example = "true")

@@ -1,7 +1,5 @@
 package point.zzicback.todo.application.dto.command;
 
-import point.zzicback.todo.domain.RepeatType;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -14,7 +12,10 @@ public record CreateTodoCommand(
         Long categoryId,
         LocalDate dueDate,
         LocalTime dueTime,
-        RepeatType repeatType,
+        Integer repeatType,
+        Integer repeatInterval,
+        LocalDate repeatStartDate,
+        LocalDate repeatEndDate,
         Set<String> tags
 ) {
 }

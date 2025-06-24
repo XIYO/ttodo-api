@@ -107,7 +107,21 @@ public class TodoController {
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
     todoService.deleteTodo(TodoQuery.of(principal.id(), id));
   }
-  
+
+  @PostMapping("/virtual/{originalTodoId}/complete")
+  @Operation(summary = "가상 투두 완료", description = "가상 투두를 완료하여 새로운 투두로 생성합니다")
+  public ResponseEntity<TodoResponse> completeVirtualTodo(
+          @AuthenticationPrincipal MemberPrincipal principal,
+          @PathVariable Long originalTodoId,
+          @Valid @RequestBody CompleteVirtualTodoRequest request) {
+    
+    var command = todoPresentationMapper.toCompleteVirtualTodoCommand(
+        principal.id(), originalTodoId, request);
+    
+    var result = todoService.completeVirtualTodo(command);
+    return ResponseEntity.ok(todoPresentationMapper.toResponse(result));
+  }
+
   @GetMapping("/statistics")
   @ResponseStatus(HttpStatus.OK)
   @Operation(

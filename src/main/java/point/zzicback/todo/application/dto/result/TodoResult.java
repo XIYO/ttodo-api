@@ -1,7 +1,5 @@
 package point.zzicback.todo.application.dto.result;
 
-import point.zzicback.todo.domain.RepeatType;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Set;
@@ -18,7 +16,10 @@ public record TodoResult(
         String categoryName,
         LocalDate dueDate,
         LocalTime dueTime,
-        RepeatType repeatType,
+        Integer repeatType,
+        Integer repeatInterval,
+        LocalDate repeatEndDate,
+        Long originalTodoId,
         Set<String> tags
 ) {
 }
