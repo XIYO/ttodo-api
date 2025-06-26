@@ -32,15 +32,15 @@ public record TodoSearchRequest(
         )
         List<String> tags,
         
-        @Schema(description = "검색 시작 날짜", example = "2024-01-01", type = "string", format = "date")
+        @Schema(description = "검색 시작 날짜", example = "2025-06-01", type = "string", format = "date")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate startDate,
         
-        @Schema(description = "검색 종료 날짜", example = "2024-01-31", type = "string", format = "date")
+        @Schema(description = "검색 종료 날짜", example = "2025-06-31", type = "string", format = "date")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate endDate,
         
-        @Schema(description = "기준 날짜 (이 날짜 이후의 가상 투두만 표시)", example = "2024-01-15", type = "string", format = "date")
+        @Schema(description = "기준 날짜 (이 날짜 이후의 가상 투두만 표시)", example = "2025-06-20", type = "string", format = "date")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate date,
         
