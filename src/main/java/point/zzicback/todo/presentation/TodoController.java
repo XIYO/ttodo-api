@@ -80,24 +80,31 @@ public class TodoController {
   }
 
   @PatchMapping(
-      value = "/{id}",
+      value = "/{idOrPattern}",
       consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-      summary = "Todo 부분 수정", 
-      description = "Todo를 부분 수정합니다.",
-      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          content = {
-              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class)),
-              @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class))
-          }
-      )
+      summary = "Todo 수정 또는 가상 Todo 완료", 
+      description = "Todo를 부분 수정하거나 가상 Todo를 완료 처리합니다. ID만 전달하면 기존 Todo 수정, patternId:seq 형식으로 전달하면 가상 Todo 완료"
   )
-  public void partialModify(@AuthenticationPrincipal MemberPrincipal principal,
-                            @PathVariable Long id,
-                            @Valid UpdateTodoRequest request) {
-    todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+  public void patchTodo(@AuthenticationPrincipal MemberPrincipal principal,
+                        @PathVariable String idOrPattern,
+                        @RequestParam(required = false) String title,
+                        @RequestParam(required = false) String description,
+                        @RequestParam(required = false) Integer statusId,
+                        @RequestParam(required = false) Long categoryId,
+                        @RequestParam(required = false) String completionDate) {
+    
+    todoService.processPatchRequest(
+        principal.id(), 
+        idOrPattern, 
+        title, 
+        description, 
+        statusId, 
+        categoryId,
+        completionDate
+    );
   }
 
 
@@ -106,32 +113,6 @@ public class TodoController {
   @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제합니다.")
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
     todoService.deleteTodo(TodoQuery.of(principal.id(), id));
-  }
-
-  @PostMapping(
-      value = "/virtual/{originalTodoId}/complete",
-      consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
-  )
-  @Operation(
-      summary = "가상 투두 완료", 
-      description = "가상 투두를 완료하여 새로운 투두로 생성합니다",
-      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-          content = {
-              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = CompleteVirtualTodoRequest.class)),
-              @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CompleteVirtualTodoRequest.class))
-          }
-      )
-  )
-  public ResponseEntity<TodoResponse> completeVirtualTodo(
-          @AuthenticationPrincipal MemberPrincipal principal,
-          @PathVariable Long originalTodoId,
-          @Valid CompleteVirtualTodoRequest request) {
-    
-    var command = todoPresentationMapper.toCompleteVirtualTodoCommand(
-        principal.id(), originalTodoId, request);
-    
-    var result = todoService.completeVirtualTodo(command);
-    return ResponseEntity.ok(todoPresentationMapper.toResponse(result));
   }
 
   @GetMapping("/statistics")

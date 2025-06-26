@@ -438,4 +438,43 @@ public class TodoService {
       default -> 4; // 알 수 없음
     };
   }
+
+  @Transactional
+  public void processPatchRequest(UUID memberId, String idOrPattern, String title, 
+                                  String description, Integer statusId, Long categoryId, 
+                                  String completionDate) {
+    if (idOrPattern.contains(":")) {
+      String[] parts = idOrPattern.split(":");
+      Long patternId = Long.parseLong(parts[0]);
+      
+      LocalDate date = (completionDate != null && !completionDate.trim().isEmpty()) 
+          ? LocalDate.parse(completionDate) 
+          : LocalDate.now();
+      
+      CompleteVirtualTodoCommand command = new CompleteVirtualTodoCommand(memberId, patternId, date);
+      completeVirtualTodo(command);
+    } else {
+      Long id = Long.parseLong(idOrPattern);
+      
+      UpdateTodoCommand command = new UpdateTodoCommand(
+          memberId,
+          id,
+          title,
+          description,
+          statusId,
+          null, // priorityId
+          categoryId,
+          null, // dueDate
+          null, // dueTime
+          null, // repeatType
+          null, // repeatInterval
+          null, // repeatEndDate
+          null, // daysOfWeek
+          null, // tags
+          null  // originalTodoId
+      );
+      
+      partialUpdateTodo(command);
+    }
+  }
 }

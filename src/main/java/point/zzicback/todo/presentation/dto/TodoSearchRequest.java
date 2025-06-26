@@ -36,7 +36,7 @@ public record TodoSearchRequest(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate startDate,
         
-        @Schema(description = "검색 종료 날짜", example = "2025-06-31", type = "string", format = "date")
+        @Schema(description = "검색 종료 날짜", example = "2025-06-30", type = "string", format = "date")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate endDate,
         
