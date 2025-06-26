@@ -22,7 +22,8 @@ import static org.assertj.core.api.Assertions.*;
 @DataJpaTest
 @Import({
     TodoService.class,
-    MemberService.class
+    MemberService.class,
+    RepeatTodoService.class
 })
 class TodoServiceStatisticsTest {
 

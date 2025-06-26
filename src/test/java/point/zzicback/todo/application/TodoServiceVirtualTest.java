@@ -72,6 +72,7 @@ class TodoServiceVirtualTest {
                 1,
                 today,
                 today.plusDays(5),
+                null, // daysOfWeek
                 Set.of("건강")
         );
         
@@ -97,6 +98,7 @@ class TodoServiceVirtualTest {
                 1,
                 today,
                 today.plusDays(3),
+                null, // daysOfWeek
                 Set.of("학습")
         );
         
@@ -116,11 +118,11 @@ class TodoServiceVirtualTest {
         assertThat(result.getContent()).hasSize(3);
         
         long originalCount = result.getContent().stream()
-                .filter(todo -> todo.id() != null)
+                .filter(todo -> todo.id() != null && !todo.id().contains(":"))
                 .count();
         
         long virtualCount = result.getContent().stream()
-                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.id() != null && todo.id().contains(":") && todo.originalTodoId() != null)
                 .count();
         
         assertThat(originalCount).isEqualTo(1);
@@ -139,7 +141,7 @@ class TodoServiceVirtualTest {
                 1, null, 
                 today,
                 LocalTime.of(9, 0),
-                null, null, null, null,
+                null, null, null, null, null,
                 Set.of("학습")
         );
         
@@ -150,7 +152,7 @@ class TodoServiceVirtualTest {
                 1, null, 
                 today,
                 LocalTime.of(10, 0),
-                null, null, null, null,
+                null, null, null, null, null,
                 Set.of("학습")
         );
         
@@ -185,7 +187,7 @@ class TodoServiceVirtualTest {
                 1, null, 
                 today,
                 LocalTime.of(14, 0),
-                null, null, null, null,
+                null, null, null, null, null,
                 Set.of("업무")
         );
         

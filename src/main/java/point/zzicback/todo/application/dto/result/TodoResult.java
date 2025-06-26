@@ -5,7 +5,7 @@ import java.time.LocalTime;
 import java.util.Set;
 
 public record TodoResult(
-        Long id, 
+        String id, 
         String title, 
         String description, 
         Integer statusId,

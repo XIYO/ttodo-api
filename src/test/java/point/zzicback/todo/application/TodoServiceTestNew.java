@@ -1337,6 +1337,7 @@ class TodoServiceTestNew {
                 1,
                 startDate, // 반복 시작일
                 endDate,
+                null, // daysOfWeek
                 Set.of("운동")
         );
         todoService.createTodo(command);
@@ -1386,6 +1387,7 @@ class TodoServiceTestNew {
                 1, // 1일 간격
                 LocalDate.of(2024, 1, 1), // 반복 시작일
                 LocalDate.of(2024, 1, 5), // 5일 후 종료
+                null, // daysOfWeek
                 Set.of("운동")
         );
         todoService.createTodo(command);
@@ -1417,9 +1419,9 @@ class TodoServiceTestNew {
                 LocalDate.of(2024, 1, 5)
         );
         
-        // 가상 투두들은 제목에 "(반복)" 표시가 있어야 함
+        // 가상 투두들은 ID가 "원본ID:반복순서" 형식이어야 함
         long virtualTodoCount = todos.getContent().stream()
-                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.id() != null && todo.id().contains(":") && todo.originalTodoId() != null)
                 .count();
         assertThat(virtualTodoCount).isEqualTo(4);
     }
@@ -1442,6 +1444,7 @@ class TodoServiceTestNew {
                 1, // 1주 간격
                 LocalDate.of(2024, 1, 1), // 반복 시작일
                 LocalDate.of(2024, 1, 31), // 한달 후 종료
+                null, // daysOfWeek
                 Set.of("회의")
         );
         todoService.createTodo(command);
@@ -1480,6 +1483,7 @@ class TodoServiceTestNew {
                 1,
                 LocalDate.of(2024, 1, 1), // 반복 시작일
                 LocalDate.of(2024, 1, 5),
+                null, // daysOfWeek
                 Set.of("운동")
         );
         todoService.createTodo(command);
@@ -1496,7 +1500,7 @@ class TodoServiceTestNew {
         
         // 가상 투두 중 하나를 선택 (2024-01-02)
         TodoResult virtualTodo = todos.getContent().stream()
-                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.id() != null && todo.id().contains(":") && todo.originalTodoId() != null)
                 .filter(todo -> todo.dueDate().equals(LocalDate.of(2024, 1, 2)))
                 .findFirst()
                 .orElseThrow();
@@ -1529,7 +1533,7 @@ class TodoServiceTestNew {
         // 다시 가상 투두 목록 조회시 완료된 날짜는 제외되어야 함
         Page<TodoResult> updatedTodos = todoService.getTodoList(query);
         long virtualTodoCount = updatedTodos.getContent().stream()
-                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.id() != null && todo.id().contains(":") && todo.originalTodoId() != null)
                 .filter(todo -> todo.dueDate().equals(LocalDate.of(2024, 1, 2)))
                 .count();
         assertThat(virtualTodoCount).isEqualTo(0); // 완료된 날짜는 가상 투두에서 제외
@@ -1553,6 +1557,7 @@ class TodoServiceTestNew {
                 1,
                 LocalDate.of(2024, 1, 1), // 반복 시작일
                 LocalDate.of(2024, 1, 3),
+                null, // daysOfWeek
                 Set.of("독서")
         );
         todoService.createTodo(command);
@@ -1569,7 +1574,7 @@ class TodoServiceTestNew {
         
         // 가상 투두 선택
         TodoResult virtualTodo = todos.getContent().stream()
-                .filter(todo -> todo.id() == null && todo.originalTodoId() != null)
+                .filter(todo -> todo.id() != null && todo.id().contains(":") && todo.originalTodoId() != null)
                 .filter(todo -> todo.dueDate().equals(LocalDate.of(2024, 1, 2)))
                 .findFirst()
                 .orElseThrow();

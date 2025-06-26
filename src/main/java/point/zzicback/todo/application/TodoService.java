@@ -37,8 +37,7 @@ public class TodoService {
         (query.categoryIds() != null && !query.categoryIds().isEmpty()) ||
         (query.priorityIds() != null && !query.priorityIds().isEmpty()) ||
         (query.tags() != null && !query.tags().isEmpty()) ||
-        (query.keyword() != null && !query.keyword().trim().isEmpty()) ||
-        query.startDate() != null || query.endDate() != null;
+        (query.keyword() != null && !query.keyword().trim().isEmpty());
     
     if (hasFilters) {
       todoPage = todoRepository.findByFilters(
@@ -62,12 +61,7 @@ public class TodoService {
           query.pageable());
     }
 
-    // 가상 투두 포함한 목록 반환 (날짜 범위가 지정된 경우에만)
-    if (query.startDate() != null && query.endDate() != null) {
-      return getTodoListWithVirtualTodos(query, todoPage);
-    }
-    
-    return todoPage.map(this::toTodoResult);
+    return getTodoListWithVirtualTodos(query, todoPage);
   }
 
   public TodoResult getTodo(TodoQuery query) {
@@ -112,7 +106,7 @@ public class TodoService {
     }
     
     return new TodoResult(
-            todo.getId(),
+            String.valueOf(todo.getId()),
             todo.getTitle(),
             todo.getDescription(),
             actualStatus,
@@ -281,18 +275,34 @@ public class TodoService {
     
     List<TodoResult> virtualTodos = generateVirtualTodos(query);
     
+    // 가상 투두가 없으면 실제 투두만 정렬하여 반환
+    if (virtualTodos.isEmpty()) {
+      // 사용자가 명시적으로 정렬을 지정하지 않았을 때만 기본 정렬 적용
+      if (query.pageable().getSort().isUnsorted()) {
+        realTodos = realTodos.stream()
+            .sorted(Comparator
+                .comparing((TodoResult t) -> t.dueDate() != null ? t.dueDate() : LocalDate.MAX)
+                .thenComparing((TodoResult t) -> getStatusPriority(t.statusId()))
+                .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
+                .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0])))
+            .toList();
+      }
+      return new PageImpl<>(realTodos, query.pageable(), todoPage.getTotalElements());
+    }
+    
+    // 가상 투두가 있는 경우에만 합치고 재정렬/페이징
     List<TodoResult> allTodos = new ArrayList<>();
     allTodos.addAll(realTodos);
     allTodos.addAll(virtualTodos);
     
-    allTodos.sort((t1, t2) -> {
-      LocalDate date1 = t1.dueDate();
-      LocalDate date2 = t2.dueDate();
-      if (date1 == null && date2 == null) return 0;
-      if (date1 == null) return 1;
-      if (date2 == null) return -1;
-      return date1.compareTo(date2);
-    });
+    // 사용자가 명시적으로 정렬을 지정하지 않았을 때만 기본 정렬 적용
+    if (query.pageable().getSort().isUnsorted()) {    // 날짜별, 상태별(지연->진행중->완료), 우선순위별(높음->보통->낮음), ID순 정렬
+    allTodos.sort(Comparator
+        .comparing((TodoResult t) -> t.dueDate() != null ? t.dueDate() : LocalDate.MAX)
+        .thenComparing((TodoResult t) -> getStatusPriority(t.statusId()))
+        .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
+        .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0])));
+    }
     
     Pageable pageable = query.pageable();
     int start = (int) pageable.getOffset();
@@ -318,6 +328,8 @@ public class TodoService {
     
     List<TodoResult> virtualTodos = new ArrayList<>();
     
+    LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
+    
     List<RepeatTodo> repeatTodos = repeatTodoService.getActiveRepeatTodos(query.memberId())
             .stream()
             .filter(repeatTodo -> repeatTodo.getRepeatEndDate() == null || 
@@ -331,18 +343,24 @@ public class TodoService {
       
       LocalDate originalDueDate = repeatTodo.getTodo().getDueDate();
       
+      int repeatCount = 1;
+      
       for (LocalDate virtualDate : virtualDates) {
-        // 원본 투두의 마감일과 겹치는 경우 제외
+        if (virtualDate.isBefore(baseDate)) {
+          continue;
+        }
+        
         if (virtualDate.equals(originalDueDate)) {
           continue;
         }
         
-        // 이미 완료된 투두가 있는 경우 제외
         boolean alreadyCompleted = todoRepository.existsByMemberIdAndDueDateAndOriginalTodoId(
                 query.memberId(), virtualDate, repeatTodo.getTodo().getId());
         
         if (!alreadyCompleted) {
-          virtualTodos.add(createVirtualTodoResult(repeatTodo, virtualDate));
+          String virtualId = repeatTodo.getTodo().getId() + ":" + repeatCount;
+          virtualTodos.add(createVirtualTodoResult(repeatTodo, virtualDate, virtualId));
+          repeatCount++;
         }
       }
     }
@@ -350,7 +368,7 @@ public class TodoService {
     return virtualTodos;
   }
   
-  private TodoResult createVirtualTodoResult(RepeatTodo repeatTodo, LocalDate virtualDate) {
+  private TodoResult createVirtualTodoResult(RepeatTodo repeatTodo, LocalDate virtualDate, String virtualId) {
     Todo originalTodo = repeatTodo.getTodo();
     String priorityName = null;
     if (originalTodo.getPriorityId() != null) {
@@ -363,7 +381,7 @@ public class TodoService {
     }
     
     return new TodoResult(
-            null,
+            virtualId,  // 가상 ID 사용
             originalTodo.getTitle(),
             originalTodo.getDescription(),
             0,
@@ -410,5 +428,14 @@ public class TodoService {
     }
     
     return false;
+  }
+  
+  private int getStatusPriority(Integer statusId) {
+    return switch (statusId) {
+      case 2 -> 1; // 지연
+      case 0 -> 2; // 진행중  
+      case 1 -> 3; // 완료
+      default -> 4; // 알 수 없음
+    };
   }
 }

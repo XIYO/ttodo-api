@@ -20,11 +20,11 @@ public record TestSearchRequest(
         @Schema(description = "태그 필터", example = "[\"학습\",\"운동\"]")
         List<String> tags,
         
-        @Schema(description = "검색 시작 시각", example = "2024-01-01T00:00:00Z", type = "string", format = "date-time")
+        @Schema(description = "검색 시작 시각", example = "2025-06-01T00:00:00Z", type = "string", format = "date-time")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         Instant startDate,
         
-        @Schema(description = "검색 종료 시각", example = "2024-01-31T23:59:59Z", type = "string", format = "date-time")
+        @Schema(description = "검색 종료 시각", example = "2025-12-31T23:59:59Z", type = "string", format = "date-time")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         Instant endDate,
         

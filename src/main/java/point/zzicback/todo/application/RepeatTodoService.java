@@ -9,7 +9,8 @@ import point.zzicback.todo.domain.*;
 import point.zzicback.todo.infrastructure.persistence.*;
 import point.zzicback.member.application.MemberService;
 
-import java.time.LocalDate;
+import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -94,11 +95,8 @@ public class RepeatTodoService {
     
     private List<LocalDate> generateWeeklyVirtualDates(RepeatTodo repeatTodo, LocalDate startDate, LocalDate endDate) {
         List<LocalDate> dates = new ArrayList<>();
-        LocalDate weekStart = repeatTodo.getRepeatStartDate();
-        
-        while (weekStart.getDayOfWeek().getValue() != 7) {
-            weekStart = weekStart.minusDays(1);
-        }
+        LocalDate weekStart = repeatTodo.getRepeatStartDate()
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         
         LocalDate currentWeek = weekStart;
         

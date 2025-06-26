@@ -8,8 +8,8 @@ import java.util.Set;
 
 @Schema(description = "Todo 응답 DTO")
 public record TodoResponse(
-        @Schema(description = "Todo ID", example = "1")
-        Long id, 
+        @Schema(description = "Todo ID (가상 투두의 경우 '원본ID:반복순서' 형식)", example = "1 또는 11:3")
+        String id, 
         
         @Schema(description = "할일 제목", example = "영어 공부하기")
         String title, 
@@ -52,9 +52,6 @@ public record TodoResponse(
         
         @Schema(description = "반복 종료일", example = "2026-12-31")
         LocalDate repeatEndDate,
-        
-        @Schema(description = "원본 할일 ID (가상 할일인 경우)", example = "1")
-        Long originalTodoId,
         
         @Schema(description = "태그 목록", example = "[\"영어\", \"학습\"]")
         Set<String> tags

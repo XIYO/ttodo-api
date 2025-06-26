@@ -40,6 +40,10 @@ public record TodoSearchRequest(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate endDate,
         
+        @Schema(description = "기준 날짜 (이 날짜 이후의 가상 투두만 표시)", example = "2024-01-15", type = "string", format = "date")
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate date,
+        
         @Schema(description = "검색 키워드 (제목, 설명, 태그에서 검색)", example = "영어")
         String keyword,
         

@@ -59,13 +59,17 @@ class CompleteVirtualTodoServiceTest {
                 1,
                 LocalDate.of(2024, 1, 1),
                 LocalDate.of(2024, 1, 5),
+                null, // daysOfWeek
                 Set.of("운동")
         );
         todoService.createTodo(createCommand);
 
+        // 실제 생성된 투두 ID 조회
+        Long originalTodoId = todoRepository.findAllByMemberId(testMember.getId()).get(0).getId();
+
         CompleteVirtualTodoCommand completeCommand = new CompleteVirtualTodoCommand(
                 testMember.getId(),
-                1L, // 원본 투두 ID
+                originalTodoId, // 실제 원본 투두 ID
                 LocalDate.of(2024, 1, 2) // 완료할 날짜
         );
 
@@ -75,7 +79,7 @@ class CompleteVirtualTodoServiceTest {
         assertThat(result.title()).isEqualTo("매일 운동");
         assertThat(result.statusId()).isEqualTo(1);
         assertThat(result.dueDate()).isEqualTo(LocalDate.of(2024, 1, 2));
-        assertThat(result.originalTodoId()).isEqualTo(1L);
+        assertThat(result.originalTodoId()).isEqualTo(originalTodoId);
 
         long totalTodos = todoRepository.countByMemberId(testMember.getId());
         assertThat(totalTodos).isEqualTo(2); // 원본 1개 + 완료된 투두 1개
