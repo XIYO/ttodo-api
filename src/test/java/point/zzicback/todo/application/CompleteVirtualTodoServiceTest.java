@@ -65,7 +65,7 @@ class CompleteVirtualTodoServiceTest {
         todoService.createTodo(createCommand);
 
         // 실제 생성된 투두 ID 조회
-        Long originalTodoId = todoRepository.findAllByMemberId(testMember.getId()).get(0).getId();
+        Long originalTodoId = todoRepository.findAllByMemberId(testMember.getId()).getFirst().getId();
 
         CompleteVirtualTodoCommand completeCommand = new CompleteVirtualTodoCommand(
                 testMember.getId(),

@@ -77,7 +77,7 @@ class VirtualTodoIdTest {
         todoService.createTodo(command);
         
         // 원본 투두 ID 확인
-        Long originalTodoId = todoRepository.findAllByMemberId(testMember.getId()).get(0).getId();
+        Long originalTodoId = todoRepository.findAllByMemberId(testMember.getId()).getFirst().getId();
         
         // when - 가상 투두 목록 조회
         TodoSearchQuery query = new TodoSearchQuery(

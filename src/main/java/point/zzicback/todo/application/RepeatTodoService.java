@@ -95,10 +95,8 @@ public class RepeatTodoService {
     
     private List<LocalDate> generateWeeklyVirtualDates(RepeatTodo repeatTodo, LocalDate startDate, LocalDate endDate) {
         List<LocalDate> dates = new ArrayList<>();
-        LocalDate weekStart = repeatTodo.getRepeatStartDate()
+        LocalDate currentWeek = repeatTodo.getRepeatStartDate()
                 .with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-        
-        LocalDate currentWeek = weekStart;
         
         while (!currentWeek.isAfter(endDate) && 
                (repeatTodo.getRepeatEndDate() == null || !currentWeek.isAfter(repeatTodo.getRepeatEndDate()))) {
