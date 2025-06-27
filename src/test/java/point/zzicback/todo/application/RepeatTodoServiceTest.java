@@ -243,4 +243,6 @@ class RepeatTodoServiceTest {
                 LocalDate.of(2024, 1, 2)
         )).isInstanceOf(EntityNotFoundException.class);
     }
+
+
 }

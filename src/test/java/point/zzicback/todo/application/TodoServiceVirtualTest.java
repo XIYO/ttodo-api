@@ -109,7 +109,7 @@ class TodoServiceVirtualTest {
         var savedTodos = todoRepository.findAllByMemberId(testMember.getId());
         System.out.println("저장된 Todo 개수: " + savedTodos.size());
         if (!savedTodos.isEmpty()) {
-            var todo = savedTodos.get(0);
+            var todo = savedTodos.getFirst();
             System.out.println("저장된 Todo - ID: " + todo.getId() + 
                 ", StatusId: " + todo.getStatusId() + 
                 ", DueDate: " + todo.getDueDate());
@@ -128,16 +128,12 @@ class TodoServiceVirtualTest {
         
         // 실제 저장된 Todo가 있는지 확인
         System.out.println("=== 실제 저장된 모든 Todo 목록 ===");
-        todoRepository.findAllByMemberId(testMember.getId()).forEach(todo -> {
-            System.out.println("실제 DB Todo - ID: " + todo.getId() + ", StatusId: " + todo.getStatusId() + 
-                ", DueDate: " + todo.getDueDate() + ", Title: " + todo.getTitle());
-        });
+        todoRepository.findAllByMemberId(testMember.getId()).forEach(todo -> System.out.println("실제 DB Todo - ID: " + todo.getId() + ", StatusId: " + todo.getStatusId() +
+            ", DueDate: " + todo.getDueDate() + ", Title: " + todo.getTitle()));
         
         // 디버깅을 위한 로그 추가
         System.out.println("=== 조회된 Todo 목록 ===");
-        result.getContent().forEach(todo -> {
-            System.out.println("ID: " + todo.id() + ", Title: " + todo.title() + ", DueDate: " + todo.dueDate() + ", OriginalTodoId: " + todo.originalTodoId());
-        });
+        result.getContent().forEach(todo -> System.out.println("ID: " + todo.id() + ", Title: " + todo.title() + ", DueDate: " + todo.dueDate() + ", OriginalTodoId: " + todo.originalTodoId()));
         System.out.println("총 개수: " + result.getContent().size());
         
         assertThat(result.getContent()).hasSize(2); // 원본 Todo는 완료상태(statusId=1)이므로 조회되지 않고, 가상 Todo 2개만 조회됨

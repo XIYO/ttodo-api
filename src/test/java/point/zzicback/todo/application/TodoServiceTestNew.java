@@ -1380,7 +1380,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 "매일 운동",
                 "조깅하기",
-                1, null, 
+                0, null, // statusId=0 (진행중)으로 변경
                 LocalDate.of(2024, 1, 1), 
                 LocalTime.of(9, 0),
                 RepeatTypeConstants.DAILY, // 매일 반복
@@ -1476,7 +1476,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 "매일 운동",
                 "조깅하기",
-                1, null, 
+                0, null, // statusId=0 (진행중)으로 변경
                 LocalDate.of(2024, 1, 1), 
                 LocalTime.of(9, 0),
                 RepeatTypeConstants.DAILY,
@@ -1509,7 +1509,7 @@ class TodoServiceTestNew {
         CompleteVirtualTodoCommand completeCommand = new CompleteVirtualTodoCommand(
                 testMember.getId(),
                 virtualTodo.originalTodoId(),
-                LocalDate.of(2024, 1, 2) // 완료 날짜
+                1L // 원본 날짜(2024-01-01)로부터 1일 차이 = 2024-01-02
         );
         todoService.completeVirtualTodo(completeCommand);
         
@@ -1550,7 +1550,7 @@ class TodoServiceTestNew {
                 testMember.getId(),
                 "매일 독서",
                 "30분 읽기",
-                1, null, 
+                0, null, // statusId=0 (진행중)으로 변경
                 LocalDate.of(2024, 1, 1), 
                 LocalTime.of(20, 0),
                 RepeatTypeConstants.DAILY,
@@ -1583,7 +1583,7 @@ class TodoServiceTestNew {
         CompleteVirtualTodoCommand completeCommand = new CompleteVirtualTodoCommand(
                 testMember.getId(),
                 virtualTodo.originalTodoId(),
-                LocalDate.of(2024, 1, 2) // 완료 날짜
+                1L // 원본 날짜(2024-01-01)로부터 1일 차이 = 2024-01-02
         );
         todoService.completeVirtualTodo(completeCommand);
         

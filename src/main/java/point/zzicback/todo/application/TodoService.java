@@ -241,14 +241,19 @@ public class TodoService {
 
   @Transactional
   public TodoResult completeVirtualTodo(CompleteVirtualTodoCommand command) {
+    Todo originalTodo = todoRepository.findByIdAndMemberId(command.originalTodoId(), command.memberId())
+            .orElseThrow(() -> new EntityNotFoundException("Todo", command.originalTodoId()));
+    
+    LocalDate completionDate = originalTodo.getDueDate().plusDays(command.daysDifference());
+    
     repeatTodoService.completeRepeatTodo(
         command.memberId(), 
         command.originalTodoId(), 
-        command.completionDate()
+        completionDate
     );
     
     return todoRepository.findByMemberIdAndDueDateAndOriginalTodoId(
-        command.memberId(), command.completionDate(), command.originalTodoId())
+        command.memberId(), completionDate, command.originalTodoId())
         .map(this::toTodoResult)
         .orElseThrow(() -> new EntityNotFoundException("Todo", command.originalTodoId()));
   }
@@ -327,7 +332,7 @@ public class TodoService {
     }
     
     List<TodoResult> virtualTodos = new ArrayList<>();
-    
+
     LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
     
     List<RepeatTodo> repeatTodos = repeatTodoService.getActiveRepeatTodos(query.memberId())
@@ -343,8 +348,6 @@ public class TodoService {
       
       LocalDate originalDueDate = repeatTodo.getTodo().getDueDate();
       
-      int repeatCount = 1;
-      
       for (LocalDate virtualDate : virtualDates) {
         if (virtualDate.isBefore(baseDate)) {
           continue;
@@ -358,9 +361,9 @@ public class TodoService {
                 query.memberId(), virtualDate, repeatTodo.getTodo().getId());
         
         if (!alreadyCompleted) {
-          String virtualId = repeatTodo.getTodo().getId() + ":" + repeatCount;
+          long daysDifference = java.time.temporal.ChronoUnit.DAYS.between(originalDueDate, virtualDate);
+          String virtualId = repeatTodo.getTodo().getId() + ":" + daysDifference;
           virtualTodos.add(createVirtualTodoResult(repeatTodo, virtualDate, virtualId));
-          repeatCount++;
         }
       }
     }

@@ -71,7 +71,7 @@ public class RepeatTodoService {
     public RepeatTodo getRepeatTodoByTodoId(Long todoId) {
         return repeatTodoRepository.findByTodoId(todoId).orElse(null);
     }
-    
+
     public List<LocalDate> generateVirtualDates(RepeatTodo repeatTodo, LocalDate startDate, LocalDate endDate) {
         List<LocalDate> dates = new ArrayList<>();
         

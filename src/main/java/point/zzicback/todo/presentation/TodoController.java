@@ -103,7 +103,7 @@ public class TodoController {
     todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
   }
 
-  @PatchMapping("/{patternId:\\d+}:{seq:\\d+}")
+  @PatchMapping("/{patternId:\\d+}:{daysDifference:\\d+}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "가상 Todo 완료", 
@@ -111,12 +111,12 @@ public class TodoController {
   )
   public void patchVirtualTodo(@AuthenticationPrincipal MemberPrincipal principal,
                                @PathVariable Long patternId,
-                               @PathVariable Long seq) {
+                               @PathVariable Long daysDifference) {
     
     todoService.completeVirtualTodo(new CompleteVirtualTodoCommand(
         principal.id(), 
         patternId, 
-        LocalDate.now()
+        daysDifference
     ));
   }
 

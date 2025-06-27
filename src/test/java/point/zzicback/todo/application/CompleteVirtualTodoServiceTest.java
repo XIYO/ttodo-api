@@ -70,7 +70,7 @@ class CompleteVirtualTodoServiceTest {
         CompleteVirtualTodoCommand completeCommand = new CompleteVirtualTodoCommand(
                 testMember.getId(),
                 originalTodoId, // 실제 원본 투두 ID
-                LocalDate.of(2024, 1, 2) // 완료할 날짜
+                1L // 원본 날짜(2024-01-01)로부터 1일 차이 = 2024-01-02
         );
 
         TodoResult result = todoService.completeVirtualTodo(completeCommand);
