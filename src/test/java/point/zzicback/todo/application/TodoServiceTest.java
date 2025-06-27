@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.*;
     MemberService.class,
     RepeatTodoService.class
 })
-class TodoServiceTestNew {
+class TodoServiceTest {
 
     @Autowired
     private TodoService todoService;

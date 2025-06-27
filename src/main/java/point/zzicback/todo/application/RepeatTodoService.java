@@ -49,6 +49,25 @@ public class RepeatTodoService {
     }
     
     @Transactional
+    public void deleteRepeatTodo(UUID memberId, Long originalTodoId, Long daysDifference) {
+        Todo originalTodo = todoRepository.findByIdAndMemberId(originalTodoId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Todo", originalTodoId));
+        
+        RepeatTodo repeatTodo = repeatTodoRepository.findByTodoId(originalTodoId)
+                .orElseThrow(() -> new EntityNotFoundException("RepeatTodo", originalTodoId));
+        
+        LocalDate stopDate = originalTodo.getDueDate().plusDays(daysDifference);
+        LocalDate newEndDate = stopDate.minusDays(1);
+        
+        if (repeatTodo.getRepeatEndDate() != null && repeatTodo.getRepeatEndDate().isBefore(newEndDate)) {
+            return;
+        }
+        
+        repeatTodo.setRepeatEndDate(newEndDate);
+        repeatTodoRepository.save(repeatTodo);
+    }
+    
+    @Transactional
     public void createRepeatTodo(Todo todo, Integer repeatType, Integer repeatInterval, 
                                 LocalDate repeatStartDate, LocalDate repeatEndDate, Member member, Set<Integer> daysOfWeek) {
         RepeatTodo repeatTodo = RepeatTodo.builder()
@@ -70,6 +89,28 @@ public class RepeatTodoService {
     
     public RepeatTodo getRepeatTodoByTodoId(Long todoId) {
         return repeatTodoRepository.findByTodoId(todoId).orElse(null);
+    }
+    
+    @Transactional
+    public void updateRepeatTodo(Long todoId, Integer repeatType, Integer repeatInterval, 
+                               LocalDate repeatEndDate, Set<Integer> daysOfWeek) {
+        RepeatTodo repeatTodo = repeatTodoRepository.findByTodoId(todoId)
+                .orElseThrow(() -> new EntityNotFoundException("RepeatTodo", todoId));
+        
+        repeatTodo.setRepeatType(repeatType);
+        repeatTodo.setRepeatInterval(repeatInterval != null ? repeatInterval : 1);
+        repeatTodo.setRepeatEndDate(repeatEndDate);
+        repeatTodo.setDaysOfWeek(daysOfWeek);
+        
+        repeatTodoRepository.save(repeatTodo);
+    }
+    
+    @Transactional
+    public void deleteRepeatTodoByTodoId(Long todoId) {
+        RepeatTodo repeatTodo = repeatTodoRepository.findByTodoId(todoId)
+                .orElseThrow(() -> new EntityNotFoundException("RepeatTodo", todoId));
+        
+        repeatTodoRepository.delete(repeatTodo);
     }
 
     public List<LocalDate> generateVirtualDates(RepeatTodo repeatTodo, LocalDate startDate, LocalDate endDate) {

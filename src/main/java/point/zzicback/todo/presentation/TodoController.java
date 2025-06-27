@@ -14,10 +14,9 @@ import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.todo.application.TodoService;
 import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.command.CompleteVirtualTodoCommand;
+import point.zzicback.todo.application.dto.command.DeleteRepeatTodoCommand;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/todos")
@@ -120,6 +119,22 @@ public class TodoController {
     ));
   }
 
+  @DeleteMapping("/{patternId:\\d+}:{daysDifference:\\d+}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "반복 Todo 삭제", 
+      description = "특정 날짜부터 반복을 중단합니다. 원본 Todo와 이미 완료된 Todo는 유지됩니다."
+  )
+  public void deleteRepeatTodo(@AuthenticationPrincipal MemberPrincipal principal,
+                               @PathVariable Long patternId,
+                               @PathVariable Long daysDifference) {
+    
+    todoService.deleteRepeatTodo(new DeleteRepeatTodoCommand(
+        principal.id(), 
+        patternId, 
+        daysDifference
+    ));
+  }
 
   @DeleteMapping("/{id:\\d+}")
   @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -191,6 +191,9 @@ public class TodoService {
     todo.setDueDate(command.dueDate());
     todo.setDueTime(command.dueTime());
     todo.setTags(command.tags());
+    
+    // 반복 설정 처리
+    handleRepeatSettings(todo, command, command.memberId());
   }
 
   @Transactional
@@ -227,6 +230,11 @@ public class TodoService {
     if (command.tags() != null) {
       todo.setTags(command.tags());
     }
+    
+    // 반복 설정 처리 (부분 업데이트에서는 반복 관련 필드가 제공된 경우에만 처리)
+    if (hasRepeatFields(command)) {
+      handleRepeatSettings(todo, command, command.memberId());
+    }
   }
 
   @Transactional
@@ -256,6 +264,14 @@ public class TodoService {
         command.memberId(), completionDate, command.originalTodoId())
         .map(this::toTodoResult)
         .orElseThrow(() -> new EntityNotFoundException("Todo", command.originalTodoId()));
+  }
+
+  @Transactional
+  public void deleteRepeatTodo(DeleteRepeatTodoCommand command) {
+    todoRepository.findByIdAndMemberId(command.originalTodoId(), command.memberId())
+            .orElseThrow(() -> new EntityNotFoundException("Todo", command.originalTodoId()));
+    
+    repeatTodoService.deleteRepeatTodo(command.memberId(), command.originalTodoId(), command.daysDifference());
   }
 
   public TodoStatistics getTodoStatistics(UUID memberId) {
@@ -440,6 +456,51 @@ public class TodoService {
       case 1 -> 3; // 완료
       default -> 4; // 알 수 없음
     };
+  }
+  
+  private boolean hasRepeatFields(UpdateTodoCommand command) {
+    return command.repeatType() != null || 
+           command.repeatInterval() != null || 
+           command.repeatEndDate() != null || 
+           command.daysOfWeek() != null;
+  }
+  
+  private void handleRepeatSettings(Todo todo, UpdateTodoCommand command, UUID memberId) {
+    // 기존 RepeatTodo 조회
+    RepeatTodo existingRepeatTodo = repeatTodoService.getRepeatTodoByTodoId(todo.getId());
+    
+    // 새로운 반복 설정 확인
+    boolean hasNewRepeatSetting = command.repeatType() != null && 
+                                 !command.repeatType().equals(RepeatTypeConstants.NONE);
+    
+    if (existingRepeatTodo == null && hasNewRepeatSetting) {
+      // 기존 없음 + 새로 설정: RepeatTodo 생성
+      Member member = memberService.findByIdOrThrow(memberId);
+      LocalDate repeatStartDate = todo.getDueDate() != null ? todo.getDueDate() : LocalDate.now();
+      
+      repeatTodoService.createRepeatTodo(
+              todo,
+              command.repeatType(),
+              command.repeatInterval(),
+              repeatStartDate,
+              command.repeatEndDate(),
+              member,
+              command.daysOfWeek()
+      );
+    } else if (existingRepeatTodo != null && !hasNewRepeatSetting) {
+      // 기존 있음 + 새로 없음/NONE: RepeatTodo 삭제
+      repeatTodoService.deleteRepeatTodoByTodoId(todo.getId());
+    } else if (existingRepeatTodo != null && hasNewRepeatSetting) {
+      // 기존 있음 + 새로 설정: RepeatTodo 업데이트
+      repeatTodoService.updateRepeatTodo(
+              todo.getId(),
+              command.repeatType(),
+              command.repeatInterval(),
+              command.repeatEndDate(),
+              command.daysOfWeek()
+      );
+    }
+    // 기존 없음 + 새로 없음/NONE: 아무 작업 안함
   }
 
 }
