@@ -29,11 +29,6 @@ public interface TodoPresentationMapper {
   TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
-
-  @Mapping(target = "memberId", source = "memberId")
-  @Mapping(target = "originalTodoId", source = "originalTodoId")
-  @Mapping(target = "completionDate", source = "request.completionDate")
-  CompleteVirtualTodoCommand toCompleteVirtualTodoCommand(UUID memberId, Long originalTodoId, CompleteVirtualTodoRequest request);
   
   default Set<String> parseTagsString(String tagsString) {
     if (tagsString == null || tagsString.trim().isEmpty()) {

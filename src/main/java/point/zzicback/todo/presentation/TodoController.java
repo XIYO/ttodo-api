@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.todo.application.TodoService;
 import point.zzicback.todo.application.dto.query.*;
+import point.zzicback.todo.application.dto.command.CompleteVirtualTodoCommand;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/todos")
@@ -34,7 +37,7 @@ public class TodoController {
       return todoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/{id:\\d+}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Todo 상세 조회", description = "특정 Todo의 상세 정보를 조회합니다.")
   public TodoResponse getTodo(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
@@ -61,7 +64,7 @@ public class TodoController {
   }
 
 
-  @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
+  @PutMapping(value = "/{id:\\d+}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary = "Todo 수정", 
@@ -80,35 +83,45 @@ public class TodoController {
   }
 
   @PatchMapping(
-      value = "/{idOrPattern}",
+      value = "/{id:\\d+}",
       consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
-      summary = "Todo 수정 또는 가상 Todo 완료", 
-      description = "Todo를 부분 수정하거나 가상 Todo를 완료 처리합니다. ID만 전달하면 기존 Todo 수정, patternId:seq 형식으로 전달하면 가상 Todo 완료"
+      summary = "Todo 부분 수정", 
+      description = "기존 Todo를 부분 수정합니다.",
+      requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+          content = {
+              @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class)),
+              @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateTodoRequest.class))
+          }
+      )
   )
   public void patchTodo(@AuthenticationPrincipal MemberPrincipal principal,
-                        @PathVariable String idOrPattern,
-                        @RequestParam(required = false) String title,
-                        @RequestParam(required = false) String description,
-                        @RequestParam(required = false) Integer statusId,
-                        @RequestParam(required = false) Long categoryId,
-                        @RequestParam(required = false) String completionDate) {
+                        @PathVariable Long id,
+                        @Valid UpdateTodoRequest request) {
+    todoService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+  }
+
+  @PatchMapping("/{patternId:\\d+}:{seq:\\d+}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "가상 Todo 완료", 
+      description = "반복 Todo의 특정 가상 인스턴스를 완료 처리합니다."
+  )
+  public void patchVirtualTodo(@AuthenticationPrincipal MemberPrincipal principal,
+                               @PathVariable Long patternId,
+                               @PathVariable Long seq) {
     
-    todoService.processPatchRequest(
+    todoService.completeVirtualTodo(new CompleteVirtualTodoCommand(
         principal.id(), 
-        idOrPattern, 
-        title, 
-        description, 
-        statusId, 
-        categoryId,
-        completionDate
-    );
+        patternId, 
+        LocalDate.now()
+    ));
   }
 
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/{id:\\d+}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제합니다.")
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
