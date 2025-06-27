@@ -38,7 +38,9 @@ public class TodoService {
         (query.categoryIds() != null && !query.categoryIds().isEmpty()) ||
         (query.priorityIds() != null && !query.priorityIds().isEmpty()) ||
         (query.tags() != null && !query.tags().isEmpty()) ||
-        (query.keyword() != null && !query.keyword().trim().isEmpty());
+        (query.keyword() != null && !query.keyword().trim().isEmpty()) ||
+        (query.startDate() != null) ||
+        (query.endDate() != null);
     
     if (hasFilters) {
       todoPage = todoRepository.findByFilters(
@@ -322,8 +324,9 @@ public class TodoService {
       if (query.pageable().getSort().isUnsorted()) {
         realTodos = realTodos.stream()
             .sorted(Comparator
-                .comparing((TodoResult t) -> t.dueDate() != null ? t.dueDate() : LocalDate.MAX)
+                .comparing((TodoResult t) -> t.dueDate() == null && t.dueTime() == null && t.repeatType() == null)
                 .thenComparing((TodoResult t) -> getStatusPriority(t.statusId()))
+                .thenComparing((TodoResult t) -> t.dueDate() != null ? t.dueDate() : LocalDate.MAX)
                 .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
                 .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0])))
             .toList();
@@ -339,8 +342,9 @@ public class TodoService {
     // 사용자가 명시적으로 정렬을 지정하지 않았을 때만 기본 정렬 적용
     if (query.pageable().getSort().isUnsorted()) {    // 날짜별, 상태별(지연->진행중->완료), 우선순위별(높음->보통->낮음), ID순 정렬
     allTodos.sort(Comparator
-        .comparing((TodoResult t) -> t.dueDate() != null ? t.dueDate() : LocalDate.MAX)
+        .comparing((TodoResult t) -> t.dueDate() == null && t.dueTime() == null && t.repeatType() == null)
         .thenComparing((TodoResult t) -> getStatusPriority(t.statusId()))
+        .thenComparing((TodoResult t) -> t.dueDate() != null ? t.dueDate() : LocalDate.MAX)
         .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
         .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0])));
     }

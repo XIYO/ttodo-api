@@ -17,9 +17,10 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     @Query("""
         SELECT t FROM Todo t WHERE t.member.id = :memberId
         AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
-        AND (:startDate IS NULL OR t.dueDate >= :startDate)
-        AND (:endDate IS NULL OR t.dueDate <= :endDate)
+        AND (:startDate IS NULL OR t.dueDate IS NULL OR t.dueDate >= :startDate)
+        AND (:endDate IS NULL OR t.dueDate IS NULL OR t.dueDate <= :endDate)
         ORDER BY
+          CASE WHEN t.dueDate IS NULL AND t.dueTime IS NULL THEN 1 ELSE 0 END,
           CASE t.statusId
             WHEN 2 THEN 0
             WHEN 0 THEN 1
@@ -48,9 +49,10 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
              LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
              LOWER(tag) LIKE LOWER(CONCAT('%', :keyword, '%')))
         AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
-        AND (:startDate IS NULL OR t.dueDate >= :startDate)
-        AND (:endDate IS NULL OR t.dueDate <= :endDate)
+        AND (:startDate IS NULL OR t.dueDate IS NULL OR t.dueDate >= :startDate)
+        AND (:endDate IS NULL OR t.dueDate IS NULL OR t.dueDate <= :endDate)
         ORDER BY
+          CASE WHEN t.dueDate IS NULL AND t.dueTime IS NULL THEN 1 ELSE 0 END,
           CASE t.statusId
             WHEN 2 THEN 0
             WHEN 0 THEN 1
