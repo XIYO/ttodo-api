@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -184,5 +185,18 @@ public class TodoController {
   )
   public TodoStatisticsResponse getStatistics(@AuthenticationPrincipal MemberPrincipal principal) {
       return todoPresentationMapper.toStatisticsResponse(todoService.getTodoStatistics(principal.id()));
+  }
+
+  @GetMapping("/calendar/monthly")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "월별 Todo 현황 조회", description = "캘린더에 표시할 월별 Todo 존재 여부를 조회합니다.")
+  public Page<CalendarTodoStatusResponse> getMonthlyTodoStatus(
+          @AuthenticationPrincipal MemberPrincipal principal,
+          @RequestParam @Schema(description = "연도", example = "2025") int year,
+          @RequestParam @Schema(description = "월", example = "6") int month,
+          @ParameterObject Pageable pageable) {
+    CalendarQuery query = CalendarQuery.of(principal.id(), year, month);
+    return todoService.getMonthlyTodoStatus(query, pageable)
+            .map(todoPresentationMapper::toCalendarResponse);
   }
 }

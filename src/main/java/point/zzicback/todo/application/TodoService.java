@@ -12,6 +12,7 @@ import point.zzicback.member.domain.Member;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.*;
+import point.zzicback.todo.application.dto.result.CalendarTodoStatus;
 import point.zzicback.todo.domain.*;
 import point.zzicback.todo.infrastructure.persistence.*;
 
@@ -287,6 +288,25 @@ public class TodoService {
   
   public Page<String> getTags(UUID memberId, List<Long> categoryIds, Pageable pageable) {
     return todoRepository.findDistinctTagsByMemberId(memberId, categoryIds, pageable);
+  }
+  
+  
+  public Page<CalendarTodoStatus> getMonthlyTodoStatus(CalendarQuery query, Pageable pageable) {
+    LocalDate startDate = LocalDate.of(query.year(), query.month(), 1);
+    LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+    
+    List<CalendarTodoStatus> result = new ArrayList<>();
+    
+    for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+      boolean hasTodo = todoRepository.existsByMemberIdAndDueDate(query.memberId(), date);
+      result.add(new CalendarTodoStatus(date, hasTodo));
+    }
+    
+    int start = (int) pageable.getOffset();
+    int end = Math.min(start + pageable.getPageSize(), result.size());
+    List<CalendarTodoStatus> pageContent = result.subList(start, end);
+    
+    return new PageImpl<>(pageContent, pageable, result.size());
   }
   
   private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {

@@ -102,4 +102,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     Optional<Todo> findByMemberIdAndDueDateAndOriginalTodoId(UUID memberId, LocalDate dueDate, Long originalTodoId);
     
     void deleteAllByMemberId(UUID memberId);
+
+    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t WHERE t.member.id = :memberId AND t.dueDate = :dueDate")
+    boolean existsByMemberIdAndDueDate(@Param("memberId") UUID memberId, @Param("dueDate") LocalDate dueDate);
 }

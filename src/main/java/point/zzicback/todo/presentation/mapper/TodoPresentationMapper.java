@@ -30,6 +30,8 @@ public interface TodoPresentationMapper {
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
   
+  CalendarTodoStatusResponse toCalendarResponse(CalendarTodoStatus status);
+
   default Set<String> parseTagsString(String tagsString) {
     if (tagsString == null || tagsString.trim().isEmpty()) {
       return null;
