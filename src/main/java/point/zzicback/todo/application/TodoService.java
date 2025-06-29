@@ -427,7 +427,7 @@ public class TodoService {
         boolean alreadyCompleted = todoRepository.existsByMemberIdAndDueDateAndOriginalTodoId(
                 query.memberId(), virtualDate, repeatTodo.getTodo().getId());
         
-        if (!alreadyCompleted) {
+        if (!alreadyCompleted && originalDueDate != null) {
           long daysDifference = java.time.temporal.ChronoUnit.DAYS.between(originalDueDate, virtualDate);
           String virtualId = repeatTodo.getTodo().getId() + ":" + daysDifference;
           virtualTodos.add(createVirtualTodoResult(repeatTodo, virtualDate, virtualId));
