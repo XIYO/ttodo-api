@@ -69,10 +69,37 @@ public class TodoService {
 
   public TodoResult getTodo(TodoQuery query) {
     updateOverdueTodos();
-    
+
     return todoRepository.findByIdAndMemberId(query.todoId(), query.memberId())
             .map(this::toTodoResult)
             .orElseThrow(() -> new EntityNotFoundException("Todo", query.todoId()));
+  }
+
+  public TodoResult getVirtualTodo(VirtualTodoQuery query) {
+    updateOverdueTodos();
+
+    Todo originalTodo = todoRepository.findByIdAndMemberId(query.originalTodoId(), query.memberId())
+            .orElseThrow(() -> new EntityNotFoundException("Todo", query.originalTodoId()));
+
+    LocalDate targetDate = originalTodo.getDueDate().plusDays(query.daysDifference());
+
+    return todoRepository.findByMemberIdAndDueDateAndOriginalTodoId(
+            query.memberId(), targetDate, query.originalTodoId())
+            .map(this::toTodoResult)
+            .orElseGet(() -> {
+              RepeatTodo repeatTodo = repeatTodoService.getRepeatTodoByTodoId(query.originalTodoId());
+              if (repeatTodo == null) {
+                throw new EntityNotFoundException("RepeatTodo", query.originalTodoId());
+              }
+
+              List<LocalDate> dates = repeatTodoService.generateVirtualDates(repeatTodo, targetDate, targetDate);
+              if (dates.isEmpty()) {
+                throw new BusinessException("요청한 날짜에 해당하는 가상 투두가 없습니다");
+              }
+
+              String virtualId = originalTodo.getId() + ":" + query.daysDifference();
+              return createVirtualTodoResult(repeatTodo, targetDate, virtualId);
+            });
   }
 
   @Transactional

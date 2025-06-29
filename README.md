@@ -189,6 +189,7 @@ docker-compose -f docker-compose.local.yml down -v
 |-------------|----------|------|-----------|-----------|-----------|
 | **GET** | `/api/members/{memberId}/todos` | TODO 목록 조회 (페이징) | 없음 | `Page<TodoResponse>` | `200`: 성공 |
 | **GET** | `/api/members/{memberId}/todos/{id}` | 특정 TODO 조회 | 없음 | `TodoResponse` | `200`: 성공<br>`404`: 찾을 수 없음 |
+| **GET** | `/api/members/{memberId}/todos/{id}:{diff}` | 반복 TODO 가상 인스턴스 조회 | 없음 | `TodoResponse` | `200`: 성공<br>`404`: 찾을 수 없음 |
 | **POST** | `/api/members/{memberId}/todos` | TODO 생성 | `CreateTodoRequest` | 없음 | `201`: 성공<br>`400`: 잘못된 요청 |
 | **PUT** | `/api/members/{memberId}/todos/{id}` | TODO 전체 수정 | `UpdateTodoRequest` | 없음 | `204`: 성공<br>`400`: 잘못된 요청<br>`404`: 찾을 수 없음 |
 | **PATCH** | `/api/members/{memberId}/todos/{id}` | TODO 부분 수정 | `UpdateTodoRequest` | 없음 | `204`: 성공<br>`400`: 잘못된 요청<br>`404`: 찾을 수 없음 |

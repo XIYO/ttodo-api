@@ -44,6 +44,19 @@ public class TodoController {
     return todoPresentationMapper.toResponse(todoService.getTodo(TodoQuery.of(principal.id(), id)));
   }
 
+  @GetMapping("/{patternId:\\d+}:{daysDifference:\\d+}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "가상 Todo 조회", description = "반복 Todo의 특정 가상 인스턴스를 조회합니다.")
+  public TodoResponse getVirtualTodo(@AuthenticationPrincipal MemberPrincipal principal,
+                                     @PathVariable Long patternId,
+                                     @PathVariable Long daysDifference) {
+    return todoPresentationMapper.toResponse(
+        todoService.getVirtualTodo(
+            VirtualTodoQuery.of(principal.id(), patternId, daysDifference)
+        )
+    );
+  }
+
   @PostMapping(
     consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
   )
