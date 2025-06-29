@@ -4,6 +4,8 @@ import java.util.UUID;
 
 public record CreateCategoryCommand(
         UUID memberId,
-        String name
+        String name,
+        String color,
+        String description
 ) {
 }

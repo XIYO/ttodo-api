@@ -5,6 +5,8 @@ import java.util.UUID;
 public record UpdateCategoryCommand(
         UUID memberId,
         Long categoryId,
-        String name
+        String name,
+        String color,
+        String description
 ) {
 }

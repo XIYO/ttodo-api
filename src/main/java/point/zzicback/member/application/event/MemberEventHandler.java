@@ -17,7 +17,8 @@ public class MemberEventHandler {
     public void handleMemberCreated(MemberCreatedEvent event) {
         List<String> categoryNames = List.of("기본", "개인", "업무");
         categoryNames.forEach(name -> {
-            CreateCategoryCommand command = new CreateCategoryCommand(event.memberId(), name);
+            CreateCategoryCommand command = new CreateCategoryCommand(
+                    event.memberId(), name, null, null);
             categoryService.createCategory(command);
         });
     }

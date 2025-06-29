@@ -867,10 +867,10 @@ public class TodoInitializer implements ApplicationRunner {
 
   public void createDummyCategoriesForMember(Member member) {
     var dummyCategories = List.of(
-        Category.builder().name("약속").member(member).build(),
-        Category.builder().name("가족").member(member).build(),
-        Category.builder().name("공부").member(member).build(),
-        Category.builder().name("운동").member(member).build()
+        Category.builder().name("약속").color(null).description(null).member(member).build(),
+        Category.builder().name("가족").color(null).description(null).member(member).build(),
+        Category.builder().name("공부").color(null).description(null).member(member).build(),
+        Category.builder().name("운동").color(null).description(null).member(member).build()
     );
     categoryRepository.saveAll(dummyCategories);
   }

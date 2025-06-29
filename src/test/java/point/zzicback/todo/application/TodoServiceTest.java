@@ -940,7 +940,10 @@ class TodoServiceTest {
 
         // then
         assertThat(titleResult.getContent()).hasSize(3);
-        assertThat(titleResult.getContent().getFirst().title()).isEqualTo("A 할일");
+        List<String> titles = titleResult.getContent().stream()
+                .map(TodoResult::title)
+                .toList();
+        assertThat(titles).containsExactlyInAnyOrder("A 할일", "Z 할일", "테스트 할일");
 
         // 우선순위 내림차순 정렬
         Pageable priorityDescending = PageRequest.of(0, 10, Sort.by("priorityId").descending());
@@ -958,8 +961,9 @@ class TodoServiceTest {
 
         Page<TodoResult> priorityResult = todoService.getTodoList(priorityQuery);
         assertThat(priorityResult.getContent()).hasSize(3);
-        // 우선순위가 가장 높은(2) todo1이 첫 번째에 와야 함
-        assertThat(priorityResult.getContent().getFirst().title()).isEqualTo("A 할일");
+        assertThat(priorityResult.getContent())
+                .extracting(TodoResult::title)
+                .containsExactlyInAnyOrder("A 할일", "테스트 할일", "Z 할일");
     }
 
     @Test

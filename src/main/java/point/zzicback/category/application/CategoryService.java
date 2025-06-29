@@ -50,6 +50,8 @@ public class CategoryService {
         
         Category category = Category.builder()
                 .name(command.name())
+                .color(command.color())
+                .description(command.description())
                 .member(member)
                 .build();
                 
@@ -62,12 +64,12 @@ public class CategoryService {
         Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
                 .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
                 
-        if (!category.getName().equals(command.name()) && 
+        if (!category.getName().equals(command.name()) &&
             categoryRepository.existsByNameAndMemberId(command.name(), command.memberId())) {
             throw new BusinessException("이미 존재하는 카테고리명입니다.");
         }
-        
-        category.updateName(command.name());
+
+        category.update(command.name(), command.color(), command.description());
         
         return toCategoryResponse(category);
     }
@@ -83,7 +85,9 @@ public class CategoryService {
     private CategoryResponse toCategoryResponse(Category category) {
         return new CategoryResponse(
                 category.getId(),
-                category.getName()
+                category.getName(),
+                category.getColor(),
+                category.getDescription()
         );
     }
 }

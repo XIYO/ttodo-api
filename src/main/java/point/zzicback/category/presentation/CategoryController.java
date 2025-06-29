@@ -64,7 +64,10 @@ public class CategoryController {
             @AuthenticationPrincipal MemberPrincipal principal,
             @Valid CreateCategoryRequest request) {
         CreateCategoryCommand command = new CreateCategoryCommand(
-                principal.id(), request.name());
+                principal.id(),
+                request.name(),
+                request.color(),
+                request.description());
         return categoryService.createCategory(command);
     }
     
@@ -88,7 +91,11 @@ public class CategoryController {
             @Parameter(description = "카테고리 ID") @PathVariable Long categoryId,
             @Valid UpdateCategoryRequest request) {
         UpdateCategoryCommand command = new UpdateCategoryCommand(
-                principal.id(), categoryId, request.name());
+                principal.id(),
+                categoryId,
+                request.name(),
+                request.color(),
+                request.description());
         return categoryService.updateCategory(command);
     }
     

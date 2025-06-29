@@ -47,13 +47,17 @@ class CategoryServiceTest {
     void createCategory_Success() {
         CreateCategoryCommand command = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                "#ff0000",
+                "test"
         );
 
         CategoryResponse response = categoryService.createCategory(command);
 
         assertThat(response).isNotNull();
         assertThat(response.name()).isEqualTo("업무");
+        assertThat(response.color()).isEqualTo("#ff0000");
+        assertThat(response.description()).isEqualTo("test");
     }
 
     @Test
@@ -61,7 +65,9 @@ class CategoryServiceTest {
     void createCategory_WithoutDescription_Success() {
         CreateCategoryCommand command = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                null,
+                null
         );
 
         CategoryResponse response = categoryService.createCategory(command);
@@ -75,13 +81,17 @@ class CategoryServiceTest {
     void createCategory_DuplicateName() {
         CreateCategoryCommand command1 = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                null,
+                null
         );
         CategoryResponse firstResponse = categoryService.createCategory(command1);
 
         CreateCategoryCommand command2 = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                null,
+                null
         );
         CategoryResponse secondResponse = categoryService.createCategory(command2);
 
@@ -95,11 +105,15 @@ class CategoryServiceTest {
     void getCategories_Success() {
         CreateCategoryCommand command1 = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                null,
+                null
         );
         CreateCategoryCommand command2 = new CreateCategoryCommand(
                 testMember.getId(),
-                "개인"
+                "개인",
+                null,
+                null
         );
         
         categoryService.createCategory(command1);
@@ -118,7 +132,9 @@ class CategoryServiceTest {
     void getCategory_Success() {
         CreateCategoryCommand command = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                null,
+                null
         );
         CategoryResponse created = categoryService.createCategory(command);
 
@@ -140,19 +156,25 @@ class CategoryServiceTest {
     void updateCategory_Success() {
         CreateCategoryCommand createCommand = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                null,
+                null
         );
         CategoryResponse created = categoryService.createCategory(createCommand);
 
         UpdateCategoryCommand updateCommand = new UpdateCategoryCommand(
                 testMember.getId(),
                 created.id(),
-                "회사업무"
+                "회사업무",
+                "#00ff00",
+                "desc"
         );
 
         CategoryResponse response = categoryService.updateCategory(updateCommand);
 
         assertThat(response.name()).isEqualTo("회사업무");
+        assertThat(response.color()).isEqualTo("#00ff00");
+        assertThat(response.description()).isEqualTo("desc");
     }
 
     @Test
@@ -160,7 +182,9 @@ class CategoryServiceTest {
     void deleteCategory_Success() {
         CreateCategoryCommand createCommand = new CreateCategoryCommand(
                 testMember.getId(),
-                "업무"
+                "업무",
+                null,
+                null
         );
         CategoryResponse created = categoryService.createCategory(createCommand);
 

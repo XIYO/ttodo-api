@@ -15,18 +15,28 @@ public class Category {
     
     @Column(nullable = false)
     private String name;
+
+    @Column(length = 7)
+    private String color;
+
+    @Column(length = 255)
+    private String description;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
     
     @Builder
-    public Category(String name, Member member) {
+    public Category(String name, String color, String description, Member member) {
         this.name = name;
+        this.color = color;
+        this.description = description;
         this.member = member;
     }
-    
-    public void updateName(String name) {
+
+    public void update(String name, String color, String description) {
         this.name = name;
+        this.color = color;
+        this.description = description;
     }
 }
