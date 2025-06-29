@@ -9,18 +9,18 @@ import point.zzicback.todo.presentation.dto.*;
 
 import java.util.*;
 
-@Mapper(componentModel = "spring", imports = {Arrays.class, java.util.stream.Collectors.class, PageRequest.class})
+@Mapper(componentModel = "spring", imports = {PageRequest.class})
 public interface TodoPresentationMapper {
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "priorityId", source = "request.priorityId")
-  @Mapping(target = "tags", expression = "java(parseTagsString(request.getTags()))")
+  @Mapping(target = "tags", source = "request.tags")
   CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "todoId", source = "todoId")
   @Mapping(target = "statusId", source = "request.statusId")
   @Mapping(target = "priorityId", source = "request.priorityId")
-  @Mapping(target = "tags", expression = "java(parseTagsString(request.getTags()))")
+  @Mapping(target = "tags", source = "request.tags")
   @Mapping(target = "originalTodoId", ignore = true)
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
@@ -31,16 +31,6 @@ public interface TodoPresentationMapper {
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
   
   CalendarTodoStatusResponse toCalendarResponse(CalendarTodoStatus status);
-
-  default Set<String> parseTagsString(String tagsString) {
-    if (tagsString == null || tagsString.trim().isEmpty()) {
-      return null;
-    }
-    return Arrays.stream(tagsString.split(","))
-        .map(String::trim)
-        .filter(tag -> !tag.isEmpty())
-        .collect(java.util.stream.Collectors.toSet());
-  }
   
   default TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics) {
     List<TodoStatisticsResponse.StatisticsItem> content = List.of(

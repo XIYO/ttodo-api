@@ -22,7 +22,7 @@ import java.util.*;
           "categoryId": 1,
           "dueDate": "2026-01-02T00:00:00Z",
           "repeatType": "DAILY",
-          "tags": "영어,학습,토익"
+          "tags": ["영어", "학습", "토익"]
         }
         """
 )
@@ -107,9 +107,9 @@ public class UpdateTodoRequest {
     private LocalDate repeatEndDate;
     
     @Schema(
-        description = "태그 목록 (콤마로 구분)", 
-        example = "영어,학습,토익",
-        type = "string"
+        description = "태그 목록. 같은 이름으로 여러 번 전달합니다.",
+        example = "tags=영어&tags=학습&tags=토익",
+        type = "array"
     )
-    private String tags;
+    private Set<String> tags;
 }
