@@ -17,11 +17,13 @@ public class CustomJwtAuthConverter implements Converter<Jwt, AbstractAuthentica
     UUID id = UUID.fromString(jwt.getSubject());
     String email = jwt.getClaimAsString("email");
     String nickname = jwt.getClaimAsString("nickname");
+    String timeZone = jwt.getClaimAsString("timeZone");
+    String locale = jwt.getClaimAsString("locale");
     String scopeString = jwt.getClaimAsString("scope");
     List<SimpleGrantedAuthority> authorities = scopeString == null
             ? Collections.emptyList()
             : Arrays.stream(scopeString.split(" ")).map(SimpleGrantedAuthority::new).toList();
-    MemberPrincipal principal = MemberPrincipal.from(id, email, nickname, authorities);
+    MemberPrincipal principal = MemberPrincipal.from(id, email, nickname, timeZone, locale, authorities);
     return new UsernamePasswordAuthenticationToken(principal, jwt, authorities);
   }
 }

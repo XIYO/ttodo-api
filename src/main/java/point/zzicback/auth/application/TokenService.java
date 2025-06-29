@@ -22,6 +22,8 @@ public class TokenService {
   public static final String DEVICE_CLAIM = "device";
   public static final String EMAIL_CLAIM = "email";
   public static final String NICKNAME_CLAIM = "nickname";
+  public static final String TIME_ZONE_CLAIM = "timeZone";
+  public static final String LOCALE_CLAIM = "locale";
   public static final String SCOPE_CLAIM = "scope";
   public static final String SUB_CLAIM = "sub";
   
@@ -41,11 +43,13 @@ public class TokenService {
     return jwtEncoder.encode(parameters).getTokenValue();
   }
 
-  public String generateAccessToken(String id, String email, String nickname) {
+  public String generateAccessToken(String id, String email, String nickname, String timeZone, String locale) {
     Instant expiresAt = Instant.now().plus(jwtProperties.accessToken().expiration(), ChronoUnit.SECONDS);
     Map<String, Object> claims = Map.of(
-      EMAIL_CLAIM, email, 
-      NICKNAME_CLAIM, nickname, 
+      EMAIL_CLAIM, email,
+      NICKNAME_CLAIM, nickname,
+      TIME_ZONE_CLAIM, timeZone,
+      LOCALE_CLAIM, locale,
       SCOPE_CLAIM, "ROLE_USER"
     );
     return generateToken(id, expiresAt, claims);
@@ -107,7 +111,12 @@ public class TokenService {
     UUID memberId = UUID.fromString(extractClaim(oldRefreshToken, SUB_CLAIM));
     Member member = memberService.findVerifiedMember(memberId);
     
-    String newAccessToken = generateAccessToken(memberId.toString(), member.getEmail(), member.getNickname());
+    String newAccessToken = generateAccessToken(
+            memberId.toString(),
+            member.getEmail(),
+            member.getNickname(),
+            member.getTimeZone(),
+            member.getLocale());
     String newRefreshToken = generateRefreshToken(memberId.toString(), deviceId);
     save(deviceId, newRefreshToken);
     
@@ -128,7 +137,12 @@ public class TokenService {
 
   public TokenResult generateTokens(MemberPrincipal member) {
     String deviceId = UUID.randomUUID().toString();
-    String accessToken = generateAccessToken(member.idAsString(), member.email(), member.nickname());
+    String accessToken = generateAccessToken(
+            member.idAsString(),
+            member.email(),
+            member.nickname(),
+            member.timeZone(),
+            member.locale());
     String refreshToken = generateRefreshToken(member.idAsString(), deviceId);
     save(deviceId, refreshToken);
     return new TokenResult(accessToken, refreshToken, deviceId);

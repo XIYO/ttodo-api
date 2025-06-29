@@ -28,6 +28,8 @@ public class MemberService {
         .password(command.password())
         .nickname(command.nickname())
         .introduction(command.introduction())
+        .timeZone(command.timeZone())
+        .locale(command.locale())
         .build();
     Member savedMember = memberRepository.save(member);
     
@@ -83,12 +85,24 @@ public class MemberService {
   @Transactional(readOnly = true)
   public Page<MemberResult> getMembers(Pageable pageable) {
     return memberRepository.findAll(pageable)
-            .map(member -> new MemberResult(member.getId(), member.getEmail(), member.getNickname(), member.getIntroduction()));
+            .map(member -> new MemberResult(
+                    member.getId(),
+                    member.getEmail(),
+                    member.getNickname(),
+                    member.getIntroduction(),
+                    member.getTimeZone(),
+                    member.getLocale()));
   }
 
   @Transactional(readOnly = true)
   public MemberResult getMember(UUID memberId) {
     var member = findByIdOrThrow(memberId);
-    return new MemberResult(member.getId(), member.getEmail(), member.getNickname(), member.getIntroduction());
+    return new MemberResult(
+            member.getId(),
+            member.getEmail(),
+            member.getNickname(),
+            member.getIntroduction(),
+            member.getTimeZone(),
+            member.getLocale());
   }
 }

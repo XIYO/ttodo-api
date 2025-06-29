@@ -29,6 +29,10 @@ public record SignUpRequest(
         @Schema(description = "사용자 이름", example = "홍길동") 
         String nickname,
         
-        @Schema(description = "소개글", example = "안녕하세요! 새로운 회원입니다.") 
-        String introduction) {
+        @Schema(description = "소개글", example = "안녕하세요! 새로운 회원입니다.")
+        String introduction,
+        @Schema(description = "사용자 타임존", example = "Asia/Seoul")
+        String timeZone,
+        @Schema(description = "사용자 로케일", example = "ko_KR")
+        String locale) {
 }

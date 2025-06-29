@@ -9,5 +9,7 @@ public record MemberResult(
         UUID id,
         String email,
         String nickname,
-        String introduction
+        String introduction,
+        String timeZone,
+        String locale
 ) {}

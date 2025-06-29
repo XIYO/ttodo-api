@@ -11,14 +11,16 @@ public record MemberPrincipal(
         @Schema(description = "회원 고유 ID", example = "b1a2c3d4-e5f6-7890-1234-56789abcdef0") UUID id,
         @Schema(description = "이메일", example = "user@example.com") String email,
         @Schema(description = "닉네임", example = "홍길동") String nickname,
+        @Schema(description = "사용자 타임존", example = "Asia/Seoul") String timeZone,
+        @Schema(description = "사용자 로케일", example = "ko_KR") String locale,
         Collection<? extends GrantedAuthority> authorities) implements UserDetails {
 
     public static MemberPrincipal from(Member member, Collection<? extends GrantedAuthority> authorities) {
-        return new MemberPrincipal(member.getId(), member.getEmail(), member.getNickname(), authorities);
+        return new MemberPrincipal(member.getId(), member.getEmail(), member.getNickname(), member.getTimeZone(), member.getLocale(), authorities);
     }
 
-    public static MemberPrincipal from(UUID id, String email, String nickname, Collection<? extends GrantedAuthority> authorities) {
-        return new MemberPrincipal(id, email, nickname, authorities);
+    public static MemberPrincipal from(UUID id, String email, String nickname, String timeZone, String locale, Collection<? extends GrantedAuthority> authorities) {
+        return new MemberPrincipal(id, email, nickname, timeZone, locale, authorities);
     }
 
     public String idAsString() {

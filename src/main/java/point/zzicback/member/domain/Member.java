@@ -24,4 +24,8 @@ public class Member {
   private String password;
   @Column(length = 500)
   private String introduction;
+  @Column(name = "time_zone", nullable = false)
+  private String timeZone;
+  @Column(nullable = false)
+  private String locale;
 }
