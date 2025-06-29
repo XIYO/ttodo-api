@@ -1,12 +1,14 @@
 package point.zzicback.category.presentation;
 
 import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
@@ -42,25 +44,49 @@ public class CategoryController {
         return categoryService.getCategory(principal.id(), categoryId);
     }
     
-    @PostMapping
-    @Operation(summary = "카테고리 생성", description = "새로운 카테고리를 생성합니다.")
-    @ApiResponse(responseCode = "201", description = "카테고리 생성 성공")
+    @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
+    @Operation(
+        summary = "카테고리 생성",
+        description = "새로운 카테고리를 생성합니다.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = {
+                @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = CreateCategoryRequest.class)),
+                @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CreateCategoryRequest.class))
+            }
+        ),
+        responses = {
+            @ApiResponse(responseCode = "201", description = "카테고리 생성 성공",
+                content = @Content(schema = @Schema(implementation = CategoryResponse.class)))
+        }
+    )
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryResponse createCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
-            @Valid @RequestBody CreateCategoryRequest request) {
+            @Valid CreateCategoryRequest request) {
         CreateCategoryCommand command = new CreateCategoryCommand(
                 principal.id(), request.name());
         return categoryService.createCategory(command);
     }
     
-    @PutMapping("/{categoryId}")
-    @Operation(summary = "카테고리 수정", description = "기존 카테고리를 수정합니다.")
-    @ApiResponse(responseCode = "200", description = "카테고리 수정 성공")
+    @PutMapping(value = "/{categoryId}", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
+    @Operation(
+        summary = "카테고리 수정",
+        description = "기존 카테고리를 수정합니다.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = {
+                @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateCategoryRequest.class)),
+                @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateCategoryRequest.class))
+            }
+        ),
+        responses = {
+            @ApiResponse(responseCode = "200", description = "카테고리 수정 성공",
+                content = @Content(schema = @Schema(implementation = CategoryResponse.class)))
+        }
+    )
     public CategoryResponse updateCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable Long categoryId,
-            @Valid @RequestBody UpdateCategoryRequest request) {
+            @Valid UpdateCategoryRequest request) {
         UpdateCategoryCommand command = new UpdateCategoryCommand(
                 principal.id(), categoryId, request.name());
         return categoryService.updateCategory(command);
