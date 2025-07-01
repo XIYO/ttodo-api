@@ -24,6 +24,18 @@ public interface TodoPresentationMapper {
   @Mapping(target = "originalTodoId", ignore = true)
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
+  @Mapping(target = "virtualTodoId", source = "virtualId")
+  @Mapping(target = "memberId", source = "memberId")
+  @Mapping(target = "title", source = "request.title")
+  @Mapping(target = "description", source = "request.description")
+  @Mapping(target = "statusId", source = "request.statusId")
+  @Mapping(target = "priorityId", source = "request.priorityId")
+  @Mapping(target = "categoryId", source = "request.categoryId")
+  @Mapping(target = "dueDate", source = "request.dueDate")
+  @Mapping(target = "dueTime", source = "request.dueTime")
+  @Mapping(target = "tags", source = "request.tags")
+  UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID memberId, String virtualId);
+
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "pageable", expression = "java(PageRequest.of(request.page(), request.size()))")
   TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);

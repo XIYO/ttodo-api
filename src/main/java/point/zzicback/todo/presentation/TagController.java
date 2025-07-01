@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
-import point.zzicback.todo.application.TodoService;
+import point.zzicback.todo.application.TodoOriginalService;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TagController {
 
-    private final TodoService todoService;
+    private final TodoOriginalService todoOriginalService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -76,6 +76,6 @@ public class TagController {
             Sort.by("tag").descending() : Sort.by("tag").ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        return todoService.getTags(principal.id(), categoryIds, pageable);
+        return todoOriginalService.getTags(principal.id(), categoryIds, pageable);
     }
 }

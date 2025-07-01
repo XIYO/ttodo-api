@@ -11,21 +11,7 @@ import java.util.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(
-    description = "Todo 수정 요청 DTO",
-    example = """
-        {
-          "title": "영어 공부하기 (수정)",
-          "description": "토익 문제집 3장 풀기",
-          "statusId": 1,
-          "priorityId": 2,
-          "categoryId": 1,
-          "dueDate": "2026-01-02T00:00:00Z",
-          "repeatType": "DAILY",
-          "tags": ["영어", "학습", "토익"]
-        }
-        """
-)
+@Schema(description = "Todo 수정 요청 DTO")
 public class UpdateTodoRequest {
 
     @Size(max = 255) 
@@ -95,8 +81,14 @@ public class UpdateTodoRequest {
     private Integer repeatInterval;
     
     @Schema(
-        description = "매주 반복 시 선택된 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)",
-        example = "[1, 3, 5]"
+        description = "반복 시작일",
+        example = "2026-01-01",
+        format = "date"
+    )
+    private LocalDate repeatStartDate;
+    
+    @Schema(
+        description = "매주 반복 시 선택된 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)"
     )
     private Set<Integer> daysOfWeek;
     
@@ -107,8 +99,7 @@ public class UpdateTodoRequest {
     private LocalDate repeatEndDate;
     
     @Schema(
-        description = "태그 목록. 같은 이름으로 여러 번 전달합니다.",
-        example = "tags=영어&tags=학습&tags=토익",
+        description = "태그 목록",
         type = "array"
     )
     private Set<String> tags;

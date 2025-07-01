@@ -11,7 +11,7 @@ import point.zzicback.member.domain.Member;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Set;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -19,37 +19,29 @@ import java.util.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
 public class Todo {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-  
-  @Column(nullable = false)
+  @EmbeddedId
+  private TodoId todoId;
+
   private String title;
-  
   private String description;
-  
-  @Column(name = "status", nullable = false)
-  private Integer statusId = 0;
-  
-  @Column(name = "priority")
+  private Integer statusId;
   private Integer priorityId;
-  
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
   private Category category;
-  
-  private LocalDate dueDate;
 
+  private LocalDate dueDate;
   private LocalTime dueTime;
-  
-  @Column(name = "original_todo_id")
-  private Long originalTodoId;
-  
+
   @ElementCollection(fetch = FetchType.EAGER)
-  @CollectionTable(name = "todo_tags", joinColumns = @JoinColumn(name = "todo_id"))
+  @CollectionTable(name = "todo_tags", joinColumns = {
+      @JoinColumn(name = "original_todo_id", referencedColumnName = "original_todo_id"),
+      @JoinColumn(name = "days_difference", referencedColumnName = "days_difference")
+  })
   @Column(name = "tag")
-  private Set<String> tags = new HashSet<>();
-  
+  private Set<String> tags;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "member_id", nullable = false)
   private Member member;
@@ -62,23 +54,54 @@ public class Todo {
   private Instant updatedAt;
 
   @Builder
-  public Todo(Long id, String title, String description, Integer statusId, Integer priorityId,
-              Category category, LocalDate dueDate, LocalTime dueTime, Long originalTodoId, Set<String> tags, Member member) {
-    this.id = id;
+  public Todo(TodoId todoId,
+              String title,
+              String description,
+              Integer statusId,
+              Integer priorityId,
+              Category category,
+              LocalDate dueDate,
+              LocalTime dueTime,
+              Set<String> tags,
+              Member member) {
+    this.todoId = todoId;
     this.title = title;
     this.description = description;
-    this.statusId = statusId != null ? statusId : 0;
+    this.statusId = statusId;
     this.priorityId = priorityId;
     this.category = category;
     this.dueDate = dueDate;
     this.dueTime = dueTime;
-    this.originalTodoId = originalTodoId;
-    this.tags = tags != null ? tags : new HashSet<>();
+    this.tags = tags;
     this.member = member;
   }
 
-  @Transient
+  public Long getOriginalTodoId() {
+    return todoId != null ? todoId.getId() : null;
+  }
+  
+  public Long getDaysDifference() {
+    return todoId != null ? todoId.getSeq() : null;
+  }
+  
+  public String getVirtualId() {
+    return todoId != null ? todoId.getVirtualId() : null;
+  }
+
   public Integer getActualStatus() {
+    if (statusId == null) return 0;
+    
+    if (statusId == 0 && dueDate != null) {
+      LocalDate now = LocalDate.now();
+      LocalTime currentTime = LocalTime.now();
+      
+      if (dueDate.isBefore(now) || 
+          (dueDate.equals(now) && dueTime != null && dueTime.isBefore(currentTime))) {
+        return 2;
+      }
+    }
+    
     return statusId;
   }
 }
+

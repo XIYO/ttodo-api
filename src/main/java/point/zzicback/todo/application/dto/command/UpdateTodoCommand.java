@@ -16,6 +16,7 @@ public record UpdateTodoCommand(
         LocalTime dueTime,
         Integer repeatType,
         Integer repeatInterval,
+        LocalDate repeatStartDate,
         LocalDate repeatEndDate,
         Set<Integer> daysOfWeek,
         Set<String> tags,
@@ -27,6 +28,6 @@ public record UpdateTodoCommand(
                            LocalDate dueDate, LocalTime dueTime, Integer repeatType, 
                            Integer repeatInterval, LocalDate repeatEndDate, Set<String> tags) {
         this(memberId, todoId, title, description, statusId, priorityId, categoryId, 
-             dueDate, dueTime, repeatType, repeatInterval, repeatEndDate, null, tags, null);
+             dueDate, dueTime, repeatType, repeatInterval, null, repeatEndDate, null, tags, null);
     }
 }
