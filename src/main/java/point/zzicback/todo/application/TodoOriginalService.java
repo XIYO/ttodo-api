@@ -1,12 +1,14 @@
 package point.zzicback.todo.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.category.domain.Category;
 import point.zzicback.category.infrastructure.CategoryRepository;
 import point.zzicback.common.error.*;
+import point.zzicback.experience.application.event.TodoCompletedEvent;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
 import point.zzicback.todo.application.dto.command.*;
@@ -28,6 +30,7 @@ public class TodoOriginalService {
     private final CategoryRepository categoryRepository;
     private final MemberService memberService;
     private final TodoApplicationMapper todoApplicationMapper;
+    private final ApplicationEventPublisher eventPublisher;
     
     public TodoResult getTodo(TodoQuery query) {
         TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(query.todoId(), query.memberId())
@@ -81,6 +84,8 @@ public class TodoOriginalService {
         TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(command.todoId(), command.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
         
+        boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
+        
         Integer repeatType = command.repeatType() != null ? command.repeatType() : 0;
         
         todoOriginal.setTitle(command.title());
@@ -100,6 +105,15 @@ public class TodoOriginalService {
         } else if (repeatType > 0 && command.date() != null) {
             todoOriginal.setRepeatStartDate(command.date());
         }
+        
+        // 투두 완료 시 경험치 이벤트 발생
+        if (wasIncomplete && Boolean.TRUE.equals(todoOriginal.getComplete())) {
+            eventPublisher.publishEvent(new TodoCompletedEvent(
+                command.memberId(),
+                command.todoId(),
+                todoOriginal.getTitle()
+            ));
+        }
     }
     
     @Transactional
@@ -108,6 +122,8 @@ public class TodoOriginalService {
         
         TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(command.todoId(), command.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
+        
+        boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
         
         if (command.title() != null && !command.title().trim().isEmpty()) {
             todoOriginal.setTitle(command.title());
@@ -152,6 +168,15 @@ public class TodoOriginalService {
         
         if (command.repeatStartDate() != null) {
             todoOriginal.setRepeatStartDate(command.repeatStartDate());
+        }
+        
+        // 투두 완료 시 경험치 이벤트 발생
+        if (wasIncomplete && Boolean.TRUE.equals(todoOriginal.getComplete())) {
+            eventPublisher.publishEvent(new TodoCompletedEvent(
+                command.memberId(),
+                command.todoId(),
+                todoOriginal.getTitle()
+            ));
         }
     }
     

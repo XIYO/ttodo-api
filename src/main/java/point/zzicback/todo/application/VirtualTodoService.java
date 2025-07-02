@@ -1,12 +1,14 @@
 package point.zzicback.todo.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.category.domain.Category;
 import point.zzicback.category.infrastructure.CategoryRepository;
 import point.zzicback.common.error.*;
+import point.zzicback.experience.application.event.TodoCompletedEvent;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
 import point.zzicback.todo.application.dto.command.*;
@@ -33,6 +35,7 @@ public class VirtualTodoService {
     private final CategoryRepository categoryRepository;
     private final MemberService memberService;
     private final TodoApplicationMapper todoApplicationMapper;
+    private final ApplicationEventPublisher eventPublisher;
     
     public Page<TodoResult> getTodoList(TodoSearchQuery query) {
         Page<Todo> todoPage = todoRepository.findByMemberId(
@@ -90,6 +93,7 @@ public class VirtualTodoService {
         
         if (existingTodo.isPresent()) {
             Todo todo = existingTodo.get();
+            boolean wasIncomplete = !Boolean.TRUE.equals(todo.getComplete());
             
             if (command.title() != null && !command.title().trim().isEmpty()) {
                 todo.setTitle(command.title());
@@ -121,6 +125,16 @@ public class VirtualTodoService {
             }
             
             todoRepository.save(todo);
+            
+            // 투두 완료 시 경험치 이벤트 발생
+            if (wasIncomplete && Boolean.TRUE.equals(todo.getComplete())) {
+                eventPublisher.publishEvent(new TodoCompletedEvent(
+                    command.memberId(),
+                    originalTodoId,
+                    todo.getTitle()
+                ));
+            }
+            
             return todoApplicationMapper.toResult(todo);
         } else {
             // 새 Todo 생성
@@ -145,6 +159,16 @@ public class VirtualTodoService {
             }
             
             todoRepository.save(newTodo);
+            
+            // 새로 생성된 투두가 완료 상태인 경우 경험치 이벤트 발생
+            if (Boolean.TRUE.equals(newTodo.getComplete())) {
+                eventPublisher.publishEvent(new TodoCompletedEvent(
+                    command.memberId(),
+                    originalTodoId,
+                    newTodo.getTitle()
+                ));
+            }
+            
             return todoApplicationMapper.toResult(newTodo);
         }
     }
