@@ -112,8 +112,4 @@ public class TodoOriginal {
     public boolean isCompleted() {
         return complete != null && complete;
     }
-    
-    public Integer getStatusId() {
-        return complete != null && complete ? 1 : 0;
-    }
 }

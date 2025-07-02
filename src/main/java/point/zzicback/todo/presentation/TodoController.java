@@ -23,8 +23,6 @@ import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
 import java.util.List;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/todos")
 @RequiredArgsConstructor

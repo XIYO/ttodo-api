@@ -12,6 +12,7 @@ import point.zzicback.member.domain.Member;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.*;
+import point.zzicback.todo.application.mapper.TodoApplicationMapper;
 import point.zzicback.todo.domain.*;
 import point.zzicback.todo.infrastructure.persistence.*;
 import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
@@ -29,9 +30,9 @@ public class VirtualTodoService {
     
     private final TodoOriginalService todoOriginalService;
     private final TodoRepository todoRepository;
-    private final TodoOriginalRepository todoOriginalRepository;
     private final CategoryRepository categoryRepository;
     private final MemberService memberService;
+    private final TodoApplicationMapper todoApplicationMapper;
     
     public Page<TodoResult> getTodoList(TodoSearchQuery query) {
         Page<Todo> todoPage = todoRepository.findByMemberId(
@@ -120,7 +121,7 @@ public class VirtualTodoService {
             }
             
             todoRepository.save(todo);
-            return toTodoResult(todo);
+            return todoApplicationMapper.toResult(todo);
         } else {
             // 새 Todo 생성
             Todo newTodo = Todo.builder()
@@ -144,7 +145,7 @@ public class VirtualTodoService {
             }
             
             todoRepository.save(newTodo);
-            return toTodoResult(newTodo);
+            return todoApplicationMapper.toResult(newTodo);
         }
     }
     
@@ -171,7 +172,7 @@ public class VirtualTodoService {
     
     private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
         List<TodoResult> realTodos = todoPage.getContent().stream()
-                .map(this::toTodoResult)
+                .map(todoApplicationMapper::toResult)
                 .filter(todoResult -> matchesKeywordForTodoResult(todoResult, query.keyword())) // 🆕 키워드 필터링 추가
                 .toList();
         
@@ -241,7 +242,7 @@ public class VirtualTodoService {
                         ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
                     String virtualId = todoOriginal.getId() + ":" + daysDifference;
                     
-                    virtualTodos.add(createVirtualTodoResult(todoOriginal, virtualDate, virtualId));
+                    virtualTodos.add(todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, virtualDate));
                 }
             }
         }
@@ -276,11 +277,11 @@ public class VirtualTodoService {
                     long daysDifference = ChronoUnit.DAYS.between(
                         todoOriginal.getRepeatStartDate(), todoOriginal.getDate());
                     String virtualId = todoOriginal.getId() + ":" + daysDifference;
-                    originalTodos.add(createOriginalTodoResult(todoOriginal, virtualId));
+                    originalTodos.add(todoApplicationMapper.toOriginalResult(todoOriginal, virtualId, todoOriginal.getDate()));
                 } else {
                     // 일반 투두: 항상 :0
                     String virtualId = todoOriginal.getId() + ":0";
-                    originalTodos.add(createOriginalTodoResult(todoOriginal, virtualId));
+                    originalTodos.add(todoApplicationMapper.toOriginalResult(todoOriginal, virtualId, todoOriginal.getDate()));
                 }
             }
         }
@@ -356,68 +357,7 @@ public class VirtualTodoService {
             default -> date.plusDays(1);
         };
     }
-    
-    private TodoResult createVirtualTodoResult(TodoOriginal todoOriginal, LocalDate virtualDate, String virtualId) {
-        String priorityName = null;
-        if (todoOriginal.getPriorityId() != null) {
-            priorityName = switch (todoOriginal.getPriorityId()) {
-                case 0 -> "낮음";
-                case 1 -> "보통";
-                case 2 -> "높음";
-                default -> "알 수 없음";
-            };
-        }
-        
-        return new TodoResult(
-                virtualId,
-                todoOriginal.getTitle(),
-                todoOriginal.getDescription(),
-                false,
-                todoOriginal.getPriorityId(),
-                priorityName,
-                todoOriginal.getCategory() != null ? todoOriginal.getCategory().getId() : null,
-                todoOriginal.getCategory() != null ? todoOriginal.getCategory().getName() : null,
-                virtualDate,
-                todoOriginal.getTime(),
-                todoOriginal.getRepeatType(),
-                todoOriginal.getRepeatInterval(),
-                todoOriginal.getRepeatEndDate(),
-                todoOriginal.getDaysOfWeek(),
-                todoOriginal.getId(),
-                todoOriginal.getTags()
-        );
-    }
-    
-    private TodoResult toTodoResult(Todo todo) {
-        String priorityName = null;
-        if (todo.getPriorityId() != null) {
-            priorityName = switch (todo.getPriorityId()) {
-                case 0 -> "낮음";
-                case 1 -> "보통";
-                case 2 -> "높음";
-                default -> "알 수 없음";
-            };
-        }
-        
-        return new TodoResult(
-                todo.getVirtualId(),
-                todo.getTitle(),
-                todo.getDescription(),
-                todo.getComplete(),
-                todo.getPriorityId(),
-                priorityName,
-                todo.getCategory() != null ? todo.getCategory().getId() : null,
-                todo.getCategory() != null ? todo.getCategory().getName() : null,
-                todo.getDate(),
-                todo.getTime(),
-                null,
-                null,
-                null,
-                null,
-                todo.getOriginalTodoId(),
-                todo.getTags()
-        );
-    }
+
     
     private boolean matchesKeyword(TodoOriginal todoOriginal, String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -456,12 +396,8 @@ public class VirtualTodoService {
         if (startDate != null && dueDate.isBefore(startDate)) {
             return false;
         }
-        
-        if (endDate != null && dueDate.isAfter(endDate)) {
-            return false;
-        }
-        
-        return true;
+
+        return endDate == null || !dueDate.isAfter(endDate);
     }
     
     private boolean matchesCategoryFilter(TodoOriginal todoOriginal, List<Long> categoryIds) {
@@ -482,37 +418,6 @@ public class VirtualTodoService {
         }
         
         return priorityIds.contains(todoOriginal.getPriorityId());
-    }
-    
-    private TodoResult createOriginalTodoResult(TodoOriginal todoOriginal, String virtualId) {
-        String priorityName = null;
-        if (todoOriginal.getPriorityId() != null) {
-            priorityName = switch (todoOriginal.getPriorityId()) {
-                case 0 -> "낮음";
-                case 1 -> "보통";
-                case 2 -> "높음";
-                default -> "알 수 없음";
-            };
-        }
-        
-        return new TodoResult(
-                virtualId,
-                todoOriginal.getTitle(),
-                todoOriginal.getDescription(),
-                todoOriginal.isCompleted(),
-                todoOriginal.getPriorityId(),
-                priorityName,
-                todoOriginal.getCategory() != null ? todoOriginal.getCategory().getId() : null,
-                todoOriginal.getCategory() != null ? todoOriginal.getCategory().getName() : null,
-                todoOriginal.getDate(),
-                todoOriginal.getTime(),
-                todoOriginal.getRepeatType(),
-                todoOriginal.getRepeatInterval(),
-                todoOriginal.getRepeatEndDate(),
-                todoOriginal.getDaysOfWeek(),
-                todoOriginal.getId(),
-                todoOriginal.getTags()
-        );
     }
     
     private Comparator<TodoResult> getDefaultComparator() {

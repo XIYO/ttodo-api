@@ -41,12 +41,17 @@ public interface TodoPresentationMapper {
   UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID memberId, String virtualId);
 
   @Mapping(target = "memberId", source = "memberId")
+  @Mapping(target = "complete", source = "request.complete")
+  @Mapping(target = "categoryIds", source = "request.categoryIds")
+  @Mapping(target = "priorityIds", source = "request.priorityIds")
+  @Mapping(target = "tags", source = "request.tags")
+  @Mapping(target = "startDate", source = "request.startDate")
+  @Mapping(target = "endDate", source = "request.endDate")
+  @Mapping(target = "date", source = "request.date")
   @Mapping(target = "pageable", expression = "java(PageRequest.of(request.page(), request.size()))")
   TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
-  
-  CalendarTodoStatusResponse toCalendarResponse(CalendarTodoStatus status);
   
   default TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics) {
     List<TodoStatisticsResponse.StatisticsItem> content = List.of(

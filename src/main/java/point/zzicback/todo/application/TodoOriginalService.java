@@ -12,6 +12,7 @@ import point.zzicback.member.domain.Member;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.*;
+import point.zzicback.todo.application.mapper.TodoApplicationMapper;
 import point.zzicback.todo.domain.*;
 import point.zzicback.todo.infrastructure.persistence.*;
 
@@ -26,11 +27,12 @@ public class TodoOriginalService {
     private final TodoOriginalRepository todoOriginalRepository;
     private final CategoryRepository categoryRepository;
     private final MemberService memberService;
+    private final TodoApplicationMapper todoApplicationMapper;
     
     public TodoResult getTodo(TodoQuery query) {
         TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(query.todoId(), query.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.todoId()));
-        return toTodoResult(todoOriginal);
+        return todoApplicationMapper.toResult(todoOriginal);
     }
     
     @Transactional
@@ -166,43 +168,5 @@ public class TodoOriginalService {
     
     public Page<String> getTags(UUID memberId, List<Long> categoryIds, Pageable pageable) {
         return todoOriginalRepository.findDistinctTagsByMemberId(memberId, categoryIds, pageable);
-    }
-    
-    private TodoResult toTodoResult(TodoOriginal todoOriginal) {
-        // 반복이 없는 투두들도 가상 ID로 표시 (originalId:0 형태)
-        long daysDifference = 0;
-        String virtualId = todoOriginal.getId() + ":" + daysDifference;
-        
-        Integer statusId = todoOriginal.getStatusId();
-        String statusName = statusId == 1 ? "완료" : "진행중";
-        
-        String priorityName = null;
-        if (todoOriginal.getPriorityId() != null) {
-            priorityName = switch (todoOriginal.getPriorityId()) {
-                case 0 -> "낮음";
-                case 1 -> "보통";
-                case 2 -> "높음";
-                default -> "알 수 없음";
-            };
-        }
-        
-        return new TodoResult(
-                virtualId,
-                todoOriginal.getTitle(),
-                todoOriginal.getDescription(),
-                todoOriginal.isCompleted(),
-                todoOriginal.getPriorityId(),
-                priorityName,
-                todoOriginal.getCategory() != null ? todoOriginal.getCategory().getId() : null,
-                todoOriginal.getCategory() != null ? todoOriginal.getCategory().getName() : null,
-                todoOriginal.getDate(),
-                todoOriginal.getTime(),
-                todoOriginal.getRepeatType(),
-                todoOriginal.getRepeatInterval(),
-                todoOriginal.getRepeatEndDate(),
-                todoOriginal.getDaysOfWeek(),
-                todoOriginal.getId(),
-                todoOriginal.getTags()
-        );
     }
 }

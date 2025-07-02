@@ -83,18 +83,10 @@ public class Todo {
     return todoId != null ? todoId.getId() : null;
   }
   
-  public Long getDaysDifference() {
-    return todoId != null ? todoId.getSeq() : null;
-  }
-  
   public String getVirtualId() {
     return todoId != null ? todoId.getVirtualId() : null;
   }
 
-  public Integer getActualStatus() {
-    return complete != null && complete ? 1 : 0;
-  }
-  
   public boolean isCompleted() {
     return complete != null && complete;
   }
