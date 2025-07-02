@@ -13,13 +13,17 @@ import java.util.*;
 public interface TodoPresentationMapper {
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "priorityId", source = "request.priorityId")
+  @Mapping(target = "date", source = "request.date")
+  @Mapping(target = "time", source = "request.time")
   @Mapping(target = "tags", source = "request.tags")
   CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "todoId", source = "todoId")
-  @Mapping(target = "statusId", source = "request.statusId")
+  @Mapping(target = "complete", source = "request.complete")
   @Mapping(target = "priorityId", source = "request.priorityId")
+  @Mapping(target = "date", source = "request.date")
+  @Mapping(target = "time", source = "request.time")
   @Mapping(target = "tags", source = "request.tags")
   @Mapping(target = "originalTodoId", ignore = true)
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
@@ -28,11 +32,11 @@ public interface TodoPresentationMapper {
   @Mapping(target = "memberId", source = "memberId")
   @Mapping(target = "title", source = "request.title")
   @Mapping(target = "description", source = "request.description")
-  @Mapping(target = "statusId", source = "request.statusId")
+  @Mapping(target = "complete", source = "request.complete")
   @Mapping(target = "priorityId", source = "request.priorityId")
   @Mapping(target = "categoryId", source = "request.categoryId")
-  @Mapping(target = "dueDate", source = "request.dueDate")
-  @Mapping(target = "dueTime", source = "request.dueTime")
+  @Mapping(target = "date", source = "request.date")
+  @Mapping(target = "time", source = "request.time")
   @Mapping(target = "tags", source = "request.tags")
   UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID memberId, String virtualId);
 
@@ -47,7 +51,6 @@ public interface TodoPresentationMapper {
   default TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics) {
     List<TodoStatisticsResponse.StatisticsItem> content = List.of(
         new TodoStatisticsResponse.StatisticsItem("진행중", statistics.inProgress()),
-        new TodoStatisticsResponse.StatisticsItem("기간초과", statistics.overdue()),
         new TodoStatisticsResponse.StatisticsItem("완료", statistics.completed()),
         new TodoStatisticsResponse.StatisticsItem("전체", statistics.total())
     );

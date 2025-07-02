@@ -32,9 +32,9 @@ public class TodoOriginal {
     @Column(name = "priority")
     private Integer priorityId;
 
-    private LocalDate dueDate;
+    private LocalDate date;
 
-    private LocalTime dueTime;
+    private LocalTime time;
 
     @Column(name = "repeat_type", nullable = false)
     private Integer repeatType;
@@ -48,8 +48,8 @@ public class TodoOriginal {
     @Column(name = "repeat_end_date")
     private LocalDate repeatEndDate;
 
-    @Column(name = "status")
-    private Integer statusId;
+    @Column(name = "complete", nullable = false)
+    private Boolean complete = false;
 
     @CreatedDate
     @Column(updatable = false)
@@ -81,13 +81,13 @@ public class TodoOriginal {
             String title,
             String description,
             Integer priorityId,
-            LocalDate dueDate,
-            LocalTime dueTime,
+            LocalDate date,
+            LocalTime time,
             Integer repeatType,
             Integer repeatInterval,
             LocalDate repeatStartDate,
             LocalDate repeatEndDate,
-            Integer statusId,
+            Boolean complete,
             Set<Integer> daysOfWeek,
             Set<String> tags,
             Category category,
@@ -96,16 +96,24 @@ public class TodoOriginal {
         this.title = title;
         this.description = description;
         this.priorityId = priorityId;
-        this.dueDate = dueDate;
-        this.dueTime = dueTime;
+        this.date = date;
+        this.time = time;
         this.repeatType = repeatType;
         this.repeatInterval = repeatInterval;
         this.repeatStartDate = repeatStartDate;
         this.repeatEndDate = repeatEndDate;
-        this.statusId = statusId;
+        this.complete = complete != null ? complete : false;
         this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;
         this.member = member;
+    }
+    
+    public boolean isCompleted() {
+        return complete != null && complete;
+    }
+    
+    public Integer getStatusId() {
+        return complete != null && complete ? 1 : 0;
     }
 }

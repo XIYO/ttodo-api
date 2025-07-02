@@ -10,10 +10,10 @@ public record UpdateVirtualTodoCommand(
         UUID memberId,
         String title,
         String description,
-        Integer statusId,
+        Boolean complete,
         Integer priorityId,
         Long categoryId,
-        LocalDate dueDate,
-        LocalTime dueTime,
+        LocalDate date,
+        LocalTime time,
         Set<String> tags
 ) {}

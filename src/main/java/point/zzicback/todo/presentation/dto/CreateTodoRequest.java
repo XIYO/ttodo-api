@@ -1,5 +1,6 @@
 package point.zzicback.todo.presentation.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -33,12 +34,11 @@ public class CreateTodoRequest {
     private String description;
     
     @Schema(
-        description = "상태 (0: 진행중, 1: 완료)", 
-        example = "0", 
-        defaultValue = "0", 
-        allowableValues = {"0", "1"}
+        description = "완료 여부", 
+        example = "false", 
+        defaultValue = "false"
     )
-    private Integer statusId;
+    private Boolean complete;
     
     @Schema(
         description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", 
@@ -61,14 +61,14 @@ public class CreateTodoRequest {
         example = "2025-12-31",
         format = "date"
     )
-    private LocalDate dueDate;
+    private LocalDate date;
 
     @Schema(
         description = "마감 시간",
         example = "18:00",
         format = "time"
     )
-    private LocalTime dueTime;
+    private LocalTime time;
     @Schema(
         description = "반복 유형 (0: NONE , 1: DAILY, 2: WEEKLY, 3: MONTHLY, 4: YEARLY)", 
         example = "0", 

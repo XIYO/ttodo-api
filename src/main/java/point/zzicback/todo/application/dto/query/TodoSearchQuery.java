@@ -7,12 +7,11 @@ import java.util.*;
 
 public record TodoSearchQuery(
         UUID memberId,
-        List<Integer> statusIds,
+        Boolean complete,
         List<Long> categoryIds,
         List<Integer> priorityIds,
         List<String> tags,
         String keyword,
-        List<Integer> hideStatusIds,
         LocalDate startDate,
         LocalDate endDate,
         LocalDate date,
@@ -26,16 +25,15 @@ public record TodoSearchQuery(
     // 기존 테스트와의 호환성을 위한 생성자
     public TodoSearchQuery(
             UUID memberId,
-            List<Integer> statusIds,
+            Boolean complete,
             List<Long> categoryIds,
             List<Integer> priorityIds,
             List<String> tags,
             String keyword,
-            List<Integer> hideStatusIds,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable
     ) {
-        this(memberId, statusIds, categoryIds, priorityIds, tags, keyword, hideStatusIds, startDate, endDate, null, pageable);
+        this(memberId, complete, categoryIds, priorityIds, tags, keyword, startDate, endDate, null, pageable);
     }
 }

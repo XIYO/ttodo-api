@@ -24,15 +24,18 @@ public class Todo {
 
   private String title;
   private String description;
-  private Integer statusId;
+  
+  @Column(nullable = false)
+  private Boolean complete = false;
+  
   private Integer priorityId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
   private Category category;
 
-  private LocalDate dueDate;
-  private LocalTime dueTime;
+  private LocalDate date;
+  private LocalTime time;
 
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "todo_tags", joinColumns = {
@@ -57,21 +60,21 @@ public class Todo {
   public Todo(TodoId todoId,
               String title,
               String description,
-              Integer statusId,
+              Boolean complete,
               Integer priorityId,
               Category category,
-              LocalDate dueDate,
-              LocalTime dueTime,
+              LocalDate date,
+              LocalTime time,
               Set<String> tags,
               Member member) {
     this.todoId = todoId;
     this.title = title;
     this.description = description;
-    this.statusId = statusId;
+    this.complete = complete != null ? complete : false;
     this.priorityId = priorityId;
     this.category = category;
-    this.dueDate = dueDate;
-    this.dueTime = dueTime;
+    this.date = date;
+    this.time = time;
     this.tags = tags;
     this.member = member;
   }
@@ -89,19 +92,11 @@ public class Todo {
   }
 
   public Integer getActualStatus() {
-    if (statusId == null) return 0;
-    
-    if (statusId == 0 && dueDate != null) {
-      LocalDate now = LocalDate.now();
-      LocalTime currentTime = LocalTime.now();
-      
-      if (dueDate.isBefore(now) || 
-          (dueDate.equals(now) && dueTime != null && dueTime.isBefore(currentTime))) {
-        return 2;
-      }
-    }
-    
-    return statusId;
+    return complete != null && complete ? 1 : 0;
+  }
+  
+  public boolean isCompleted() {
+    return complete != null && complete;
   }
 }
 

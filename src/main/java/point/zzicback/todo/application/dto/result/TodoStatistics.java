@@ -7,13 +7,10 @@ public record TodoStatistics(
         @Schema(description = "전체 개수", example = "6")
         long total,
         
-        @Schema(description = "진행중 개수", example = "0")
+        @Schema(description = "진행중 개수", example = "4")
         long inProgress,
         
         @Schema(description = "완료 개수", example = "2")
-        long completed,
-        
-        @Schema(description = "지연 개수", example = "4")
-        long overdue
+        long completed
 ) {
 }

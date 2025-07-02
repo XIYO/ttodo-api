@@ -9,11 +9,11 @@ public record UpdateTodoCommand(
         Long todoId,
         String title,
         String description,
-        Integer statusId,
+        Boolean complete,
         Integer priorityId,
         Long categoryId,
-        LocalDate dueDate,
-        LocalTime dueTime,
+        LocalDate date,
+        LocalTime time,
         Integer repeatType,
         Integer repeatInterval,
         LocalDate repeatStartDate,
@@ -22,12 +22,27 @@ public record UpdateTodoCommand(
         Set<String> tags,
         Long originalTodoId
 ) {
-    // 기존 방식과의 호환성을 위한 생성자
     public UpdateTodoCommand(UUID memberId, Long todoId, String title, String description, 
-                           Integer statusId, Integer priorityId, Long categoryId, 
-                           LocalDate dueDate, LocalTime dueTime, Integer repeatType, 
+                           Boolean complete, Integer priorityId, Long categoryId, 
+                           LocalDate date, LocalTime time, Integer repeatType, 
                            Integer repeatInterval, LocalDate repeatEndDate, Set<String> tags) {
-        this(memberId, todoId, title, description, statusId, priorityId, categoryId, 
-             dueDate, dueTime, repeatType, repeatInterval, null, repeatEndDate, null, tags, null);
+        this(memberId, todoId, title, description, complete, priorityId, categoryId, 
+             date, time, repeatType, repeatInterval, null, repeatEndDate, null, tags, null);
+    }
+    
+    public void validateRepeatDates() {
+        if (repeatType != null && repeatType != 0) {
+            if (repeatStartDate != null && date != null && repeatStartDate.isBefore(date)) {
+                throw new IllegalArgumentException("반복 시작일은 기본 날짜보다 이전일 수 없습니다.");
+            }
+            
+            if (repeatEndDate != null && repeatStartDate != null && repeatEndDate.isBefore(repeatStartDate)) {
+                throw new IllegalArgumentException("반복 종료일은 반복 시작일보다 이전일 수 없습니다.");
+            }
+            
+            if (repeatEndDate != null && date != null && repeatEndDate.isBefore(date)) {
+                throw new IllegalArgumentException("반복 종료일은 기본 날짜보다 이전일 수 없습니다.");
+            }
+        }
     }
 }

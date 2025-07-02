@@ -1,7 +1,7 @@
 package point.zzicback.todo.presentation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -31,11 +31,10 @@ public class UpdateTodoRequest {
     private String description;
     
     @Schema(
-        description = "상태 (0: 진행중, 1: 완료)", 
-        example = "0", 
-        allowableValues = {"0", "1"}
+        description = "완료 여부", 
+        example = "false"
     )
-    private Integer statusId;
+    private Boolean complete;
     
     @Schema(
         description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", 
@@ -58,14 +57,14 @@ public class UpdateTodoRequest {
         example = "2026-01-01",
         format = "date"
     )
-    private LocalDate dueDate;
+    private LocalDate date;
 
     @Schema(
         description = "마감 시간",
         example = "18:00",
         format = "time"
     )
-    private LocalTime dueTime;
+    private LocalTime time;
     
     @Schema(
         description = "반복 유형 (0: 반복 안함, 1: 데일리, 2: 위클리, 3: 먼슬리, 4: 이얼리)", 

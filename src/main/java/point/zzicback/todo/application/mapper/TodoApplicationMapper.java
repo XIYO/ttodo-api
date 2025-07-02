@@ -10,12 +10,13 @@ import point.zzicback.todo.domain.TodoId;
 public interface TodoApplicationMapper {
 
     @Mapping(target = "id", expression = "java(todo.getVirtualId())")
-    @Mapping(target = "statusId", source = "statusId")
-    @Mapping(target = "statusName", ignore = true)
+    @Mapping(target = "complete", source = "complete")
     @Mapping(target = "priorityId", source = "priorityId")
     @Mapping(target = "priorityName", ignore = true)
     @Mapping(target = "categoryId", expression = "java(todo.getCategory() != null ? todo.getCategory().getId() : null)")
     @Mapping(target = "categoryName", expression = "java(todo.getCategory() != null ? todo.getCategory().getName() : null)")
+    @Mapping(target = "date", source = "date")
+    @Mapping(target = "time", source = "time")
     @Mapping(target = "repeatType", ignore = true)
     @Mapping(target = "repeatInterval", ignore = true)
     @Mapping(target = "repeatEndDate", ignore = true)
@@ -27,18 +28,22 @@ public interface TodoApplicationMapper {
     @Mapping(target = "title", source = "command.title")
     @Mapping(target = "description", source = "command.description")
     @Mapping(target = "priorityId", source = "command.priorityId")
-    @Mapping(target = "dueDate", source = "command.dueDate")
-    @Mapping(target = "dueTime", source = "command.dueTime")
+    @Mapping(target = "date", source = "command.date")
+    @Mapping(target = "time", source = "command.time")
     @Mapping(target = "tags", source = "command.tags")
     @Mapping(target = "member", ignore = true)
-    @Mapping(target = "statusId", constant = "1")
+    @Mapping(target = "complete", constant = "true")
     @Mapping(target = "category", ignore = true)
     Todo toEntity(CreateTodoCommand command, Long originalTodoId, Long daysDifference);
 
     @Mapping(target = "todoId", ignore = true)
     @Mapping(target = "member", ignore = true)
-    @Mapping(target = "statusId", source = "statusId")
+    @Mapping(target = "complete", source = "complete")
     @Mapping(target = "priorityId", source = "priorityId")
+    @Mapping(target = "date", source = "date")
+    @Mapping(target = "time", source = "time")
     @Mapping(target = "category", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(UpdateTodoCommand command, @MappingTarget Todo todo);
 }
