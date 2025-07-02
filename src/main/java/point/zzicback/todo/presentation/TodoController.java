@@ -17,6 +17,7 @@ import point.zzicback.todo.application.VirtualTodoService;
 import point.zzicback.todo.application.dto.command.DeleteRepeatTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
+import point.zzicback.todo.application.dto.query.VirtualTodoQuery;
 import point.zzicback.todo.application.dto.result.TodoStatistics;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
@@ -44,11 +45,20 @@ public class TodoController {
       return virtualTodoService.getTodoList(query).map(todoPresentationMapper::toResponse);
   }
 
-  @GetMapping("/{id:\\d+}")
+  @GetMapping("/{id:\\d+}:{daysDifference:\\d+}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "Todo 상세 조회", description = "특정 Todo의 상세 정보를 조회합니다.")
-  public TodoResponse getTodo(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
-    return todoPresentationMapper.toResponse(todoOriginalService.getTodo(TodoQuery.of(principal.id(), id)));
+  public TodoResponse getTodo(@AuthenticationPrincipal MemberPrincipal principal, 
+                             @PathVariable Long id, 
+                             @PathVariable Long daysDifference) {
+    if (daysDifference == 0) {
+      // 원본 TodoOriginal 조회 (82:0)
+      return todoPresentationMapper.toResponse(todoOriginalService.getTodo(TodoQuery.of(principal.id(), id)));
+    } else {
+      // 가상 Todo 조회 (82:1, 82:2, ...)
+      VirtualTodoQuery query = VirtualTodoQuery.of(principal.id(), id, daysDifference);
+      return todoPresentationMapper.toResponse(virtualTodoService.getVirtualTodo(query));
+    }
   }
 
   @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -59,63 +69,60 @@ public class TodoController {
     todoOriginalService.createTodo(todoPresentationMapper.toCommand(request, principal.id()));
   }
 
-  @PutMapping(value = "/{id:\\d+}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
+  @PutMapping(value = "/{id:\\d+}:{daysDifference:\\d+}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 수정", description = "Todo를 전체 수정합니다.")
   public void modify(@AuthenticationPrincipal MemberPrincipal principal,
                      @PathVariable Long id,
+                     @PathVariable Long daysDifference,
                      @Valid UpdateTodoRequest request) {
-    todoOriginalService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+    if (daysDifference == 0) {
+      // 원본 TodoOriginal 수정
+      todoOriginalService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+    } else {
+      // 가상 Todo 수정/생성
+      String virtualId = id + ":" + daysDifference;
+      virtualTodoService.updateOrCreateVirtualTodo(todoPresentationMapper.toVirtualCommand(request, principal.id(), virtualId));
+    }
   }
 
   @PatchMapping(
-      value = "/{id:\\d+}",
+      value = "/{id:\\d+}:{daysDifference:\\d+}",
       consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 부분 수정", description = "기존 Todo를 부분 수정합니다.")
   public void patchTodo(@AuthenticationPrincipal MemberPrincipal principal,
                         @PathVariable Long id,
+                        @PathVariable Long daysDifference,
                         @Valid UpdateTodoRequest request) {
-    todoOriginalService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+    if (daysDifference == 0) {
+      // 원본 TodoOriginal 부분 수정
+      todoOriginalService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+    } else {
+      // 가상 Todo 수정/생성
+      String virtualId = id + ":" + daysDifference;
+      virtualTodoService.updateOrCreateVirtualTodo(todoPresentationMapper.toVirtualCommand(request, principal.id(), virtualId));
+    }
   }
 
-  @PatchMapping(
-      value = "/{patternId:\\d+}:{daysDifference:\\d+}",
-      consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }
-  )
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "가상 Todo 수정/생성", description = "가상 ID로 Todo를 수정합니다. 없으면 새로 생성하고, 있으면 수정합니다.")
-  public void patchVirtualTodo(@AuthenticationPrincipal MemberPrincipal principal,
-                               @PathVariable Long patternId,
-                               @PathVariable Long daysDifference,
-                               @Valid UpdateTodoRequest request) {
-    String virtualId = patternId + ":" + daysDifference;
-    virtualTodoService.updateOrCreateVirtualTodo(todoPresentationMapper.toVirtualCommand(request, principal.id(), virtualId));
-  }
-
-  @DeleteMapping("/{patternId:\\d+}:{daysDifference:\\d+}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-      summary = "반복 Todo 삭제", 
-      description = "특정 날짜부터 반복을 중단합니다. 원본 Todo와 이미 완료된 Todo는 유지됩니다."
-  )
-  public void deleteRepeatTodo(@AuthenticationPrincipal MemberPrincipal principal,
-                               @PathVariable Long patternId,
-                               @PathVariable Long daysDifference) {
-    
-    virtualTodoService.deleteRepeatTodo(new DeleteRepeatTodoCommand(
-        principal.id(), 
-        patternId, 
-        daysDifference
-    ));
-  }
-
-  @DeleteMapping("/{id:\\d+}")
+  @DeleteMapping("/{id:\\d+}:{daysDifference:\\d+}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제합니다.")
-  public void remove(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
-    todoOriginalService.deleteTodo(TodoQuery.of(principal.id(), id));
+  public void remove(@AuthenticationPrincipal MemberPrincipal principal, 
+                     @PathVariable Long id, 
+                     @PathVariable Long daysDifference) {
+    if (daysDifference == 0) {
+      // 원본 TodoOriginal 삭제
+      todoOriginalService.deleteTodo(TodoQuery.of(principal.id(), id));
+    } else {
+      // 가상 Todo 반복 삭제
+      virtualTodoService.deleteRepeatTodo(new DeleteRepeatTodoCommand(
+          principal.id(), 
+          id, 
+          daysDifference
+      ));
+    }
   }
 
   @GetMapping("/calendar/monthly")

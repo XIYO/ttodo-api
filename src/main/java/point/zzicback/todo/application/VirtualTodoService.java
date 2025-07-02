@@ -51,6 +51,37 @@ public class VirtualTodoService {
         return getTodoListWithVirtualTodos(query, todoPage);
     }
     
+    public TodoResult getVirtualTodo(VirtualTodoQuery query) {
+        if (query.daysDifference() == 0) {
+            // 원본 TodoOriginal 조회 (82:0)
+            return todoOriginalService.getTodo(TodoQuery.of(query.memberId(), query.originalTodoId()));
+        } else {
+            // 가상 Todo 조회 (82:1, 82:2, ...)
+            // 먼저 실제 완료된 Todo가 있는지 확인
+            TodoId todoId = new TodoId(query.originalTodoId(), query.daysDifference());
+            Optional<Todo> completedTodo = todoRepository.findByTodoIdAndMemberId(todoId, query.memberId());
+            
+            if (completedTodo.isPresent()) {
+                // 완료된 실제 Todo 반환
+                return todoApplicationMapper.toResult(completedTodo.get());
+            } else {
+                // 가상 Todo 생성해서 반환
+                TodoOriginal todoOriginal = todoOriginalService.getTodoOriginals(query.memberId())
+                        .stream()
+                        .filter(to -> to.getId().equals(query.originalTodoId()))
+                        .findFirst()
+                        .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.originalTodoId()));
+                
+                LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
+                    todoOriginal.getRepeatStartDate().plusDays(query.daysDifference()) :
+                    todoOriginal.getDate().plusDays(query.daysDifference());
+                
+                String virtualId = query.originalTodoId() + ":" + query.daysDifference();
+                return todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, targetDate);
+            }
+        }
+    }
+    
     @Transactional
     public void deleteRepeatTodo(DeleteRepeatTodoCommand command) {
         List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
