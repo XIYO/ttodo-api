@@ -153,8 +153,8 @@ public class TodoOriginalService {
         todoOriginalRepository.delete(todoOriginal);
     }
     
-    public List<TodoOriginal> getActiveTodoOriginals(UUID memberId) {
-        return todoOriginalRepository.findByMemberIdAndIsActiveTrue(memberId);
+    public List<TodoOriginal> getTodoOriginals(UUID memberId) {
+        return todoOriginalRepository.findByMemberId(memberId);
     }
     
     public Page<String> getTags(UUID memberId, List<Long> categoryIds, Pageable pageable) {

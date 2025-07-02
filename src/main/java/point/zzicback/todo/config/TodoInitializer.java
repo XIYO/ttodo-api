@@ -31,7 +31,7 @@ public class TodoInitializer implements ApplicationRunner {
       return;
     }
     
-    if (!todoOriginalRepository.findByMemberIdAndIsActiveTrue(member.getId()).isEmpty()) {
+    if (!todoOriginalRepository.findByMemberId(member.getId()).isEmpty()) {
       log.debug("Member {} already has todos, skipping initialization", member.getNickname());
       return;
     }

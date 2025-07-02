@@ -14,11 +14,13 @@ import point.zzicback.todo.application.dto.query.*;
 import point.zzicback.todo.application.dto.result.*;
 import point.zzicback.todo.domain.*;
 import point.zzicback.todo.infrastructure.persistence.*;
+import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
 
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,54 +48,16 @@ public class VirtualTodoService {
     }
     
     @Transactional
-    public TodoResult completeVirtualTodo(CompleteVirtualTodoCommand command) {
-        List<TodoOriginal> todoOriginals = todoOriginalService.getActiveTodoOriginals(command.memberId());
-        TodoOriginal todoOriginal = todoOriginals.stream()
-                .filter(to -> to.getId().equals(command.originalTodoId()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
-        
-        LocalDate completionDate = todoOriginal.getDueDate().plusDays(command.daysDifference());
-        
-        // 복합키 생성
-        TodoId todoId = new TodoId(command.originalTodoId(), command.daysDifference());
-        
-        // 중복 완료 체크
-        if (todoRepository.existsByMemberIdAndDueDateAndOriginalTodoId(
-                command.memberId(), completionDate, command.originalTodoId())) {
-            throw new BusinessException("이미 완료된 투두입니다");
-        }
-        
-        Member member = memberService.findByIdOrThrow(command.memberId());
-        
-        // 새로운 완료된 투두 생성
-        Todo completedTodo = Todo.builder()
-                .todoId(todoId) // 복합키 설정 (82, 1)
-                .title(todoOriginal.getTitle())
-                .description(todoOriginal.getDescription())
-                .statusId(1)
-                .priorityId(todoOriginal.getPriorityId())
-                .category(todoOriginal.getCategory())
-                .dueDate(completionDate)
-                .dueTime(todoOriginal.getDueTime())
-                .tags(new HashSet<>(todoOriginal.getTags()))
-                .member(member)
-                .build();
-        
-        todoRepository.save(completedTodo);
-        
-        return toTodoResult(completedTodo);
-    }
-    
-    @Transactional
     public void deleteRepeatTodo(DeleteRepeatTodoCommand command) {
-        List<TodoOriginal> todoOriginals = todoOriginalService.getActiveTodoOriginals(command.memberId());
+        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
         TodoOriginal todoOriginal = todoOriginals.stream()
                 .filter(to -> to.getId().equals(command.originalTodoId()))
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
         
-        LocalDate stopDate = todoOriginal.getDueDate().plusDays(command.daysDifference());
+        LocalDate stopDate = todoOriginal.getRepeatStartDate() != null ? 
+            todoOriginal.getRepeatStartDate().plusDays(command.daysDifference()) :
+            todoOriginal.getDueDate().plusDays(command.daysDifference());
         LocalDate newEndDate = stopDate.minusDays(1);
         
         if (todoOriginal.getRepeatEndDate() != null && 
@@ -110,22 +74,21 @@ public class VirtualTodoService {
         Long originalTodoId = todoId.getId();
         Long daysDifference = todoId.getSeq();
         
-        // 원본 Todo 조회
-        List<TodoOriginal> todoOriginals = todoOriginalService.getActiveTodoOriginals(command.memberId());
+        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
         TodoOriginal todoOriginal = todoOriginals.stream()
                 .filter(to -> to.getId().equals(originalTodoId))
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", originalTodoId));
         
-        LocalDate targetDate = todoOriginal.getDueDate().plusDays(daysDifference);
+        LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
+            todoOriginal.getRepeatStartDate().plusDays(daysDifference) :
+            todoOriginal.getDueDate().plusDays(daysDifference);
         
-        // 기존 완료된 Todo가 있는지 확인
         Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberId(todoId, command.memberId());
         
         Member member = memberService.findByIdOrThrow(command.memberId());
         
         if (existingTodo.isPresent()) {
-            // 기존 Todo 업데이트
             Todo todo = existingTodo.get();
             
             if (command.title() != null && !command.title().trim().isEmpty()) {
@@ -186,9 +149,31 @@ public class VirtualTodoService {
         }
     }
     
+    public List<CalendarTodoStatusResponse> getMonthlyTodoStatus(UUID memberId, int year, int month) {
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+        
+        TodoSearchQuery query = new TodoSearchQuery(
+                memberId,
+                null, null, null, null, null, null,
+                startDate, endDate,
+                PageRequest.of(0, 1000)
+        );
+        
+        Set<LocalDate> datesWithTodos = getTodoList(query).getContent().stream()
+                .map(TodoResult::dueDate)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        
+        return startDate.datesUntil(endDate.plusDays(1))
+                .map(date -> new CalendarTodoStatusResponse(date, datesWithTodos.contains(date)))
+                .toList();
+    }
+    
     private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
         List<TodoResult> realTodos = todoPage.getContent().stream()
                 .map(this::toTodoResult)
+                .filter(todoResult -> matchesKeywordForTodoResult(todoResult, query.keyword())) // 🆕 키워드 필터링 추가
                 .toList();
         
         List<TodoResult> originalTodos = generateOriginalTodos(query);
@@ -227,7 +212,7 @@ public class VirtualTodoService {
         List<TodoResult> virtualTodos = new ArrayList<>();
         LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getActiveTodoOriginals(query.memberId())
+        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
                 .stream()
                 .filter(to -> to.getRepeatStartDate() != null) // repeat_start_date가 null이면 반복 사용 안함
                 .filter(to -> to.getRepeatEndDate() == null || 
@@ -240,6 +225,7 @@ public class VirtualTodoService {
                     todoOriginal, query.startDate(), query.endDate());
             
             LocalDate originalDueDate = todoOriginal.getDueDate();
+            LocalDate repeatStartDate = todoOriginal.getRepeatStartDate();
             
             for (LocalDate virtualDate : virtualDates) {
                 if (virtualDate.isBefore(baseDate)) {
@@ -255,8 +241,9 @@ public class VirtualTodoService {
                         query.memberId(), virtualDate, todoOriginal.getId());
                 
                 if (!alreadyCompleted) {
-                    long daysDifference = originalDueDate != null ? 
-                        ChronoUnit.DAYS.between(originalDueDate, virtualDate) : 0;
+                    // repeat_start_date 기준으로 daysDifference 계산
+                    long daysDifference = repeatStartDate != null ? 
+                        ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
                     String virtualId = todoOriginal.getId() + ":" + daysDifference;
                     
                     virtualTodos.add(createVirtualTodoResult(todoOriginal, virtualDate, virtualId));
@@ -279,7 +266,7 @@ public class VirtualTodoService {
         
         List<TodoResult> originalTodos = new ArrayList<>();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getActiveTodoOriginals(query.memberId())
+        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
                 .stream()
                 .filter(to -> matchesKeyword(to, query.keyword()))
                 .filter(to -> matchesDateRange(to, query.startDate(), query.endDate()))
@@ -293,8 +280,17 @@ public class VirtualTodoService {
                     query.memberId(), todoOriginal.getDueDate(), todoOriginal.getId());
             
             if (!alreadyCompleted) {
-                String virtualId = todoOriginal.getId() + ":0";
-                originalTodos.add(createOriginalTodoResult(todoOriginal, virtualId));
+                if (todoOriginal.getRepeatStartDate() != null) {
+                    // 반복 투두: repeat_start_date 기준으로 daysDifference 계산
+                    long daysDifference = ChronoUnit.DAYS.between(
+                        todoOriginal.getRepeatStartDate(), todoOriginal.getDueDate());
+                    String virtualId = todoOriginal.getId() + ":" + daysDifference;
+                    originalTodos.add(createOriginalTodoResult(todoOriginal, virtualId));
+                } else {
+                    // 일반 투두: 항상 :0
+                    String virtualId = todoOriginal.getId() + ":0";
+                    originalTodos.add(createOriginalTodoResult(todoOriginal, virtualId));
+                }
             }
         }
         
@@ -344,7 +340,9 @@ public class VirtualTodoService {
             for (Integer dayOfWeek : todoOriginal.getDaysOfWeek()) {
                 LocalDate dateForDay = currentWeek.plusDays(dayOfWeek);
                 
-                if (!dateForDay.isBefore(startDate) && !dateForDay.isAfter(endDate) &&
+                // due_date와 중복되지 않고, 조회 범위 안에 있으며, repeat_start_date 이후인 경우만 포함
+                if (!dateForDay.equals(todoOriginal.getDueDate()) && // 🆕 due_date와 다르고
+                    !dateForDay.isBefore(startDate) && !dateForDay.isAfter(endDate) &&
                     !dateForDay.isBefore(repeatStartDate) &&
                     (todoOriginal.getRepeatEndDate() == null || !dateForDay.isAfter(todoOriginal.getRepeatEndDate()))) {
                     dates.add(dateForDay);
@@ -449,6 +447,18 @@ public class VirtualTodoService {
         return (todoOriginal.getTitle() != null && todoOriginal.getTitle().toLowerCase().contains(lowerKeyword)) ||
                (todoOriginal.getDescription() != null && todoOriginal.getDescription().toLowerCase().contains(lowerKeyword)) ||
                (todoOriginal.getTags() != null && todoOriginal.getTags().stream()
+                       .anyMatch(tag -> tag.toLowerCase().contains(lowerKeyword)));
+    }
+    
+    private boolean matchesKeywordForTodoResult(TodoResult todoResult, String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return true;
+        }
+        
+        String lowerKeyword = keyword.toLowerCase();
+        return (todoResult.title() != null && todoResult.title().toLowerCase().contains(lowerKeyword)) ||
+               (todoResult.description() != null && todoResult.description().toLowerCase().contains(lowerKeyword)) ||
+               (todoResult.tags() != null && todoResult.tags().stream()
                        .anyMatch(tag -> tag.toLowerCase().contains(lowerKeyword)));
     }
     

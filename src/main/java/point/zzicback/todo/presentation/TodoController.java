@@ -1,6 +1,7 @@
 package point.zzicback.todo.presentation;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,12 @@ import point.zzicback.todo.application.dto.command.DeleteRepeatTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
 import point.zzicback.todo.presentation.dto.*;
+import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
+
+import java.util.List;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/todos")
@@ -110,5 +116,15 @@ public class TodoController {
   @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제합니다.")
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, @PathVariable Long id) {
     todoOriginalService.deleteTodo(TodoQuery.of(principal.id(), id));
+  }
+
+  @GetMapping("/calendar/monthly")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "월별 Todo 현황 조회", description = "캘린더에 표시할 월별 Todo 존재 여부를 조회합니다.")
+  public List<CalendarTodoStatusResponse> getMonthlyTodoStatus(
+          @AuthenticationPrincipal MemberPrincipal principal,
+          @RequestParam @Schema(description = "연도", example = "2025") int year,
+          @RequestParam @Schema(description = "월", example = "6") int month) {
+    return virtualTodoService.getMonthlyTodoStatus(principal.id(), year, month);
   }
 }

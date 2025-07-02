@@ -23,7 +23,6 @@ public interface TodoOriginalRepository extends JpaRepository<TodoOriginal, Long
         AND (:hideStatusIds IS NULL OR t.statusId NOT IN :hideStatusIds)
         AND (:startDate IS NULL OR t.dueDate IS NULL OR t.dueDate >= :startDate)
         AND (:endDate IS NULL OR t.dueDate IS NULL OR t.dueDate <= :endDate)
-        AND t.isActive = true
         ORDER BY
           CASE WHEN t.dueDate IS NULL AND t.dueTime IS NULL THEN 1 ELSE 0 END,
           CASE t.statusId
@@ -46,7 +45,7 @@ public interface TodoOriginalRepository extends JpaRepository<TodoOriginal, Long
                                    @Param("endDate") LocalDate endDate,
                                    Pageable pageable);
 
-    List<TodoOriginal> findByMemberIdAndIsActiveTrue(UUID memberId);
+    List<TodoOriginal> findByMemberId(UUID memberId);
     
     Optional<TodoOriginal> findByIdAndMemberId(Long todoOriginalId, UUID memberId);
     
@@ -56,8 +55,8 @@ public interface TodoOriginalRepository extends JpaRepository<TodoOriginal, Long
                                             @Param("categoryIds") List<Long> categoryIds,
                                             Pageable pageable);
     
-    @Query("SELECT t FROM TodoOriginal t WHERE t.member.id = :memberId AND t.isActive = true")
-    List<TodoOriginal> findAllActiveTodoOriginalsByMemberId(@Param("memberId") UUID memberId);
+    @Query("SELECT t FROM TodoOriginal t WHERE t.member.id = :memberId")
+    List<TodoOriginal> findAllTodoOriginalsByMemberId(@Param("memberId") UUID memberId);
     
     void deleteAllByMemberId(UUID memberId);
 }

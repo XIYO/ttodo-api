@@ -51,9 +51,6 @@ public class TodoOriginal {
     @Column(name = "status")
     private Integer statusId;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
-
     @CreatedDate
     @Column(updatable = false)
     private Instant createdAt;
@@ -91,7 +88,6 @@ public class TodoOriginal {
             LocalDate repeatStartDate,
             LocalDate repeatEndDate,
             Integer statusId,
-            Boolean isActive,
             Set<Integer> daysOfWeek,
             Set<String> tags,
             Category category,
@@ -107,7 +103,6 @@ public class TodoOriginal {
         this.repeatStartDate = repeatStartDate;
         this.repeatEndDate = repeatEndDate;
         this.statusId = statusId;
-        this.isActive = isActive != null ? isActive : true;
         this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;
