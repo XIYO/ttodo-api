@@ -1,13 +1,14 @@
 package point.zzicback.todo.presentation.mapper;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.data.domain.PageRequest;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
 import point.zzicback.todo.application.dto.result.*;
 import point.zzicback.todo.presentation.dto.*;
 
-import java.util.*;
+import java.util.UUID;
 
 @Mapper(componentModel = "spring", imports = {PageRequest.class})
 public interface TodoPresentationMapper {
@@ -52,14 +53,4 @@ public interface TodoPresentationMapper {
   TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
-  
-  default TodoStatisticsResponse toStatisticsResponse(TodoStatistics statistics) {
-    List<TodoStatisticsResponse.StatisticsItem> content = List.of(
-        new TodoStatisticsResponse.StatisticsItem("진행중", statistics.inProgress()),
-        new TodoStatisticsResponse.StatisticsItem("완료", statistics.completed()),
-        new TodoStatisticsResponse.StatisticsItem("전체", statistics.total())
-    );
-    
-    return new TodoStatisticsResponse(content);
-  }
 }

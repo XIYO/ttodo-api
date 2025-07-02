@@ -82,13 +82,5 @@ public class Todo {
   public Long getOriginalTodoId() {
     return todoId != null ? todoId.getId() : null;
   }
-  
-  public String getVirtualId() {
-    return todoId != null ? todoId.getVirtualId() : null;
-  }
-
-  public boolean isCompleted() {
-    return complete != null && complete;
-  }
 }
 
