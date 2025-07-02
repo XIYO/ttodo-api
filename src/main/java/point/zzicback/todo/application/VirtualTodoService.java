@@ -38,6 +38,7 @@ public class VirtualTodoService {
     private final ApplicationEventPublisher eventPublisher;
     
     public Page<TodoResult> getTodoList(TodoSearchQuery query) {
+        // 모든 실제 투두를 조회 (페이지네이션 없이)
         Page<Todo> todoPage = todoRepository.findByMemberId(
                 query.memberId(),
                 query.categoryIds(),
@@ -45,7 +46,7 @@ public class VirtualTodoService {
                 query.priorityIds(),
                 query.startDate(),
                 query.endDate(),
-                query.pageable());
+                Pageable.unpaged());
         
         return getTodoListWithVirtualTodos(query, todoPage);
     }
@@ -195,20 +196,43 @@ public class VirtualTodoService {
     }
     
     public TodoStatistics getTodoStatistics(UUID memberId, LocalDate targetDate) {
-        // 특정 날짜의 투두만 조회
+        // 실제 Todo (DB에 저장된) 조회
+        Page<Todo> realTodoPage = todoRepository.findByMemberId(
+                memberId,
+                null, // categoryIds
+                null, // complete - 모든 상태 조회
+                null, // priorityIds
+                targetDate, // startDate = 대상 날짜
+                targetDate, // endDate = 대상 날짜
+                Pageable.unpaged()
+        );
+        
+        // TodoSearchQuery로 가상 투두 포함 전체 조회
         TodoSearchQuery query = new TodoSearchQuery(
                 memberId,
                 null, // complete - 모든 상태 조회
-                null, null, null, null, null,
+                null, null, null, null, targetDate,
                 targetDate, // startDate = 대상 날짜
                 targetDate, // endDate = 대상 날짜
-                PageRequest.of(0, 1000)
+                Pageable.unpaged()
         );
         
-        Page<TodoResult> targetDateTodos = getTodoList(query);
+        List<TodoResult> allTodos = new ArrayList<>();
         
-        long total = targetDateTodos.getTotalElements();
-        long completed = targetDateTodos.getContent().stream()
+        // 실제 투두
+        List<TodoResult> realTodoResults = realTodoPage.getContent().stream()
+                .map(todoApplicationMapper::toResult)
+                .toList();
+        allTodos.addAll(realTodoResults);
+        
+        // 가상 투두 (반복 투두 + 원본 투두)
+        List<TodoResult> originalTodos = generateOriginalTodos(query);
+        List<TodoResult> virtualTodos = generateVirtualTodos(query);
+        allTodos.addAll(originalTodos);
+        allTodos.addAll(virtualTodos);
+        
+        long total = allTodos.size();
+        long completed = allTodos.stream()
                 .mapToLong(todo -> Boolean.TRUE.equals(todo.complete()) ? 1 : 0)
                 .sum();
         long inProgress = total - completed;
@@ -217,11 +241,9 @@ public class VirtualTodoService {
     }
     
     private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
+        // 실제 투두는 이미 DB에서 필터링되었으므로 추가 필터링 불필요
         List<TodoResult> realTodos = todoPage.getContent().stream()
                 .map(todoApplicationMapper::toResult)
-                .filter(todoResult -> matchesKeywordForTodoResult(todoResult, query.keyword()))
-                .filter(todoResult -> matchesCategoryFilterForTodoResult(todoResult, query.categoryIds()))
-                .filter(todoResult -> matchesPriorityFilterForTodoResult(todoResult, query.priorityIds()))
                 .toList();
         
         List<TodoResult> originalTodos = generateOriginalTodos(query);
@@ -248,7 +270,7 @@ public class VirtualTodoService {
             return new ArrayList<>();
         }
         
-        // complete가 true(완료)만 조회하는 경우, 진행중인 가상 투두는 제외
+        // 완료만 조회하는 경우에만 가상 투두 제외
         if (query.complete() != null && query.complete()) {
             return new ArrayList<>();
         }
@@ -299,7 +321,7 @@ public class VirtualTodoService {
     }
     
     private List<TodoResult> generateOriginalTodos(TodoSearchQuery query) {
-        // complete가 true(완료)만 조회하는 경우, 진행중인 원본 투두는 제외
+        // 완료만 조회하는 경우에만 원본 투두 제외 (이미 완료되어 실제 투두로 저장됨)
         if (query.complete() != null && query.complete()) {
             return new ArrayList<>();
         }
