@@ -17,10 +17,12 @@ import point.zzicback.todo.application.VirtualTodoService;
 import point.zzicback.todo.application.dto.command.DeleteRepeatTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
+import point.zzicback.todo.application.dto.result.TodoStatistics;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -124,5 +126,15 @@ public class TodoController {
           @RequestParam @Schema(description = "연도", example = "2025") int year,
           @RequestParam @Schema(description = "월", example = "6") int month) {
     return virtualTodoService.getMonthlyTodoStatus(principal.id(), year, month);
+  }
+
+  @GetMapping("/statistics")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "Todo 통계 조회", description = "특정 날짜의 Todo 진행중/완료 갯수를 조회합니다. 날짜를 지정하지 않으면 오늘 기준으로 조회합니다.")
+  public TodoStatistics getTodoStatistics(
+          @AuthenticationPrincipal MemberPrincipal principal,
+          @RequestParam(required = false) @Schema(description = "조회할 날짜 (YYYY-MM-DD)", example = "2025-07-02") LocalDate date) {
+    LocalDate targetDate = date != null ? date : LocalDate.now();
+    return virtualTodoService.getTodoStatistics(principal.id(), targetDate);
   }
 }

@@ -194,10 +194,34 @@ public class VirtualTodoService {
                 .toList();
     }
     
+    public TodoStatistics getTodoStatistics(UUID memberId, LocalDate targetDate) {
+        // 특정 날짜의 투두만 조회
+        TodoSearchQuery query = new TodoSearchQuery(
+                memberId,
+                null, // complete - 모든 상태 조회
+                null, null, null, null, null,
+                targetDate, // startDate = 대상 날짜
+                targetDate, // endDate = 대상 날짜
+                PageRequest.of(0, 1000)
+        );
+        
+        Page<TodoResult> targetDateTodos = getTodoList(query);
+        
+        long total = targetDateTodos.getTotalElements();
+        long completed = targetDateTodos.getContent().stream()
+                .mapToLong(todo -> Boolean.TRUE.equals(todo.complete()) ? 1 : 0)
+                .sum();
+        long inProgress = total - completed;
+        
+        return new TodoStatistics(total, inProgress, completed);
+    }
+    
     private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
         List<TodoResult> realTodos = todoPage.getContent().stream()
                 .map(todoApplicationMapper::toResult)
-                .filter(todoResult -> matchesKeywordForTodoResult(todoResult, query.keyword())) // 🆕 키워드 필터링 추가
+                .filter(todoResult -> matchesKeywordForTodoResult(todoResult, query.keyword()))
+                .filter(todoResult -> matchesCategoryFilterForTodoResult(todoResult, query.categoryIds()))
+                .filter(todoResult -> matchesPriorityFilterForTodoResult(todoResult, query.priorityIds()))
                 .toList();
         
         List<TodoResult> originalTodos = generateOriginalTodos(query);
@@ -407,6 +431,26 @@ public class VirtualTodoService {
                        .anyMatch(tag -> tag.toLowerCase().contains(lowerKeyword)));
     }
     
+    private boolean matchesCategoryFilterForTodoResult(TodoResult todoResult, List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return true;
+        }
+        
+        if (todoResult.categoryId() == null) {
+            return categoryIds.contains(null);
+        }
+        
+        return categoryIds.contains(todoResult.categoryId());
+    }
+    
+    private boolean matchesPriorityFilterForTodoResult(TodoResult todoResult, List<Integer> priorityIds) {
+        if (priorityIds == null || priorityIds.isEmpty()) {
+            return true;
+        }
+        
+        return priorityIds.contains(todoResult.priorityId());
+    }
+    
     private boolean matchesDateRange(TodoOriginal todoOriginal, LocalDate startDate, LocalDate endDate) {
         if (startDate == null && endDate == null) {
             return true;
@@ -447,14 +491,9 @@ public class VirtualTodoService {
     private Comparator<TodoResult> getDefaultComparator() {
         return Comparator
                 .comparing((TodoResult t) -> t.date() == null && t.time() == null && t.repeatType() == null)
-                .thenComparing((TodoResult t) -> getStatusPriority(t.complete()))
+                .thenComparing((TodoResult t) -> t.complete() != null ? t.complete() : false)
                 .thenComparing((TodoResult t) -> t.date() != null ? t.date() : LocalDate.MAX)
                 .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
                 .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0]));
-    }
-    
-    private int getStatusPriority(Boolean complete) {
-        if (complete == null) return 4;
-        return complete ? 2 : 1; // 진행중(false)이 우선, 완료(true)가 나중
     }
 }
