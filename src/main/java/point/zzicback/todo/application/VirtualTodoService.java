@@ -216,14 +216,12 @@ public class VirtualTodoService {
                 targetDate, // endDate = 대상 날짜
                 Pageable.unpaged()
         );
-        
-        List<TodoResult> allTodos = new ArrayList<>();
-        
+
         // 실제 투두
         List<TodoResult> realTodoResults = realTodoPage.getContent().stream()
                 .map(todoApplicationMapper::toResult)
                 .toList();
-        allTodos.addAll(realTodoResults);
+        List<TodoResult> allTodos = new ArrayList<>(realTodoResults);
         
         // 가상 투두 (반복 투두 + 원본 투두)
         List<TodoResult> originalTodos = generateOriginalTodos(query);
@@ -439,38 +437,6 @@ public class VirtualTodoService {
                (todoOriginal.getDescription() != null && todoOriginal.getDescription().toLowerCase().contains(lowerKeyword)) ||
                (todoOriginal.getTags() != null && todoOriginal.getTags().stream()
                        .anyMatch(tag -> tag.toLowerCase().contains(lowerKeyword)));
-    }
-    
-    private boolean matchesKeywordForTodoResult(TodoResult todoResult, String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return true;
-        }
-        
-        String lowerKeyword = keyword.toLowerCase();
-        return (todoResult.title() != null && todoResult.title().toLowerCase().contains(lowerKeyword)) ||
-               (todoResult.description() != null && todoResult.description().toLowerCase().contains(lowerKeyword)) ||
-               (todoResult.tags() != null && todoResult.tags().stream()
-                       .anyMatch(tag -> tag.toLowerCase().contains(lowerKeyword)));
-    }
-    
-    private boolean matchesCategoryFilterForTodoResult(TodoResult todoResult, List<Long> categoryIds) {
-        if (categoryIds == null || categoryIds.isEmpty()) {
-            return true;
-        }
-        
-        if (todoResult.categoryId() == null) {
-            return categoryIds.contains(null);
-        }
-        
-        return categoryIds.contains(todoResult.categoryId());
-    }
-    
-    private boolean matchesPriorityFilterForTodoResult(TodoResult todoResult, List<Integer> priorityIds) {
-        if (priorityIds == null || priorityIds.isEmpty()) {
-            return true;
-        }
-        
-        return priorityIds.contains(todoResult.priorityId());
     }
     
     private boolean matchesDateRange(TodoOriginal todoOriginal, LocalDate startDate, LocalDate endDate) {
