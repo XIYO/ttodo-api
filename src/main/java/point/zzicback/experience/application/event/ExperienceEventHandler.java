@@ -29,6 +29,11 @@ public class ExperienceEventHandler {
     }
 
     @EventListener
+    public void handleTodoUncompleted(TodoUncompletedEvent event) {
+        experienceService.subtractExperience(event.memberId(), 10);
+    }
+
+    @EventListener
     public void handleChallengeTodoCompleted(ChallengeTodoCompletedEvent event) {
         experienceService.addExperience(event.memberId(), 20);
     }

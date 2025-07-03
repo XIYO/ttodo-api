@@ -53,4 +53,20 @@ public interface TodoPresentationMapper {
   TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
 
   point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
+
+  default boolean isOnlyCompleteFieldUpdate(UpdateTodoRequest request) {
+    return request.getComplete() != null &&
+           (request.getTitle() == null || request.getTitle().trim().isEmpty()) &&
+           (request.getDescription() == null || request.getDescription().trim().isEmpty()) &&
+           request.getPriorityId() == null &&
+           request.getCategoryId() == null &&
+           request.getDate() == null &&
+           request.getTime() == null &&
+           request.getRepeatType() == null &&
+           request.getRepeatInterval() == null &&
+           request.getRepeatStartDate() == null &&
+           request.getRepeatEndDate() == null &&
+           (request.getDaysOfWeek() == null || request.getDaysOfWeek().isEmpty()) &&
+           (request.getTags() == null || request.getTags().isEmpty());
+  }
 }

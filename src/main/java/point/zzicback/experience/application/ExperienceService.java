@@ -27,6 +27,15 @@ public class ExperienceService {
         exp.addExperience(amount);
     }
 
+    public void subtractExperience(UUID memberId, int amount) {
+        MemberExperience exp = repository.findByMemberId(memberId)
+                .orElseGet(() -> repository.save(MemberExperience.builder()
+                        .memberId(memberId)
+                        .experience(0)
+                        .build()));
+        exp.subtractExperience(amount);
+    }
+
     @Transactional(readOnly = true)
     public int getExperience(UUID memberId) {
         return repository.findByMemberId(memberId)

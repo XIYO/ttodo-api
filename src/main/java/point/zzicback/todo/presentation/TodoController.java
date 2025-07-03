@@ -19,6 +19,7 @@ import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
 import point.zzicback.todo.application.dto.query.VirtualTodoQuery;
 import point.zzicback.todo.application.dto.result.TodoStatistics;
+import point.zzicback.todo.domain.TodoId;
 import point.zzicback.todo.presentation.dto.*;
 import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
@@ -96,13 +97,21 @@ public class TodoController {
                         @PathVariable Long id,
                         @PathVariable Long daysDifference,
                         @Valid UpdateTodoRequest request) {
-    if (daysDifference == 0) {
-      // 원본 TodoOriginal 부분 수정
-      todoOriginalService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
-    } else {
-      // 가상 Todo 수정/생성
+    // 완료 상태만 수정하는 경우
+    if (todoPresentationMapper.isOnlyCompleteFieldUpdate(request)) {
       String virtualId = id + ":" + daysDifference;
       virtualTodoService.updateOrCreateVirtualTodo(todoPresentationMapper.toVirtualCommand(request, principal.id(), virtualId));
+    } else {
+      // 다른 필드 수정하는 경우 - Todo 테이블에 데이터가 있는지 먼저 확인
+      TodoId todoId = new TodoId(id, daysDifference);
+      if (virtualTodoService.existsVirtualTodo(principal.id(), todoId)) {
+        // Todo 테이블에 데이터가 있으면 가상 Todo 수정
+        String virtualId = id + ":" + daysDifference;
+        virtualTodoService.updateOrCreateVirtualTodo(todoPresentationMapper.toVirtualCommand(request, principal.id(), virtualId));
+      } else {
+        // Todo 테이블에 데이터가 없으면 원본 TodoOriginal 수정
+        todoOriginalService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+      }
     }
   }
 

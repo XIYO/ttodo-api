@@ -9,6 +9,7 @@ import point.zzicback.category.domain.Category;
 import point.zzicback.category.infrastructure.CategoryRepository;
 import point.zzicback.common.error.*;
 import point.zzicback.experience.application.event.TodoCompletedEvent;
+import point.zzicback.experience.application.event.TodoUncompletedEvent;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
 import point.zzicback.todo.application.dto.command.*;
@@ -36,6 +37,10 @@ public class VirtualTodoService {
     private final MemberService memberService;
     private final TodoApplicationMapper todoApplicationMapper;
     private final ApplicationEventPublisher eventPublisher;
+    
+    public boolean existsVirtualTodo(UUID memberId, TodoId todoId) {
+        return todoRepository.findByTodoIdAndMemberId(todoId, memberId).isPresent();
+    }
     
     public Page<TodoResult> getTodoList(TodoSearchQuery query) {
         // 모든 실제 투두를 조회 (페이지네이션 없이)
@@ -126,6 +131,7 @@ public class VirtualTodoService {
         if (existingTodo.isPresent()) {
             Todo todo = existingTodo.get();
             boolean wasIncomplete = !Boolean.TRUE.equals(todo.getComplete());
+            boolean wasComplete = Boolean.TRUE.equals(todo.getComplete());
             
             if (command.title() != null && !command.title().trim().isEmpty()) {
                 todo.setTitle(command.title());
@@ -167,6 +173,15 @@ public class VirtualTodoService {
                 ));
             }
             
+            // 투두 완료 취소 시 경험치 차감 이벤트 발생
+            if (wasComplete && Boolean.FALSE.equals(todo.getComplete())) {
+                eventPublisher.publishEvent(new TodoUncompletedEvent(
+                    command.memberId(),
+                    originalTodoId,
+                    todo.getTitle()
+                ));
+            }
+            
             return todoApplicationMapper.toResult(todo);
         } else {
             // 새 Todo 생성
@@ -174,7 +189,7 @@ public class VirtualTodoService {
                     .todoId(todoId)
                     .title(command.title() != null && !command.title().trim().isEmpty() ? command.title() : todoOriginal.getTitle())
                     .description(command.description() != null && !command.description().trim().isEmpty() ? command.description() : todoOriginal.getDescription())
-                    .complete(command.complete() != null ? command.complete() : true) // 기본값은 완료
+                    .complete(command.complete() != null ? command.complete() : false)
                     .priorityId(command.priorityId() != null ? command.priorityId() : todoOriginal.getPriorityId())
                     .category(todoOriginal.getCategory())
                     .date(command.date() != null ? command.date() : targetDate)

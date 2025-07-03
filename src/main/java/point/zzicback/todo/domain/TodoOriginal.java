@@ -48,8 +48,8 @@ public class TodoOriginal {
     @Column(name = "repeat_end_date")
     private LocalDate repeatEndDate;
 
-    @Column(name = "complete", nullable = false)
-    private Boolean complete = false;
+    @Column(name = "complete")
+    private Boolean complete;
 
     @CreatedDate
     @Column(updatable = false)
@@ -102,7 +102,7 @@ public class TodoOriginal {
         this.repeatInterval = repeatInterval;
         this.repeatStartDate = repeatStartDate;
         this.repeatEndDate = repeatEndDate;
-        this.complete = complete != null ? complete : false;
+        this.complete = complete;
         this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;

@@ -9,6 +9,7 @@ import point.zzicback.category.domain.Category;
 import point.zzicback.category.infrastructure.CategoryRepository;
 import point.zzicback.common.error.*;
 import point.zzicback.experience.application.event.TodoCompletedEvent;
+import point.zzicback.experience.application.event.TodoUncompletedEvent;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
 import point.zzicback.todo.application.dto.command.*;
@@ -67,7 +68,7 @@ public class TodoOriginalService {
                 .repeatInterval(command.repeatInterval())
                 .repeatStartDate(repeatStartDate)
                 .repeatEndDate(command.repeatEndDate())
-                .complete(command.complete() != null ? command.complete() : false)
+                .complete(command.complete())
                 .daysOfWeek(command.daysOfWeek())
                 .tags(command.tags())
                 .category(category)
@@ -85,6 +86,7 @@ public class TodoOriginalService {
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
         
         boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
+        boolean wasComplete = Boolean.TRUE.equals(todoOriginal.getComplete());
         
         Integer repeatType = command.repeatType() != null ? command.repeatType() : 0;
         
@@ -98,7 +100,7 @@ public class TodoOriginalService {
         todoOriginal.setRepeatEndDate(command.repeatEndDate());
         todoOriginal.setDaysOfWeek(command.daysOfWeek());
         todoOriginal.setTags(command.tags());
-        todoOriginal.setComplete(command.complete() != null ? command.complete() : false);
+        todoOriginal.setComplete(command.complete());
         
         if (command.repeatStartDate() != null) {
             todoOriginal.setRepeatStartDate(command.repeatStartDate());
@@ -114,6 +116,15 @@ public class TodoOriginalService {
                 todoOriginal.getTitle()
             ));
         }
+        
+        // 투두 완료 취소 시 경험치 차감 이벤트 발생
+        if (wasComplete && Boolean.FALSE.equals(todoOriginal.getComplete())) {
+            eventPublisher.publishEvent(new TodoUncompletedEvent(
+                command.memberId(),
+                command.todoId(),
+                todoOriginal.getTitle()
+            ));
+        }
     }
     
     @Transactional
@@ -124,6 +135,7 @@ public class TodoOriginalService {
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
         
         boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
+        boolean wasComplete = Boolean.TRUE.equals(todoOriginal.getComplete());
         
         if (command.title() != null && !command.title().trim().isEmpty()) {
             todoOriginal.setTitle(command.title());
@@ -173,6 +185,15 @@ public class TodoOriginalService {
         // 투두 완료 시 경험치 이벤트 발생
         if (wasIncomplete && Boolean.TRUE.equals(todoOriginal.getComplete())) {
             eventPublisher.publishEvent(new TodoCompletedEvent(
+                command.memberId(),
+                command.todoId(),
+                todoOriginal.getTitle()
+            ));
+        }
+        
+        // 투두 완료 취소 시 경험치 차감 이벤트 발생
+        if (wasComplete && Boolean.FALSE.equals(todoOriginal.getComplete())) {
+            eventPublisher.publishEvent(new TodoUncompletedEvent(
                 command.memberId(),
                 command.todoId(),
                 todoOriginal.getTitle()

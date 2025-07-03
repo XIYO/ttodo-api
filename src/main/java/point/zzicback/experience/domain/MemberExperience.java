@@ -29,4 +29,8 @@ public class MemberExperience {
     public void addExperience(int amount) {
         this.experience += amount;
     }
+
+    public void subtractExperience(int amount) {
+        this.experience = Math.max(0, this.experience - amount);
+    }
 }

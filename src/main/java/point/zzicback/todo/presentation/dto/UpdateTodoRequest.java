@@ -3,6 +3,7 @@ package point.zzicback.todo.presentation.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import point.zzicback.todo.presentation.validation.ValidCompleteUpdate;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -11,6 +12,7 @@ import java.util.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidCompleteUpdate
 @Schema(description = "Todo 수정 요청 DTO")
 public class UpdateTodoRequest {
 
