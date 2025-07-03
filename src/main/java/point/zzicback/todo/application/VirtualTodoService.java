@@ -2,29 +2,38 @@ package point.zzicback.todo.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.category.domain.Category;
 import point.zzicback.category.infrastructure.CategoryRepository;
-import point.zzicback.common.error.*;
+import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.experience.application.event.TodoCompletedEvent;
 import point.zzicback.experience.application.event.TodoUncompletedEvent;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
-import point.zzicback.todo.application.dto.command.*;
-import point.zzicback.todo.application.dto.query.*;
-import point.zzicback.todo.application.dto.result.*;
+import point.zzicback.todo.application.dto.command.DeleteTodoCommand;
+import point.zzicback.todo.application.dto.command.UpdateVirtualTodoCommand;
+import point.zzicback.todo.application.dto.query.TodoQuery;
+import point.zzicback.todo.application.dto.query.TodoSearchQuery;
+import point.zzicback.todo.application.dto.query.VirtualTodoQuery;
+import point.zzicback.todo.application.dto.result.TodoResult;
+import point.zzicback.todo.application.dto.result.TodoStatistics;
 import point.zzicback.todo.application.mapper.TodoApplicationMapper;
-import point.zzicback.todo.domain.*;
-import point.zzicback.todo.infrastructure.persistence.*;
+import point.zzicback.todo.domain.RepeatTypeConstants;
+import point.zzicback.todo.domain.Todo;
+import point.zzicback.todo.domain.TodoId;
+import point.zzicback.todo.domain.TodoOriginal;
+import point.zzicback.todo.infrastructure.persistence.TodoRepository;
 import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
 
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -255,19 +264,43 @@ public class VirtualTodoService {
     public List<CalendarTodoStatusResponse> getMonthlyTodoStatus(UUID memberId, int year, int month) {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
-        
-        TodoSearchQuery query = new TodoSearchQuery(
-                memberId,
-                null, null, null, null, null, null,
-                startDate, endDate,
-                PageRequest.of(0, 1000)
+
+        Set<LocalDate> datesWithTodos = new HashSet<>();
+
+        // 실제 투두(active=true, complete=false 포함) 날짜
+        Page<Todo> realTodos = todoRepository.findByMemberId(
+                memberId, null, null, null, startDate, endDate, Pageable.unpaged()
         );
-        
-        Set<LocalDate> datesWithTodos = getTodoList(query).getContent().stream()
-                .map(TodoResult::date)
+        realTodos.getContent().stream()
+                .filter(todo -> Boolean.TRUE.equals(todo.getActive()))
+                .map(Todo::getDate)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        
+                .forEach(datesWithTodos::add);
+
+        // 원본/반복 투두에서 해당 월의 날짜 생성
+        List<TodoOriginal> originals = todoOriginalService.getTodoOriginals(memberId);
+        for (TodoOriginal original : originals) {
+            if (!Boolean.TRUE.equals(original.getActive())) continue;
+            if (original.getDate() != null && !original.getDate().isBefore(startDate) && !original.getDate().isAfter(endDate)) {
+                // 실제 투두가 없거나 삭제/비활성화가 아닌 경우만
+                TodoId todoId = new TodoId(original.getId(), 0L);
+                Optional<Todo> exist = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, memberId);
+                if (exist.isEmpty() || Boolean.TRUE.equals(exist.get().getActive())) {
+                    datesWithTodos.add(original.getDate());
+                }
+            }
+            // 반복 투두
+            List<LocalDate> repeatDates = generateVirtualDates(original, startDate, endDate);
+            for (LocalDate date : repeatDates) {
+                long daysDiff = ChronoUnit.DAYS.between(original.getRepeatStartDate(), date);
+                TodoId todoId = new TodoId(original.getId(), daysDiff);
+                Optional<Todo> exist = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, memberId);
+                if (exist.isEmpty() || Boolean.TRUE.equals(exist.get().getActive())) {
+                    datesWithTodos.add(date);
+                }
+            }
+        }
+
         return startDate.datesUntil(endDate.plusDays(1))
                 .map(date -> new CalendarTodoStatusResponse(date, datesWithTodos.contains(date)))
                 .toList();
