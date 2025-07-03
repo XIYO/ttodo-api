@@ -25,7 +25,7 @@ public class ExperienceController {
     @Operation(summary = "내 레벨/경험치 조회", description = "내 레벨과 경험치를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "레벨/경험치 조회 성공")
     @GetMapping("/me/experience")
-    public MemberLevelResponse getMyLevel(@AuthenticationPrincipal(expression = "id") UUID memberId) {
+    public MemberLevelResponse getMyLevel(@AuthenticationPrincipal UUID memberId) {
         var result = experienceService.getMemberLevel(memberId);
         return mapper.toResponse(result);
     }
