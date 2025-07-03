@@ -92,28 +92,7 @@ public class VirtualTodoService {
             return todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, targetDate);
         }
     }
-    
-    @Transactional
-    public void deleteRepeatTodo(DeleteRepeatTodoCommand command) {
-        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
-        TodoOriginal todoOriginal = todoOriginals.stream()
-                .filter(to -> to.getId().equals(command.originalTodoId()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
-        
-        LocalDate stopDate = todoOriginal.getRepeatStartDate() != null ? 
-            todoOriginal.getRepeatStartDate().plusDays(command.daysDifference()) :
-            todoOriginal.getDate().plusDays(command.daysDifference());
-        LocalDate newEndDate = stopDate.minusDays(1);
-        
-        if (todoOriginal.getRepeatEndDate() != null && 
-            todoOriginal.getRepeatEndDate().isBefore(newEndDate)) {
-            return;
-        }
-        
-        todoOriginal.setRepeatEndDate(newEndDate);
-    }
-    
+
     @Transactional
     public void deactivateVirtualTodo(DeleteTodoCommand command) {
         TodoId todoId = new TodoId(command.originalTodoId(), command.daysDifference());
@@ -410,7 +389,7 @@ public class VirtualTodoService {
                     continue;
                 }
 
-                if (!existingTodo.isPresent() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
+                if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
                     long daysDifference = repeatStartDate != null ?
                             ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
                     String virtualId = todoOriginal.getId() + ":" + daysDifference;
@@ -447,7 +426,7 @@ public class VirtualTodoService {
                 continue;
             }
 
-            if (!existingTodo.isPresent() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
+            if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
                 if (todoOriginal.getRepeatStartDate() != null) {
                     long daysDifference = ChronoUnit.DAYS.between(
                             todoOriginal.getRepeatStartDate(), todoOriginal.getDate());

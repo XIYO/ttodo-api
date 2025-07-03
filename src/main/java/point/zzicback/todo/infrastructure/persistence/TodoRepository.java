@@ -42,21 +42,4 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId> {
     @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.member.id = :memberId")
     Optional<Todo> findByTodoIdAndMemberIdIgnoreActive(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);
 
-    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t " +
-           "WHERE t.member.id = :memberId AND t.date = :dueDate AND t.todoId.id = :originalTodoId AND t.active = true")
-    boolean existsByMemberIdAndDueDateAndOriginalTodoId(@Param("memberId") UUID memberId, 
-                                                       @Param("dueDate") LocalDate dueDate,
-                                                       @Param("originalTodoId") Long originalTodoId);
-
-    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t " +
-           "WHERE t.member.id = :memberId AND t.date = :dueDate AND t.todoId.id = :originalTodoId")
-    boolean existsByMemberIdAndDueDateAndOriginalTodoIdIgnoreActive(@Param("memberId") UUID memberId, 
-                                                                   @Param("dueDate") LocalDate dueDate,
-                                                                   @Param("originalTodoId") Long originalTodoId);
-
-    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t " +
-           "WHERE t.member.id = :memberId AND t.date = :dueDate AND t.todoId.id = :originalTodoId AND t.active = false")
-    boolean existsInactiveTodoByMemberIdAndDueDateAndOriginalTodoId(@Param("memberId") UUID memberId, 
-                                                                   @Param("dueDate") LocalDate dueDate,
-                                                                   @Param("originalTodoId") Long originalTodoId);
 }

@@ -15,7 +15,6 @@ import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.todo.application.TodoOriginalService;
 import point.zzicback.todo.application.VirtualTodoService;
 import point.zzicback.todo.application.dto.command.DeleteTodoCommand;
-import point.zzicback.todo.application.dto.command.DeleteRepeatTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
 import point.zzicback.todo.application.dto.query.VirtualTodoQuery;

@@ -11,6 +11,8 @@ import point.zzicback.experience.presentation.mapper.ExperiencePresentationMappe
 
 import java.util.UUID;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 @Tag(name = "경험치", description = "경험치 및 레벨 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -20,10 +22,10 @@ public class ExperienceController {
     private final ExperienceService experienceService;
     private final ExperiencePresentationMapper mapper;
 
-    @Operation(summary = "회원 레벨/경험치 조회", description = "특정 회원의 레벨과 경험치를 조회합니다.")
+    @Operation(summary = "내 레벨/경험치 조회", description = "내 레벨과 경험치를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "레벨/경험치 조회 성공")
-    @GetMapping("/{memberId}/experience")
-    public MemberLevelResponse getMemberLevel(@PathVariable UUID memberId) {
+    @GetMapping("/me/experience")
+    public MemberLevelResponse getMyLevel(@AuthenticationPrincipal(expression = "id") UUID memberId) {
         var result = experienceService.getMemberLevel(memberId);
         return mapper.toResponse(result);
     }

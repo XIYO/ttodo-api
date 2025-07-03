@@ -200,14 +200,7 @@ public class TodoOriginalService {
             ));
         }
     }
-    
-    @Transactional
-    public void deleteTodo(TodoQuery query) {
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(query.todoId(), query.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.todoId()));
-        todoOriginalRepository.delete(todoOriginal);
-    }
-    
+
     @Transactional
     public void deactivateTodo(DeleteTodoCommand command) {
         TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(command.originalTodoId(), command.memberId())
