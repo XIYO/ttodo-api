@@ -13,11 +13,14 @@ import java.util.UUID;
 
 public interface TodoOriginalRepository extends JpaRepository<TodoOriginal, Long> {
     
-    List<TodoOriginal> findByMemberId(UUID memberId);
+    @Query("SELECT t FROM TodoOriginal t WHERE t.member.id = :memberId AND t.active = true")
+    List<TodoOriginal> findByMemberId(@Param("memberId") UUID memberId);
     
-    Optional<TodoOriginal> findByIdAndMemberId(Long todoOriginalId, UUID memberId);
+    @Query("SELECT t FROM TodoOriginal t WHERE t.id = :todoOriginalId AND t.member.id = :memberId AND t.active = true")
+    Optional<TodoOriginal> findByIdAndMemberId(@Param("todoOriginalId") Long todoOriginalId, @Param("memberId") UUID memberId);
     
     @Query("SELECT DISTINCT tag FROM TodoOriginal t JOIN t.tags tag WHERE t.member.id = :memberId " +
+           "AND t.active = true " +
            "AND (:categoryIds IS NULL OR t.category.id IN :categoryIds)")
     Page<String> findDistinctTagsByMemberId(@Param("memberId") UUID memberId,
                                             @Param("categoryIds") List<Long> categoryIds,

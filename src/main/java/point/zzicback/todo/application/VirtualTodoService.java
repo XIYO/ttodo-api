@@ -57,33 +57,39 @@ public class VirtualTodoService {
     }
     
     public TodoResult getVirtualTodo(VirtualTodoQuery query) {
+        TodoId todoId = new TodoId(query.originalTodoId(), query.daysDifference());
+        
+        // 먼저 Todo 테이블에서 확인 (active 상태 무관)
+        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, query.memberId());
+        
+        if (existingTodo.isPresent()) {
+            Todo todo = existingTodo.get();
+            // active=false인 경우만 404 에러 (삭제된 Todo)
+            if (!todo.getActive()) {
+                throw new EntityNotFoundException("Todo", query.originalTodoId() + ":" + query.daysDifference());
+            }
+            // Todo 테이블에 데이터가 있으면 반환 (완료/미완료 상관없이)
+            return todoApplicationMapper.toResult(todo);
+        }
+        
+        // Todo 테이블에 데이터가 없으면 가상 Todo 생성
         if (query.daysDifference() == 0) {
             // 원본 TodoOriginal 조회 (82:0)
             return todoOriginalService.getTodo(TodoQuery.of(query.memberId(), query.originalTodoId()));
         } else {
-            // 가상 Todo 조회 (82:1, 82:2, ...)
-            // 먼저 실제 완료된 Todo가 있는지 확인
-            TodoId todoId = new TodoId(query.originalTodoId(), query.daysDifference());
-            Optional<Todo> completedTodo = todoRepository.findByTodoIdAndMemberId(todoId, query.memberId());
+            // 가상 Todo 생성해서 반환
+            TodoOriginal todoOriginal = todoOriginalService.getTodoOriginals(query.memberId())
+                    .stream()
+                    .filter(to -> to.getId().equals(query.originalTodoId()))
+                    .findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.originalTodoId()));
             
-            if (completedTodo.isPresent()) {
-                // 완료된 실제 Todo 반환
-                return todoApplicationMapper.toResult(completedTodo.get());
-            } else {
-                // 가상 Todo 생성해서 반환
-                TodoOriginal todoOriginal = todoOriginalService.getTodoOriginals(query.memberId())
-                        .stream()
-                        .filter(to -> to.getId().equals(query.originalTodoId()))
-                        .findFirst()
-                        .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.originalTodoId()));
-                
-                LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
-                    todoOriginal.getRepeatStartDate().plusDays(query.daysDifference()) :
-                    todoOriginal.getDate().plusDays(query.daysDifference());
-                
-                String virtualId = query.originalTodoId() + ":" + query.daysDifference();
-                return todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, targetDate);
-            }
+            LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
+                todoOriginal.getRepeatStartDate().plusDays(query.daysDifference()) :
+                todoOriginal.getDate().plusDays(query.daysDifference());
+            
+            String virtualId = query.originalTodoId() + ":" + query.daysDifference();
+            return todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, targetDate);
         }
     }
     
@@ -109,6 +115,49 @@ public class VirtualTodoService {
     }
     
     @Transactional
+    public void deactivateVirtualTodo(DeleteTodoCommand command) {
+        TodoId todoId = new TodoId(command.originalTodoId(), command.daysDifference());
+        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, command.memberId());
+        
+        if (existingTodo.isPresent()) {
+            // 이미 Todo 테이블에 데이터가 있으면 complete=true, active=false로 설정 (삭제 표시)
+            Todo todo = existingTodo.get();
+            todo.setComplete(true);
+            todo.setActive(false);
+            todoRepository.save(todo);
+        } else {
+            // Todo 테이블에 데이터가 없으면 새로 생성해서 complete=true, active=true로 설정
+            List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
+            TodoOriginal todoOriginal = todoOriginals.stream()
+                    .filter(to -> to.getId().equals(command.originalTodoId()))
+                    .findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
+            
+            Member member = memberService.findByIdOrThrow(command.memberId());
+            
+            LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
+                todoOriginal.getRepeatStartDate().plusDays(command.daysDifference()) :
+                todoOriginal.getDate().plusDays(command.daysDifference());
+            
+            Todo newTodo = Todo.builder()
+                    .todoId(todoId)
+                    .title(todoOriginal.getTitle())
+                    .description(todoOriginal.getDescription())
+                    .complete(true)  // 삭제 표시
+                    .active(false)   // 비활성화
+                    .priorityId(todoOriginal.getPriorityId())
+                    .category(todoOriginal.getCategory())
+                    .date(targetDate)
+                    .time(todoOriginal.getTime())
+                    .tags(new HashSet<>(todoOriginal.getTags()))
+                    .member(member)
+                    .build();
+            
+            todoRepository.save(newTodo);
+        }
+    }
+    
+    @Transactional
     public TodoResult updateOrCreateVirtualTodo(UpdateVirtualTodoCommand command) {
         TodoId todoId = TodoId.fromVirtualId(command.virtualTodoId());
         Long originalTodoId = todoId.getId();
@@ -124,7 +173,8 @@ public class VirtualTodoService {
             todoOriginal.getRepeatStartDate().plusDays(daysDifference) :
             todoOriginal.getDate().plusDays(daysDifference);
         
-        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberId(todoId, command.memberId());
+        // active 상태에 관계없이 기존 Todo 확인
+        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, command.memberId());
         
         Member member = memberService.findByIdOrThrow(command.memberId());
         
@@ -132,6 +182,9 @@ public class VirtualTodoService {
             Todo todo = existingTodo.get();
             boolean wasIncomplete = !Boolean.TRUE.equals(todo.getComplete());
             boolean wasComplete = Boolean.TRUE.equals(todo.getComplete());
+            
+            // 삭제된 Todo를 다시 활성화
+            todo.setActive(true);
             
             if (command.title() != null && !command.title().trim().isEmpty()) {
                 todo.setTitle(command.title());
@@ -285,8 +338,9 @@ public class VirtualTodoService {
     }
     
     private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
-        // 실제 투두는 이미 DB에서 필터링되었으므로 추가 필터링 불필요
+        // 실제 투두에서 완료된 것만 표시 (active=true, complete=true)
         List<TodoResult> realTodos = todoPage.getContent().stream()
+                .filter(todo -> Boolean.TRUE.equals(todo.getActive()) && Boolean.TRUE.equals(todo.getComplete()))
                 .map(todoApplicationMapper::toResult)
                 .toList();
         
@@ -333,34 +387,38 @@ public class VirtualTodoService {
         for (TodoOriginal todoOriginal : todoOriginals) {
             List<LocalDate> virtualDates = generateVirtualDates(
                     todoOriginal, query.startDate(), query.endDate());
-            
+
             LocalDate originalDueDate = todoOriginal.getDate();
             LocalDate repeatStartDate = todoOriginal.getRepeatStartDate();
-            
+
             for (LocalDate virtualDate : virtualDates) {
                 if (virtualDate.isBefore(baseDate)) {
                     continue;
                 }
-                
-                // 원본 날짜와 같은 경우는 제외 (generateOriginalTodos에서 처리)
+
                 if (virtualDate.equals(originalDueDate)) {
                     continue;
                 }
-                
-                boolean alreadyCompleted = todoRepository.existsByMemberIdAndDueDateAndOriginalTodoId(
-                        query.memberId(), virtualDate, todoOriginal.getId());
-                
-                if (!alreadyCompleted) {
-                    // repeat_start_date 기준으로 daysDifference 계산
-                    long daysDifference = repeatStartDate != null ? 
-                        ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
+
+                Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(
+                        new TodoId(todoOriginal.getId(),
+                                repeatStartDate != null ? ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0),
+                        query.memberId());
+
+                boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
+                if (isDeleted) {
+                    continue;
+                }
+
+                if (!existingTodo.isPresent() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
+                    long daysDifference = repeatStartDate != null ?
+                            ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
                     String virtualId = todoOriginal.getId() + ":" + daysDifference;
-                    
                     virtualTodos.add(todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, virtualDate));
                 }
             }
         }
-        
+
         return virtualTodos;
     }
     
@@ -381,25 +439,27 @@ public class VirtualTodoService {
                 .toList();
         
         for (TodoOriginal todoOriginal : todoOriginals) {
-            // 이미 완료된 Todo가 있는지 확인
-            boolean alreadyCompleted = todoRepository.existsByMemberIdAndDueDateAndOriginalTodoId(
-                    query.memberId(), todoOriginal.getDate(), todoOriginal.getId());
-            
-            if (!alreadyCompleted) {
+            Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(
+                    new TodoId(todoOriginal.getId(), 0L), query.memberId());
+
+            boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
+            if (isDeleted) {
+                continue;
+            }
+
+            if (!existingTodo.isPresent() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
                 if (todoOriginal.getRepeatStartDate() != null) {
-                    // 반복 투두: repeat_start_date 기준으로 daysDifference 계산
                     long daysDifference = ChronoUnit.DAYS.between(
-                        todoOriginal.getRepeatStartDate(), todoOriginal.getDate());
+                            todoOriginal.getRepeatStartDate(), todoOriginal.getDate());
                     String virtualId = todoOriginal.getId() + ":" + daysDifference;
                     originalTodos.add(todoApplicationMapper.toOriginalResult(todoOriginal, virtualId, todoOriginal.getDate()));
                 } else {
-                    // 일반 투두: 항상 :0
                     String virtualId = todoOriginal.getId() + ":0";
                     originalTodos.add(todoApplicationMapper.toOriginalResult(todoOriginal, virtualId, todoOriginal.getDate()));
                 }
             }
         }
-        
+
         return originalTodos;
     }
     

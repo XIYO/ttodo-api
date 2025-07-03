@@ -15,7 +15,10 @@ import java.util.*;
 public interface TodoRepository extends JpaRepository<Todo, TodoId> {
     @Query("""
         SELECT t FROM Todo t WHERE t.member.id = :memberId
+        AND t.active = true
         AND (:complete IS NULL OR t.complete = :complete)
+        AND (:categoryIds IS NULL OR t.category.id IN :categoryIds)
+        AND (:priorityIds IS NULL OR t.priorityId IN :priorityIds)
         AND (:startDate IS NULL OR t.date IS NULL OR t.date >= :startDate)
         AND (:endDate IS NULL OR t.date IS NULL OR t.date <= :endDate)
         ORDER BY
@@ -33,8 +36,27 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId> {
                              @Param("endDate") LocalDate endDate,
                              Pageable pageable);
 
-    Optional<Todo> findByTodoIdAndMemberId(TodoId todoId, UUID memberId);
+    @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.member.id = :memberId AND t.active = true")
+    Optional<Todo> findByTodoIdAndMemberId(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);
 
-    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t WHERE t.member.id = :memberId AND t.date = :dueDate AND t.todoId.id = :originalTodoId")
-    boolean existsByMemberIdAndDueDateAndOriginalTodoId(@Param("memberId") UUID memberId, @Param("dueDate") LocalDate dueDate, @Param("originalTodoId") Long originalTodoId);
+    @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.member.id = :memberId")
+    Optional<Todo> findByTodoIdAndMemberIdIgnoreActive(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);
+
+    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t " +
+           "WHERE t.member.id = :memberId AND t.date = :dueDate AND t.todoId.id = :originalTodoId AND t.active = true")
+    boolean existsByMemberIdAndDueDateAndOriginalTodoId(@Param("memberId") UUID memberId, 
+                                                       @Param("dueDate") LocalDate dueDate,
+                                                       @Param("originalTodoId") Long originalTodoId);
+
+    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t " +
+           "WHERE t.member.id = :memberId AND t.date = :dueDate AND t.todoId.id = :originalTodoId")
+    boolean existsByMemberIdAndDueDateAndOriginalTodoIdIgnoreActive(@Param("memberId") UUID memberId, 
+                                                                   @Param("dueDate") LocalDate dueDate,
+                                                                   @Param("originalTodoId") Long originalTodoId);
+
+    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Todo t " +
+           "WHERE t.member.id = :memberId AND t.date = :dueDate AND t.todoId.id = :originalTodoId AND t.active = false")
+    boolean existsInactiveTodoByMemberIdAndDueDateAndOriginalTodoId(@Param("memberId") UUID memberId, 
+                                                                   @Param("dueDate") LocalDate dueDate,
+                                                                   @Param("originalTodoId") Long originalTodoId);
 }

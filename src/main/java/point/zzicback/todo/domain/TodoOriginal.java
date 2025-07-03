@@ -51,6 +51,9 @@ public class TodoOriginal {
     @Column(name = "complete")
     private Boolean complete;
 
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
+
     @CreatedDate
     @Column(updatable = false)
     private Instant createdAt;
@@ -88,6 +91,7 @@ public class TodoOriginal {
             LocalDate repeatStartDate,
             LocalDate repeatEndDate,
             Boolean complete,
+            Boolean active,
             Set<Integer> daysOfWeek,
             Set<String> tags,
             Category category,
@@ -103,6 +107,7 @@ public class TodoOriginal {
         this.repeatStartDate = repeatStartDate;
         this.repeatEndDate = repeatEndDate;
         this.complete = complete;
+        this.active = active != null ? active : true;
         this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;

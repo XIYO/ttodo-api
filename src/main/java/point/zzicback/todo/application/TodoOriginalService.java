@@ -208,6 +208,14 @@ public class TodoOriginalService {
         todoOriginalRepository.delete(todoOriginal);
     }
     
+    @Transactional
+    public void deactivateTodo(DeleteTodoCommand command) {
+        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(command.originalTodoId(), command.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
+        
+        todoOriginal.setActive(false);
+    }
+    
     public List<TodoOriginal> getTodoOriginals(UUID memberId) {
         return todoOriginalRepository.findByMemberId(memberId);
     }

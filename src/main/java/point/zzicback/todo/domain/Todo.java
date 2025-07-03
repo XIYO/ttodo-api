@@ -28,6 +28,9 @@ public class Todo {
   @Column(nullable = false)
   private Boolean complete = false;
   
+  @Column(nullable = false)
+  private Boolean active = true;
+  
   private Integer priorityId;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -61,6 +64,7 @@ public class Todo {
               String title,
               String description,
               Boolean complete,
+              Boolean active,
               Integer priorityId,
               Category category,
               LocalDate date,
@@ -71,6 +75,7 @@ public class Todo {
     this.title = title;
     this.description = description;
     this.complete = complete != null ? complete : false;
+    this.active = active != null ? active : true;
     this.priorityId = priorityId;
     this.category = category;
     this.date = date;

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.todo.application.TodoOriginalService;
 import point.zzicback.todo.application.VirtualTodoService;
+import point.zzicback.todo.application.dto.command.DeleteTodoCommand;
 import point.zzicback.todo.application.dto.command.DeleteRepeatTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
@@ -115,21 +116,29 @@ public class TodoController {
     }
   }
 
-  @DeleteMapping("/{id:\\d+}:{daysDifference:\\d+}")
+  @DeleteMapping(value = "/{id:\\d+}:{daysDifference:\\d+}", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제합니다.")
+  @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제하거나 숨깁니다.")
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, 
                      @PathVariable Long id, 
-                     @PathVariable Long daysDifference) {
-    if (daysDifference == 0) {
-      // 원본 TodoOriginal 삭제
-      todoOriginalService.deleteTodo(TodoQuery.of(principal.id(), id));
-    } else {
-      // 가상 Todo 반복 삭제
-      virtualTodoService.deleteRepeatTodo(new DeleteRepeatTodoCommand(
+                     @PathVariable Long daysDifference,
+                     @Valid DeleteTodoRequest request) {
+    if (request.deleteAll()) {
+      // deleteAll이 true이면 원본 TodoOriginal을 비활성화하여 모든 가상 투두도 숨김
+      todoOriginalService.deactivateTodo(new DeleteTodoCommand(
           principal.id(), 
           id, 
-          daysDifference
+          daysDifference,
+          true
+      ));
+    } else {
+      // deleteAll이 false이면 해당 날짜의 투두만 숨김
+      // daysDifference가 0이든 아니든 모두 가상 투두처럼 처리
+      virtualTodoService.deactivateVirtualTodo(new DeleteTodoCommand(
+          principal.id(), 
+          id, 
+          daysDifference,
+          false
       ));
     }
   }
