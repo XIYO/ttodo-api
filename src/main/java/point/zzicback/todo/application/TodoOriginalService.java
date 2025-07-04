@@ -216,4 +216,49 @@ public class TodoOriginalService {
     public Page<String> getTags(UUID memberId, List<Long> categoryIds, Pageable pageable) {
         return todoOriginalRepository.findDistinctTagsByMemberId(memberId, categoryIds, pageable);
     }
+    
+    @Transactional
+    public void togglePin(TodoQuery query) {
+        TodoOriginal todo = todoOriginalRepository.findByIdAndMemberId(query.todoId(), query.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.todoId()));
+        
+        boolean wasPinned = todo.getIsPinned();
+        todo.togglePin();
+        
+        if (!wasPinned && todo.getIsPinned()) {
+            // 현재 투두를 제외한 기존 핀 고정 투두들을 조회
+            List<TodoOriginal> existingPinnedTodos = todoOriginalRepository
+                    .findByMemberIdAndIsPinnedTrueOrderByDisplayOrderAsc(query.memberId())
+                    .stream()
+                    .filter(t -> !t.getId().equals(todo.getId()))
+                    .toList();
+            
+            // 새로 핀 고정되는 투두를 맨 뒤에 배치
+            todo.setDisplayOrder(existingPinnedTodos.size());
+        }
+    }
+    
+    @Transactional
+    public void changeOrder(UUID memberId, Long todoId, Integer newOrder) {
+        TodoOriginal target = todoOriginalRepository.findByIdAndMemberId(todoId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", todoId));
+        
+        if (!target.getIsPinned()) {
+            throw new IllegalArgumentException("Only pinned todos can be reordered");
+        }
+        
+        List<TodoOriginal> pinnedTodos = todoOriginalRepository
+                .findByMemberIdAndIsPinnedTrueOrderByDisplayOrderAsc(memberId);
+        
+        if (newOrder < 0 || newOrder >= pinnedTodos.size()) {
+            throw new IllegalArgumentException("Invalid order index");
+        }
+        
+        pinnedTodos.removeIf(todo -> todo.getId().equals(todoId));
+        pinnedTodos.add(newOrder, target);
+        
+        for (int i = 0; i < pinnedTodos.size(); i++) {
+            pinnedTodos.get(i).setDisplayOrder(i);
+        }
+    }
 }

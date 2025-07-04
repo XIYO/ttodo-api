@@ -20,6 +20,12 @@ public record TodoResponse(
         @Schema(description = "완료 여부 (true: 완료, false: 진행중)", example = "false")
         Boolean complete,
         
+        @Schema(description = "상단 고정 여부", example = "false")
+        Boolean isPinned,
+        
+        @Schema(description = "정렬 순서 (0이 가장 먼저)", example = "0")
+        Integer displayOrder,
+        
         @Schema(description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", example = "1")
         Integer priorityId,
         

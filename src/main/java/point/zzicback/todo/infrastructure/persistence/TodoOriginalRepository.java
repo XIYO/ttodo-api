@@ -25,4 +25,7 @@ public interface TodoOriginalRepository extends JpaRepository<TodoOriginal, Long
     Page<String> findDistinctTagsByMemberId(@Param("memberId") UUID memberId,
                                             @Param("categoryIds") List<Long> categoryIds,
                                             Pageable pageable);
+    
+    @Query("SELECT t FROM TodoOriginal t WHERE t.member.id = :memberId AND t.isPinned = true AND t.active = true ORDER BY t.displayOrder ASC")
+    List<TodoOriginal> findByMemberIdAndIsPinnedTrueOrderByDisplayOrderAsc(@Param("memberId") UUID memberId);
 }

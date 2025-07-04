@@ -53,6 +53,12 @@ public class TodoOriginal {
 
     @Column(name = "active", nullable = false)
     private Boolean active = true;
+    
+    @Column(name = "is_pinned", nullable = false)
+    private Boolean isPinned = false;
+    
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder = 0;
 
     @CreatedDate
     @Column(updatable = false)
@@ -92,6 +98,8 @@ public class TodoOriginal {
             LocalDate repeatEndDate,
             Boolean complete,
             Boolean active,
+            Boolean isPinned,
+            Integer displayOrder,
             Set<Integer> daysOfWeek,
             Set<String> tags,
             Category category,
@@ -108,10 +116,16 @@ public class TodoOriginal {
         this.repeatEndDate = repeatEndDate;
         this.complete = complete;
         this.active = active != null ? active : true;
+        this.isPinned = isPinned != null ? isPinned : false;
+        this.displayOrder = displayOrder != null ? displayOrder : 0;
         this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;
         this.member = member;
+    }
+    
+    public void togglePin() {
+        this.isPinned = !this.isPinned;
     }
     
     public boolean isCompleted() {

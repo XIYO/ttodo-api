@@ -350,7 +350,6 @@ public class VirtualTodoService {
     }
     
     private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
-        // 실제 투두에서 완료된 것만 표시 (active=true, complete=true)
         List<TodoResult> realTodos = todoPage.getContent().stream()
                 .filter(todo -> Boolean.TRUE.equals(todo.getActive()) && Boolean.TRUE.equals(todo.getComplete()))
                 .map(todoApplicationMapper::toResult)
@@ -390,7 +389,8 @@ public class VirtualTodoService {
         
         List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
                 .stream()
-                .filter(to -> to.getRepeatStartDate() != null) // repeat_start_date가 null이면 반복 사용 안함
+                .filter(to -> to.getRepeatStartDate() != null)
+                .filter(to -> to.getRepeatType() != null && to.getRepeatType() > 0)
                 .filter(to -> to.getRepeatEndDate() == null || 
                         !to.getRepeatEndDate().isBefore(query.startDate()))
                 .filter(to -> matchesKeyword(to, query.keyword()))
@@ -404,6 +404,7 @@ public class VirtualTodoService {
             LocalDate repeatStartDate = todoOriginal.getRepeatStartDate();
 
             for (LocalDate virtualDate : virtualDates) {
+                // baseDate 이후의 가상 투두만 포함
                 if (virtualDate.isBefore(baseDate)) {
                     continue;
                 }
@@ -441,6 +442,7 @@ public class VirtualTodoService {
         }
         
         List<TodoResult> originalTodos = new ArrayList<>();
+        LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
         
         List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
                 .stream()
@@ -451,6 +453,11 @@ public class VirtualTodoService {
                 .toList();
         
         for (TodoOriginal todoOriginal : todoOriginals) {
+            // baseDate 이후의 원본 투두만 포함
+            if (todoOriginal.getDate().isBefore(baseDate)) {
+                continue;
+            }
+
             Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(
                     new TodoId(todoOriginal.getId(), 0L), query.memberId());
 
@@ -596,9 +603,10 @@ public class VirtualTodoService {
     
     private Comparator<TodoResult> getDefaultComparator() {
         return Comparator
-                .comparing((TodoResult t) -> t.date() == null && t.time() == null && t.repeatType() == null)
+                .comparing((TodoResult t) -> t.date() != null ? t.date() : LocalDate.MAX)
                 .thenComparing((TodoResult t) -> t.complete() != null ? t.complete() : false)
-                .thenComparing((TodoResult t) -> t.date() != null ? t.date() : LocalDate.MAX)
+                .thenComparing((TodoResult t) -> t.isPinned() != null ? !t.isPinned() : true)
+                .thenComparing((TodoResult t) -> t.displayOrder() != null ? t.displayOrder() : Integer.MAX_VALUE)
                 .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
                 .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0]));
     }

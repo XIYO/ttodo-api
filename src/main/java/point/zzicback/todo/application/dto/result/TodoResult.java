@@ -9,6 +9,8 @@ public record TodoResult(
         String title, 
         String description, 
         Boolean complete,
+        Boolean isPinned,
+        Integer displayOrder,
         Integer priorityId,
         String priorityName,
         Long categoryId,

@@ -161,4 +161,23 @@ public class TodoController {
     LocalDate targetDate = date != null ? date : LocalDate.now();
     return virtualTodoService.getTodoStatistics(principal.id(), targetDate);
   }
+
+  @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/pin")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Todo 상단 고정 토글", description = "Todo의 상단 고정 상태를 토글합니다.")
+  public void togglePin(@AuthenticationPrincipal MemberPrincipal principal,
+                       @PathVariable Long id,
+                       @PathVariable Long daysDifference) {
+    todoOriginalService.togglePin(TodoQuery.of(principal.id(), id));
+  }
+
+  @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/order")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Todo 순서 변경", description = "특정 Todo의 순서를 변경합니다.")
+  public void changeOrder(@AuthenticationPrincipal MemberPrincipal principal,
+                         @PathVariable Long id,
+                         @PathVariable Long daysDifference,
+                         @Valid @RequestBody ChangeOrderRequest request) {
+    todoOriginalService.changeOrder(principal.id(), id, request.newOrder());
+  }
 }

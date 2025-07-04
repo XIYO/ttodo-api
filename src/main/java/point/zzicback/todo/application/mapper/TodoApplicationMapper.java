@@ -12,6 +12,8 @@ public interface TodoApplicationMapper {
 
     @Mapping(target = "id", expression = "java(todoOriginal.getId() + \":0\")")
     @Mapping(target = "complete", source = "completed")
+    @Mapping(target = "isPinned", source = "isPinned")
+    @Mapping(target = "displayOrder", source = "displayOrder")
     @Mapping(target = "priorityName", expression = "java(getPriorityName(todoOriginal.getPriorityId()))")
     @Mapping(target = "categoryId", expression = "java(todoOriginal.getCategory() != null ? todoOriginal.getCategory().getId() : null)")
     @Mapping(target = "categoryName", expression = "java(todoOriginal.getCategory() != null ? todoOriginal.getCategory().getName() : null)")
@@ -22,6 +24,8 @@ public interface TodoApplicationMapper {
 
     @Mapping(target = "id", source = "virtualId")
     @Mapping(target = "complete", constant = "false")
+    @Mapping(target = "isPinned", source = "todoOriginal.isPinned")
+    @Mapping(target = "displayOrder", source = "todoOriginal.displayOrder")
     @Mapping(target = "priorityName", expression = "java(getPriorityName(todoOriginal.getPriorityId()))")
     @Mapping(target = "categoryId", expression = "java(todoOriginal.getCategory() != null ? todoOriginal.getCategory().getId() : null)")
     @Mapping(target = "categoryName", expression = "java(todoOriginal.getCategory() != null ? todoOriginal.getCategory().getName() : null)")
@@ -37,6 +41,8 @@ public interface TodoApplicationMapper {
 
     @Mapping(target = "id", source = "virtualId")
     @Mapping(target = "complete", source = "todoOriginal.completed")
+    @Mapping(target = "isPinned", source = "todoOriginal.isPinned")
+    @Mapping(target = "displayOrder", source = "todoOriginal.displayOrder")
     @Mapping(target = "priorityName", expression = "java(getPriorityName(todoOriginal.getPriorityId()))")
     @Mapping(target = "categoryId", expression = "java(todoOriginal.getCategory() != null ? todoOriginal.getCategory().getId() : null)")
     @Mapping(target = "categoryName", expression = "java(todoOriginal.getCategory() != null ? todoOriginal.getCategory().getName() : null)")
@@ -51,15 +57,37 @@ public interface TodoApplicationMapper {
     TodoResult toOriginalResult(TodoOriginal todoOriginal, String virtualId, LocalDate originalDate);
 
     @Mapping(target = "id", expression = "java(todo.getTodoId().getId() + \":\" + todo.getTodoId().getSeq())")
+    @Mapping(target = "isPinned", source = "isPinned")
+    @Mapping(target = "displayOrder", source = "displayOrder")
     @Mapping(target = "priorityName", expression = "java(getPriorityName(todo.getPriorityId()))")
     @Mapping(target = "categoryId", expression = "java(todo.getCategory() != null ? todo.getCategory().getId() : null)")
     @Mapping(target = "categoryName", expression = "java(todo.getCategory() != null ? todo.getCategory().getName() : null)")
+    @Mapping(target = "originalTodoId", expression = "java(todo.getTodoId().getId())")
     @Mapping(target = "repeatType", ignore = true)
     @Mapping(target = "repeatInterval", ignore = true)
     @Mapping(target = "repeatEndDate", ignore = true)
     @Mapping(target = "daysOfWeek", ignore = true)
-    @Mapping(target = "originalTodoId", expression = "java(todo.getTodoId().getId())")
     TodoResult toResult(Todo todo);
+
+    @Mapping(target = "id", expression = "java(todo.getTodoId().getId() + \":\" + todo.getTodoId().getSeq())")
+    @Mapping(target = "title", source = "todo.title")
+    @Mapping(target = "description", source = "todo.description")
+    @Mapping(target = "complete", source = "todo.complete")
+    @Mapping(target = "isPinned", source = "todoOriginal.isPinned")
+    @Mapping(target = "displayOrder", source = "todoOriginal.displayOrder")
+    @Mapping(target = "priorityId", source = "todo.priorityId")
+    @Mapping(target = "priorityName", expression = "java(getPriorityName(todo.getPriorityId()))")
+    @Mapping(target = "categoryId", expression = "java(todo.getCategory() != null ? todo.getCategory().getId() : null)")
+    @Mapping(target = "categoryName", expression = "java(todo.getCategory() != null ? todo.getCategory().getName() : null)")
+    @Mapping(target = "date", source = "todo.date")
+    @Mapping(target = "time", source = "todo.time")
+    @Mapping(target = "repeatType", source = "todoOriginal.repeatType")
+    @Mapping(target = "repeatInterval", source = "todoOriginal.repeatInterval")
+    @Mapping(target = "repeatEndDate", source = "todoOriginal.repeatEndDate")
+    @Mapping(target = "daysOfWeek", source = "todoOriginal.daysOfWeek")
+    @Mapping(target = "originalTodoId", expression = "java(todo.getTodoId().getId())")
+    @Mapping(target = "tags", source = "todoOriginal.tags")
+    TodoResult toResultWithOriginal(Todo todo, TodoOriginal todoOriginal);
 
     default String getPriorityName(Integer priorityId) {
         if (priorityId == null) return null;

@@ -28,6 +28,12 @@ public class Todo {
   @Column(nullable = false)
   private Boolean complete = false;
   
+  @Column(name = "is_pinned", nullable = false)
+  private Boolean isPinned = false;
+  
+  @Column(name = "display_order", nullable = false)
+  private Integer displayOrder = 0;
+  
   @Column(nullable = false)
   private Boolean active = true;
   
@@ -64,6 +70,8 @@ public class Todo {
               String title,
               String description,
               Boolean complete,
+              Boolean isPinned,
+              Integer displayOrder,
               Boolean active,
               Integer priorityId,
               Category category,
@@ -75,6 +83,8 @@ public class Todo {
     this.title = title;
     this.description = description;
     this.complete = complete != null ? complete : false;
+    this.isPinned = isPinned != null ? isPinned : false;
+    this.displayOrder = displayOrder != null ? displayOrder : 0;
     this.active = active != null ? active : true;
     this.priorityId = priorityId;
     this.category = category;
