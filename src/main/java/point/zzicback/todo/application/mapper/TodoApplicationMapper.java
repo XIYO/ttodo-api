@@ -69,26 +69,6 @@ public interface TodoApplicationMapper {
     @Mapping(target = "daysOfWeek", ignore = true)
     TodoResult toResult(Todo todo);
 
-    @Mapping(target = "id", expression = "java(todo.getTodoId().getId() + \":\" + todo.getTodoId().getSeq())")
-    @Mapping(target = "title", source = "todo.title")
-    @Mapping(target = "description", source = "todo.description")
-    @Mapping(target = "complete", source = "todo.complete")
-    @Mapping(target = "isPinned", source = "todoOriginal.isPinned")
-    @Mapping(target = "displayOrder", source = "todoOriginal.displayOrder")
-    @Mapping(target = "priorityId", source = "todo.priorityId")
-    @Mapping(target = "priorityName", expression = "java(getPriorityName(todo.getPriorityId()))")
-    @Mapping(target = "categoryId", expression = "java(todo.getCategory() != null ? todo.getCategory().getId() : null)")
-    @Mapping(target = "categoryName", expression = "java(todo.getCategory() != null ? todo.getCategory().getName() : null)")
-    @Mapping(target = "date", source = "todo.date")
-    @Mapping(target = "time", source = "todo.time")
-    @Mapping(target = "repeatType", source = "todoOriginal.repeatType")
-    @Mapping(target = "repeatInterval", source = "todoOriginal.repeatInterval")
-    @Mapping(target = "repeatEndDate", source = "todoOriginal.repeatEndDate")
-    @Mapping(target = "daysOfWeek", source = "todoOriginal.daysOfWeek")
-    @Mapping(target = "originalTodoId", expression = "java(todo.getTodoId().getId())")
-    @Mapping(target = "tags", source = "todoOriginal.tags")
-    TodoResult toResultWithOriginal(Todo todo, TodoOriginal todoOriginal);
-
     default String getPriorityName(Integer priorityId) {
         if (priorityId == null) return null;
         return switch (priorityId) {

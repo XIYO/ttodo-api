@@ -171,9 +171,9 @@ public class TodoController {
     todoOriginalService.togglePin(TodoQuery.of(principal.id(), id));
   }
 
-  @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/order")
+  @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/pin-order")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Todo 순서 변경", description = "특정 Todo의 순서를 변경합니다.")
+  @Operation(summary = "핀 고정된 Todo 순서 변경", description = "핀 고정된 Todo의 표시 순서를 변경합니다.")
   public void changeOrder(@AuthenticationPrincipal MemberPrincipal principal,
                          @PathVariable Long id,
                          @PathVariable Long daysDifference,

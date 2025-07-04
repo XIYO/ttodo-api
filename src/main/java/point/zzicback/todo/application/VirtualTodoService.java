@@ -605,7 +605,7 @@ public class VirtualTodoService {
         return Comparator
                 .comparing((TodoResult t) -> t.date() != null ? t.date() : LocalDate.MAX)
                 .thenComparing((TodoResult t) -> t.complete() != null ? t.complete() : false)
-                .thenComparing((TodoResult t) -> t.isPinned() != null ? !t.isPinned() : true)
+                .thenComparing((TodoResult t) -> t.isPinned() == null || !t.isPinned())
                 .thenComparing((TodoResult t) -> t.displayOrder() != null ? t.displayOrder() : Integer.MAX_VALUE)
                 .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
                 .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0]));
