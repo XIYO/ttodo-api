@@ -17,8 +17,8 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId> {
         SELECT t FROM Todo t WHERE t.member.id = :memberId
         AND t.active = true
         AND (:complete IS NULL OR t.complete = :complete)
-        AND (SIZE(:categoryIds) = 0 OR t.category.id IN :categoryIds)
-        AND (SIZE(:priorityIds) = 0 OR t.priorityId IN :priorityIds)
+        AND (:#{#categoryIds == null || #categoryIds.isEmpty()} = true OR t.category.id IN :categoryIds)
+        AND (:#{#priorityIds == null || #priorityIds.isEmpty()} = true OR t.priorityId IN :priorityIds)
         AND (:startDate IS NULL OR t.date IS NULL OR t.date >= :startDate)
         AND (:endDate IS NULL OR t.date IS NULL OR t.date <= :endDate)
         ORDER BY

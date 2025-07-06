@@ -1,22 +1,23 @@
 package point.zzicback.member.application;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
-import point.zzicback.common.error.BusinessException;
-import point.zzicback.common.error.EntityNotFoundException;
-import point.zzicback.member.application.dto.command.CreateMemberCommand;
-import point.zzicback.member.application.dto.command.UpdateMemberCommand;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import point.zzicback.common.error.*;
+import point.zzicback.member.application.dto.command.*;
 import point.zzicback.member.domain.Member;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@Import(MemberService.class)
+@SpringBootTest
+@Testcontainers
+@ActiveProfiles("test")
+@Transactional
 class MemberServiceTest {
   @Autowired
   MemberService memberService;
