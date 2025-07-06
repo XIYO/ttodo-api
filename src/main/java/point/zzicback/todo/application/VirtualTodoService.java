@@ -18,6 +18,7 @@ import point.zzicback.todo.application.dto.command.DeleteTodoCommand;
 import point.zzicback.todo.application.dto.command.UpdateVirtualTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
+import java.util.Collections;
 import point.zzicback.todo.application.dto.query.VirtualTodoQuery;
 import point.zzicback.todo.application.dto.result.TodoResult;
 import point.zzicback.todo.application.dto.result.TodoStatistics;
@@ -55,9 +56,9 @@ public class VirtualTodoService {
         // 모든 실제 투두를 조회 (페이지네이션 없이)
         Page<Todo> todoPage = todoRepository.findByMemberId(
                 query.memberId(),
-                query.categoryIds(),
+                query.categoryIds() != null ? query.categoryIds() : Collections.emptyList(),
                 query.complete(),
-                query.priorityIds(),
+                query.priorityIds() != null ? query.priorityIds() : Collections.emptyList(),
                 query.startDate(),
                 query.endDate(),
                 Pageable.unpaged());
@@ -274,7 +275,7 @@ public class VirtualTodoService {
 
         // 실제 투두(active=true, complete=false 포함) 날짜
         Page<Todo> realTodos = todoRepository.findByMemberId(
-                memberId, null, null, null, startDate, endDate, Pageable.unpaged()
+                memberId, Collections.emptyList(), null, Collections.emptyList(), startDate, endDate, Pageable.unpaged()
         );
         realTodos.getContent().stream()
                 .filter(todo -> Boolean.TRUE.equals(todo.getActive()))
