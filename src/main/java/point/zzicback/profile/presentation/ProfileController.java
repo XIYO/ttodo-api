@@ -16,8 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.UpdateMemberCommand;
 import point.zzicback.member.application.dto.result.MemberResult;
-import point.zzicback.profile.application.MemberProfileService;
-import point.zzicback.profile.domain.MemberProfile;
+import point.zzicback.profile.application.ProfileService;
+import point.zzicback.profile.domain.Profile;
 import point.zzicback.profile.presentation.dto.request.UpdateProfileRequest;
 import point.zzicback.profile.presentation.dto.response.ProfileResponse;
 
@@ -27,14 +27,14 @@ import java.util.UUID;
 /**
  * 프로필 관련 API 컨트롤러
  */
-@Tag(name = "프로필", description = "프로필 관련 API")
+@Tag(name = "사용자 프로필 관리", description = "회원 프로필 정보 조회, 수정, 프로필 이미지 업로드/삭제, 타임존/로케일/테마 설정 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members/{memberId}/profile")
 public class ProfileController {
 
     private final MemberService memberService;
-    private final MemberProfileService memberProfileService;
+    private final ProfileService profileService;
 
     @Operation(summary = "프로필 정보 조회", description = "회원의 프로필 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "프로필 정보 조회 성공")
@@ -42,13 +42,18 @@ public class ProfileController {
     @GetMapping
     public ProfileResponse getProfile(@PathVariable UUID memberId) {
         MemberResult memberResult = memberService.getMember(memberId);
-        MemberProfile profile = memberProfileService.getProfile(memberId);
+        Profile profile = profileService.getProfile(memberId);
+        
+        String imageUrl = profile.getProfileImage() != null ? 
+                "/members/" + memberId + "/profile/image" : null;
         
         return new ProfileResponse(
                 memberResult.nickname(),
-                memberResult.introduction(),
+                profile.getIntroduction(),
+                profile.getTimeZone(),
+                profile.getLocale(),
                 profile.getTheme(),
-                profile.getProfileImage() != null
+                imageUrl
         );
     }
 
@@ -63,19 +68,42 @@ public class ProfileController {
             @PathVariable UUID memberId,
             @Valid @RequestBody UpdateProfileRequest request) {
         
-        // 회원 기본 정보 업데이트 (닉네임, 소개글)
-        if (request.nickname() != null || request.introduction() != null) {
+        // 회원 기본 정보 업데이트 (닉네임만)
+        if (request.nickname() != null) {
             UpdateMemberCommand command = new UpdateMemberCommand(
                     memberId,
                     request.nickname(),
-                    request.introduction()
+                    null // introduction은 더 이상 Member에서 관리하지 않음
             );
             memberService.updateMember(command);
         }
         
-        // 테마 업데이트
+        // 프로필 정보 업데이트
+        Profile profile = profileService.getProfile(memberId);
+        boolean profileUpdated = false;
+        
+        if (request.introduction() != null) {
+            profile.updateIntroduction(request.introduction());
+            profileUpdated = true;
+        }
+        
+        if (request.timeZone() != null) {
+            profile.updateTimeZone(request.timeZone());
+            profileUpdated = true;
+        }
+        
+        if (request.locale() != null) {
+            profile.updateLocale(request.locale());
+            profileUpdated = true;
+        }
+        
         if (request.theme() != null) {
-            memberProfileService.updateTheme(memberId, request.theme());
+            profile.updateTheme(request.theme());
+            profileUpdated = true;
+        }
+        
+        if (profileUpdated) {
+            profileService.saveProfile(profile);
         }
     }
 
@@ -85,7 +113,7 @@ public class ProfileController {
     @ApiResponse(responseCode = "404", description = "프로필 이미지가 없습니다.")
     @GetMapping(value = "/image", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
     public ResponseEntity<byte[]> getProfileImage(@PathVariable UUID memberId) {
-        MemberProfile profile = memberProfileService.getProfile(memberId);
+        Profile profile = profileService.getProfile(memberId);
         if (profile.getProfileImage() == null) {
             return ResponseEntity.notFound().build();
         }
@@ -108,7 +136,7 @@ public class ProfileController {
     public void uploadProfileImage(
             @PathVariable UUID memberId,
             @RequestParam("image") MultipartFile image) throws IOException {
-        memberProfileService.updateProfileImage(memberId, image);
+        profileService.updateProfileImage(memberId, image);
     }
 
     @Operation(summary = "프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")
@@ -118,6 +146,6 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("#memberId == authentication.principal.id")
     public void deleteProfileImage(@PathVariable UUID memberId) {
-        memberProfileService.removeProfileImage(memberId);
+        profileService.removeProfileImage(memberId);
     }
 }

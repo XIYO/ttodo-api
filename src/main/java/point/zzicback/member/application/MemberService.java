@@ -11,7 +11,8 @@ import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.application.event.MemberCreatedEvent;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.infrastructure.persistence.MemberRepository;
-import point.zzicback.profile.application.MemberProfileService;
+import point.zzicback.profile.application.ProfileService;
+import point.zzicback.profile.domain.Profile;
 
 import java.util.*;
 
@@ -21,7 +22,7 @@ import java.util.*;
 public class MemberService {
   private static final String MEMBER_ENTITY = "Member";
   private final MemberRepository memberRepository;
-  private final MemberProfileService memberProfileService;
+  private final ProfileService profileService;
   private final ApplicationEventPublisher eventPublisher;
 
   public Member createMember(CreateMemberCommand command) {
@@ -29,14 +30,15 @@ public class MemberService {
         .email(command.email())
         .password(command.password())
         .nickname(command.nickname())
-        .introduction(command.introduction())
-        .timeZone(command.timeZone())
-        .locale(command.locale())
         .build();
     Member savedMember = memberRepository.save(member);
     
-    // Create profile for the new member
-    memberProfileService.createProfile(savedMember.getId());
+    // Create profile for the new member with introduction if provided
+    Profile profile = profileService.createProfile(savedMember.getId());
+    if (command.introduction() != null && !command.introduction().isEmpty()) {
+      profile.updateIntroduction(command.introduction());
+      profileService.saveProfile(profile);
+    }
     
     eventPublisher.publishEvent(new MemberCreatedEvent(
         savedMember.getId(), 
@@ -82,9 +84,7 @@ public class MemberService {
     if (command.hasNickname()) {
       member.setNickname(command.nickname());
     }
-    if (command.hasIntroduction()) {
-      member.setIntroduction(command.introduction());
-    }
+    // introduction은 더 이상 Member에서 관리하지 않음 (Profile로 이동)
   }
 
   @Transactional(readOnly = true)
@@ -93,10 +93,7 @@ public class MemberService {
             .map(member -> new MemberResult(
                     member.getId(),
                     member.getEmail(),
-                    member.getNickname(),
-                    member.getIntroduction(),
-                    member.getTimeZone(),
-                    member.getLocale()));
+                    member.getNickname()));
   }
 
   @Transactional(readOnly = true)
@@ -105,9 +102,6 @@ public class MemberService {
     return new MemberResult(
             member.getId(),
             member.getEmail(),
-            member.getNickname(),
-            member.getIntroduction(),
-            member.getTimeZone(),
-            member.getLocale());
+            member.getNickname());
   }
 }

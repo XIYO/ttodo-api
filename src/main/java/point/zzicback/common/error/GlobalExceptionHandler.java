@@ -1,5 +1,6 @@
 package point.zzicback.common.error;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
   @ExceptionHandler(EntityNotFoundException.class)
@@ -24,6 +26,42 @@ public class GlobalExceptionHandler {
     return detail;
   }
 
+  @ExceptionHandler(NotFoundException.class)
+  public ProblemDetail handleNotFoundException(NotFoundException ex) {
+    log.warn("리소스를 찾을 수 없음 - errorCode: {}, message: {}", ex.getErrorCode(), ex.getMessage());
+    
+    ProblemDetail detail = ProblemDetail.forStatus(ex.getHttpStatus());
+    detail.setTitle("리소스를 찾을 수 없음");
+    detail.setDetail(ex.getMessage());
+    detail.setProperty("timestamp", new Date());
+    detail.setProperty("errorCode", ex.getErrorCode());
+    return detail;
+  }
+
+  @ExceptionHandler(ConflictException.class)
+  public ProblemDetail handleConflictException(ConflictException ex) {
+    log.warn("리소스 충돌 발생 - errorCode: {}, message: {}", ex.getErrorCode(), ex.getMessage());
+    
+    ProblemDetail detail = ProblemDetail.forStatus(ex.getHttpStatus());
+    detail.setTitle("리소스 충돌");
+    detail.setDetail(ex.getMessage());
+    detail.setProperty("timestamp", new Date());
+    detail.setProperty("errorCode", ex.getErrorCode());
+    return detail;
+  }
+
+  @ExceptionHandler(ForbiddenException.class)
+  public ProblemDetail handleForbiddenException(ForbiddenException ex) {
+    log.warn("접근 권한 없음 - errorCode: {}, message: {}", ex.getErrorCode(), ex.getMessage());
+    
+    ProblemDetail detail = ProblemDetail.forStatus(ex.getHttpStatus());
+    detail.setTitle("접근 권한 없음");
+    detail.setDetail(ex.getMessage());
+    detail.setProperty("timestamp", new Date());
+    detail.setProperty("errorCode", ex.getErrorCode());
+    return detail;
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
     ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -31,26 +69,29 @@ public class GlobalExceptionHandler {
     detail.setDetail("요청 데이터가 유효하지 않습니다. 아래 오류를 확인해주세요.");
     
     // 필드별 에러 메시지 수집
-    Map<String, List<String>> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-            .collect(Collectors.groupingBy(
-                    FieldError::getField, 
-                    Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())
-            ));
+    Map<String, String> fieldErrors = new HashMap<>();
+    for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+        fieldErrors.put(error.getField(), error.getDefaultMessage());
+    }
     
-    detail.setProperty("errors", fieldErrors);
+    // ProblemDetail 표준 구조로 통일
     detail.setProperty("timestamp", new Date());
     detail.setProperty("errorCode", "VALIDATION_ERROR");
+    detail.setProperty("errors", fieldErrors);
     
     return detail;
   }
 
   @ExceptionHandler(BusinessException.class)
   public ProblemDetail handleBusinessException(BusinessException ex) {
-    ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+    log.warn("비즈니스 로직 예외 - errorCode: {}, status: {}, message: {}", 
+            ex.getErrorCode(), ex.getHttpStatus(), ex.getMessage());
+    
+    ProblemDetail detail = ProblemDetail.forStatus(ex.getHttpStatus());
     detail.setTitle("요청 처리 실패");
     detail.setDetail(ex.getMessage());
     detail.setProperty("timestamp", new Date());
-    detail.setProperty("errorCode", "BUSINESS_ERROR");
+    detail.setProperty("errorCode", ex.getErrorCode());
     return detail;
   }
 
@@ -111,15 +152,31 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ProblemDetail handleGeneric(Exception ex) {
-    // 에러 로깅 추가
-    System.err.println("Unexpected error occurred: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
-    ex.printStackTrace();
+    // 상세한 에러 로깅
+    log.error("=== 예상치 못한 오류 발생 ===");
+    log.error("예외 타입: {}", ex.getClass().getSimpleName());
+    log.error("예외 메시지: {}", ex.getMessage());
+    log.error("스택 트레이스:", ex);
+    
+    // 원인 예외도 로깅
+    Throwable cause = ex.getCause();
+    if (cause != null) {
+      log.error("원인 예외 타입: {}", cause.getClass().getSimpleName());
+      log.error("원인 예외 메시지: {}", cause.getMessage());
+    }
     
     ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
     detail.setTitle("서버 내부 오류");
     detail.setDetail("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     detail.setProperty("timestamp", new Date());
     detail.setProperty("errorCode", "INTERNAL_SERVER_ERROR");
+    
+    // 개발 환경에서는 더 자세한 정보 제공
+    if (log.isDebugEnabled()) {
+      detail.setProperty("exceptionType", ex.getClass().getSimpleName());
+      detail.setProperty("exceptionMessage", ex.getMessage());
+    }
+    
     return detail;
   }
 }

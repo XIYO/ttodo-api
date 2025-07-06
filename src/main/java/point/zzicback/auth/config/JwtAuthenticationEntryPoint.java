@@ -10,6 +10,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import point.zzicback.auth.application.TokenService;
 import point.zzicback.auth.presentation.CookieService;
+import point.zzicback.common.error.BusinessException;
 
 @Slf4j
 @Component
@@ -63,6 +64,12 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     log.info("Refresh token found. Attempting to refresh tokens...");
     try {
       String deviceId = tokenService.extractClaim(refreshToken, TokenService.DEVICE_CLAIM);
+      if (deviceId == null) {
+        log.warn("Could not extract device ID from refresh token");
+        cookieService.setExpiredJwtCookie(response);
+        cookieService.setExpiredRefreshCookie(response);
+        return false;
+      }
       log.info("Extracted device ID: {}", deviceId);
 
       TokenService.TokenPair newTokens = tokenService.refreshTokens(deviceId, refreshToken);
@@ -72,13 +79,16 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
       cookieService.setRefreshCookie(response, newTokens.refreshToken());
 
       return true;
-    } catch (Exception e) {
-      log.error("Failed to refresh tokens: {}", e.getMessage(), e);
+    } catch (BusinessException e) {
+      log.info("Business exception during token refresh: {}", e.getMessage());
       tokenService.deleteByToken(refreshToken);
-      
-      log.info("Deleting invalid refresh token and setting expired cookies");
       cookieService.setExpiredJwtCookie(response);
       cookieService.setExpiredRefreshCookie(response);
+      return false;
+    } catch (Exception e) {
+      log.error("Unexpected error during token refresh: {}", e.getMessage(), e);
+      // 예상치 못한 에러의 경우 토큰을 삭제하지 않고 500 에러 반환
+      // 일시적인 문제일 수 있으므로 재시도 기회를 줌
       return false;
     }
   }

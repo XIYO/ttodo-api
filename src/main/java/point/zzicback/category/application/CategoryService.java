@@ -82,11 +82,22 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
     
+    /**
+     * 카테고리 소유자 검증
+     * @param categoryId 카테고리 ID
+     * @param memberId 회원 ID
+     * @return 소유자 여부
+     */
+    public boolean isOwner(Long categoryId, UUID memberId) {
+        return categoryRepository.existsByIdAndMemberId(categoryId, memberId);
+    }
+    
     private CategoryResult toCategoryResult(Category category) {
         return new CategoryResult(
                 category.getId(),
                 category.getName(),
                 category.getColor(),
+                category.getDescription(),
                 null, // displayOrder는 현재 Category 엔티티에 없음
                 null, // createdAt은 BaseEntity에서 상속받을 예정
                 null  // updatedAt은 BaseEntity에서 상속받을 예정

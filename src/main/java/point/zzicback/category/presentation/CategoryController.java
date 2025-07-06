@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
@@ -21,7 +22,7 @@ import point.zzicback.category.presentation.mapper.CategoryPresentationMapper;
 @RestController
 @RequestMapping("categories")
 @RequiredArgsConstructor
-@Tag(name = "카테고리", description = "카테고리 관리 API")
+@Tag(name = "할일 카테고리 관리", description = "할일을 분류하기 위한 카테고리 생성, 조회, 수정, 삭제 및 색상/이름 관리 API")
 public class CategoryController {
     private final CategoryService categoryService;
     private final CategoryPresentationMapper mapper;
@@ -42,6 +43,9 @@ public class CategoryController {
     @GetMapping("/{categoryId}")
     @Operation(summary = "카테고리 상세 조회", description = "특정 카테고리의 상세 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "카테고리 조회 성공")
+    @ApiResponse(responseCode = "403", description = "접근 권한 없음")
+    @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
+    @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
     public CategoryResponse getCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable Long categoryId) {
@@ -87,9 +91,12 @@ public class CategoryController {
         ),
         responses = {
             @ApiResponse(responseCode = "200", description = "카테고리 수정 성공",
-                content = @Content(schema = @Schema(implementation = CategoryResponse.class)))
+                content = @Content(schema = @Schema(implementation = CategoryResponse.class))),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
         }
     )
+    @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
     public CategoryResponse updateCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable Long categoryId,
@@ -106,7 +113,10 @@ public class CategoryController {
     @DeleteMapping("/{categoryId}")
     @Operation(summary = "카테고리 삭제", description = "기존 카테고리를 삭제합니다.")
     @ApiResponse(responseCode = "204", description = "카테고리 삭제 성공")
+    @ApiResponse(responseCode = "403", description = "접근 권한 없음")
+    @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
     public void deleteCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable Long categoryId) {

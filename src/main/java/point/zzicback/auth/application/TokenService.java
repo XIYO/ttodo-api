@@ -6,16 +6,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.concurrent.*;
 import point.zzicback.auth.config.properties.JwtProperties;
 import point.zzicback.auth.domain.*;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.domain.Member;
+import point.zzicback.profile.application.ProfileService;
+import point.zzicback.profile.domain.Profile;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenService {
@@ -31,7 +37,12 @@ public class TokenService {
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
   private final MemberService memberService;
+  private final ProfileService profileService;
   private final TokenRepository tokenRepository;
+  
+  // 동시 리프레시 요청을 위한 캐시 (10초간 유지)
+  private final Map<String, TokenPair> recentRefreshCache = new ConcurrentHashMap<>();
+  private final ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
 
   private String generateToken(String userId, Instant expiresAt, Map<String, Object> additionalClaims) {
     Instant now = Instant.now();
@@ -65,7 +76,8 @@ public class TokenService {
     try {
       String[] parts = token.split("\\.");
       if (parts.length < 2) {
-        throw new IllegalArgumentException("Invalid JWT format");
+        log.warn("Invalid JWT format: insufficient parts");
+        return null;
       }
       String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
       String target = "\"" + claimName + "\"";
@@ -77,7 +89,8 @@ public class TokenService {
       int valueEnd = payloadJson.indexOf('"', valueStart);
       return payloadJson.substring(valueStart, valueEnd);
     } catch (Exception e) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰 파싱 실패", e);
+      log.warn("Failed to extract claim '{}' from token: {}", claimName, e.getMessage());
+      return null;
     }
   }
 
@@ -96,8 +109,16 @@ public class TokenService {
   }
 
   public void deleteByToken(String refreshToken) {
-    String deviceId = extractClaim(refreshToken, DEVICE_CLAIM);
-    tokenRepository.delete(deviceId);
+    try {
+      String deviceId = extractClaim(refreshToken, DEVICE_CLAIM);
+      if (deviceId != null) {
+        tokenRepository.delete(deviceId);
+      } else {
+        log.warn("Could not extract device ID from refresh token for deletion");
+      }
+    } catch (Exception e) {
+      log.warn("Failed to delete token: {}", e.getMessage());
+    }
   }
 
   public boolean isValidRefreshToken(String deviceId, String refreshToken) {
@@ -106,21 +127,48 @@ public class TokenService {
   }
 
   public TokenPair refreshTokens(String deviceId, String oldRefreshToken) {
-    validateAndDeleteInvalidToken(deviceId, oldRefreshToken);
+    // 10초 이내에 동일한 리프레시 토큰으로 요청이 왔다면 캐시된 결과 반환
+    String cacheKey = deviceId + ":" + oldRefreshToken.hashCode();
+    TokenPair cached = recentRefreshCache.get(cacheKey);
+    if (cached != null) {
+      log.info("Returning cached token for concurrent refresh request: deviceId={}", deviceId);
+      return cached;
+    }
     
-    UUID memberId = UUID.fromString(extractClaim(oldRefreshToken, SUB_CLAIM));
-    Member member = memberService.findVerifiedMember(memberId);
-    
-    String newAccessToken = generateAccessToken(
-            memberId.toString(),
-            member.getEmail(),
-            member.getNickname(),
-            member.getTimeZone(),
-            member.getLocale());
-    String newRefreshToken = generateRefreshToken(memberId.toString(), deviceId);
-    save(deviceId, newRefreshToken);
-    
-    return new TokenPair(newAccessToken, newRefreshToken);
+    // 동일 디바이스에 대한 동시 요청 방지
+    synchronized (deviceId.intern()) {
+      // Double-check: 다른 스레드가 방금 처리했을 수 있음
+      cached = recentRefreshCache.get(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+      
+      validateAndDeleteInvalidToken(deviceId, oldRefreshToken);
+      
+      UUID memberId = UUID.fromString(extractClaim(oldRefreshToken, SUB_CLAIM));
+      Member member = memberService.findVerifiedMember(memberId);
+      Profile profile = profileService.getProfile(memberId);
+      
+      String newAccessToken = generateAccessToken(
+              memberId.toString(),
+              member.getEmail(),
+              member.getNickname(),
+              profile.getTimeZone(),
+              profile.getLocale());
+      String newRefreshToken = generateRefreshToken(memberId.toString(), deviceId);
+      save(deviceId, newRefreshToken);
+      
+      TokenPair newTokens = new TokenPair(newAccessToken, newRefreshToken);
+      
+      // 캐시에 저장하고 10초 후 자동 제거
+      recentRefreshCache.put(cacheKey, newTokens);
+      cleanupExecutor.schedule(() -> {
+        recentRefreshCache.remove(cacheKey);
+        log.debug("Removed cached token for key: {}", cacheKey);
+      }, 10, TimeUnit.SECONDS);
+      
+      return newTokens;
+    }
   }
 
   private void validateAndDeleteInvalidToken(String deviceId, String refreshToken) {
@@ -137,12 +185,13 @@ public class TokenService {
 
   public TokenResult generateTokens(MemberPrincipal member) {
     String deviceId = UUID.randomUUID().toString();
+    Profile profile = profileService.getProfile(member.id());
     String accessToken = generateAccessToken(
             member.idAsString(),
             member.email(),
             member.nickname(),
-            member.timeZone(),
-            member.locale());
+            profile.getTimeZone(),
+            profile.getLocale());
     String refreshToken = generateRefreshToken(member.idAsString(), deviceId);
     save(deviceId, refreshToken);
     return new TokenResult(accessToken, refreshToken, deviceId);

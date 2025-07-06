@@ -15,8 +15,8 @@ public record MemberPrincipal(
         @Schema(description = "사용자 로케일", example = "ko_KR") String locale,
         Collection<? extends GrantedAuthority> authorities) implements UserDetails {
 
-    public static MemberPrincipal from(Member member, Collection<? extends GrantedAuthority> authorities) {
-        return new MemberPrincipal(member.getId(), member.getEmail(), member.getNickname(), member.getTimeZone(), member.getLocale(), authorities);
+    public static MemberPrincipal from(Member member, String timeZone, String locale, Collection<? extends GrantedAuthority> authorities) {
+        return new MemberPrincipal(member.getId(), member.getEmail(), member.getNickname(), timeZone, locale, authorities);
     }
 
     public static MemberPrincipal from(UUID id, String email, String nickname, String timeZone, String locale, Collection<? extends GrantedAuthority> authorities) {

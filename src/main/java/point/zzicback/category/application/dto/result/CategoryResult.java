@@ -10,6 +10,7 @@ public record CategoryResult(
         Long id,
         String name,
         String colorHex,
+        String description,
         Integer displayOrder,
         Instant createdAt,
         Instant updatedAt

@@ -8,9 +8,12 @@ import org.springframework.stereotype.Component;
 import point.zzicback.challenge.application.*;
 import point.zzicback.challenge.application.dto.command.CreateChallengeCommand;
 import point.zzicback.challenge.domain.PeriodType;
+import point.zzicback.challenge.domain.ChallengeVisibility;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.domain.Member;
+import java.util.UUID;
+import java.time.LocalDate;
 import point.zzicback.todo.config.TodoInitializer;
 
 @Slf4j
@@ -111,9 +114,7 @@ public class AnonMemberInitializer implements ApplicationRunner {
           email,
           passwordEncoder.encode(password),
           nickname,
-          null,
-          "Asia/Seoul",
-          "ko_KR"
+          null
       );
       Member member = memberService.createMember(command);
       log.info("Created member: {}", nickname);
@@ -127,16 +128,24 @@ public class AnonMemberInitializer implements ApplicationRunner {
   
   private Long createChallengeIfNotExists(String title, String description, PeriodType periodType) {
     try {
-      CreateChallengeCommand command = new CreateChallengeCommand(title, description, periodType);
+      LocalDate now = LocalDate.now();
+      CreateChallengeCommand command = new CreateChallengeCommand(
+          title, 
+          description, 
+          periodType,
+          ChallengeVisibility.PUBLIC,
+          now,
+          now.plusMonths(6),
+          null, // maxParticipants
+          UUID.randomUUID(), // creatorId
+          null  // policyIds
+      );
       Long challengeId = challengeService.createChallenge(command);
       log.info("Created challenge: {}", title);
       return challengeId;
     } catch (Exception e) {
-      log.debug("Challenge creation skipped - already exists or error occurred: {}", e.getMessage());
-      // If challenge already exists, we still need to return an ID
-      // For now, we'll create it anyway since we need the ID for participation
-      CreateChallengeCommand command = new CreateChallengeCommand(title, description, periodType);
-      return challengeService.createChallenge(command);
+      log.debug("Challenge creation failed: {}", e.getMessage());
+      return null;
     }
   }
   

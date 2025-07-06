@@ -16,26 +16,25 @@ import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.presentation.dto.request.UpdateMemberRequest;
 import point.zzicback.member.presentation.dto.response.MemberResponse;
 import point.zzicback.member.presentation.mapper.MemberPresentationMapper;
-import point.zzicback.profile.application.MemberProfileService;
-import point.zzicback.profile.domain.MemberProfile;
+import point.zzicback.profile.application.ProfileService;
+import point.zzicback.profile.domain.Profile;
 import point.zzicback.profile.domain.Theme;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Base64;
 import java.util.UUID;
 
 /**
  * 회원 관련 Presentation 레이어 API 컨트롤러
  */
-@Tag(name = "멤버", description = "회원 관련 API")
+@Tag(name = "회원 정보 관리", description = "회원 목록 조회, 상세 정보 조회, 닉네임/소개글 수정, 프로필 이미지 관리, 테마 변경 등 회원 관리 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members")
 public class MemberController {
 
     private final MemberService memberService;
-    private final MemberProfileService memberProfileService;
+    private final ProfileService profileService;
     private final MemberPresentationMapper mapper;
 
     @Operation(summary = "회원 목록 조회", description = "회원 목록을 페이징 조회합니다.")
@@ -61,7 +60,7 @@ public class MemberController {
     @GetMapping("/{memberId}")
     public MemberResponse getMember(@PathVariable UUID memberId) {
         MemberResult dto = memberService.getMember(memberId);
-        MemberProfile profile = memberProfileService.getProfile(memberId);
+        Profile profile = profileService.getProfile(memberId);
         return mapper.toResponse(dto, profile);
     }
 
@@ -94,7 +93,7 @@ public class MemberController {
     public void updateTheme(
             @PathVariable UUID memberId,
             @RequestParam Theme theme) {
-        memberProfileService.updateTheme(memberId, theme);
+        profileService.updateTheme(memberId, theme);
     }
     
     @Operation(summary = "회원 프로필 이미지 업로드", description = "회원의 프로필 이미지를 업로드합니다.")
@@ -106,22 +105,23 @@ public class MemberController {
     public void uploadProfileImage(
             @PathVariable UUID memberId,
             @RequestParam("image") MultipartFile image) throws IOException {
-        memberProfileService.updateProfileImage(memberId, image);
+        profileService.updateProfileImage(memberId, image);
     }
     
     @Operation(summary = "회원 프로필 이미지 조회", description = "회원의 프로필 이미지를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "프로필 이미지 조회 성공")
+    @ApiResponse(responseCode = "200", description = "프로필 이미지 조회 성공", 
+                 content = @Content(mediaType = "image/*"))
     @ApiResponse(responseCode = "404", description = "프로필 이미지가 없습니다.")
-    @GetMapping("/{memberId}/profile-image")
-    public ResponseEntity<String> getProfileImage(@PathVariable UUID memberId) {
-        MemberProfile profile = memberProfileService.getProfile(memberId);
+    @GetMapping(value = "/{memberId}/profile-image", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
+    public ResponseEntity<byte[]> getProfileImage(@PathVariable UUID memberId) {
+        Profile profile = profileService.getProfile(memberId);
         if (profile.getProfileImage() == null) {
             return ResponseEntity.notFound().build();
         }
-        String base64Image = Base64.getEncoder().encodeToString(profile.getProfileImage());
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf(profile.getProfileImageType()))
-                .body(base64Image);
+                .header("Cache-Control", "public, max-age=3600") // 1시간 캐싱
+                .body(profile.getProfileImage());
     }
     
     @Operation(summary = "회원 프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")
@@ -131,6 +131,6 @@ public class MemberController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("#memberId == authentication.principal.id")
     public void deleteProfileImage(@PathVariable UUID memberId) {
-        memberProfileService.removeProfileImage(memberId);
+        profileService.removeProfileImage(memberId);
     }
 }

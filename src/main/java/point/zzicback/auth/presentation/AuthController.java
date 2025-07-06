@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +18,15 @@ import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
 import point.zzicback.member.domain.Member;
+import point.zzicback.member.presentation.dto.response.MemberResponse;
+import point.zzicback.profile.application.ProfileService;
+import point.zzicback.profile.domain.Profile;
 import point.zzicback.todo.config.TodoInitializer;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
-@Tag(name = "인증", description = "회원 인증 관련 API")
+@Tag(name = "사용자 인증 및 회원 관리", description = "회원 가입, 로그인, 로그아웃, 토큰 갱신 등 인증 및 인가 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -31,6 +36,7 @@ public class AuthController {
   private static final String ANON_EMAIL = "anon@zzic.com";
   
   private final MemberService memberService;
+  private final ProfileService profileService;
   private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
   private final CookieService cookieService;
@@ -46,13 +52,12 @@ public class AuthController {
             request.email(),
             passwordEncoder.encode(request.password()),
             request.nickname(),
-            request.introduction(),
-            request.timeZone(),
-            request.locale());
+            request.introduction());
     memberService.createMember(signUpCommand);
     Member member = authenticateMember(request.email(), request.password());
+    Profile profile = profileService.getProfile(member.getId());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
-    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
+    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, profile.getTimeZone(), profile.getLocale(), authorities);
     authenticateWithCookies(memberPrincipal, response);
   }
 
@@ -83,8 +88,9 @@ public class AuthController {
   @Transactional(readOnly = true)
   public void signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
     Member member = authenticateMember(request.email(), request.password());
+    Profile profile = profileService.getProfile(member.getId());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
-    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
+    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, profile.getTimeZone(), profile.getLocale(), authorities);
     
     authenticateWithCookies(memberPrincipal, response);
   }
@@ -105,6 +111,17 @@ public class AuthController {
   @ApiResponse(responseCode = "401", description = "토큰 갱신 실패")
   @GetMapping("/refresh")
   public void refresh() {
+  }
+
+  @Operation(summary = "현재 사용자 정보 조회", description = "JWT 토큰을 통해 현재 로그인한 사용자 정보를 조회합니다.")
+  @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공")
+  @ApiResponse(responseCode = "401", description = "인증 실패")
+  @GetMapping("/me")
+  @Transactional(readOnly = true)
+  public MemberResponse getCurrentUser(Authentication authentication) {
+    MemberPrincipal principal = (MemberPrincipal) authentication.getPrincipal();
+    Member member = memberService.findVerifiedMember(principal.id());
+    return MemberResponse.from(member);
   }
 
   private Member authenticateMember(String email, String password) {

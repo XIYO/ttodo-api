@@ -27,8 +27,8 @@ public class TestSecurityConfig {
                     member.getId(),
                     member.getEmail(),
                     member.getNickname(),
-                    member.getTimeZone(),
-                    member.getLocale(),
+                    "Asia/Seoul", // 기본 타임존
+                    "ko-KR", // 기본 로케일
                     List.of(new SimpleGrantedAuthority("ROLE_USER"))
             );
         };

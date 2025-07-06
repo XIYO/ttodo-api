@@ -7,7 +7,7 @@ import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.presentation.dto.request.UpdateMemberRequest;
 import point.zzicback.member.presentation.dto.response.MemberResponse;
-import point.zzicback.profile.domain.MemberProfile;
+import point.zzicback.profile.domain.Profile;
 
 import java.util.UUID;
 
@@ -27,15 +27,18 @@ public interface MemberPresentationMapper {
     @Mapping(source = "dto.id", target = "id")
     @Mapping(source = "dto.email", target = "email")
     @Mapping(source = "dto.nickname", target = "nickname")
-    @Mapping(source = "dto.introduction", target = "introduction")
-    @Mapping(source = "dto.locale", target = "locale")
-    @Mapping(source = "dto.timeZone", target = "timeZone")
+    @Mapping(source = "profile.introduction", target = "introduction")
+    @Mapping(source = "profile.locale", target = "locale")
+    @Mapping(source = "profile.timeZone", target = "timeZone")
     @Mapping(source = "profile.theme", target = "theme")
-    @Mapping(target = "hasProfileImage", expression = "java(profile != null && profile.getProfileImage() != null)")
-    MemberResponse toResponse(MemberResult dto, MemberProfile profile);
+    @Mapping(target = "profileImageUrl", expression = "java(profile != null && profile.getProfileImage() != null ? \"/api/members/\" + dto.id() + \"/profile-image\" : null)")
+    MemberResponse toResponse(MemberResult dto, Profile profile);
     
     /** Simple version without profile (for list views) */
+    @Mapping(target = "introduction", constant = "")
+    @Mapping(target = "locale", constant = "ko-KR")
+    @Mapping(target = "timeZone", constant = "Asia/Seoul")
     @Mapping(target = "theme", constant = "LIGHT")
-    @Mapping(target = "hasProfileImage", constant = "false")
+    @Mapping(target = "profileImageUrl", expression = "java(null)")
     MemberResponse toResponse(MemberResult dto);
 }

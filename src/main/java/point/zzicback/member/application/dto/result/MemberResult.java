@@ -8,8 +8,5 @@ import java.util.UUID;
 public record MemberResult(
         UUID id,
         String email,
-        String nickname,
-        String introduction,
-        String timeZone,
-        String locale
+        String nickname
 ) {}

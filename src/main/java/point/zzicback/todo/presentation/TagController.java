@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
@@ -21,6 +22,7 @@ public class TagController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@todoOriginalService.canAccessTags(authentication.principal.id)")
     @Operation(
             summary = "태그 목록 조회",
             description = "사용자가 사용한 모든 태그 목록을 중복 없이 조회합니다. 페이지네이션을 지원합니다.",

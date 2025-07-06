@@ -19,6 +19,8 @@ services:
   redis:
     image: redis:alpine
     container_name: zzic-redis
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:

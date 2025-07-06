@@ -26,10 +26,15 @@ public class ChallengeTodo {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 
+    @Embedded
+    private Period period;
+    
     @Builder
-    public ChallengeTodo(ChallengeParticipation challengeParticipation, LocalDate targetDate) {
+    public ChallengeTodo(ChallengeParticipation challengeParticipation, Period period, LocalDate targetDate) {
         this.challengeParticipation = challengeParticipation;
+        this.period = period;
         this.targetDate = targetDate;
+        this.done = false;
     }
 
     @PrePersist
@@ -73,5 +78,9 @@ public class ChallengeTodo {
             default:
                 return false;
         }
+    }
+    
+    public void cancel() {
+        this.done = false;
     }
 }

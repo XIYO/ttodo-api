@@ -20,6 +20,5 @@ public interface CategoryPresentationMapper {
      * @return Presentation Layer의 응답 DTO
      */
     @Mapping(source = "colorHex", target = "color")
-    @Mapping(target = "description", ignore = true)
     CategoryResponse toResponse(CategoryResult result);
 }

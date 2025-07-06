@@ -96,7 +96,7 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.id").value(testMember.getId().toString()))
                 .andExpect(jsonPath("$.email").value("anon@zzic.com"))
                 .andExpect(jsonPath("$.nickname").value("익명의 찍찍이"))
-                .andExpect(jsonPath("$.introduction").value(testMember.getIntroduction()))
+                .andExpect(jsonPath("$.introduction").value(""))
                 .andExpect(jsonPath("$.timeZone").value("Asia/Seoul"))
                 .andExpect(jsonPath("$.locale").value("ko_KR"));
     }
@@ -138,7 +138,7 @@ public class MemberControllerTest {
         mockMvc.perform(get("/members/{memberId}", testMember.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nickname").value("닉네임만변경"))
-                .andExpect(jsonPath("$.introduction").value(testMember.getIntroduction()));
+                .andExpect(jsonPath("$.introduction").value(""));
     }
 
     @Test

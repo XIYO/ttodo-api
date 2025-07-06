@@ -27,12 +27,6 @@ public class Member {
   private String nickname;
   @Column(nullable = false)
   private String password;
-  @Column(length = 500)
-  private String introduction;
-  @Column(name = "time_zone", nullable = false)
-  private String timeZone;
-  @Column(nullable = false)
-  private String locale;
   
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)

@@ -11,7 +11,7 @@ import point.zzicback.experience.presentation.mapper.ExperiencePresentationMappe
 
 import java.util.UUID;
 
-@Tag(name = "경험치", description = "경험치 및 레벨 관련 API")
+@Tag(name = "회원 경험치 및 레벨 시스템", description = "회원의 활동 기반 경험치 축적 및 레벨 상승 시스템 조회 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members")

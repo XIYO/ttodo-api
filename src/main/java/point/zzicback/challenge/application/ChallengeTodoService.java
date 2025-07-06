@@ -10,13 +10,12 @@ import point.zzicback.challenge.application.mapper.ChallengeTodoMapper;
 import point.zzicback.challenge.domain.*;
 import point.zzicback.challenge.infrastructure.*;
 import point.zzicback.common.error.*;
-import point.zzicback.common.error.EntityNotFoundException;
 import point.zzicback.experience.application.event.ChallengeTodoCompletedEvent;
 import point.zzicback.member.domain.Member;
+import point.zzicback.challenge.infrastructure.ChallengeRepository;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -24,182 +23,95 @@ import java.util.stream.Stream;
 public class ChallengeTodoService {
     private final ChallengeTodoRepository challengeTodoRepository;
     private final ChallengeParticipationRepository participationRepository;
-    private final ChallengeService challengeService;
+    private final ChallengeRepository challengeRepository;
     private final ChallengeTodoMapper challengeTodoMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    public void completeChallenge(ChallengeParticipation cp, LocalDate currentDate) {
-        Optional<ChallengeTodo> existingTodo = (cp.getChallenge().getPeriodType() == PeriodType.DAILY)
-                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(cp, currentDate)
-                : challengeTodoRepository.findByChallengeParticipation(cp);
+    public void completeChallenge(Long challengeId, Member member, LocalDate targetDate) {
+        // 챌린지 확인
+        Challenge challenge = challengeRepository.findById(challengeId)
+            .orElseThrow(() -> new NotFoundException("챌린지를 찾을 수 없습니다"));
         
-        if (existingTodo.isPresent()) {
-            ChallengeTodo todo = existingTodo.get();
-            if (todo.isCompleted()) {
-                throw new BusinessException("이미 완료된 챌린지입니다.");
-            }
-            todo.complete(currentDate);
-            challengeTodoRepository.save(todo);
-            
-            // 챌린지 투두 완료 이벤트 발생
-            eventPublisher.publishEvent(new ChallengeTodoCompletedEvent(
-                    cp.getMember().getId(),
-                    cp.getChallenge().getId(),
-                    cp.getChallenge().getTitle()
-            ));
-        } else {
-            LocalDate targetDate = cp.getChallenge().getPeriodType().calculateTargetDate(currentDate);
-                    
-            ChallengeTodo newTodo = ChallengeTodo.builder()
-                    .challengeParticipation(cp)
-                    .targetDate(targetDate)
-                    .build();
-            newTodo.complete(currentDate);
-            challengeTodoRepository.save(newTodo);
-            
-            // 챌린지 투두 완료 이벤트 발생
-            eventPublisher.publishEvent(new ChallengeTodoCompletedEvent(
-                    cp.getMember().getId(),
-                    cp.getChallenge().getId(),
-                    cp.getChallenge().getTitle()
-            ));
+        // 참여 상태 확인
+        ChallengeParticipation participation = participationRepository
+            .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
+            .orElseThrow(() -> new ForbiddenException("참여하지 않은 챌린지입니다"));
+        
+        // 챌린지 활성 상태 확인
+        if (!challenge.isActive()) {
+            throw new BusinessException("BIZ_001", "종료되었거나 시작되지 않은 챌린지입니다");
         }
+        
+        // 기존 투두 확인
+        Optional<ChallengeTodo> existingTodo = challengeTodoRepository
+            .findByChallengeParticipationAndTargetDate(participation, targetDate);
+        
+        if (existingTodo.isPresent() && existingTodo.get().isCompleted()) {
+            throw new ConflictException("이미 완료한 챌린지 투두입니다");
+        }
+        
+        // 투두 생성 또는 업데이트
+        ChallengeTodo todo = existingTodo.orElseGet(() -> {
+            Period period = calculatePeriod(challenge.getPeriodType(), targetDate);
+            return ChallengeTodo.builder()
+                .challengeParticipation(participation)
+                .period(period)
+                .targetDate(targetDate)
+                .build();
+        });
+        
+        todo.complete(targetDate);
+        challengeTodoRepository.save(todo);
+        
+        // 챌린지 투두 완료 이벤트 발생
+        eventPublisher.publishEvent(new ChallengeTodoCompletedEvent(
+            member.getId(),
+            challenge.getId(),
+            challenge.getTitle()
+        ));
     }
-
-    @Transactional
+    
     public void cancelCompleteChallenge(Long todoId, Member member) {
-        ChallengeTodo challengeTodo = challengeTodoRepository.findById(todoId)
-                .orElseThrow(() -> new EntityNotFoundException("ChallengeTodo", todoId));
+        ChallengeTodo todo = challengeTodoRepository.findById(todoId)
+            .orElseThrow(() -> new NotFoundException("챌린지 투두를 찾을 수 없습니다"));
         
-        if (!challengeTodo.getChallengeParticipation().getMember().equals(member)) {
-            throw new BusinessException("해당 투두에 대한 권한이 없습니다.");
+        // 권한 확인
+        if (!todo.getChallengeParticipation().getMember().getId().equals(member.getId())) {
+            throw new ForbiddenException("다른 사용자의 챌린지 투두를 취소할 수 없습니다");
         }
         
-        challengeTodoRepository.delete(challengeTodo);
+        todo.cancel();
+        challengeTodoRepository.save(todo);
     }
     
     @Transactional(readOnly = true)
     public Page<ChallengeTodoResult> getAllChallengeTodos(Member member, Pageable pageable) {
-        List<ChallengeParticipation> participations = participationRepository.findByMemberAndJoinOutIsNull(member);
-        List<ChallengeTodoResult> allTodos = participations.stream()
-                .flatMap(this::createChallengeTodoStream)
-                .toList();
-        allTodos = applySorting(allTodos, pageable.getSort());
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), allTodos.size());
-        List<ChallengeTodoResult> pagedTodos = allTodos.subList(start, end);
-        return new PageImpl<>(pagedTodos, pageable, allTodos.size());
+        return challengeTodoRepository.findAllByMember(member, pageable)
+            .map(challengeTodoMapper::toResult);
     }
-
-    private Stream<ChallengeTodoResult> createChallengeTodoStream(ChallengeParticipation participation) {
-        LocalDate currentDate = LocalDate.now();
-        ChallengeTodo virtualTodo = createVirtualChallengeTodo(participation, currentDate);
-        PeriodType periodType = participation.getChallenge().getPeriodType();
-        
-        if (!isWithinChallengeRange(participation.getChallenge(), currentDate)) {
-            return Stream.empty();
-        }
-        
-        if (!virtualTodo.isInPeriod(periodType, currentDate)) {
-            return Stream.empty();
-        }
-        
-        Optional<ChallengeTodo> existingTodo = (periodType == PeriodType.DAILY) 
-            ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
-            : challengeTodoRepository.findByChallengeParticipation(participation);
-
-        if (existingTodo.isPresent()) {
-            ChallengeTodo todo = existingTodo.get();
-            if (!todo.isInPeriod(periodType, currentDate)) {
-                return Stream.empty();
-            }
-            return Stream.of(challengeTodoMapper.toResult(todo));
-        } else {
-            return Stream.of(challengeTodoMapper.toResult(virtualTodo));
-        }
-    }
-
-    ChallengeTodo createVirtualChallengeTodo(ChallengeParticipation participation, LocalDate currentDate) {
-        if (participation == null) {
-            throw new BusinessException("ChallengeParticipation cannot be null");
-        }
-        
-        Challenge challenge = participation.getChallenge();
-        if (challenge == null) {
-            throw new BusinessException("Challenge cannot be null");
-        }
-
-        return ChallengeTodo.builder()
-                .challengeParticipation(participation)
-                .targetDate(currentDate)
-                .build();
-    }
-
-    public void completeChallenge(Long challengeId, Member member, LocalDate currentDate) {
-        challengeService.findById(challengeId);
-
-        ChallengeParticipation participation = participationRepository
-                .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
-                .orElseThrow(() -> new BusinessException("해당 챌린지에 참여하지 않았습니다."));
-        
-        completeChallenge(participation, currentDate);
-    }
-
+    
     @Transactional(readOnly = true)
-    public ChallengeTodoResult getChallengeTodoByChallenge(Long challengeId, Member member, LocalDate currentDate) {
-        challengeService.findById(challengeId);
-
-        ChallengeParticipation participation = participationRepository
-                .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
-                .orElseThrow(() -> new BusinessException("해당 챌린지에 참여하지 않았습니다."));
-
-        // 기존 완료된 투두를 찾아서 반환
-        Optional<ChallengeTodo> existingTodo = (participation.getChallenge().getPeriodType() == PeriodType.DAILY)
-                ? challengeTodoRepository.findByChallengeParticipationAndTargetDate(participation, currentDate)
-                : challengeTodoRepository.findByChallengeParticipation(participation);
-
-        if (existingTodo.isPresent()) {
-            return challengeTodoMapper.toResult(existingTodo.get());
-        } else {
-            // 가상 투두 생성 및 반환 (완료되지 않은 상태)
-            ChallengeTodo virtualTodo = createVirtualChallengeTodo(participation, currentDate);
-            return challengeTodoMapper.toResult(virtualTodo);
-        }
+    public ChallengeTodoResult getChallengeTodoByChallenge(Long challengeId, Member member, LocalDate date) {
+        ChallengeTodo todo = challengeTodoRepository
+            .findByChallengeMemberAndDate(challengeId, member, date)
+            .orElseThrow(() -> new NotFoundException("챌린지 투두를 찾을 수 없습니다"));
+        
+        return challengeTodoMapper.toResult(todo);
     }
-
-    private List<ChallengeTodoResult> applySorting(List<ChallengeTodoResult> todos, Sort sort) {
-        if (sort.isEmpty()) return todos;
-        
-        Comparator<ChallengeTodoResult> finalComparator = null;
-        
-        for (Sort.Order order : sort) {
-            Comparator<ChallengeTodoResult> currentComparator = getComparatorByProperty(order.getProperty());
-            
-            if (order.isDescending()) {
-                currentComparator = currentComparator.reversed();
+    
+    private Period calculatePeriod(PeriodType periodType, LocalDate targetDate) {
+        return switch (periodType) {
+            case DAILY -> new Period(targetDate, targetDate);
+            case WEEKLY -> {
+                LocalDate startOfWeek = targetDate.minusDays(targetDate.getDayOfWeek().getValue() - 1);
+                LocalDate endOfWeek = startOfWeek.plusDays(6);
+                yield new Period(startOfWeek, endOfWeek);
             }
-            
-            finalComparator = (finalComparator == null) 
-                ? currentComparator 
-                : finalComparator.thenComparing(currentComparator);
-        }
-        
-        return todos.stream()
-                .sorted(finalComparator != null ? finalComparator : Comparator.comparing(ChallengeTodoResult::id, Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
-    }
-
-    private Comparator<ChallengeTodoResult> getComparatorByProperty(String property) {
-        return switch (property) {
-            case "challengeTitle" -> Comparator.comparing(ChallengeTodoResult::challengeTitle, Comparator.nullsLast(String::compareTo));
-            case "startDate" -> Comparator.comparing(ChallengeTodoResult::startDate, Comparator.nullsLast(Comparator.naturalOrder()));  
-            case "endDate" -> Comparator.comparing(ChallengeTodoResult::endDate, Comparator.nullsLast(Comparator.naturalOrder()));
-            case "periodType" -> Comparator.comparing(ChallengeTodoResult::periodType, Comparator.nullsLast(Comparator.naturalOrder()));
-            default -> Comparator.comparing(ChallengeTodoResult::id, Comparator.nullsLast(Comparator.naturalOrder()));
+            case MONTHLY -> {
+                LocalDate startOfMonth = targetDate.withDayOfMonth(1);
+                LocalDate endOfMonth = targetDate.withDayOfMonth(targetDate.lengthOfMonth());
+                yield new Period(startOfMonth, endOfMonth);
+            }
         };
-    }
-
-    private boolean isWithinChallengeRange(Challenge challenge, LocalDate date) {
-        return !date.isBefore(challenge.getStartDate()) && !date.isAfter(challenge.getEndDate());
     }
 }

@@ -17,6 +17,14 @@ public record UpdateProfileRequest(
         @Size(max = 500, message = "소개글은 500자를 초과할 수 없습니다.")
         String introduction,
         
+        @Schema(description = "시간대 (IANA Time Zone)", example = "Asia/Seoul")
+        @Size(max = 50, message = "시간대는 50자를 초과할 수 없습니다.")
+        String timeZone,
+        
+        @Schema(description = "언어 설정 (BCP 47 언어 태그)", example = "ko-KR")
+        @Size(max = 10, message = "언어 설정은 10자를 초과할 수 없습니다.")
+        String locale,
+        
         @Schema(description = "테마 설정")
         Theme theme
 ) {

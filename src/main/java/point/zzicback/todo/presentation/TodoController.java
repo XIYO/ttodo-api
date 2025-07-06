@@ -9,6 +9,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
@@ -31,7 +32,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/todos")
 @RequiredArgsConstructor
-@Tag(name = "Todo", description = "할일 관리 API")
+@Tag(name = "할일(Todo) 관리", description = "할일 생성, 조회, 수정, 삭제, 완료 처리, 반복 스케줄링, 상단 고정, 월별 현황 조회, 통계 등 할일 관리 전반 API")
 public class TodoController {
   private final TodoOriginalService todoOriginalService;
   private final VirtualTodoService virtualTodoService;
@@ -74,6 +75,7 @@ public class TodoController {
   @PutMapping(value = "/{id:\\d+}:{daysDifference:\\d+}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 수정", description = "Todo를 전체 수정합니다.")
+  @PreAuthorize("@todoOriginalService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
   public void modify(@AuthenticationPrincipal MemberPrincipal principal,
                      @PathVariable Long id,
                      @PathVariable Long daysDifference,
@@ -94,6 +96,7 @@ public class TodoController {
   )
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 부분 수정", description = "기존 Todo를 부분 수정합니다.")
+  @PreAuthorize("@todoOriginalService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
   public void patchTodo(@AuthenticationPrincipal MemberPrincipal principal,
                         @PathVariable Long id,
                         @PathVariable Long daysDifference,
@@ -119,6 +122,7 @@ public class TodoController {
   @DeleteMapping(value = "/{id:\\d+}:{daysDifference:\\d+}", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 삭제", description = "특정 Todo를 삭제하거나 숨깁니다.")
+  @PreAuthorize("@todoOriginalService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
   public void remove(@AuthenticationPrincipal MemberPrincipal principal, 
                      @PathVariable Long id, 
                      @PathVariable Long daysDifference,
@@ -166,6 +170,7 @@ public class TodoController {
   @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/pin")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Todo 상단 고정 토글", description = "Todo의 상단 고정 상태를 토글합니다.")
+  @PreAuthorize("@todoOriginalService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
   public void togglePin(@AuthenticationPrincipal MemberPrincipal principal,
                        @PathVariable Long id,
                        @PathVariable Long daysDifference) {
@@ -175,6 +180,7 @@ public class TodoController {
   @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/pin-order")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "핀 고정된 Todo 순서 변경", description = "핀 고정된 Todo의 표시 순서를 변경합니다.")
+  @PreAuthorize("@todoOriginalService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
   public void changeOrder(@AuthenticationPrincipal MemberPrincipal principal,
                          @PathVariable Long id,
                          @PathVariable Long daysDifference,

@@ -28,6 +28,7 @@ import java.util.*;
 public class TodoOriginalService {
     
     private final TodoOriginalRepository todoOriginalRepository;
+    private final TodoRepository todoRepository;
     private final CategoryRepository categoryRepository;
     private final MemberService memberService;
     private final TodoApplicationMapper todoApplicationMapper;
@@ -260,5 +261,39 @@ public class TodoOriginalService {
         for (int i = 0; i < pinnedTodos.size(); i++) {
             pinnedTodos.get(i).setDisplayOrder(i);
         }
+    }
+    
+    /**
+     * Todo 소유자 여부 확인 (Spring Security @PreAuthorize용)
+     * 먼저 Todo 테이블을 확인하고, 없으면 TodoOriginal을 확인
+     */
+    public boolean isOwner(Long todoId, UUID memberId) {
+        return todoOriginalRepository.findByIdAndMemberId(todoId, memberId).isPresent();
+    }
+    
+    /**
+     * Virtual Todo ID를 고려한 소유자 여부 확인 (Spring Security @PreAuthorize용)
+     * 먼저 Todo 테이블을 확인하고, 없으면 TodoOriginal을 확인
+     */
+    public boolean isOwnerWithDaysDifference(Long originalTodoId, Long daysDifference, UUID memberId) {
+        // 먼저 Virtual Todo 테이블 확인
+        TodoId todoId = new TodoId(originalTodoId, daysDifference);
+        boolean existsInTodoTable = todoRepository.findByTodoIdAndMemberId(todoId, memberId).isPresent();
+        
+        if (existsInTodoTable) {
+            return true;
+        }
+        
+        // Todo 테이블에 없으면 TodoOriginal 확인
+        return todoOriginalRepository.findByIdAndMemberId(originalTodoId, memberId).isPresent();
+    }
+    
+    /**
+     * 태그 조회 권한 확인 (Spring Security @PreAuthorize용)
+     * 인증된 사용자는 자신의 태그만 조회 가능
+     */
+    public boolean canAccessTags(UUID memberId) {
+        // 인증된 사용자라면 자신의 태그에는 항상 접근 가능
+        return memberId != null;
     }
 }

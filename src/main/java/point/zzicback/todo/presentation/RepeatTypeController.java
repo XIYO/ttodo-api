@@ -11,7 +11,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/repeat-types")
-@Tag(name = "반복 타입", description = "투두 반복 타입 관련 API")
+@Tag(name = "할일 반복 타입 참조", description = "할일 반복 설정에 사용할 수 있는 반복 타입 목록 조회 (반복 안함, 매일, 매주, 매월, 매년) API")
 public class RepeatTypeController {
 
     @GetMapping

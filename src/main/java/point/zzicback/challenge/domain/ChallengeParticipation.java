@@ -29,9 +29,10 @@ public class ChallengeParticipation {
     private List<ChallengeTodo> challengeTodos = new ArrayList<>();
 
     @Builder
-    public ChallengeParticipation(Member member, Challenge challenge) {
+    public ChallengeParticipation(Member member, Challenge challenge, LocalDateTime joinedAt) {
         this.member = member;
         this.challenge = challenge;
+        this.joinedAt = joinedAt != null ? joinedAt : LocalDateTime.now();
     }
 
     @PrePersist
@@ -49,5 +50,10 @@ public class ChallengeParticipation {
 
     public boolean hasLeftChallenge() {
         return joinOut != null;
+    }
+    
+    // 테스트용 setter
+    public void setJoinedAt(LocalDateTime joinedAt) {
+        this.joinedAt = joinedAt;
     }
 }

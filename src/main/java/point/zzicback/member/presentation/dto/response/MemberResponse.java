@@ -20,6 +20,22 @@ public record MemberResponse(
         String locale,
         @Schema(description = "테마 설정")
         String theme,
-        @Schema(description = "프로필 이미지 존재 여부")
-        boolean hasProfileImage
-) {} // 비밀번호는 보안상 응답에 포함시키지 않음
+        @Schema(description = "프로필 이미지 URL", example = "/api/members/123e4567-e89b-12d3-a456-426614174000/profile-image")
+        String profileImageUrl
+) {
+    public static MemberResponse from(point.zzicback.member.domain.Member member) {
+        String profileImageUrl = member.getId() != null ? 
+            "/members/" + member.getId() + "/profile-image" : null;
+        
+        return new MemberResponse(
+            member.getId(),
+            member.getEmail(),
+            member.getNickname(),
+            "", // 기본 소개글
+            "Asia/Seoul", // 기본 타임존
+            "ko-KR", // 기본 로케일
+            "LIGHT", // 기본 테마
+            profileImageUrl
+        );
+    }
+}
