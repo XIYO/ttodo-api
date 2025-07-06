@@ -30,7 +30,6 @@ public class MemberProfile {
     private Theme theme = Theme.LIGHT;
     
     @Lob
-    @Column(columnDefinition = "BLOB")
     private byte[] profileImage;
     
     @Column(length = 50)
