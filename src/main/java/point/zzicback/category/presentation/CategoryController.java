@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.category.application.CategoryService;
 import point.zzicback.category.application.command.*;
-import point.zzicback.category.presentation.dto.*;
+import point.zzicback.category.presentation.dto.request.*;
+import point.zzicback.category.presentation.dto.response.*;
+import point.zzicback.category.presentation.mapper.CategoryPresentationMapper;
 
 @RestController
 @RequestMapping("categories")
@@ -22,6 +24,7 @@ import point.zzicback.category.presentation.dto.*;
 @Tag(name = "카테고리", description = "카테고리 관리 API")
 public class CategoryController {
     private final CategoryService categoryService;
+    private final CategoryPresentationMapper mapper;
     
     @GetMapping
     @Operation(summary = "카테고리 목록 조회", description = "사용자의 모든 카테고리를 조회합니다.")
@@ -32,7 +35,8 @@ public class CategoryController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "name,asc") String sort) {
         Pageable pageable = createPageable(page, size, sort);
-        return categoryService.getCategories(principal.id(), pageable);
+        return categoryService.getCategories(principal.id(), pageable)
+                .map(mapper::toResponse);
     }
     
     @GetMapping("/{categoryId}")
@@ -41,7 +45,7 @@ public class CategoryController {
     public CategoryResponse getCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable Long categoryId) {
-        return categoryService.getCategory(principal.id(), categoryId);
+        return mapper.toResponse(categoryService.getCategory(principal.id(), categoryId));
     }
     
     @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -68,7 +72,7 @@ public class CategoryController {
                 request.name(),
                 request.color(),
                 request.description());
-        return categoryService.createCategory(command);
+        return mapper.toResponse(categoryService.createCategory(command));
     }
     
     @PutMapping(value = "/{categoryId}", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -96,7 +100,7 @@ public class CategoryController {
                 request.name(),
                 request.color(),
                 request.description());
-        return categoryService.updateCategory(command);
+        return mapper.toResponse(categoryService.updateCategory(command));
     }
     
     @DeleteMapping("/{categoryId}")

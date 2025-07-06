@@ -2,7 +2,7 @@ package point.zzicback.todo.presentation.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import point.zzicback.todo.presentation.dto.UpdateTodoRequest;
+import point.zzicback.todo.presentation.dto.request.UpdateTodoRequest;
 
 public class CompleteUpdateValidator implements ConstraintValidator<ValidCompleteUpdate, UpdateTodoRequest> {
     

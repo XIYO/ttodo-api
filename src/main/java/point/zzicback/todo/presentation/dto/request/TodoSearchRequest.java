@@ -1,12 +1,14 @@
-package point.zzicback.todo.presentation.dto;
+package point.zzicback.todo.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import point.zzicback.common.validation.DateRangeConstraint;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Schema(description = "Todo 검색 요청")
+@DateRangeConstraint
 public record TodoSearchRequest(
         @Schema(description = "완료 상태 필터 (true: 완료, false: 진행중, null: 모든 상태)", example = "false")
         Boolean complete,

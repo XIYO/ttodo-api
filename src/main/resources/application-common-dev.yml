@@ -23,15 +23,33 @@ jwt:
 
 spring:
   datasource:
-    url: jdbc:h2:file:./data/zzic-db;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/zzic_dev
+    username: zzic_user
+    password: zzic_password
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  docker:
+    compose:
+      enabled: true
+      lifecycle-management: start_and_stop
+      start:
+        command: up
+      stop:
+        command: down
+        timeout: 10s
+      skip:
+        in-tests: false
+      file: docker-compose.yml
 
 logging:
   level:

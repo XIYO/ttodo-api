@@ -1,14 +1,13 @@
 package point.zzicback.experience.presentation.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import point.zzicback.common.config.MapStructConfig;
 import point.zzicback.experience.application.dto.result.MemberLevelResult;
 import point.zzicback.experience.presentation.dto.response.MemberLevelResponse;
 
-@Mapper(componentModel = "spring")
+@Mapper(config = MapStructConfig.class)
 public interface ExperiencePresentationMapper {
     
-    @Mapping(target = "currentExp", source = "currentExp")
-    @Mapping(target = "currentLevelMinExp", source = "currentLevelMinExp")
+    // 동일한 필드명은 자동 매핑되므로 @Mapping 불필요
     MemberLevelResponse toResponse(MemberLevelResult result);
 }

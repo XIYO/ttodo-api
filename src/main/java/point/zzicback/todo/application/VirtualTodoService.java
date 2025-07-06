@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.zzicback.category.domain.Category;
@@ -28,6 +29,7 @@ import point.zzicback.todo.domain.Todo;
 import point.zzicback.todo.domain.TodoId;
 import point.zzicback.todo.domain.TodoOriginal;
 import point.zzicback.todo.infrastructure.persistence.TodoRepository;
+import point.zzicback.todo.infrastructure.persistence.TodoSpecification;
 import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
 
 import java.time.DayOfWeek;
@@ -35,6 +37,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,16 +56,17 @@ public class VirtualTodoService {
     }
     
     public Page<TodoResult> getTodoList(TodoSearchQuery query) {
-        // 모든 실제 투두를 조회 (페이지네이션 없이)
-        Page<Todo> todoPage = todoRepository.findByMemberId(
+        // Specification을 사용한 동적 쿼리
+        Specification<Todo> spec = TodoSpecification.createSpecification(
                 query.memberId(),
-                query.categoryIds() != null ? query.categoryIds() : Collections.emptyList(),
                 query.complete(),
-                query.priorityIds() != null ? query.priorityIds() : Collections.emptyList(),
+                query.categoryIds(),
+                query.priorityIds(),
                 query.startDate(),
-                query.endDate(),
-                Pageable.unpaged());
+                query.endDate()
+        );
         
+        Page<Todo> todoPage = todoRepository.findAll(spec, Pageable.unpaged());
         return getTodoListWithVirtualTodos(query, todoPage);
     }
     
@@ -274,9 +278,10 @@ public class VirtualTodoService {
         Set<LocalDate> datesWithTodos = new HashSet<>();
 
         // 실제 투두(active=true, complete=false 포함) 날짜
-        Page<Todo> realTodos = todoRepository.findByMemberId(
-                memberId, Collections.emptyList(), null, Collections.emptyList(), startDate, endDate, Pageable.unpaged()
+        Specification<Todo> spec = TodoSpecification.createSpecification(
+                memberId, null, null, null, startDate, endDate
         );
+        Page<Todo> realTodos = todoRepository.findAll(spec, Pageable.unpaged());
         realTodos.getContent().stream()
                 .filter(todo -> Boolean.TRUE.equals(todo.getActive()))
                 .map(Todo::getDate)
@@ -314,15 +319,10 @@ public class VirtualTodoService {
     
     public TodoStatistics getTodoStatistics(UUID memberId, LocalDate targetDate) {
         // 실제 Todo (DB에 저장된) 조회
-        Page<Todo> realTodoPage = todoRepository.findByMemberId(
-                memberId,
-                null, // categoryIds
-                null, // complete - 모든 상태 조회
-                null, // priorityIds
-                targetDate, // startDate = 대상 날짜
-                targetDate, // endDate = 대상 날짜
-                Pageable.unpaged()
+        Specification<Todo> spec = TodoSpecification.createSpecification(
+                memberId, null, null, null, targetDate, targetDate
         );
+        Page<Todo> realTodoPage = todoRepository.findAll(spec, Pageable.unpaged());
         
         // TodoSearchQuery로 가상 투두 포함 전체 조회
         TodoSearchQuery query = new TodoSearchQuery(

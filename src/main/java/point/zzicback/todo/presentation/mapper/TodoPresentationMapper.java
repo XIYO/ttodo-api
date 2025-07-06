@@ -1,59 +1,39 @@
 package point.zzicback.todo.presentation.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import org.springframework.data.domain.PageRequest;
+import point.zzicback.common.config.MapStructConfig;
 import point.zzicback.todo.application.dto.command.*;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
 import point.zzicback.todo.application.dto.result.*;
-import point.zzicback.todo.presentation.dto.*;
+import point.zzicback.todo.presentation.dto.request.*;
+import point.zzicback.todo.presentation.dto.response.*;
 
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", imports = {PageRequest.class})
+@Mapper(config = MapStructConfig.class, imports = {PageRequest.class})
 public interface TodoPresentationMapper {
-  @Mapping(target = "memberId", source = "memberId")
-  @Mapping(target = "priorityId", source = "request.priorityId")
-  @Mapping(target = "date", source = "request.date")
-  @Mapping(target = "time", source = "request.time")
-  @Mapping(target = "tags", source = "request.tags")
+  
+  // Create 관련 매핑
   CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
-  @Mapping(target = "memberId", source = "memberId")
+  // Update 관련 매핑
   @Mapping(target = "todoId", source = "todoId")
-  @Mapping(target = "complete", source = "request.complete")
-  @Mapping(target = "priorityId", source = "request.priorityId")
-  @Mapping(target = "date", source = "request.date")
-  @Mapping(target = "time", source = "request.time")
-  @Mapping(target = "tags", source = "request.tags")
   @Mapping(target = "originalTodoId", ignore = true)
   UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
+  // Virtual Todo Update 매핑
   @Mapping(target = "virtualTodoId", source = "virtualId")
-  @Mapping(target = "memberId", source = "memberId")
-  @Mapping(target = "title", source = "request.title")
-  @Mapping(target = "description", source = "request.description")
-  @Mapping(target = "complete", source = "request.complete")
-  @Mapping(target = "priorityId", source = "request.priorityId")
-  @Mapping(target = "categoryId", source = "request.categoryId")
-  @Mapping(target = "date", source = "request.date")
-  @Mapping(target = "time", source = "request.time")
-  @Mapping(target = "tags", source = "request.tags")
   UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID memberId, String virtualId);
 
-  @Mapping(target = "memberId", source = "memberId")
-  @Mapping(target = "complete", source = "request.complete")
-  @Mapping(target = "categoryIds", source = "request.categoryIds")
-  @Mapping(target = "priorityIds", source = "request.priorityIds")
-  @Mapping(target = "tags", source = "request.tags")
-  @Mapping(target = "startDate", source = "request.startDate")
-  @Mapping(target = "endDate", source = "request.endDate")
-  @Mapping(target = "date", source = "request.date")
+  // Search 관련 매핑
   @Mapping(target = "pageable", expression = "java(PageRequest.of(request.page(), request.size()))")
   TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
 
-  point.zzicback.todo.presentation.dto.TodoResponse toResponse(TodoResult todoResult);
+  // Response 매핑
+  TodoResponse toResponse(TodoResult todoResult);
 
+  // 헬퍼 메서드
   default boolean isOnlyCompleteFieldUpdate(UpdateTodoRequest request) {
     return request.getComplete() != null &&
            (request.getTitle() == null || request.getTitle().trim().isEmpty()) &&

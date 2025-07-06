@@ -1,4 +1,4 @@
-package point.zzicback.todo.presentation.dto;
+package point.zzicback.todo.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -14,8 +14,8 @@ import java.util.*;
 @Schema(description = "Todo 생성 요청 DTO")
 public class CreateTodoRequest {
     
-    @NotBlank 
-    @Size(max = 255) 
+    @NotBlank(message = "제목은 필수 입력값입니다")
+    @Size(max = 255, message = "제목은 255자를 초과할 수 없습니다") 
     @Schema(
         description = "할일 제목", 
         example = "영어 공부하기",
@@ -24,7 +24,7 @@ public class CreateTodoRequest {
     )
     private String title;
     
-    @Size(max = 1000) 
+    @Size(max = 1000, message = "설명은 1000자를 초과할 수 없습니다") 
     @Schema(
         description = "할일 설명", 
         example = "토익 문제집 2장 풀기",

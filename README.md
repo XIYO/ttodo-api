@@ -13,9 +13,9 @@ ZZIC의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통한
 - **Spring Validation** - 입력 데이터 검증
 
 ### Database
-- **PostgreSQL** - 운영 데이터베이스
-- **H2** - 개발/테스트 데이터베이스
+- **PostgreSQL** - 메인 데이터베이스 (개발/운영)
 - **Redis** - 토큰 저장소 및 세션 관리
+- **Testcontainers** - 테스트 환경 자동화
 
 ### Documentation & Testing
 - **Swagger/OpenAPI 3** - API 문서화
@@ -75,38 +75,49 @@ src/
 └── test/                        # 테스트 코드
 ```
 
-## 토큰 저장소 설정
+## 개발 환경 설정
 
-### 개발 환경 - 로컬 모드 (기본값)
+### 필수 요구사항
+- JDK 21
+- Docker Desktop
+
+### 빠른 시작
 ```bash
-# 프로파일: dev-local
-# 로컬 메모리에 토큰 저장
-./gradlew bootRun --args='--spring.profiles.active=dev-local'
+# 프로젝트 클론
+git clone [repository-url]
+cd ZZIC-api
+
+# 애플리케이션 실행
+./gradlew bootRun
 ```
 
-### 개발 환경 - Redis 모드  
-```bash
-# 프로파일: dev-redis
-# Redis 서버 필요 (없으면 실행 실패)
-./gradlew bootRun --args='--spring.profiles.active=dev-redis'
+**자동으로 처리되는 것들:**
+- PostgreSQL Docker 컨테이너 자동 시작/종료 (Spring Boot Docker Compose 통합)
+- 데이터베이스 스키마 생성
+- 초기 데이터 설정
+- Redis 컨테이너 시작 (docker-compose.yml에 정의된 경우)
+
+### IDE에서 실행
+- **IntelliJ IDEA**: 프로젝트 열고 `ZzicBackApplication` 실행
+- **VS Code**: Terminal에서 `./gradlew bootRun`
+- **Eclipse**: Run As > Spring Boot App, Profile: `dev` 설정
+
+### 데이터베이스 접속 정보
+```yaml
+# PostgreSQL (자동 실행됨)
+Host: localhost
+Port: 5432
+Database: zzic_dev
+Username: zzic_user
+Password: zzic_password
 ```
 
-### Redis 시작 방법
+### 테스트 실행
 ```bash
-# Docker로 Redis 시작
-docker run -d --name redis -p 6379:6379 redis:latest
-
-# 또는 로컬 Redis 설치 후 시작
-brew install redis
-brew services start redis
+./gradlew test
 ```
-
-### 운영 환경  
-- **staging/prod**: Redis 서버 필수
-- 환경변수로 연결 정보 설정:
-  - `REDIS_HOST`: Redis 서버 호스트
-  - `REDIS_PORT`: Redis 서버 포트  
-  - `REDIS_PASSWORD`: Redis 서버 비밀번호
+- Testcontainers를 통해 PostgreSQL이 자동으로 실행됩니다
+- 테스트 종료 후 컨테이너는 자동으로 정리됩니다
 
 ## Docker Compose 실행
 

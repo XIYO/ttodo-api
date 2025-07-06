@@ -18,7 +18,6 @@ public interface ChallengeTodoMapper {
     @Mapping(target = "challengeDescription", source = "challengeTodo.challengeParticipation.challenge.description")
     @Mapping(target = "startDate", source = "period.startDate")
     @Mapping(target = "endDate", source = "period.endDate")
-    @Mapping(target = "done", source = "done")
     @Mapping(target = "isPersisted", expression = "java(challengeTodo.getId() != null)")
     @Mapping(target = "periodType", source = "challengeTodo.challengeParticipation.challenge.periodType")
     ChallengeTodoResult toResult(ChallengeTodo challengeTodo);

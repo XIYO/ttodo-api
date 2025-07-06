@@ -3,11 +3,18 @@ services:
     image: postgres:17-alpine
     container_name: zzic-postgres
     environment:
-      POSTGRES_DB: zzic
-      POSTGRES_USER: zzic
-      POSTGRES_PASSWORD: zzic
+      POSTGRES_DB: zzic_dev
+      POSTGRES_USER: zzic_user
+      POSTGRES_PASSWORD: zzic_password
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zzic_user -d zzic_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine

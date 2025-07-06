@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.UpdateMemberCommand;
@@ -66,9 +67,11 @@ public class MemberController {
 
     @Operation(summary = "회원 정보 수정", description = "회원 닉네임과 소개글을 수정합니다.")
     @ApiResponse(responseCode = "204", description = "회원 정보 수정 성공")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 정보는 수정할 수 없습니다.")
     @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
     @PatchMapping(value = "/{memberId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("#memberId == authentication.principal.id")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         content = {
             @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateMemberRequest.class)),
@@ -84,8 +87,10 @@ public class MemberController {
     
     @Operation(summary = "회원 테마 변경", description = "회원의 테마를 변경합니다.")
     @ApiResponse(responseCode = "204", description = "테마 변경 성공")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 테마는 변경할 수 없습니다.")
     @PatchMapping("/{memberId}/theme")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("#memberId == authentication.principal.id")
     public void updateTheme(
             @PathVariable UUID memberId,
             @RequestParam Theme theme) {
@@ -94,8 +99,10 @@ public class MemberController {
     
     @Operation(summary = "회원 프로필 이미지 업로드", description = "회원의 프로필 이미지를 업로드합니다.")
     @ApiResponse(responseCode = "204", description = "프로필 이미지 업로드 성공")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지는 업로드할 수 없습니다.")
     @PostMapping(value = "/{memberId}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("#memberId == authentication.principal.id")
     public void uploadProfileImage(
             @PathVariable UUID memberId,
             @RequestParam("image") MultipartFile image) throws IOException {
@@ -119,8 +126,10 @@ public class MemberController {
     
     @Operation(summary = "회원 프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")
     @ApiResponse(responseCode = "204", description = "프로필 이미지 삭제 성공")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지는 삭제할 수 없습니다.")
     @DeleteMapping("/{memberId}/profile-image")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("#memberId == authentication.principal.id")
     public void deleteProfileImage(@PathVariable UUID memberId) {
         memberProfileService.removeProfileImage(memberId);
     }

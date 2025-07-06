@@ -20,7 +20,8 @@ import point.zzicback.todo.application.dto.query.TodoSearchQuery;
 import point.zzicback.todo.application.dto.query.VirtualTodoQuery;
 import point.zzicback.todo.application.dto.result.TodoStatistics;
 import point.zzicback.todo.domain.TodoId;
-import point.zzicback.todo.presentation.dto.*;
+import point.zzicback.todo.presentation.dto.request.*;
+import point.zzicback.todo.presentation.dto.response.*;
 import point.zzicback.todo.presentation.dto.response.CalendarTodoStatusResponse;
 import point.zzicback.todo.presentation.mapper.TodoPresentationMapper;
 

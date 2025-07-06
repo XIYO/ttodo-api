@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.application.TokenService;
 import point.zzicback.auth.domain.MemberPrincipal;
-import point.zzicback.auth.presentation.dto.*;
+import point.zzicback.auth.presentation.dto.request.*;
 import point.zzicback.common.error.BusinessException;
 import point.zzicback.member.application.MemberService;
 import point.zzicback.member.application.dto.command.CreateMemberCommand;
