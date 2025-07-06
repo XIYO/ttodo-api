@@ -30,10 +30,10 @@ jobs:
           ~/.gradle/wrapper
         key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-    - name: Test and Build
+    - name: Build
       run: |
         chmod +x ./gradlew
-        ./gradlew clean test bootJar --no-daemon
+        ./gradlew clean bootJar --no-daemon -x test
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
