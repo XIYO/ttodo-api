@@ -27,7 +27,7 @@ public interface TodoPresentationMapper {
   UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID memberId, String virtualId);
 
   // Search 관련 매핑
-  @Mapping(target = "pageable", expression = "java(PageRequest.of(request.page(), request.size()))")
+  @Mapping(target = "pageable", expression = "java(PageRequest.of(request.page() != null ? request.page() : 0, request.size() != null ? request.size() : 10))")
   TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
 
   // Response 매핑

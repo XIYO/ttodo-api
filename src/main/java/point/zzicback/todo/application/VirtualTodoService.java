@@ -473,7 +473,7 @@ public class VirtualTodoService {
             }
 
             if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
-                if (todoOriginal.getRepeatStartDate() != null) {
+                if (todoOriginal.getRepeatStartDate() != null && todoOriginal.getDate() != null) {
                     long daysDifference = ChronoUnit.DAYS.between(
                             todoOriginal.getRepeatStartDate(), todoOriginal.getDate());
                     String virtualId = todoOriginal.getId() + ":" + daysDifference;
@@ -548,11 +548,14 @@ public class VirtualTodoService {
     }
     
     private LocalDate getNextDate(LocalDate date, Integer repeatType, Integer interval) {
+        // interval이 null이면 기본값 1 사용
+        int intervalValue = interval != null ? interval : 1;
+        
         return switch (repeatType) {
-            case RepeatTypeConstants.DAILY -> date.plusDays(interval);
-            case RepeatTypeConstants.WEEKLY -> date.plusWeeks(interval);
-            case RepeatTypeConstants.MONTHLY -> date.plusMonths(interval);
-            case RepeatTypeConstants.YEARLY -> date.plusYears(interval);
+            case RepeatTypeConstants.DAILY -> date.plusDays(intervalValue);
+            case RepeatTypeConstants.WEEKLY -> date.plusWeeks(intervalValue);
+            case RepeatTypeConstants.MONTHLY -> date.plusMonths(intervalValue);
+            case RepeatTypeConstants.YEARLY -> date.plusYears(intervalValue);
             default -> date.plusDays(1);
         };
     }
