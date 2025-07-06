@@ -6,6 +6,7 @@ import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.presentation.dto.request.UpdateMemberRequest;
 import point.zzicback.member.presentation.dto.response.MemberResponse;
+import point.zzicback.profile.domain.MemberProfile;
 
 import java.util.UUID;
 
@@ -25,5 +26,18 @@ public interface MemberPresentationMapper {
     MemberResult toResult(Member member);
 
     /** Application MemberResult -> Presentation Response DTO 변환 */
+    @Mapping(source = "dto.id", target = "id")
+    @Mapping(source = "dto.email", target = "email")
+    @Mapping(source = "dto.nickname", target = "nickname")
+    @Mapping(source = "dto.introduction", target = "introduction")
+    @Mapping(source = "dto.timeZone", target = "timeZone")
+    @Mapping(source = "dto.locale", target = "locale")
+    @Mapping(source = "profile.theme", target = "theme")
+    @Mapping(expression = "java(profile.getProfileImage() != null)", target = "hasProfileImage")
+    MemberResponse toResponse(MemberResult dto, MemberProfile profile);
+    
+    /** Simple version without profile (for list views) */
+    @Mapping(target = "theme", constant = "LIGHT")
+    @Mapping(target = "hasProfileImage", constant = "false")
     MemberResponse toResponse(MemberResult dto);
 }

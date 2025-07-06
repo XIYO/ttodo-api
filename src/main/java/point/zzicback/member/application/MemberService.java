@@ -11,6 +11,7 @@ import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.member.application.event.MemberCreatedEvent;
 import point.zzicback.member.domain.Member;
 import point.zzicback.member.infrastructure.persistence.MemberRepository;
+import point.zzicback.profile.application.MemberProfileService;
 
 import java.util.*;
 
@@ -20,6 +21,7 @@ import java.util.*;
 public class MemberService {
   private static final String MEMBER_ENTITY = "Member";
   private final MemberRepository memberRepository;
+  private final MemberProfileService memberProfileService;
   private final ApplicationEventPublisher eventPublisher;
 
   public Member createMember(CreateMemberCommand command) {
@@ -32,6 +34,9 @@ public class MemberService {
         .locale(command.locale())
         .build();
     Member savedMember = memberRepository.save(member);
+    
+    // Create profile for the new member
+    memberProfileService.createProfile(savedMember.getId());
     
     eventPublisher.publishEvent(new MemberCreatedEvent(
         savedMember.getId(), 

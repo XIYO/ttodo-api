@@ -93,9 +93,14 @@ public class VirtualTodoService {
                     .findFirst()
                     .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.originalTodoId()));
             
-            LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
-                todoOriginal.getRepeatStartDate().plusDays(query.daysDifference()) :
-                todoOriginal.getDate().plusDays(query.daysDifference());
+            LocalDate targetDate = null;
+            if (todoOriginal.getRepeatStartDate() != null) {
+                targetDate = todoOriginal.getRepeatStartDate().plusDays(query.daysDifference());
+            } else if (todoOriginal.getDate() != null) {
+                targetDate = todoOriginal.getDate().plusDays(query.daysDifference());
+            } else {
+                targetDate = LocalDate.now().plusDays(query.daysDifference());
+            }
             
             String virtualId = query.originalTodoId() + ":" + query.daysDifference();
             return todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, targetDate);
@@ -125,7 +130,7 @@ public class VirtualTodoService {
             
             LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
                 todoOriginal.getRepeatStartDate().plusDays(command.daysDifference()) :
-                todoOriginal.getDate().plusDays(command.daysDifference());
+                (todoOriginal.getDate() != null ? todoOriginal.getDate() : LocalDate.now()).plusDays(command.daysDifference());
             
             Todo newTodo = Todo.builder()
                     .todoId(todoId)
@@ -159,7 +164,7 @@ public class VirtualTodoService {
         
         LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
             todoOriginal.getRepeatStartDate().plusDays(daysDifference) :
-            todoOriginal.getDate().plusDays(daysDifference);
+            (todoOriginal.getDate() != null ? todoOriginal.getDate() : LocalDate.now()).plusDays(daysDifference);
         
         // active 상태에 관계없이 기존 Todo 확인
         Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, command.memberId());
@@ -454,7 +459,7 @@ public class VirtualTodoService {
         
         for (TodoOriginal todoOriginal : todoOriginals) {
             // baseDate 이후의 원본 투두만 포함
-            if (todoOriginal.getDate().isBefore(baseDate)) {
+            if (todoOriginal.getDate() != null && baseDate != null && todoOriginal.getDate().isBefore(baseDate)) {
                 continue;
             }
 
@@ -578,7 +583,11 @@ public class VirtualTodoService {
             return false;
         }
 
-        return endDate == null || !dueDate.isAfter(endDate);
+        if (endDate != null && dueDate.isAfter(endDate)) {
+            return false;
+        }
+
+        return true;
     }
     
     private boolean matchesCategoryFilter(TodoOriginal todoOriginal, List<Long> categoryIds) {

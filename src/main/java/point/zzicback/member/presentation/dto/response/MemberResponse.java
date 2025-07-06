@@ -17,5 +17,9 @@ public record MemberResponse(
         @Schema(description = "사용자 타임존")
         String timeZone,
         @Schema(description = "사용자 로케일")
-        String locale
+        String locale,
+        @Schema(description = "테마 설정")
+        String theme,
+        @Schema(description = "프로필 이미지 존재 여부")
+        boolean hasProfileImage
 ) {} // 비밀번호는 보안상 응답에 포함시키지 않음

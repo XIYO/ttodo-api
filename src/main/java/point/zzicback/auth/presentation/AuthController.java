@@ -86,10 +86,6 @@ public class AuthController {
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
     MemberPrincipal memberPrincipal = MemberPrincipal.from(member, authorities);
     
-    if (ANON_EMAIL.equals(request.email())) {
-      todoInitializer.createDefaultTodosForMember(member);
-    }
-    
     authenticateWithCookies(memberPrincipal, response);
   }
 

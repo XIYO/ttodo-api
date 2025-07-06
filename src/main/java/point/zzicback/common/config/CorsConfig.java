@@ -13,6 +13,7 @@ public class CorsConfig {
     config.addAllowedOrigin("https://api.zzic.xiyo.dev");
     config.addAllowedOrigin("http://localhost:8080");
     config.addAllowedOrigin("http://localhost:6100");
+    config.addAllowedOrigin("http://localhost:6101");
     config.addAllowedHeader("*");
     config.addAllowedMethod("*");
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
