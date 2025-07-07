@@ -15,6 +15,7 @@ import point.zzicback.member.domain.Member;
 import java.util.UUID;
 import java.time.LocalDate;
 import point.zzicback.todo.config.TodoInitializer;
+import point.zzicback.profile.application.ProfileService;
 
 @Slf4j
 @Component
@@ -26,6 +27,7 @@ public class AnonMemberInitializer implements ApplicationRunner {
   private final ChallengeParticipationService participationService;
   private final ChallengeTodoService challengeTodoService;
   private final TodoInitializer todoInitializer;
+  private final ProfileService profileService;
   private final java.util.Random random = new java.util.Random();
 
   @Override
@@ -40,8 +42,17 @@ public class AnonMemberInitializer implements ApplicationRunner {
   private Member[] createSeedMembers() {
     Member[] members = new Member[11];
 
-    Member member = createOrFindMember("anon@zzic.com", "", "익명의 찍찍이");
+    Member member = createOrFindMember("anon@zzic.com", "", "전설의찍찍이");
     members[0] = member;
+    
+    // 첫 번째 익명 사용자의 프로필에 자기소개 추가
+    try {
+      var profile = profileService.getProfile(member.getId());
+      profile.updateIntroduction("안녕하세요! 저는 전설의찍찍이입니다. 🐭 매일 꾸준히 할 일을 완료하며 성장하고 있어요!");
+      profileService.saveProfile(profile);
+    } catch (Exception e) {
+      log.debug("Failed to update profile introduction: {}", e.getMessage());
+    }
     
     // 첫 번째 익명 사용자에게만 기본 할일 생성
     todoInitializer.createDefaultTodosForMember(member);
