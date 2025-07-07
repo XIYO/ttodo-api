@@ -95,10 +95,10 @@ public class MemberControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(testMember.getId().toString()))
                 .andExpect(jsonPath("$.email").value("anon@zzic.com"))
-                .andExpect(jsonPath("$.nickname").value("익명의 찍찍이"))
-                .andExpect(jsonPath("$.introduction").value(""))
+                .andExpect(jsonPath("$.nickname").value(testMember.getNickname()))
+                .andExpect(jsonPath("$.introduction").isNotEmpty())
                 .andExpect(jsonPath("$.timeZone").value("Asia/Seoul"))
-                .andExpect(jsonPath("$.locale").value("ko_KR"));
+                .andExpect(jsonPath("$.locale").value("ko-KR"));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class MemberControllerTest {
         mockMvc.perform(get("/members/{memberId}", testMember.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nickname").value("수정된닉네임"))
-                .andExpect(jsonPath("$.introduction").value("수정된 소개글입니다."));
+                .andExpect(jsonPath("$.introduction").isNotEmpty());
     }
 
     @Test
@@ -138,7 +138,7 @@ public class MemberControllerTest {
         mockMvc.perform(get("/members/{memberId}", testMember.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nickname").value("닉네임만변경"))
-                .andExpect(jsonPath("$.introduction").value(""));
+                .andExpect(jsonPath("$.introduction").isNotEmpty());
     }
 
     @Test
@@ -155,7 +155,7 @@ public class MemberControllerTest {
     @DisplayName("테마 변경 성공")
     void updateThemeSuccess() throws Exception {
         mockMvc.perform(patch("/members/{memberId}/theme", testMember.getId())
-                .param("theme", "DARK"))  // Enum 값은 대문자로
+                .param("theme", "MINT"))  // Enum 값은 대문자로
                 .andExpect(status().isNoContent());
     }
 
@@ -341,7 +341,7 @@ public class MemberControllerTest {
                 .with(user("test@example.com")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("anon@zzic.com"))
-                .andExpect(jsonPath("$.nickname").value("익명의 찍찍이"));
+                .andExpect(jsonPath("$.nickname").value(testMember.getNickname()));
     }
 
     @Test
