@@ -18,9 +18,11 @@ import point.zzicback.member.application.dto.command.UpdateMemberCommand;
 import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.profile.application.ProfileService;
 import point.zzicback.profile.domain.Profile;
+import point.zzicback.profile.domain.Statistics;
 import point.zzicback.profile.presentation.dto.request.UpdateProfileRequest;
 import point.zzicback.profile.presentation.dto.response.ProfileResponse;
 import point.zzicback.profile.presentation.dto.response.ProfileImageUploadResponse;
+import point.zzicback.profile.presentation.dto.response.StatisticsResponse;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -145,5 +147,18 @@ public class ProfileController {
     @PreAuthorize("#memberId == authentication.principal.id")
     public void deleteProfileImage(@PathVariable UUID memberId) {
         profileService.removeProfileImage(memberId);
+    }
+    
+    @Operation(summary = "사용자 통계 조회", description = "완료한 할일 수와 생성한 카테고리 수를 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "통계 조회 성공")
+    @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
+    @GetMapping("/statistics")
+    public StatisticsResponse getStatistics(@PathVariable UUID memberId) {
+        Statistics statistics = profileService.getStatistics(memberId);
+        
+        return new StatisticsResponse(
+                statistics.getSucceededTodosCount(),
+                statistics.getCategoryCount()
+        );
     }
 }
