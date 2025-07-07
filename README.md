@@ -33,6 +33,11 @@ ZZIC의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통한
 - **GitHub Actions** - CI/CD
 - **GitHub Container Registry** - 이미지 저장소
 
+### Logging
+- **Log4j2** - 콘솔과 파일로 비동기 로깅
+- `LoggingAspect`가 서비스와 컨트롤러 메서드의 진입과 종료를 기록합니다.
+- 상세 설정은 `log4j2-spring.xml`과 `log4j2-test.xml`에 정의되어 있습니다.
+
 ## 프로젝트 구조
 
 ```
