@@ -19,7 +19,6 @@ import point.zzicback.todo.application.dto.command.DeleteTodoCommand;
 import point.zzicback.todo.application.dto.command.UpdateVirtualTodoCommand;
 import point.zzicback.todo.application.dto.query.TodoQuery;
 import point.zzicback.todo.application.dto.query.TodoSearchQuery;
-import java.util.Collections;
 import point.zzicback.todo.application.dto.query.VirtualTodoQuery;
 import point.zzicback.todo.application.dto.result.TodoResult;
 import point.zzicback.todo.application.dto.result.TodoStatistics;
@@ -37,7 +36,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +48,9 @@ public class VirtualTodoService {
     private final MemberService memberService;
     private final TodoApplicationMapper todoApplicationMapper;
     private final ApplicationEventPublisher eventPublisher;
+    
+    // 메모리 캐시를 위한 ThreadLocal (요청 단위 캐싱)
+    private final ThreadLocal<Map<UUID, List<TodoOriginal>>> todoOriginalsCache = ThreadLocal.withInitial(HashMap::new);
     
     public boolean existsVirtualTodo(UUID memberId, TodoId todoId) {
         return todoRepository.findByTodoIdAndMemberId(todoId, memberId).isPresent();
@@ -92,7 +93,7 @@ public class VirtualTodoService {
             return todoOriginalService.getTodo(TodoQuery.of(query.memberId(), query.originalTodoId()));
         } else {
             // 가상 Todo 생성해서 반환
-            TodoOriginal todoOriginal = todoOriginalService.getTodoOriginals(query.memberId())
+            TodoOriginal todoOriginal = getCachedTodoOriginals(query.memberId())
                     .stream()
                     .filter(to -> to.getId().equals(query.originalTodoId()))
                     .findFirst()
@@ -125,7 +126,7 @@ public class VirtualTodoService {
             todoRepository.save(todo);
         } else {
             // Todo 테이블에 데이터가 없으면 새로 생성해서 complete=true, active=true로 설정
-            List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
+            List<TodoOriginal> todoOriginals = getCachedTodoOriginals(command.memberId());
             TodoOriginal todoOriginal = todoOriginals.stream()
                     .filter(to -> to.getId().equals(command.originalTodoId()))
                     .findFirst()
@@ -161,7 +162,7 @@ public class VirtualTodoService {
         Long originalTodoId = todoId.getId();
         Long daysDifference = todoId.getSeq();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
+        List<TodoOriginal> todoOriginals = getCachedTodoOriginals(command.memberId());
         TodoOriginal todoOriginal = todoOriginals.stream()
                 .filter(to -> to.getId().equals(originalTodoId))
                 .findFirst()
@@ -289,7 +290,7 @@ public class VirtualTodoService {
                 .forEach(datesWithTodos::add);
 
         // 원본/반복 투두에서 해당 월의 날짜 생성
-        List<TodoOriginal> originals = todoOriginalService.getTodoOriginals(memberId);
+        List<TodoOriginal> originals = getCachedTodoOriginals(memberId);
         for (TodoOriginal original : originals) {
             if (!Boolean.TRUE.equals(original.getActive())) continue;
             if (original.getDate() != null && !original.getDate().isBefore(startDate) && !original.getDate().isAfter(endDate)) {
@@ -393,7 +394,7 @@ public class VirtualTodoService {
         List<TodoResult> virtualTodos = new ArrayList<>();
         LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
+        List<TodoOriginal> todoOriginals = getCachedTodoOriginals(query.memberId())
                 .stream()
                 .filter(to -> to.getRepeatStartDate() != null)
                 .filter(to -> to.getRepeatType() != null && to.getRepeatType() > 0)
@@ -401,6 +402,11 @@ public class VirtualTodoService {
                         !to.getRepeatEndDate().isBefore(query.startDate()))
                 .filter(to -> matchesKeyword(to, query.keyword()))
                 .toList();
+        
+        // 모든 가상 Todo의 ID를 미리 수집
+        List<TodoId> todoIdsToCheck = new ArrayList<>();
+        Map<TodoId, TodoOriginal> todoIdToOriginalMap = new HashMap<>();
+        Map<TodoId, LocalDate> todoIdToDateMap = new HashMap<>();
         
         for (TodoOriginal todoOriginal : todoOriginals) {
             List<LocalDate> virtualDates = generateVirtualDates(
@@ -410,31 +416,39 @@ public class VirtualTodoService {
             LocalDate repeatStartDate = todoOriginal.getRepeatStartDate();
 
             for (LocalDate virtualDate : virtualDates) {
-                // baseDate 이후의 가상 투두만 포함
-                if (virtualDate.isBefore(baseDate)) {
+                if (virtualDate.isBefore(baseDate) || virtualDate.equals(originalDueDate)) {
                     continue;
                 }
 
-                if (virtualDate.equals(originalDueDate)) {
-                    continue;
-                }
-
-                Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(
-                        new TodoId(todoOriginal.getId(),
-                                repeatStartDate != null ? ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0),
-                        query.memberId());
-
-                boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
-                if (isDeleted) {
-                    continue;
-                }
-
-                if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
-                    long daysDifference = repeatStartDate != null ?
-                            ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
-                    String virtualId = todoOriginal.getId() + ":" + daysDifference;
-                    virtualTodos.add(todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, virtualDate));
-                }
+                long daysDifference = repeatStartDate != null ?
+                        ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
+                TodoId todoId = new TodoId(todoOriginal.getId(), daysDifference);
+                
+                todoIdsToCheck.add(todoId);
+                todoIdToOriginalMap.put(todoId, todoOriginal);
+                todoIdToDateMap.put(todoId, virtualDate);
+            }
+        }
+        
+        // 배치로 모든 Todo 조회
+        Map<TodoId, Todo> existingTodos = new HashMap<>();
+        if (!todoIdsToCheck.isEmpty()) {
+            List<Todo> todos = todoRepository.findByMemberIdAndTodoIdIn(query.memberId(), todoIdsToCheck);
+            for (Todo todo : todos) {
+                existingTodos.put(todo.getTodoId(), todo);
+            }
+        }
+        
+        // 결과 생성
+        for (TodoId todoId : todoIdsToCheck) {
+            Todo existingTodo = existingTodos.get(todoId);
+            boolean isDeleted = existingTodo != null && Boolean.FALSE.equals(existingTodo.getActive());
+            
+            if (!isDeleted && (existingTodo == null || !Boolean.TRUE.equals(existingTodo.getComplete()))) {
+                TodoOriginal todoOriginal = todoIdToOriginalMap.get(todoId);
+                LocalDate virtualDate = todoIdToDateMap.get(todoId);
+                String virtualId = todoId.getId() + ":" + todoId.getSeq();
+                virtualTodos.add(todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, virtualDate));
             }
         }
 
@@ -450,7 +464,7 @@ public class VirtualTodoService {
         List<TodoResult> originalTodos = new ArrayList<>();
         LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
+        List<TodoOriginal> todoOriginals = getCachedTodoOriginals(query.memberId())
                 .stream()
                 .filter(to -> matchesKeyword(to, query.keyword()))
                 .filter(to -> matchesDateRange(to, query.startDate(), query.endDate()))
@@ -458,21 +472,37 @@ public class VirtualTodoService {
                 .filter(to -> matchesPriorityFilter(to, query.priorityIds()))
                 .toList();
         
+        // 모든 원본 Todo의 ID를 미리 수집
+        List<TodoId> todoIdsToCheck = new ArrayList<>();
+        Map<TodoId, TodoOriginal> todoIdToOriginalMap = new HashMap<>();
+        
         for (TodoOriginal todoOriginal : todoOriginals) {
             // baseDate 이후의 원본 투두만 포함
             if (todoOriginal.getDate() != null && baseDate != null && todoOriginal.getDate().isBefore(baseDate)) {
                 continue;
             }
 
-            Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(
-                    new TodoId(todoOriginal.getId(), 0L), query.memberId());
-
-            boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
-            if (isDeleted) {
-                continue;
+            TodoId todoId = new TodoId(todoOriginal.getId(), 0L);
+            todoIdsToCheck.add(todoId);
+            todoIdToOriginalMap.put(todoId, todoOriginal);
+        }
+        
+        // 배치로 모든 Todo 조회
+        Map<TodoId, Todo> existingTodos = new HashMap<>();
+        if (!todoIdsToCheck.isEmpty()) {
+            List<Todo> todos = todoRepository.findByMemberIdAndTodoIdIn(query.memberId(), todoIdsToCheck);
+            for (Todo todo : todos) {
+                existingTodos.put(todo.getTodoId(), todo);
             }
-
-            if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
+        }
+        
+        // 결과 생성
+        for (TodoId todoId : todoIdsToCheck) {
+            Todo existingTodo = existingTodos.get(todoId);
+            TodoOriginal todoOriginal = todoIdToOriginalMap.get(todoId);
+            
+            boolean isDeleted = existingTodo != null && Boolean.FALSE.equals(existingTodo.getActive());
+            if (!isDeleted && (existingTodo == null || !Boolean.TRUE.equals(existingTodo.getComplete()))) {
                 if (todoOriginal.getRepeatStartDate() != null && todoOriginal.getDate() != null) {
                     long daysDifference = ChronoUnit.DAYS.between(
                             todoOriginal.getRepeatStartDate(), todoOriginal.getDate());
@@ -587,11 +617,7 @@ public class VirtualTodoService {
             return false;
         }
 
-        if (endDate != null && dueDate.isAfter(endDate)) {
-            return false;
-        }
-
-        return true;
+        return endDate == null || !dueDate.isAfter(endDate);
     }
     
     private boolean matchesCategoryFilter(TodoOriginal todoOriginal, List<Long> categoryIds) {
@@ -622,5 +648,17 @@ public class VirtualTodoService {
                 .thenComparing((TodoResult t) -> t.displayOrder() != null ? t.displayOrder() : Integer.MAX_VALUE)
                 .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
                 .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0]));
+    }
+    
+    // 캐싱된 TodoOriginal 조회
+    private List<TodoOriginal> getCachedTodoOriginals(UUID memberId) {
+        Map<UUID, List<TodoOriginal>> cache = todoOriginalsCache.get();
+        return cache.computeIfAbsent(memberId, todoOriginalService::getTodoOriginals);
+    }
+    
+    // 요청 처리 후 캐시 정리
+    @jakarta.annotation.PreDestroy
+    public void clearCache() {
+        todoOriginalsCache.remove();
     }
 }

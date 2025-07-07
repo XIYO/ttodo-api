@@ -27,6 +27,13 @@ spring:
     url: jdbc:postgresql://localhost:5432/zzic_dev
     username: zzic_user
     password: zzic_password
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -38,6 +45,10 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
   docker:
     compose:
       enabled: true
