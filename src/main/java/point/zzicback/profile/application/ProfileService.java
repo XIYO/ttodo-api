@@ -59,6 +59,11 @@ public class ProfileService {
         
         Profile profile = getProfile(memberId);
         profile.updateProfileImage(file.getBytes(), contentType);
+        
+        // 이미지 URL 설정
+        String imageUrl = "/members/" + memberId + "/profile/image";
+        profile.updateProfileImageUrl(imageUrl);
+        
         return profileRepository.save(profile);
     }
     

@@ -20,6 +20,7 @@ import point.zzicback.profile.application.ProfileService;
 import point.zzicback.profile.domain.Profile;
 import point.zzicback.profile.presentation.dto.request.UpdateProfileRequest;
 import point.zzicback.profile.presentation.dto.response.ProfileResponse;
+import point.zzicback.profile.presentation.dto.response.ProfileImageUploadResponse;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -44,16 +45,13 @@ public class ProfileController {
         MemberResult memberResult = memberService.getMember(memberId);
         Profile profile = profileService.getProfile(memberId);
         
-        String imageUrl = profile.getProfileImage() != null ? 
-                "/members/" + memberId + "/profile/image" : null;
-        
         return new ProfileResponse(
                 memberResult.nickname(),
                 profile.getIntroduction(),
                 profile.getTimeZone(),
                 profile.getLocale(),
                 profile.getTheme(),
-                imageUrl
+                profile.getProfileImageUrl()
         );
     }
 
@@ -124,19 +122,19 @@ public class ProfileController {
     }
 
     @Operation(summary = "프로필 이미지 업로드", description = "회원의 프로필 이미지를 업로드합니다.")
-    @ApiResponse(responseCode = "204", description = "프로필 이미지 업로드 성공")
+    @ApiResponse(responseCode = "200", description = "프로필 이미지 업로드 성공")
     @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지는 업로드할 수 없습니다.")
     @ApiResponse(responseCode = "400", description = "잘못된 이미지 파일입니다.")
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("#memberId == authentication.principal.id")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
     )
-    public void uploadProfileImage(
+    public ProfileImageUploadResponse uploadProfileImage(
             @PathVariable UUID memberId,
             @RequestParam("image") MultipartFile image) throws IOException {
-        profileService.updateProfileImage(memberId, image);
+        Profile updatedProfile = profileService.updateProfileImage(memberId, image);
+        return new ProfileImageUploadResponse(updatedProfile.getProfileImageUrl());
     }
 
     @Operation(summary = "프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")

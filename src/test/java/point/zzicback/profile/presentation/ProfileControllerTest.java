@@ -64,8 +64,8 @@ public class ProfileControllerTest {
     void getProfileSuccess() throws Exception {
         mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value("익명의 찍찍이"))
-                .andExpect(jsonPath("$.introduction").value(""))
+                .andExpect(jsonPath("$.nickname").value(testMember.getNickname()))
+                .andExpect(jsonPath("$.introduction").isNotEmpty())
                 .andExpect(jsonPath("$.theme").value("PINKY"))
                 .andExpect(jsonPath("$.imageUrl").isEmpty());
     }
@@ -130,7 +130,8 @@ public class ProfileControllerTest {
 
             mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
                     .file(file))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
         }
     }
 
@@ -159,7 +160,8 @@ public class ProfileControllerTest {
 
             mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
                     .file(file))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
         }
         
         // 이미지 조회
@@ -170,7 +172,7 @@ public class ProfileControllerTest {
         // 프로필 정보에서 이미지 URL 확인
         mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imageUrl").isNotEmpty());
+                .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
     }
 
     @Test
@@ -190,7 +192,7 @@ public class ProfileControllerTest {
 
             mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
                     .file(file))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk());
         }
 
         // 이미지 삭제

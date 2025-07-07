@@ -44,6 +44,9 @@ public class Profile {
     @Column(length = 50)
     private String profileImageType;
     
+    @Column(length = 500)
+    private String profileImageUrl;
+    
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -80,8 +83,13 @@ public class Profile {
         this.profileImageType = imageType;
     }
     
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+    
     public void removeProfileImage() {
         this.profileImage = null;
         this.profileImageType = null;
+        this.profileImageUrl = null;
     }
 }
