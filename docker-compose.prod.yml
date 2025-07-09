@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  app:
+    image: ghcr.io/get-to-the-point/ttodo-api:latest
+    container_name: ttodo-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ttodo-postgres:5432/ttodo_prod
+      - SPRING_DATASOURCE_USERNAME=ttodo_user
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=ttodo-redis
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ttodo-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: ttodo-postgres
+    environment:
+      - POSTGRES_DB=ttodo_prod
+      - POSTGRES_USER=ttodo_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ttodo-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ttodo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ttodo-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ttodo-network:
+    driver: bridge

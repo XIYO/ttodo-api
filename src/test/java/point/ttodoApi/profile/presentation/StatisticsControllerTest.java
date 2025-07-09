@@ -1,9 +1,7 @@
 package point.ttodoApi.profile.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,19 +10,16 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.test.config.TestSecurityConfig;
-import point.ttodoApi.test.config.TestDataConfig;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
-import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.domain.TodoId;
+import point.ttodoApi.test.config.*;
+import point.ttodoApi.todo.domain.*;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.time.LocalDate;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -56,12 +51,18 @@ class StatisticsControllerTest {
     private CategoryRepository categoryRepository;
 
     private Member testMember;
+    private long initialCompletedTodos;
+    private long initialCategories;
 
     @BeforeEach
     void setUp() {
         // anon@ttodo.dev 사용자 찾기
         testMember = memberRepository.findByEmail("anon@ttodo.dev")
                 .orElseThrow(() -> new RuntimeException("anon@ttodo.dev 사용자가 없습니다"));
+
+        // 기존 데이터 카운트 저장
+        initialCompletedTodos = todoRepository.countCompletedTodosByMemberId(testMember.getId());
+        initialCategories = categoryRepository.countByMemberId(testMember.getId());
 
         setupTestData();
     }
@@ -124,8 +125,8 @@ class StatisticsControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.completedTodos").value(3))     // 완료된 할일 3개
-                .andExpect(jsonPath("$.totalCategories").value(2));   // 카테고리 2개
+                .andExpect(jsonPath("$.completedTodos").value(initialCompletedTodos + 3))     // 기존 + 완료된 할일 3개
+                .andExpect(jsonPath("$.totalCategories").value(initialCategories + 2));   // 기존 + 카테고리 2개
     }
 
     @Test
