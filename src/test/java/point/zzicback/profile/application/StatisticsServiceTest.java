@@ -23,15 +23,15 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * ProfileService 통계 기능 테스트
+ * StatisticsService 통계 기능 테스트
  */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class ProfileServiceStatisticsTest {
+class StatisticsServiceTest {
 
     @Autowired
-    private ProfileService profileService;
+    private StatisticsService statisticsService;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -115,7 +115,7 @@ class ProfileServiceStatisticsTest {
     @DisplayName("사용자 통계 조회 - 새로운 Statistics 엔티티 생성")
     void testGetStatistics_CreateNew() {
         // When
-        Statistics statistics = profileService.getStatistics(testMember.getId());
+        Statistics statistics = statisticsService.getStatistics(testMember.getId());
 
         // Then
         assertThat(statistics).isNotNull();
@@ -141,7 +141,7 @@ class ProfileServiceStatisticsTest {
         statisticsRepository.save(existingStats);
 
         // When
-        Statistics updatedStats = profileService.getStatistics(testMember.getId());
+        Statistics updatedStats = statisticsService.getStatistics(testMember.getId());
 
         // Then
         assertThat(updatedStats.getId()).isEqualTo(existingStats.getId()); // 같은 엔티티
@@ -162,7 +162,7 @@ class ProfileServiceStatisticsTest {
         newMember = memberRepository.save(newMember);
 
         // When
-        Statistics statistics = profileService.getStatistics(newMember.getId());
+        Statistics statistics = statisticsService.getStatistics(newMember.getId());
 
         // Then
         assertThat(statistics.getSucceededTodosCount()).isEqualTo(0);
@@ -174,7 +174,7 @@ class ProfileServiceStatisticsTest {
     @DisplayName("카테고리 추가 후 통계 업데이트")
     void testGetStatistics_AfterAddingCategory() {
         // Given - 초기 통계 조회
-        Statistics initialStats = profileService.getStatistics(testMember.getId());
+        Statistics initialStats = statisticsService.getStatistics(testMember.getId());
         assertThat(initialStats.getCategoryCount()).isEqualTo(2);
 
         // When - 새 카테고리 추가
@@ -186,7 +186,7 @@ class ProfileServiceStatisticsTest {
         categoryRepository.save(newCategory);
 
         // 통계 다시 조회
-        Statistics updatedStats = profileService.getStatistics(testMember.getId());
+        Statistics updatedStats = statisticsService.getStatistics(testMember.getId());
 
         // Then
         assertThat(updatedStats.getCategoryCount()).isEqualTo(3); // 카테고리 수 업데이트
@@ -197,7 +197,7 @@ class ProfileServiceStatisticsTest {
     @DisplayName("할일 완료 후 통계 업데이트")
     void testGetStatistics_AfterCompletingTodo() {
         // Given - 초기 통계 조회
-        Statistics initialStats = profileService.getStatistics(testMember.getId());
+        Statistics initialStats = statisticsService.getStatistics(testMember.getId());
         assertThat(initialStats.getSucceededTodosCount()).isEqualTo(5);
 
         // When - 미완료 할일 하나를 완료로 변경
@@ -220,7 +220,7 @@ class ProfileServiceStatisticsTest {
         todoRepository.save(completedTodo);
 
         // 통계 다시 조회
-        Statistics updatedStats = profileService.getStatistics(testMember.getId());
+        Statistics updatedStats = statisticsService.getStatistics(testMember.getId());
 
         // Then
         assertThat(updatedStats.getSucceededTodosCount()).isEqualTo(6); // 완료된 할일 수 증가

@@ -92,6 +92,15 @@ public class CategoryService {
         return categoryRepository.existsByIdAndMemberId(categoryId, memberId);
     }
     
+    /**
+     * 사용자의 카테고리 개수 조회
+     * @param memberId 회원 ID
+     * @return 카테고리 개수
+     */
+    public long countByMemberId(UUID memberId) {
+        return categoryRepository.countByMemberId(memberId);
+    }
+    
     private CategoryResult toCategoryResult(Category category) {
         return new CategoryResult(
                 category.getId(),

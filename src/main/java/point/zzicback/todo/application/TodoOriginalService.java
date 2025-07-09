@@ -218,6 +218,15 @@ public class TodoOriginalService {
         return todoOriginalRepository.findDistinctTagsByMemberId(memberId, categoryIds, pageable);
     }
     
+    /**
+     * 사용자의 완료한 할일 개수 조회
+     * @param memberId 회원 ID
+     * @return 완료한 할일 개수
+     */
+    public long countCompletedTodos(UUID memberId) {
+        return todoRepository.countCompletedTodosByMemberId(memberId);
+    }
+    
     @Transactional
     public void togglePin(TodoQuery query) {
         TodoOriginal todo = todoOriginalRepository.findByIdAndMemberId(query.todoId(), query.memberId())
