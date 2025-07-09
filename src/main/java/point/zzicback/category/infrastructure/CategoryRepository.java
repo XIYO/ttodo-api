@@ -13,4 +13,7 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     boolean existsByNameAndMemberId(String name, UUID memberId);
     boolean existsByIdAndMemberId(UUID id, UUID memberId);
     Optional<Category> findByNameAndMemberId(String name, UUID memberId);
+    
+    // 통계용 메서드
+    long countByMemberId(UUID memberId);
 }
