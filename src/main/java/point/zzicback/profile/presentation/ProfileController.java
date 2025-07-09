@@ -15,6 +15,7 @@ import point.zzicback.member.application.dto.command.UpdateMemberCommand;
 import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.profile.application.ProfileService;
 import point.zzicback.profile.domain.Profile;
+import point.zzicback.profile.domain.Statistics;
 import point.zzicback.profile.presentation.dto.request.UpdateProfileRequest;
 import point.zzicback.profile.presentation.dto.response.*;
 

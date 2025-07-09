@@ -26,13 +26,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * ProfileController 통계 기능 테스트
+ * StatisticsController 통계 기능 테스트
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class ProfileControllerStatisticsTest {
+class StatisticsControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -114,10 +114,10 @@ class ProfileControllerStatisticsTest {
     }
 
     @Test
-    @DisplayName("GET /members/{memberId}/profile/statistics - 통계 조회 성공")
+    @DisplayName("GET /members/{memberId}/statistics - 통계 조회 성공")
     void testGetStatistics_Success() throws Exception {
         // When & Then
-        mockMvc.perform(get("/members/{memberId}/profile/statistics", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/statistics", testMember.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -126,19 +126,19 @@ class ProfileControllerStatisticsTest {
     }
 
     @Test
-    @DisplayName("GET /members/{memberId}/profile/statistics - 존재하지 않는 사용자")
+    @DisplayName("GET /members/{memberId}/statistics - 존재하지 않는 사용자")
     void testGetStatistics_MemberNotFound() throws Exception {
         // Given
         String nonExistentMemberId = "11111111-1111-1111-1111-111111111111";
 
         // When & Then
-        mockMvc.perform(get("/members/{memberId}/profile/statistics", nonExistentMemberId))
+        mockMvc.perform(get("/members/{memberId}/statistics", nonExistentMemberId))
                 .andDo(print())
                 .andExpect(status().is4xxClientError()); // 400번대 에러 (정확한 코드는 구현에 따라)
     }
 
     @Test
-    @DisplayName("GET /members/{memberId}/profile/statistics - 데이터가 없는 사용자")
+    @DisplayName("GET /members/{memberId}/statistics - 데이터가 없는 사용자")
     void testGetStatistics_EmptyData() throws Exception {
         // Given - 데이터가 없는 새 사용자 생성
         Member newMember = Member.builder()
@@ -149,7 +149,7 @@ class ProfileControllerStatisticsTest {
         newMember = memberRepository.save(newMember);
 
         // When & Then
-        mockMvc.perform(get("/members/{memberId}/profile/statistics", newMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/statistics", newMember.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -158,10 +158,10 @@ class ProfileControllerStatisticsTest {
     }
 
     @Test
-    @DisplayName("GET /members/{memberId}/profile/statistics - JSON 응답 구조 검증")
+    @DisplayName("GET /members/{memberId}/statistics - JSON 응답 구조 검증")
     void testGetStatistics_ResponseStructure() throws Exception {
         // When & Then
-        mockMvc.perform(get("/members/{memberId}/profile/statistics", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/statistics", testMember.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
