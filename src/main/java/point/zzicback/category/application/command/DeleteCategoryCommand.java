@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public record DeleteCategoryCommand(
         UUID memberId,
-        Long categoryId
+        UUID categoryId
 ) {
 }

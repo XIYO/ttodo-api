@@ -49,10 +49,9 @@ public class UpdateTodoRequest {
     
     @Schema(
         description = "카테고리 ID", 
-        example = "1",
-        minimum = "1"
+        example = "550e8400-e29b-41d4-a716-446655440000"
     )
-    private Long categoryId;
+    private UUID categoryId;
 
     @Schema(
         description = "마감 날짜",

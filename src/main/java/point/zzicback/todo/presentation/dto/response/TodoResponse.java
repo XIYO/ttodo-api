@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Set;
+import java.util.UUID;
 
 @Schema(description = "Todo 응답 DTO")
 public record TodoResponse(
@@ -32,8 +33,8 @@ public record TodoResponse(
         @Schema(description = "우선순위명", example = "보통")
         String priorityName,
         
-        @Schema(description = "카테고리 ID", example = "1")
-        Long categoryId,
+        @Schema(description = "카테고리 ID", example = "550e8400-e29b-41d4-a716-446655440000")
+        UUID categoryId,
         
         @Schema(description = "카테고리명", example = "학습")
         String categoryName,

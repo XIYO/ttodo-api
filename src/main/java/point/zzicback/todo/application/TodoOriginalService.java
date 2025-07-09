@@ -214,7 +214,7 @@ public class TodoOriginalService {
         return todoOriginalRepository.findByMemberId(memberId);
     }
     
-    public Page<String> getTags(UUID memberId, List<Long> categoryIds, Pageable pageable) {
+    public Page<String> getTags(UUID memberId, List<UUID> categoryIds, Pageable pageable) {
         return todoOriginalRepository.findDistinctTagsByMemberId(memberId, categoryIds, pageable);
     }
     

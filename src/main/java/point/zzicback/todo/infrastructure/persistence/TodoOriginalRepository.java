@@ -26,7 +26,7 @@ public interface TodoOriginalRepository extends JpaRepository<TodoOriginal, Long
            "AND t.active = true " +
            "AND (:categoryIds IS NULL OR t.category.id IN :categoryIds)")
     Page<String> findDistinctTagsByMemberId(@Param("memberId") UUID memberId,
-                                            @Param("categoryIds") List<Long> categoryIds,
+                                            @Param("categoryIds") List<UUID> categoryIds,
                                             Pageable pageable);
     
     @EntityGraph(attributePaths = {"category", "member", "tags", "daysOfWeek"})

@@ -6,11 +6,11 @@ import point.zzicback.category.domain.Category;
 
 import java.util.*;
 
-public interface CategoryRepository extends JpaRepository<Category, Long> {
+public interface CategoryRepository extends JpaRepository<Category, UUID> {
     List<Category> findByMemberIdOrderByNameAsc(UUID memberId);
     Page<Category> findByMemberId(UUID memberId, Pageable pageable);
-    Optional<Category> findByIdAndMemberId(Long id, UUID memberId);
+    Optional<Category> findByIdAndMemberId(UUID id, UUID memberId);
     boolean existsByNameAndMemberId(String name, UUID memberId);
-    boolean existsByIdAndMemberId(Long id, UUID memberId);
+    boolean existsByIdAndMemberId(UUID id, UUID memberId);
     Optional<Category> findByNameAndMemberId(String name, UUID memberId);
 }

@@ -10,7 +10,7 @@ public record CreateTodoCommand(
         String description,
         Boolean complete,
         Integer priorityId,
-        Long categoryId,
+        UUID categoryId,
         LocalDate date,
         LocalTime time,
         Integer repeatType,

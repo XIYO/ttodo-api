@@ -333,7 +333,7 @@ public class CategoryControllerTest {
         @WithUserDetails("anon@zzic.com")
         @DisplayName("본인 카테고리 삭제 성공")
         void deleteCategorySuccess() throws Exception {
-            Long categoryId = testCategory.getId();
+            UUID categoryId = testCategory.getId();
             
             mockMvc.perform(delete("/categories/{categoryId}", categoryId))
                     .andExpect(status().isNoContent());
@@ -346,7 +346,7 @@ public class CategoryControllerTest {
         @WithUserDetails("anon@zzic.com")
         @DisplayName("다른 사용자 카테고리 삭제 시 403 에러")
         void deleteCategoryForbidden() throws Exception {
-            Long categoryId = otherCategory.getId();
+            UUID categoryId = otherCategory.getId();
             
             mockMvc.perform(delete("/categories/{categoryId}", categoryId))
                     .andExpect(status().isForbidden());

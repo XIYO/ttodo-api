@@ -12,6 +12,7 @@ import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.todo.application.TodoOriginalService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/tags")
@@ -62,8 +63,8 @@ public class TagController {
     public Page<String> getTags(
             @AuthenticationPrincipal MemberPrincipal principal,
             @RequestParam(required = false)
-            @Parameter(description = "카테고리 ID 목록 (중복 허용)", example = "1,2")
-            List<Long> categoryIds,
+            @Parameter(description = "카테고리 ID 목록 (중복 허용)", example = "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
+            List<UUID> categoryIds,
             @RequestParam(defaultValue = "0")
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             int page,

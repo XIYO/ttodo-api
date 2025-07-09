@@ -62,7 +62,7 @@ public class ProfileService {
         
         // 이미지 URL 설정
         String imageUrl = "/members/" + memberId + "/profile/image";
-        profile.updateProfileImageUrl(imageUrl);
+        profile.updateImageUrl(imageUrl);
         
         return profileRepository.save(profile);
     }
