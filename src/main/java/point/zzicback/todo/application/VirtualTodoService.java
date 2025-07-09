@@ -277,9 +277,9 @@ public class VirtualTodoService {
 
         Set<LocalDate> datesWithTodos = new HashSet<>();
 
-        // 실제 투두(active=true, complete=false 포함) 날짜
+        // 실제 투두(active=true, complete=false만) 날짜
         Specification<Todo> spec = TodoSpecification.createSpecification(
-                memberId, null, null, null, startDate, endDate
+                memberId, false, null, null, startDate, endDate
         );
         Page<Todo> realTodos = todoRepository.findAll(spec, Pageable.unpaged());
         realTodos.getContent().stream()
@@ -296,7 +296,7 @@ public class VirtualTodoService {
                 // 실제 투두가 없거나 삭제/비활성화가 아닌 경우만
                 TodoId todoId = new TodoId(original.getId(), 0L);
                 Optional<Todo> exist = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, memberId);
-                if (exist.isEmpty() || Boolean.TRUE.equals(exist.get().getActive())) {
+                if (exist.isEmpty() || (Boolean.TRUE.equals(exist.get().getActive()) && !Boolean.TRUE.equals(exist.get().getComplete()))) {
                     datesWithTodos.add(original.getDate());
                 }
             }
@@ -306,7 +306,7 @@ public class VirtualTodoService {
                 long daysDiff = ChronoUnit.DAYS.between(original.getRepeatStartDate(), date);
                 TodoId todoId = new TodoId(original.getId(), daysDiff);
                 Optional<Todo> exist = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, memberId);
-                if (exist.isEmpty() || Boolean.TRUE.equals(exist.get().getActive())) {
+                if (exist.isEmpty() || (Boolean.TRUE.equals(exist.get().getActive()) && !Boolean.TRUE.equals(exist.get().getComplete()))) {
                     datesWithTodos.add(date);
                 }
             }
