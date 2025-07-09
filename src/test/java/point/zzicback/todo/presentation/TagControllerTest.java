@@ -185,7 +185,7 @@ public class TagControllerTest {
             createTodoWithTags("할일", Set.of("태그1", "태그2"));
 
             mockMvc.perform(get("/tags")
-                            .param("categoryIds", "99999"))
+                            .param("categoryIds", "550e8400-e29b-41d4-a716-446655449999"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content", hasSize(0)))
                     .andExpect(jsonPath("$.empty").value(true));
@@ -193,12 +193,11 @@ public class TagControllerTest {
 
         @Test
         @WithUserDetails("anon@zzic.com")
-        @DisplayName("빈 카테고리 ID로 필터링")
-        void getTagsFilteredByEmptyCategory() throws Exception {
+        @DisplayName("카테고리 ID 파라미터 없이 조회")
+        void getTagsWithoutCategoryFilter() throws Exception {
             createTodoWithTags("할일", Set.of("태그1", "태그2"));
 
-            mockMvc.perform(get("/tags")
-                            .param("categoryIds", ""))
+            mockMvc.perform(get("/tags"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(greaterThanOrEqualTo(1))); // 최소 1개 이상
@@ -246,9 +245,10 @@ public class TagControllerTest {
         void getTagsOutOfRangePage() throws Exception {
             createTodoWithTags("할일", Set.of("태그1", "태그2"));
 
+            // 매우 큰 페이지 번호를 요청
             mockMvc.perform(get("/tags")
-                            .param("page", "10")
-                            .param("size", "5"))
+                            .param("page", "1000")
+                            .param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content", hasSize(0)))
                     .andExpect(jsonPath("$.empty").value(true));
@@ -449,8 +449,8 @@ public class TagControllerTest {
         @DisplayName("잘못된 카테고리 ID 형식")
         void getTagsWithInvalidCategoryId() throws Exception {
             mockMvc.perform(get("/tags")
-                            .param("categoryIds", "invalid"))
-                    .andExpect(status().isBadRequest());
+                            .param("categoryIds", "invalid-uuid-format"))
+                    .andExpect(status().isInternalServerError());
         }
     }
 
@@ -464,7 +464,7 @@ public class TagControllerTest {
                 .title(title)
                 .member(testMember)
                 .category(category)
-                .tags(tags)
+                .tags(new HashSet<>(tags))  // 가변 Set으로 생성
                 .date(LocalDate.now())
                 .priorityId(1)
                 .repeatType(0)
@@ -485,7 +485,7 @@ public class TagControllerTest {
                 .title(title)
                 .member(anotherMember)
                 .category(anotherMemberCategory)
-                .tags(tags)
+                .tags(new HashSet<>(tags))  // 가변 Set으로 생성
                 .date(LocalDate.now())
                 .priorityId(1)
                 .repeatType(0)

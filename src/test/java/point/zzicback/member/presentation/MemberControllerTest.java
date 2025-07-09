@@ -224,6 +224,11 @@ public class MemberControllerTest {
         mockMvc.perform(get("/members/{memberId}/profile-image", testMember.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.IMAGE_JPEG_VALUE));
+        
+        // 회원 정보에서 프로필 이미지 URL 확인
+        mockMvc.perform(get("/members/{memberId}", testMember.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profileImageUrl").value("/members/" + testMember.getId() + "/profile/image"));
     }
 
     @Test

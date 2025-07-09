@@ -3,6 +3,7 @@ package point.zzicback.todo.application.dto.result;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Set;
+import java.util.UUID;
 
 public record TodoResult(
         String id, 
@@ -13,7 +14,7 @@ public record TodoResult(
         Integer displayOrder,
         Integer priorityId,
         String priorityName,
-        Long categoryId,
+        UUID categoryId,
         String categoryName,
         LocalDate date,
         LocalTime time,

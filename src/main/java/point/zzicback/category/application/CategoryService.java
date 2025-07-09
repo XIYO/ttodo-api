@@ -33,7 +33,7 @@ public class CategoryService {
                 .map(this::toCategoryResult);
     }
     
-    public CategoryResult getCategory(UUID memberId, Long categoryId) {
+    public CategoryResult getCategory(UUID memberId, UUID categoryId) {
         Category category = categoryRepository.findByIdAndMemberId(categoryId, memberId)
                 .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
         return toCategoryResult(category);
@@ -88,7 +88,7 @@ public class CategoryService {
      * @param memberId 회원 ID
      * @return 소유자 여부
      */
-    public boolean isOwner(Long categoryId, UUID memberId) {
+    public boolean isOwner(UUID categoryId, UUID memberId) {
         return categoryRepository.existsByIdAndMemberId(categoryId, memberId);
     }
     

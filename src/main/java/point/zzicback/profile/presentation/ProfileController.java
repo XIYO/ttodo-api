@@ -2,14 +2,11 @@ package point.zzicback.profile.presentation;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,8 +16,7 @@ import point.zzicback.member.application.dto.result.MemberResult;
 import point.zzicback.profile.application.ProfileService;
 import point.zzicback.profile.domain.Profile;
 import point.zzicback.profile.presentation.dto.request.UpdateProfileRequest;
-import point.zzicback.profile.presentation.dto.response.ProfileResponse;
-import point.zzicback.profile.presentation.dto.response.ProfileImageUploadResponse;
+import point.zzicback.profile.presentation.dto.response.*;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -51,7 +47,7 @@ public class ProfileController {
                 profile.getTimeZone(),
                 profile.getLocale(),
                 profile.getTheme(),
-                profile.getProfileImageUrl()
+                profile.getImageUrl()
         );
     }
 
@@ -134,7 +130,7 @@ public class ProfileController {
             @PathVariable UUID memberId,
             @RequestParam("image") MultipartFile image) throws IOException {
         Profile updatedProfile = profileService.updateProfileImage(memberId, image);
-        return new ProfileImageUploadResponse(updatedProfile.getProfileImageUrl());
+        return new ProfileImageUploadResponse(updatedProfile.getImageUrl());
     }
 
     @Operation(summary = "프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")

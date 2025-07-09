@@ -14,6 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.zzicback.auth.domain.MemberPrincipal;
 import point.zzicback.category.application.CategoryService;
+
+import java.util.UUID;
 import point.zzicback.category.application.command.*;
 import point.zzicback.category.presentation.dto.request.*;
 import point.zzicback.category.presentation.dto.response.*;
@@ -48,7 +50,7 @@ public class CategoryController {
     @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
     public CategoryResponse getCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
-            @Parameter(description = "카테고리 ID") @PathVariable Long categoryId) {
+            @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
         return mapper.toResponse(categoryService.getCategory(principal.id(), categoryId));
     }
     
@@ -99,7 +101,7 @@ public class CategoryController {
     @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
     public CategoryResponse updateCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
-            @Parameter(description = "카테고리 ID") @PathVariable Long categoryId,
+            @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Valid UpdateCategoryRequest request) {
         UpdateCategoryCommand command = new UpdateCategoryCommand(
                 principal.id(),
@@ -119,7 +121,7 @@ public class CategoryController {
     @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
     public void deleteCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
-            @Parameter(description = "카테고리 ID") @PathVariable Long categoryId) {
+            @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
         DeleteCategoryCommand command = new DeleteCategoryCommand(principal.id(), categoryId);
         categoryService.deleteCategory(command);
     }

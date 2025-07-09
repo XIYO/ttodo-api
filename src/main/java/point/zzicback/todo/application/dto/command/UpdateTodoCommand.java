@@ -11,7 +11,7 @@ public record UpdateTodoCommand(
         String description,
         Boolean complete,
         Integer priorityId,
-        Long categoryId,
+        UUID categoryId,
         LocalDate date,
         LocalTime time,
         Integer repeatType,
@@ -23,7 +23,7 @@ public record UpdateTodoCommand(
         Long originalTodoId
 ) {
     public UpdateTodoCommand(UUID memberId, Long todoId, String title, String description, 
-                           Boolean complete, Integer priorityId, Long categoryId, 
+                           Boolean complete, Integer priorityId, UUID categoryId, 
                            LocalDate date, LocalTime time, Integer repeatType, 
                            Integer repeatInterval, LocalDate repeatEndDate, Set<String> tags) {
         this(memberId, todoId, title, description, complete, priorityId, categoryId, 

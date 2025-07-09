@@ -31,7 +31,7 @@ public interface MemberPresentationMapper {
     @Mapping(source = "profile.locale", target = "locale")
     @Mapping(source = "profile.timeZone", target = "timeZone")
     @Mapping(source = "profile.theme", target = "theme")
-    @Mapping(target = "profileImageUrl", expression = "java(profile != null && profile.getProfileImage() != null ? \"/api/members/\" + dto.id() + \"/profile-image\" : null)")
+    @Mapping(target = "profileImageUrl", expression = "java(profile != null ? profile.getImageUrl() : null)")
     MemberResponse toResponse(MemberResult dto, Profile profile);
     
     /** Simple version without profile (for list views) */

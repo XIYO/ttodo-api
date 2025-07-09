@@ -12,7 +12,7 @@ public record UpdateVirtualTodoCommand(
         String description,
         Boolean complete,
         Integer priorityId,
-        Long categoryId,
+        UUID categoryId,
         LocalDate date,
         LocalTime time,
         Set<String> tags
