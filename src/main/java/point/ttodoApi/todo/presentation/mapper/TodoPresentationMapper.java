@@ -5,9 +5,9 @@ import org.springframework.data.domain.PageRequest;
 import point.ttodoApi.common.config.MapStructConfig;
 import point.ttodoApi.todo.application.dto.command.*;
 import point.ttodoApi.todo.application.dto.query.TodoSearchQuery;
-import point.ttodoApi.todo.application.dto.result.*;
+import point.ttodoApi.todo.application.dto.result.TodoResult;
 import point.ttodoApi.todo.presentation.dto.request.*;
-import point.ttodoApi.todo.presentation.dto.response.*;
+import point.ttodoApi.todo.presentation.dto.response.TodoResponse;
 
 import java.util.UUID;
 

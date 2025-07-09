@@ -13,22 +13,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.challenge.application.ChallengeService;
-import point.ttodoApi.challenge.application.dto.command.CreateChallengeCommand;
-import point.ttodoApi.challenge.application.dto.command.UpdateChallengeCommand;
-import point.ttodoApi.challenge.application.dto.result.ChallengeResult;
-import point.ttodoApi.challenge.application.dto.result.ChallengeListResult;
+import point.ttodoApi.challenge.application.dto.command.*;
+import point.ttodoApi.challenge.application.dto.result.*;
 import point.ttodoApi.challenge.domain.Challenge;
-import point.ttodoApi.challenge.presentation.dto.request.CreateChallengeRequest;
-import point.ttodoApi.challenge.presentation.dto.request.UpdateChallengeRequest;
-import point.ttodoApi.challenge.presentation.dto.response.ChallengeDetailResponse;
-import point.ttodoApi.challenge.presentation.dto.response.ChallengeResponse;
-import point.ttodoApi.challenge.presentation.dto.response.InviteLinkResponse;
+import point.ttodoApi.challenge.presentation.dto.request.*;
+import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * 챌린지 기본 CRUD API 컨트롤러

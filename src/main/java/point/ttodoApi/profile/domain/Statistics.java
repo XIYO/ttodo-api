@@ -1,10 +1,7 @@
 package point.ttodoApi.profile.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import point.ttodoApi.member.domain.Member;
 
 import java.time.LocalDateTime;

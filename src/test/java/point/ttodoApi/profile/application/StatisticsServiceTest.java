@@ -1,8 +1,6 @@
 package point.ttodoApi.profile.application;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -13,8 +11,7 @@ import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.profile.domain.Statistics;
 import point.ttodoApi.profile.infrastructure.persistence.StatisticsRepository;
-import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.domain.TodoId;
+import point.ttodoApi.todo.domain.*;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.time.LocalDate;

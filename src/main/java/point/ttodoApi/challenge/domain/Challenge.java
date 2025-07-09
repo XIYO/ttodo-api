@@ -3,8 +3,7 @@ package point.ttodoApi.challenge.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.*;
 
 @Entity

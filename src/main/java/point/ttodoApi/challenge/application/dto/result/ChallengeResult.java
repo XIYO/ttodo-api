@@ -1,8 +1,7 @@
 package point.ttodoApi.challenge.application.dto.result;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import point.ttodoApi.challenge.domain.PeriodType;
-import point.ttodoApi.challenge.domain.ChallengeVisibility;
+import point.ttodoApi.challenge.domain.*;
 
 import java.time.LocalDate;
 import java.util.UUID;

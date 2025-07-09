@@ -6,10 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import point.ttodoApi.category.infrastructure.CategoryRepository;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
-import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.profile.domain.Theme;
-import point.ttodoApi.profile.infrastructure.persistence.ProfileRepository;
-import point.ttodoApi.profile.infrastructure.persistence.StatisticsRepository;
+import point.ttodoApi.profile.domain.*;
+import point.ttodoApi.profile.infrastructure.persistence.*;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.io.IOException;

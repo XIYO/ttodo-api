@@ -10,6 +10,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.UpdateMemberCommand;
 import point.ttodoApi.member.application.dto.result.MemberResult;
@@ -17,9 +18,7 @@ import point.ttodoApi.member.presentation.dto.request.UpdateMemberRequest;
 import point.ttodoApi.member.presentation.dto.response.MemberResponse;
 import point.ttodoApi.member.presentation.mapper.MemberPresentationMapper;
 import point.ttodoApi.profile.application.ProfileService;
-import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.profile.domain.Theme;
-import org.springframework.web.multipart.MultipartFile;
+import point.ttodoApi.profile.domain.*;
 
 import java.io.IOException;
 import java.util.UUID;

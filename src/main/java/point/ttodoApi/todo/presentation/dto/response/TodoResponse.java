@@ -2,10 +2,8 @@ package point.ttodoApi.todo.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Set;
-import java.util.UUID;
+import java.time.*;
+import java.util.*;
 
 @Schema(description = "Todo 응답 DTO")
 public record TodoResponse(

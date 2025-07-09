@@ -1,15 +1,11 @@
 package point.ttodoApi.todo.infrastructure.persistence;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import point.ttodoApi.todo.domain.TodoOriginal;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public interface TodoOriginalRepository extends JpaRepository<TodoOriginal, Long> {
     

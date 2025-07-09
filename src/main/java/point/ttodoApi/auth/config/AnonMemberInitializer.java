@@ -7,15 +7,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.challenge.application.*;
 import point.ttodoApi.challenge.application.dto.command.CreateChallengeCommand;
-import point.ttodoApi.challenge.domain.PeriodType;
-import point.ttodoApi.challenge.domain.ChallengeVisibility;
+import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
-import java.util.UUID;
-import java.time.LocalDate;
-import point.ttodoApi.todo.config.TodoInitializer;
 import point.ttodoApi.profile.application.ProfileService;
+import point.ttodoApi.todo.config.TodoInitializer;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 @Slf4j
 @Component

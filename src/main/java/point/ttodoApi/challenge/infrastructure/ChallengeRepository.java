@@ -3,13 +3,10 @@ package point.ttodoApi.challenge.infrastructure;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import point.ttodoApi.challenge.domain.Challenge;
-import point.ttodoApi.challenge.domain.ChallengeVisibility;
-import point.ttodoApi.challenge.domain.PeriodType;
+import point.ttodoApi.challenge.domain.*;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 

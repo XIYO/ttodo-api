@@ -1,7 +1,6 @@
 package point.ttodoApi.category.presentation.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import point.ttodoApi.category.application.dto.result.CategoryResult;
 import point.ttodoApi.category.presentation.dto.response.CategoryResponse;
 

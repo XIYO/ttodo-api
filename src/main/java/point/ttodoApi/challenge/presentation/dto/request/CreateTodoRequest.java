@@ -1,8 +1,7 @@
 package point.ttodoApi.challenge.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 @Schema(description = "챌린지 투두 생성 요청 DTO")
 public record CreateTodoRequest(

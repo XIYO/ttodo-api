@@ -2,15 +2,12 @@ package point.ttodoApi.todo.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.member.domain.Member;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.Set;
 
 @Entity

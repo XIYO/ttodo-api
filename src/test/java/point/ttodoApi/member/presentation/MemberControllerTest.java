@@ -1,31 +1,27 @@
 package point.ttodoApi.member.presentation;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.security.test.context.support.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.test.config.TestSecurityConfig;
-import point.ttodoApi.test.config.TestDataConfig;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.test.config.*;
 
 import java.io.InputStream;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
-import static org.hamcrest.Matchers.*;
 
 /**
  * MemberController 통합 테스트

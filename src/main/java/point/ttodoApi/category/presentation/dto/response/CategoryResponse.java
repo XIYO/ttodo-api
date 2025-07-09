@@ -1,6 +1,7 @@
 package point.ttodoApi.category.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.UUID;
 
 @Schema(description = "카테고리 응답")

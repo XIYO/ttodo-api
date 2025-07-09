@@ -1,12 +1,11 @@
 package point.ttodoApi.todo.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import point.ttodoApi.todo.presentation.validation.ValidCompleteUpdate;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.*;
 
 @Data

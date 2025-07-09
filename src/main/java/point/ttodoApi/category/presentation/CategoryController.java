@@ -7,19 +7,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.category.application.CategoryService;
-
-import java.util.UUID;
 import point.ttodoApi.category.application.command.*;
 import point.ttodoApi.category.presentation.dto.request.*;
-import point.ttodoApi.category.presentation.dto.response.*;
+import point.ttodoApi.category.presentation.dto.response.CategoryResponse;
 import point.ttodoApi.category.presentation.mapper.CategoryPresentationMapper;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("categories")

@@ -1,7 +1,7 @@
 package point.ttodoApi.common.validation;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
+import jakarta.validation.*;
+
 import java.lang.annotation.*;
 
 @Target({ElementType.TYPE})

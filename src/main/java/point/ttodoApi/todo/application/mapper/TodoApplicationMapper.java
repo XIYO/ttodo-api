@@ -3,8 +3,7 @@ package point.ttodoApi.todo.application.mapper;
 import org.mapstruct.*;
 import point.ttodoApi.common.config.MapStructConfig;
 import point.ttodoApi.todo.application.dto.result.TodoResult;
-import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.domain.TodoOriginal;
+import point.ttodoApi.todo.domain.*;
 
 import java.time.LocalDate;
 

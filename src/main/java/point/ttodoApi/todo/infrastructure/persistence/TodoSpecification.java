@@ -5,9 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 import point.ttodoApi.todo.domain.Todo;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class TodoSpecification {
     

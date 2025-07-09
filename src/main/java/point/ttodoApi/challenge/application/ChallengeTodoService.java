@@ -12,10 +12,9 @@ import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.common.error.*;
 import point.ttodoApi.experience.application.event.ChallengeTodoCompletedEvent;
 import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.challenge.infrastructure.ChallengeRepository;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

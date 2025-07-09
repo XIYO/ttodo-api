@@ -1,10 +1,10 @@
 package point.ttodoApi.challenge.presentation.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import point.ttodoApi.challenge.domain.PeriodType;
-import point.ttodoApi.challenge.domain.ChallengeVisibility;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import point.ttodoApi.challenge.domain.*;
+
 import java.time.LocalDate;
 import java.util.List;
 

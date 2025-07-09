@@ -2,10 +2,9 @@ package point.ttodoApi.auth.application;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.*;
 import point.ttodoApi.auth.config.properties.JwtProperties;
 import point.ttodoApi.auth.domain.*;
 import point.ttodoApi.common.error.BusinessException;
@@ -17,8 +16,7 @@ import point.ttodoApi.profile.domain.Profile;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.*;
 
 @Slf4j
 @Service

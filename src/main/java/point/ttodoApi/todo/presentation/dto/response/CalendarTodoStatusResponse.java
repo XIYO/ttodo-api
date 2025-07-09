@@ -1,6 +1,7 @@
 package point.ttodoApi.todo.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDate;
 
 @Schema(description = "캘린더 날짜별 Todo 현황")

@@ -1,8 +1,7 @@
 package point.ttodoApi.todo.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 
 public record ChangeOrderRequest(
     @NotNull

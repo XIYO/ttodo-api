@@ -7,19 +7,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.CategoryRepository;
-import point.ttodoApi.common.error.*;
-import point.ttodoApi.experience.application.event.TodoCompletedEvent;
-import point.ttodoApi.experience.application.event.TodoUncompletedEvent;
+import point.ttodoApi.common.error.EntityNotFoundException;
+import point.ttodoApi.experience.application.event.*;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.todo.application.dto.command.*;
-import point.ttodoApi.todo.application.dto.query.*;
-import point.ttodoApi.todo.application.dto.result.*;
+import point.ttodoApi.todo.application.dto.query.TodoQuery;
+import point.ttodoApi.todo.application.dto.result.TodoResult;
 import point.ttodoApi.todo.application.mapper.TodoApplicationMapper;
 import point.ttodoApi.todo.domain.*;
 import point.ttodoApi.todo.infrastructure.persistence.*;
 
-import java.time.*;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service

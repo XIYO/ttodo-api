@@ -2,8 +2,7 @@ package point.ttodoApi.todo.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.domain.TodoId;
+import point.ttodoApi.todo.domain.*;
 
 import java.util.*;
 
