@@ -1,6 +1,6 @@
 spring:
   application:
-    name: zzic-api
+    name: ttodo-api
   profiles:
     group:
       dev:

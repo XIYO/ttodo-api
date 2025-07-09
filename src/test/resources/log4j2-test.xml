@@ -9,15 +9,15 @@
         </File>
     </Appenders>
     <Loggers>
-        <Logger name="point.zzicback.challenge" level="debug" additivity="false">
+        <Logger name="point.ttodoback.challenge" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>
-        <Logger name="point.zzicback.common.error" level="debug" additivity="false">
+        <Logger name="point.ttodoback.common.error" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>
-        <Logger name="point.zzicback.member" level="debug" additivity="false">
+        <Logger name="point.ttodoback.member" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Logger>

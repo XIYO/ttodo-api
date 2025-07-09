@@ -1,24 +1,24 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: zzic-postgres
+    container_name: ttodo-postgres
     environment:
-      POSTGRES_DB: zzic_dev
-      POSTGRES_USER: zzic_user
-      POSTGRES_PASSWORD: zzic_password
+      POSTGRES_DB: ttodo_dev
+      POSTGRES_USER: ttodo_user
+      POSTGRES_PASSWORD: ttodo_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zzic_user -d zzic_dev"]
+      test: ["CMD-SHELL", "pg_isready -U ttodo_user -d ttodo_dev"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:alpine
-    container_name: zzic-redis
+    container_name: ttodo-redis
     ports:
       - "6379:6379"
 

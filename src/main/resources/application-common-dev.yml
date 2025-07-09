@@ -1,6 +1,6 @@
 jwt:
-  private-key: classpath:zzic/jwt/test-private.pem
-  public-key: classpath:zzic/jwt/public.pem
+  private-key: classpath:ttodo/jwt/test-private.pem
+  public-key: classpath:ttodo/jwt/public.pem
   key-id: rsa-key-id
   access-token:
     expiration: 60
@@ -24,9 +24,9 @@ jwt:
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/zzic_dev
-    username: zzic_user
-    password: zzic_password
+    url: jdbc:postgresql://localhost:5432/ttodo_dev
+    username: ttodo_user
+    password: ttodo_password
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

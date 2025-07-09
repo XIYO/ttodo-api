@@ -23,7 +23,7 @@
             <AppenderRef ref="AsyncConsole"/>
             <AppenderRef ref="AsyncFile"/>
         </Root>
-        <Logger name="point.zzicback" level="debug" additivity="false">
+        <Logger name="point.ttodoback" level="debug" additivity="false">
             <AppenderRef ref="AsyncConsole"/>
             <AppenderRef ref="AsyncFile"/>
         </Logger>

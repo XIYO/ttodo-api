@@ -22,8 +22,8 @@ logging:
     org.testcontainers: info
 
 jwt:
-  private-key: classpath:zzic/jwt/test-private.pem
-  public-key: classpath:zzic/jwt/public.pem
+  private-key: classpath:ttodo/jwt/test-private.pem
+  public-key: classpath:ttodo/jwt/public.pem
   key-id: test-rsa-key-id
   access-token:
     expiration: 60

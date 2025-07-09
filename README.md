@@ -1,6 +1,6 @@
-# ZZIC-BACK
+# TTODO-BACK
 
-ZZIC의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통한 동기부여 기능을 제공합니다.
+TTODO의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통한 동기부여 기능을 제공합니다.
 
 ## 기술 스택
 
@@ -90,7 +90,7 @@ src/
 ```bash
 # 프로젝트 클론
 git clone [repository-url]
-cd ZZIC-api
+cd TTODO-api
 
 # 애플리케이션 실행
 ./gradlew bootRun
@@ -112,9 +112,9 @@ cd ZZIC-api
 # PostgreSQL (자동 실행됨)
 Host: localhost
 Port: 5432
-Database: zzic_dev
-Username: zzic_user
-Password: zzic_password
+Database: ttodo_dev
+Username: ttodo_user
+Password: ttodo_password
 ```
 
 ### 테스트 실행
@@ -150,7 +150,7 @@ cp .env.prod.example .env.prod
 docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
 
 # 3. 로그 확인
-docker-compose -f docker-compose.prod.yml logs -f zzic-api
+docker-compose -f docker-compose.prod.yml logs -f ttodo-api
 ```
 
 ### GitHub Actions 워크플로우
@@ -164,14 +164,14 @@ docker-compose -f docker-compose.prod.yml logs -f zzic-api
   - `<branch>-<sha>`: 브랜치별 커밋 SHA
 
 ### 서비스 구성
-- **ZZIC API**: http://localhost:8080 (Swagger UI 포함)
-- **PostgreSQL**: localhost:5432 (zzic/zzic123)
+- **TTODO API**: http://localhost:8080 (Swagger UI 포함)
+- **PostgreSQL**: localhost:5432 (ttodo/ttodo123)
 - **Redis**: localhost:6379
 
 ### 유용한 명령어
 ```bash
 # 로그 확인
-docker-compose -f docker-compose.local.yml logs -f zzic
+docker-compose -f docker-compose.local.yml logs -f ttodo
 
 # 컨테이너 상태 확인
 docker-compose -f docker-compose.local.yml ps
@@ -316,7 +316,7 @@ docker-compose -f docker-compose.local.yml down -v
 ```bash
 # 프로젝트 클론
 git clone [repository-url]
-cd ZZIC-api
+cd TTODO-api
 
 # 애플리케이션 실행 (로컬 모드)
 ./gradlew bootRun

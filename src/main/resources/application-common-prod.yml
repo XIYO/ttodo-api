@@ -1,17 +1,17 @@
 app:
   scheme: https
-  host: zzic-api.xiyo.dev
+  host: api.ttodo.xiyo.dev
   port: 443
 
 jwt:
-  private-key: classpath:zzic/jwt/test-private.pem
-  public-key: classpath:zzic/jwt/public.pem
+  private-key: classpath:ttodo/jwt/test-private.pem
+  public-key: classpath:ttodo/jwt/public.pem
   key-id: rsa-key-id
   access-token:
     expiration: 60
     cookie:
       name: access-token
-      domain: zzic.xiyo.dev
+      domain: ttodo.xiyo.dev
       path: /
       secure: true
       httpOnly: false
@@ -20,7 +20,7 @@ jwt:
     expiration: 31536000
     cookie:
       name: refresh-token
-      domain: zzic.xiyo.dev
+      domain: ttodo.xiyo.dev
       path: /
       secure: true
       httpOnly: true
