@@ -26,7 +26,7 @@ public class TodoInitializer implements ApplicationRunner {
   }
 
   public void createDefaultTodosForMember(Member member) {
-    if (!"anon@zzic.com".equals(member.getEmail())) {
+    if (!"anon@ttodo.dev".equals(member.getEmail())) {
       log.debug("Member {} is not the target anon user, skipping initialization", member.getNickname());
       return;
     }
