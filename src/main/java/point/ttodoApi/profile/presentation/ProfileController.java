@@ -24,7 +24,7 @@ import java.util.UUID;
 /**
  * 프로필 관련 API 컨트롤러
  */
-@Tag(name = "사용자 프로필 관리", description = "회원 프로필 정보 조회, 수정, 프로필 이미지 업로드/삭제, 타임존/로케일/테마 설정 API")
+@Tag(name = "프로필(Profile) 설정", description = "사용자 프로필 정보를 관리하는 API입니다. 닉네임, 자기소개, 프로필 이미지, 타임존, 로케일, 테마 등 개인화 설정을 포함합니다. 타임존과 로케일 설정은 할 일 표시 시간과 언어에 영향을 줍니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members/{memberId}/profile")
@@ -33,9 +33,12 @@ public class ProfileController {
     private final MemberService memberService;
     private final ProfileService profileService;
 
-    @Operation(summary = "프로필 정보 조회", description = "회원의 프로필 정보를 조회합니다.")
+    @Operation(
+        summary = "프로필 정보 조회", 
+        description = "회원의 프로필 정보를 조회합니다. 닉네임, 자기소개, 타임존, 로케일, 테마, 프로필 이미지 URL을 포함합니다."
+    )
     @ApiResponse(responseCode = "200", description = "프로필 정보 조회 성공")
-    @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
+    @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     @GetMapping
     public ProfileResponse getProfile(@PathVariable UUID memberId) {
         MemberResult memberResult = memberService.getMember(memberId);
@@ -51,10 +54,20 @@ public class ProfileController {
         );
     }
 
-    @Operation(summary = "프로필 정보 수정", description = "회원의 프로필 정보를 수정합니다.")
+    @Operation(
+        summary = "프로필 정보 수정", 
+        description = "회원의 프로필 정보를 부분 수정합니다. 본인만 수정 가능합니다.\n\n" +
+                       "수정 가능한 필드:\n" +
+                       "- nickname: 닉네임\n" +
+                       "- introduction: 자기소개\n" +
+                       "- timeZone: 타임존 (Asia/Seoul, America/New_York 등)\n" +
+                       "- locale: 로케일 (ko_KR, en_US 등)\n" +
+                       "- theme: 테마 (LIGHT, DARK)"
+    )
     @ApiResponse(responseCode = "204", description = "프로필 정보 수정 성공")
-    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 정보는 수정할 수 없습니다.")
-    @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
+    @ApiResponse(responseCode = "400", description = "잘못된 타임존, 로케일, 테마 값")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 수정 시도")
+    @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     @PatchMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("#memberId == authentication.principal.id")
@@ -101,7 +114,10 @@ public class ProfileController {
         }
     }
 
-    @Operation(summary = "프로필 이미지 조회", description = "회원의 프로필 이미지를 조회합니다.")
+    @Operation(
+        summary = "프로필 이미지 조회", 
+        description = "회원의 프로필 이미지를 바이너리 데이터로 직접 조회합니다. 이미지는 1시간 동안 브라우저에 캐시됩니다."
+    )
     @ApiResponse(responseCode = "200", description = "프로필 이미지 조회 성공", 
                  content = @Content(mediaType = "image/*"))
     @ApiResponse(responseCode = "404", description = "프로필 이미지가 없습니다.")
@@ -117,10 +133,17 @@ public class ProfileController {
                 .body(profile.getProfileImage());
     }
 
-    @Operation(summary = "프로필 이미지 업로드", description = "회원의 프로필 이미지를 업로드합니다.")
-    @ApiResponse(responseCode = "200", description = "프로필 이미지 업로드 성공")
-    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지는 업로드할 수 없습니다.")
-    @ApiResponse(responseCode = "400", description = "잘못된 이미지 파일입니다.")
+    @Operation(
+        summary = "프로필 이미지 업로드", 
+        description = "회원의 프로필 이미지를 업로드합니다. 기존 이미지가 있을 경우 대체됩니다.\n\n" +
+                       "지원 형식:\n" +
+                       "- JPEG, PNG, GIF\n" +
+                       "- 최대 크기: 5MB\n" +
+                       "- 권장 크기: 200x200 픽셀 이상"
+    )
+    @ApiResponse(responseCode = "200", description = "프로필 이미지 업로드 성공, 이미지 URL 반환")
+    @ApiResponse(responseCode = "400", description = "잘못된 이미지 형식 또는 크기 초과")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지 업로드 시도")
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("#memberId == authentication.principal.id")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -133,9 +156,12 @@ public class ProfileController {
         return new ProfileImageUploadResponse(updatedProfile.getImageUrl());
     }
 
-    @Operation(summary = "프로필 이미지 삭제", description = "회원의 프로필 이미지를 삭제합니다.")
+    @Operation(
+        summary = "프로필 이미지 삭제", 
+        description = "회원의 프로필 이미지를 삭제합니다. 삭제 후에는 기본 프로필 이미지가 표시됩니다."
+    )
     @ApiResponse(responseCode = "204", description = "프로필 이미지 삭제 성공")
-    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지는 삭제할 수 없습니다.")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지 삭제 시도")
     @DeleteMapping("/image")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("#memberId == authentication.principal.id")

@@ -12,7 +12,7 @@ import point.ttodoApi.profile.presentation.dto.response.StatisticsResponse;
 
 import java.util.UUID;
 
-@Tag(name = "사용자 통계", description = "완료한 한일 , 카테고리 수 등 통계 API")
+@Tag(name = "통계(Statistics)", description = "사용자의 할 일 관리 활동에 대한 다양한 통계 정보를 제공합니다. 완료한 할 일 수, 생성한 카테고리 수 등의 통계를 확인할 수 있습니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members/{memberId}/profile")
@@ -20,9 +20,16 @@ public class StatisticsController {
 
     private final StatisticsService statisticsService;
 
-    @Operation(summary = "사용자 통계 조회", description = "완료한 할일 수와 생성한 카테고리 수를 조회합니다.")
+    @Operation(
+        summary = "사용자 활동 통계 조회", 
+        description = "사용자의 할 일 관리 활동에 대한 종합 통계를 조회합니다. 본인만 조회 가능합니다.\n\n" +
+                       "통계 항목:\n" +
+                       "- succeededTodosCount: 지금까지 완료한 총 할 일 수\n" +
+                       "- categoryCount: 생성한 카테고리 수"
+    )
     @ApiResponse(responseCode = "200", description = "통계 조회 성공")
-    @ApiResponse(responseCode = "404", description = "회원이 존재하지 않습니다.")
+    @ApiResponse(responseCode = "403", description = "다른 사용자의 통계 조회 시도")
+    @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     @PreAuthorize("#memberId == authentication.principal.id")
     @GetMapping("/statistics")
     public StatisticsResponse getStatistics(@PathVariable UUID memberId) {

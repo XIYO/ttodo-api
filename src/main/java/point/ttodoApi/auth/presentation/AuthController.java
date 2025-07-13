@@ -25,7 +25,7 @@ import point.ttodoApi.todo.config.TodoInitializer;
 
 import java.util.List;
 
-@Tag(name = "사용자 인증 및 회원 관리", description = "회원 가입, 로그인, 로그아웃, 토큰 갱신 등 인증 및 인가 관련 API")
+@Tag(name = "인증(Authentication)", description = "회원가입, 로그인, 로그아웃, 토큰 갱신 등 사용자 인증 관련 API를 제공합니다. JWT 기반 인증을 사용하며, 액세스 토큰과 리프레시 토큰을 쿠키로 관리합니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -41,10 +41,13 @@ public class AuthController {
   private final CookieService cookieService;
   private final TodoInitializer todoInitializer;
 
-  @Operation(summary = "사인-업 및 사인-인", description = "사인-업을 진행하고 즉시 사인-인하여 JWT/리프레시 토큰을 쿠키로 발급합니다.")
-  @ApiResponse(responseCode = "200", description = "사인-업 및 사인-인 성공, 쿠키에 토큰 발급")
-  @ApiResponse(responseCode = "400", description = "잘못된 요청")
-  @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일")
+  @Operation(
+      summary = "회원가입 및 자동 로그인", 
+      description = "새로운 회원을 등록하고 자동으로 로그인 처리합니다. 회원가입이 완료되면 즉시 JWT 액세스 토큰과 리프레시 토큰이 쿠키로 발급됩니다. 익명 사용자는 이메일 'anon@ttodo.dev'와 빈 패스워드로 회원가입 가능합니다."
+  )
+  @ApiResponse(responseCode = "200", description = "회원가입 성공 및 자동 로그인 완료")
+  @ApiResponse(responseCode = "400", description = "입력값 검증 실패 (이메일 형식 오류, 필수값 누락 등)")
+  @ApiResponse(responseCode = "409", description = "이미 사용중인 이메일 주소")
   @PostMapping("/sign-up")
   public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
     CreateMemberCommand signUpCommand = new CreateMemberCommand(
@@ -61,8 +64,11 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "사인-인", 
-      description = "사인-인을 진행하고 JWT/리프레시 토큰을 쿠키로 발급합니다.",
+      summary = "로그인", 
+      description = "이메일과 패스워드로 로그인합니다. 인증 성공 시 JWT 액세스 토큰과 리프레시 토큰이 쿠키로 발급됩니다. 익명 사용자는 'anon@ttodo.dev' 이메일과 빈 패스워드로 로그인 가능합니다.\n\n" +
+                    "발급되는 쿠키:\n" +
+                    "- jwt-token: 액세스 토큰 (유효기간: 30분)\n" +
+                    "- refresh-token: 리프레시 토큰 (유효기간: 7일)",
       requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
           description = "사인-인 정보",
           required = true,
@@ -81,8 +87,9 @@ public class AuthController {
           )
       )
   )
-  @ApiResponse(responseCode = "200", description = "사인-인 성공, 쿠키에 토큰 발급")
-  @ApiResponse(responseCode = "401", description = "인증 실패")
+  @ApiResponse(responseCode = "200", description = "로그인 성공")
+  @ApiResponse(responseCode = "400", description = "입력값 검증 실패")
+  @ApiResponse(responseCode = "401", description = "이메일 또는 패스워드가 일치하지 않음")
   @PostMapping("/sign-in")
   @Transactional(readOnly = true)
   public void signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
@@ -94,8 +101,11 @@ public class AuthController {
     authenticateWithCookies(memberPrincipal, response);
   }
 
-  @Operation(summary = "사인-아웃", description = "사인-아웃 처리 및 토큰 만료")
-  @ApiResponse(responseCode = "200", description = "사인-아웃 성공")
+  @Operation(
+      summary = "로그아웃", 
+      description = "현재 사용자를 로그아웃 처리합니다. 서버에서 리프레시 토큰을 삭제하고, 클라이언트의 JWT 쿠키와 리프레시 토큰 쿠키를 만료시킵니다."
+  )
+  @ApiResponse(responseCode = "200", description = "로그아웃 성공")
   @PostMapping("/sign-out")
   public void signOut(@CookieValue(name = "refresh-token", required = false) String refreshToken, HttpServletResponse response) {
     cookieService.setExpiredJwtCookie(response);
@@ -105,16 +115,22 @@ public class AuthController {
     }
   }
 
-  @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 사용하여 액세스 토큰 갱신")
-  @ApiResponse(responseCode = "200", description = "토큰 갱신 성공")
-  @ApiResponse(responseCode = "401", description = "토큰 갱신 실패")
+  @Operation(
+      summary = "액세스 토큰 갱신", 
+      description = "리프레시 토큰을 사용하여 만료된 액세스 토큰을 갱신합니다. 리프레시 토큰은 쿠키에서 자동으로 읽어옵니다. 이 엔드포인트는 JWT 인터셉터에서 자동으로 호출됩니다."
+  )
+  @ApiResponse(responseCode = "200", description = "토큰 갱신 성공, 새로운 액세스 토큰이 쿠키로 발급됨")
+  @ApiResponse(responseCode = "401", description = "리프레시 토큰이 만료되었거나 유효하지 않음")
   @GetMapping("/refresh")
   public void refresh() {
   }
 
-  @Operation(summary = "현재 사용자 정보 조회", description = "JWT 토큰을 통해 현재 로그인한 사용자 정보를 조회합니다.")
+  @Operation(
+      summary = "현재 로그인 사용자 정보 조회", 
+      description = "JWT 액세스 토큰을 기반으로 현재 로그인한 사용자의 정보를 조회합니다. 회원 ID, 이메일, 닉네임, 자기소개, 생성일시 등의 정보를 반환합니다."
+  )
   @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공")
-  @ApiResponse(responseCode = "401", description = "인증 실패")
+  @ApiResponse(responseCode = "401", description = "인증되지 않은 요청 (토큰 없음 또는 만료)")
   @GetMapping("/me")
   @Transactional(readOnly = true)
   public MemberResponse getCurrentUser(Authentication authentication) {

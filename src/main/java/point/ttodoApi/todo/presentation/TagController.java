@@ -16,6 +16,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/tags")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "태그(Tag) 관리", description = "할 일에 사용되는 태그를 관리하는 API입니다. 태그는 할 일을 분류하고 검색하는 데 사용되며, 사용자별로 고유한 태그 목록을 관리합니다.")
 public class TagController {
 
     private final TodoOriginalService todoOriginalService;
@@ -24,8 +25,8 @@ public class TagController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@todoOriginalService.canAccessTags(authentication.principal.id)")
     @Operation(
-            summary = "태그 목록 조회",
-            description = "사용자가 사용한 모든 태그 목록을 중복 없이 조회합니다. 페이지네이션을 지원합니다.",
+            summary = "사용자 태그 목록 조회",
+            description = "사용자가 할 일에 사용한 모든 태그를 중복 없이 조회합니다. 카테고리별로 필터링이 가능하며, 페이지네이션과 정렬을 지원합니다. 태그는 알파벳 순으로 정렬됩니다.",
             responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "태그 목록 조회 성공",
