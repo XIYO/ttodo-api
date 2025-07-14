@@ -37,7 +37,7 @@ public class VirtualTodoService {
     private final ApplicationEventPublisher eventPublisher;
     
     public boolean existsVirtualTodo(UUID memberId, TodoId todoId) {
-        return todoRepository.findByTodoIdAndMemberId(todoId, memberId).isPresent();
+        return todoRepository.findByTodoIdAndOwnerId(todoId, memberId).isPresent();
     }
     
     public Page<TodoResult> getTodoList(TodoSearchQuery query) {
@@ -59,7 +59,7 @@ public class VirtualTodoService {
         TodoId todoId = new TodoId(query.originalTodoId(), query.daysDifference());
         
         // 먼저 Todo 테이블에서 확인 (active 상태 무관)
-        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, query.memberId());
+        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, query.memberId());
         
         if (existingTodo.isPresent()) {
             Todo todo = existingTodo.get();
@@ -100,7 +100,7 @@ public class VirtualTodoService {
     @Transactional
     public void deactivateVirtualTodo(DeleteTodoCommand command) {
         TodoId todoId = new TodoId(command.originalTodoId(), command.daysDifference());
-        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, command.memberId());
+        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.memberId());
         
         if (existingTodo.isPresent()) {
             // 이미 Todo 테이블에 데이터가 있으면 complete=true, active=false로 설정 (삭제 표시)
@@ -133,7 +133,7 @@ public class VirtualTodoService {
                     .date(targetDate)
                     .time(todoOriginal.getTime())
                     .tags(new HashSet<>(todoOriginal.getTags()))
-                    .member(member)
+                    .owner(member)
                     .build();
             
             todoRepository.save(newTodo);
@@ -157,7 +157,7 @@ public class VirtualTodoService {
             (todoOriginal.getDate() != null ? todoOriginal.getDate() : LocalDate.now()).plusDays(daysDifference);
         
         // active 상태에 관계없이 기존 Todo 확인
-        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, command.memberId());
+        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.memberId());
         
         Member member = memberService.findByIdOrThrow(command.memberId());
         
@@ -193,7 +193,7 @@ public class VirtualTodoService {
             
             // 카테고리 처리
             if (command.categoryId() != null) {
-                Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+                Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
                         .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
                 todo.setCategory(category);
             }
@@ -231,12 +231,12 @@ public class VirtualTodoService {
                     .date(command.date() != null ? command.date() : targetDate)
                     .time(command.time() != null ? command.time() : todoOriginal.getTime())
                     .tags(command.tags() != null && !command.tags().isEmpty() ? command.tags() : new HashSet<>(todoOriginal.getTags()))
-                    .member(member)
+                    .owner(member)
                     .build();
             
             // 카테고리 변경이 있는 경우
             if (command.categoryId() != null) {
-                Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
+                Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
                         .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
                 newTodo.setCategory(category);
             }
@@ -280,7 +280,7 @@ public class VirtualTodoService {
             if (original.getDate() != null && !original.getDate().isBefore(startDate) && !original.getDate().isAfter(endDate)) {
                 // 실제 투두가 없거나 삭제/비활성화가 아닌 경우만
                 TodoId todoId = new TodoId(original.getId(), 0L);
-                Optional<Todo> exist = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, memberId);
+                Optional<Todo> exist = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, memberId);
                 if (exist.isEmpty() || (Boolean.TRUE.equals(exist.get().getActive()) && !Boolean.TRUE.equals(exist.get().getComplete()))) {
                     datesWithTodos.add(original.getDate());
                 }
@@ -290,7 +290,7 @@ public class VirtualTodoService {
             for (LocalDate date : repeatDates) {
                 long daysDiff = ChronoUnit.DAYS.between(original.getRepeatStartDate(), date);
                 TodoId todoId = new TodoId(original.getId(), daysDiff);
-                Optional<Todo> exist = todoRepository.findByTodoIdAndMemberIdIgnoreActive(todoId, memberId);
+                Optional<Todo> exist = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, memberId);
                 if (exist.isEmpty() || (Boolean.TRUE.equals(exist.get().getActive()) && !Boolean.TRUE.equals(exist.get().getComplete()))) {
                     datesWithTodos.add(date);
                 }
@@ -404,7 +404,7 @@ public class VirtualTodoService {
                     continue;
                 }
 
-                Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(
+                Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
                         new TodoId(todoOriginal.getId(),
                                 repeatStartDate != null ? ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0),
                         query.memberId());
@@ -449,7 +449,7 @@ public class VirtualTodoService {
                 continue;
             }
 
-            Optional<Todo> existingTodo = todoRepository.findByTodoIdAndMemberIdIgnoreActive(
+            Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
                     new TodoId(todoOriginal.getId(), 0L), query.memberId());
 
             boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());

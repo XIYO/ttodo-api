@@ -9,14 +9,14 @@ import java.util.*;
 
 public class TodoSpecification {
     
-    public static Specification<Todo> createSpecification(UUID memberId, Boolean complete, 
+    public static Specification<Todo> createSpecification(UUID ownerId, Boolean complete, 
                                                          List<Long> categoryIds, List<Integer> priorityIds,
                                                          LocalDate startDate, LocalDate endDate) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             
             // 필수 조건들
-            predicates.add(criteriaBuilder.equal(root.get("member").get("id"), memberId));
+            predicates.add(criteriaBuilder.equal(root.get("owner").get("id"), ownerId));
             predicates.add(criteriaBuilder.isTrue(root.get("active")));
             
             // 완료 여부 필터

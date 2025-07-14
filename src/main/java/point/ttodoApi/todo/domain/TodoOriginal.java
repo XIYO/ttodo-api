@@ -80,8 +80,8 @@ public class TodoOriginal {
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Member owner;
 
     @Builder
     public TodoOriginal(
@@ -101,7 +101,7 @@ public class TodoOriginal {
             Set<Integer> daysOfWeek,
             Set<String> tags,
             Category category,
-            Member member
+            Member owner
     ) {
         this.title = title;
         this.description = description;
@@ -119,7 +119,7 @@ public class TodoOriginal {
         this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;
-        this.member = member;
+        this.owner = owner;
     }
     
     public void togglePin() {

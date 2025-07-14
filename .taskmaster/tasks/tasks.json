@@ -302,7 +302,7 @@
         "id": 21,
         "title": "모든 도메인 엔티티의 member 필드를 owner로 리네이밍",
         "description": "Todo, Category, Challenge 등 모든 도메인 엔티티의 member 필드명을 owner로 변경하고, 관련된 getter/setter, repository 쿼리, 서비스 로직, 테스트 코드를 모두 수정합니다. 이 작업은 권한 시스템 구현 전에 완료되어야 합니다.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [],
         "priority": "high",
         "details": "**중요: 이 리팩토링은 권한 시스템(Task 11) 구현 전에 반드시 완료되어야 합니다.**\n\n1. 엔티티 필드 리네이밍:\n   - Todo.java: @ManyToOne private Member member → Member owner\n   - Category.java: @ManyToOne private Member member → Member owner\n   - Challenge.java: @ManyToOne private Member member → Member owner\n   - ChallengeParticipation.java: 필요시 member → owner\n\n2. Getter/Setter 메서드 변경:\n   ```java\n   // 변경 전\n   public Member getMember() { return member; }\n   public void setMember(Member member) { this.member = member; }\n   \n   // 변경 후\n   public Member getOwner() { return owner; }\n   public void setOwner(Member owner) { this.owner = owner; }\n   ```\n\n3. Repository 쿼리 수정:\n   - JPQL: \"SELECT t FROM Todo t WHERE t.member = :member\" → \"t.owner = :owner\"\n   - @Query 어노테이션 파라미터: @Param(\"member\") → @Param(\"owner\")\n   - 메서드명: findByMember() → findByOwner()\n   - Specification: root.get(\"member\") → root.get(\"owner\")\n\n4. 서비스 레이어 수정:\n   - todo.setMember(currentMember) → todo.setOwner(currentMember)\n   - todo.getMember().getId() → todo.getOwner().getId()\n   - 권한 검증 로직의 member 참조를 owner로 변경\n\n5. DTO 및 Mapper 수정:\n   - ResponseDto의 member 필드 → owner\n   - MapStruct @Mapping 어노테이션 수정\n\n6. 테스트 코드 수정:\n   - 모든 테스트에서 member 관련 assertion을 owner로 변경\n   - Mock 객체 설정 시 member → owner\n   - 테스트 데이터 빌더 패턴의 withMember() → withOwner()\n\n7. 데이터베이스 마이그레이션:\n   - Flyway 스크립트: ALTER TABLE todo RENAME COLUMN member_id TO owner_id;\n   - 모든 테이블에 대해 동일하게 적용\n\n**권한 시스템과의 연관성:**\n- Task 11에서 구현할 isOwn() 메서드가 owner 필드를 참조하므로 이 리팩토링이 선행되어야 함\n- 일관된 네이밍으로 권한 검증 로직의 가독성 향상",
@@ -314,7 +314,7 @@
             "description": "Todo, Category, Challenge, ChallengeParticipation 엔티티의 member 필드명을 owner로 변경하고 관련 getter/setter 메서드를 수정합니다.",
             "dependencies": [],
             "details": "- Todo.java: @ManyToOne private Member member → Member owner\n- Category.java: @ManyToOne private Member member → Member owner\n- Challenge.java: @ManyToOne private Member member → Member owner\n- ChallengeParticipation.java: 필요시 member → owner\n- 각 엔티티의 getMember()/setMember() → getOwner()/setOwner()로 변경",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "엔티티 단위 테스트를 통해 owner getter/setter 동작 확인 및 null owner 처리 테스트"
           },
           {
@@ -325,7 +325,7 @@
               1
             ],
             "details": "- JPQL 쿼리: WHERE t.member = :member → WHERE t.owner = :owner\n- @Query 어노테이션 파라미터: @Param(\"member\") → @Param(\"owner\")\n- 메서드명: findByMember() → findByOwner()\n- Specification: root.get(\"member\") → root.get(\"owner\")\n- 모든 Repository 인터페이스 및 구현체 수정",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "findByOwner() 메서드 정상 동작 확인, JPQL 쿼리의 owner 조건 검증, 데이터베이스 실제 쿼리 실행 확인"
           },
           {
@@ -464,7 +464,7 @@
     ],
     "metadata": {
       "created": "2025-07-14T14:54:00.173Z",
-      "updated": "2025-07-14T16:40:16.418Z",
+      "updated": "2025-07-14T23:39:35.679Z",
       "description": "Tasks for master context"
     }
   }

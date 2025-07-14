@@ -52,8 +52,8 @@ public class Todo {
   private Set<String> tags;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id", nullable = false)
-  private Member member;
+  @JoinColumn(name = "owner_id", nullable = false)
+  private Member owner;
 
   @CreatedDate
   @Column(updatable = false)
@@ -75,7 +75,7 @@ public class Todo {
               LocalDate date,
               LocalTime time,
               Set<String> tags,
-              Member member) {
+              Member owner) {
     this.todoId = todoId;
     this.title = title;
     this.description = description;
@@ -88,7 +88,7 @@ public class Todo {
     this.date = date;
     this.time = time;
     this.tags = tags;
-    this.member = member;
+    this.owner = owner;
   }
 
   public Long getOriginalTodoId() {

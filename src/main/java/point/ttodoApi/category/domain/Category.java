@@ -25,15 +25,15 @@ public class Category {
     private String description;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Member owner;
     
     @Builder
-    public Category(String name, String color, String description, Member member) {
+    public Category(String name, String color, String description, Member owner) {
         this.name = name;
         this.color = color;
         this.description = description;
-        this.member = member;
+        this.owner = owner;
     }
 
     public void update(String name, String color, String description) {
