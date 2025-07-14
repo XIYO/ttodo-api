@@ -2,838 +2,360 @@
   "master": {
     "tasks": [
       {
-        "id": 1,
-        "title": "이메일 알림 서비스 구현",
-        "description": "만료일 알림, 챌린지 초대, 업적 달성 등을 위한 이메일 알림 시스템 구축",
-        "details": "Spring Boot Mail Starter를 사용하여 이메일 서비스 구현. 구현 내용: 1) EmailService 인터페이스 정의 (sendDueDateReminder, sendChallengeInvitation, sendAchievementUnlock), 2) JavaMailSender를 사용한 EmailServiceImpl 구현, 3) 이메일 템플릿 엔진(Thymeleaf) 통합, 4) 비동기 처리를 위한 @Async 설정, 5) 이메일 발송 이력 저장을 위한 EmailLog 엔티티 생성",
-        "testStrategy": "1) 단위 테스트: MockMailSender를 사용하여 이메일 발송 로직 검증, 2) 통합 테스트: TestContainers로 실제 SMTP 서버 시뮬레이션, 3) 템플릿 렌더링 테스트, 4) 비동기 처리 검증, 5) 이메일 발송 실패 시 재시도 로직 테스트",
-        "priority": "high",
-        "dependencies": [],
+        "id": 11,
+        "title": "권한 검증 시스템 구축",
+        "description": "각 도메인 엔티티에 isOwn 메서드를 구현하고 SecurityService를 통해 현재 사용자 정보를 제공하여 리소스별 접근 제어를 구현합니다.",
         "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "이메일 서비스 인터페이스 설계",
-            "description": "EmailService 인터페이스 정의 및 메일 발송을 위한 기본 구조 설계",
-            "dependencies": [],
-            "details": "EmailService 인터페이스 생성하고 sendDueDateReminder, sendChallengeInvitation, sendAchievementUnlock 메소드 정의. 이메일 발송을 위한 DTO 클래스(EmailRequest, EmailTemplate) 생성 및 메일 타입별 enum 정의",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "Spring Boot Mail 기반 EmailService 구현체 개발",
-            "description": "JavaMailSender를 활용한 EmailServiceImpl 구현 및 SMTP 설정",
-            "dependencies": [
-              1
-            ],
-            "details": "EmailServiceImpl 클래스 구현하여 JavaMailSender 의존성 주입. MimeMessage 생성 및 발송 로직 구현. application.yml에 SMTP 서버 설정 추가 (Gmail, AWS SES 등). 첨부파일 지원 기능 포함",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "Thymeleaf 이메일 템플릿 엔진 통합",
-            "description": "HTML 이메일 템플릿 작성 및 Thymeleaf 렌더링 시스템 구현",
-            "dependencies": [
-              2
-            ],
-            "details": "resources/templates/email/ 디렉토리에 HTML 템플릿 파일 생성 (due-date-reminder.html, challenge-invitation.html, achievement-unlock.html). ThymeleafTemplateEngine 설정 및 템플릿 렌더링 서비스 구현. 동적 데이터 바인딩 및 다국어 지원",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "비동기 이메일 처리 시스템 구현",
-            "description": "@Async 어노테이션을 활용한 비동기 메일 발송 및 스레드풀 설정",
-            "dependencies": [
-              3
-            ],
-            "details": "@EnableAsync 설정 및 TaskExecutor 빈 구성. 이메일 발송 메소드에 @Async 적용하여 non-blocking 처리. 발송 실패 시 재시도 로직(@Retryable) 구현. 비동기 처리 상태 추적을 위한 CompletableFuture 활용",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "이메일 발송 이력 관리 시스템 구현",
-            "description": "EmailLog 엔티티 및 발송 이력 저장/조회 기능 구현",
-            "dependencies": [
-              4
-            ],
-            "details": "EmailLog 엔티티 생성 (recipient, subject, status, sentAt, errorMessage). EmailLogRepository 인터페이스 정의 및 발송 성공/실패 이력 저장 로직 구현. 이메일 발송 통계 조회 API 엔드포인트 추가. 개인정보 보호를 위한 로그 보존 정책 설정",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "이메일 서비스 테스트 코드 작성",
-            "description": "MockMailSender를 활용한 단위 테스트 및 통합 테스트 구현",
-            "dependencies": [
-              5
-            ],
-            "details": "MockMailSender를 사용한 EmailServiceImpl 단위 테스트 작성. TestContainers로 실제 SMTP 서버 시뮬레이션 통합 테스트 구현. 템플릿 렌더링 정확성 검증 테스트. 비동기 처리 및 재시도 로직 테스트. 이메일 발송 실패 시나리오별 테스트 케이스 작성",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 2,
-        "title": "데이터 검증 및 비즈니스 규칙 강화",
-        "description": "도메인 모델의 비즈니스 규칙 검증 로직 추가 및 에러 메시지 다국어화",
-        "details": "1) Bean Validation 어노테이션 확장 (@ValidRepeatEndDate, @ValidExperiencePoint 등 커스텀 검증), 2) 도메인 서비스에 비즈니스 규칙 검증 메소드 추가 (예: 반복 종료일은 시작일 이후, 챌린지 참여자 수 제한 등), 3) GlobalExceptionHandler 개선으로 일관된 에러 응답, 4) MessageSource를 활용한 다국어 에러 메시지 (한국어/영어), 5) 검증 실패 시 상세한 필드별 에러 정보 제공",
-        "testStrategy": "1) 각 커스텀 검증 어노테이션에 대한 단위 테스트, 2) 비즈니스 규칙 위반 시나리오별 테스트 케이스, 3) 다국어 메시지 출력 검증, 4) API 엔드포인트별 잘못된 입력값 처리 테스트, 5) 에러 응답 형식 일관성 검증",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "커스텀 Bean Validation 어노테이션 개발",
-            "description": "@ValidRepeatEndDate, @ValidExperiencePoint 등 프로젝트 특화 검증 어노테이션을 생성하고 Validator 구현체를 개발합니다.",
-            "dependencies": [],
-            "details": "1) @ValidRepeatEndDate 어노테이션 및 RepeatEndDateValidator 구현 (반복 종료일이 시작일 이후인지 검증), 2) @ValidExperiencePoint 어노테이션 및 ExperiencePointValidator 구현 (경험치 범위 검증), 3) @ValidChallengeParticipants 어노테이션 및 ChallengeParticipantsValidator 구현 (참여자 수 제한 검증), 4) 각 어노테이션에 대한 메시지 키 정의 및 기본 메시지 설정",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "비즈니스 규칙 검증 서비스 구현",
-            "description": "도메인 서비스 계층에 비즈니스 로직 검증 메소드를 추가하여 복잡한 비즈니스 규칙을 처리합니다.",
-            "dependencies": [
-              1
-            ],
-            "details": "1) TodoValidationService 생성 (할일 관련 비즈니스 규칙 검증), 2) ChallengeValidationService 생성 (챌린지 참여 조건, 종료일 검증 등), 3) MemberValidationService 생성 (회원 권한, 레벨 제한 등), 4) 각 서비스에 validateXXX 메소드 구현, 5) 검증 실패 시 적절한 비즈니스 예외 발생",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "GlobalExceptionHandler 개선 및 통합",
-            "description": "일관된 에러 응답 형식을 제공하고 Bean Validation 및 비즈니스 예외를 통합 처리합니다.",
-            "dependencies": [
-              2
-            ],
-            "details": "1) ErrorResponse DTO 표준화 (code, message, field-specific errors), 2) @ExceptionHandler에서 MethodArgumentNotValidException 처리 개선, 3) 커스텀 비즈니스 예외 처리 추가, 4) 필드별 에러 정보 상세 제공, 5) HTTP 상태 코드 매핑 정책 수립",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "다국어 메시지 설정 및 구성",
-            "description": "MessageSource를 활용하여 한국어/영어 에러 메시지 및 검증 메시지를 다국어화합니다.",
-            "dependencies": [
-              3
-            ],
-            "details": "1) messages_ko.properties, messages_en.properties 파일 생성, 2) Bean Validation 메시지 키 정의 및 번역, 3) 비즈니스 예외 메시지 키 정의 및 번역, 4) LocaleResolver 설정 (Accept-Language 헤더 기반), 5) MessageSource Bean 설정 및 GlobalExceptionHandler에서 활용",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "API 통합 테스트 및 검증 시나리오 구현",
-            "description": "모든 검증 로직이 통합된 API 엔드포인트에 대한 포괄적인 테스트를 구현합니다.",
-            "dependencies": [
-              4
-            ],
-            "details": "1) @WebMvcTest를 활용한 컨트롤러 계층 테스트, 2) 각 커스텀 어노테이션별 위반 시나리오 테스트, 3) 비즈니스 규칙 위반 API 테스트, 4) 다국어 메시지 출력 검증 테스트, 5) 에러 응답 형식 일관성 검증, 6) 성공/실패 케이스별 통합 테스트 시나리오 작성",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 3,
-        "title": "친구 시스템 도메인 모델 및 API 구현",
-        "description": "친구 요청, 수락/거절, 친구 목록 관리를 위한 도메인 모델과 REST API 구축",
-        "details": "1) Friendship 엔티티 생성 (requesterId, receiverId, status, createdAt), 2) FriendshipStatus enum (PENDING, ACCEPTED, REJECTED, BLOCKED), 3) FriendshipService 구현 (sendRequest, acceptRequest, rejectRequest, getFriends), 4) REST 엔드포인트: POST /friends/request, PUT /friends/requests/{id}/accept, GET /friends, DELETE /friends/{id}, 5) 양방향 친구 관계 처리 로직, 6) 친구 요청 알림 연동",
-        "testStrategy": "1) 친구 요청 중복 방지 테스트, 2) 친구 관계 상태 전이 검증, 3) 양방향 관계 일관성 테스트, 4) 권한 검증 (본인만 수락/거절 가능), 5) 친구 목록 페이징 및 정렬 테스트",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "친구 시스템 도메인 모델 설계",
-            "description": "Friendship 엔티티와 FriendshipStatus enum을 설계하여 친구 관계의 핵심 데이터 구조를 정의합니다",
-            "dependencies": [],
-            "details": "1) Friendship 엔티티 생성 (requesterId, receiverId, status, createdAt, updatedAt 필드 포함), 2) FriendshipStatus enum 정의 (PENDING, ACCEPTED, REJECTED, BLOCKED), 3) Member 엔티티와의 관계 매핑 설정, 4) 양방향 관계를 위한 복합 인덱스 설계, 5) 엔티티 제약조건 및 유효성 검증 어노테이션 추가",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "친구 시스템 리포지토리 구현",
-            "description": "Friendship 엔티티를 위한 JPA 리포지토리와 커스텀 쿼리 메소드를 구현합니다",
-            "dependencies": [
-              1
-            ],
-            "details": "1) FriendshipRepository 인터페이스 생성, 2) 친구 관계 조회를 위한 커스텀 쿼리 메소드 구현, 3) 양방향 친구 관계 조회 쿼리 최적화, 4) 친구 요청 중복 검사 쿼리, 5) 페이징 및 정렬을 지원하는 친구 목록 조회 메소드, 6) 성능 최적화를 위한 인덱스 힌트 활용",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "친구 시스템 서비스 로직 개발",
-            "description": "친구 요청, 수락/거절, 차단 등의 핵심 비즈니스 로직을 구현합니다",
-            "dependencies": [
-              2
-            ],
-            "details": "1) FriendshipService 클래스 생성, 2) sendFriendRequest 메소드 (중복 요청 방지 로직 포함), 3) acceptFriendRequest/rejectFriendRequest 메소드, 4) blockUser/unblockUser 메소드, 5) getFriends 메소드 (페이징 지원), 6) 양방향 관계 처리 로직, 7) 권한 검증 로직 (본인만 수락/거절 가능), 8) 트랜잭션 처리 및 예외 핸들링",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "친구 시스템 REST 컨트롤러 구현",
-            "description": "친구 시스템의 모든 기능을 제공하는 REST API 엔드포인트를 구현합니다",
-            "dependencies": [
-              3
-            ],
-            "details": "1) FriendController 클래스 생성, 2) POST /friends/request (친구 요청), 3) PUT /friends/requests/{id}/accept (요청 수락), 4) PUT /friends/requests/{id}/reject (요청 거절), 5) GET /friends (친구 목록 조회), 6) DELETE /friends/{id} (친구 삭제), 7) POST /friends/{id}/block (사용자 차단), 8) 요청/응답 DTO 클래스 정의, 9) API 문서화 어노테이션 추가",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "양방향 친구 관계 처리 로직 구현",
-            "description": "친구 관계의 양방향성을 보장하고 데이터 일관성을 유지하는 로직을 구현합니다",
-            "dependencies": [
-              4
-            ],
-            "details": "1) 친구 수락 시 양방향 관계 생성 로직, 2) 친구 삭제 시 양방향 관계 제거 로직, 3) 차단 시 기존 친구 관계 처리, 4) 데이터 일관성 검증 메소드, 5) 동시성 제어를 위한 락 메커니즘, 6) 관계 상태 전이 규칙 구현, 7) 고아 데이터 정리 배치 작업",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "친구 요청 알림 시스템 연동",
-            "description": "친구 요청 및 수락 시 실시간 알림을 발송하는 시스템과 연동합니다",
-            "dependencies": [
-              5
-            ],
-            "details": "1) ApplicationEventPublisher를 활용한 이벤트 발행, 2) FriendRequestEvent 및 FriendAcceptedEvent 클래스 정의, 3) 알림 서비스와의 연동 로직, 4) 실시간 알림을 위한 WebSocket 메시지 발송, 5) 푸시 알림 템플릿 정의, 6) 알림 발송 실패 시 재시도 메커니즘, 7) 사용자별 알림 설정 존중",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "친구 시스템 통합 테스트 구현",
-            "description": "친구 시스템의 모든 기능에 대한 포괄적인 통합 테스트를 작성합니다",
-            "dependencies": [
-              6
-            ],
-            "details": "1) 친구 요청 중복 방지 테스트, 2) 친구 관계 상태 전이 검증 테스트, 3) 양방향 관계 일관성 테스트, 4) 권한 검증 테스트 (본인만 수락/거절 가능), 5) 친구 목록 페이징 및 정렬 테스트, 6) 동시성 테스트 (여러 사용자가 동시에 요청), 7) 차단 기능 테스트, 8) 알림 발송 검증 테스트, 9) 성능 테스트 (대량 친구 관계 처리)",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 4,
-        "title": "공유 할일 기능 구현",
-        "description": "여러 사용자가 함께 수행하는 할일 생성 및 관리 기능 개발",
-        "details": "1) SharedTodo 엔티티 생성 (TodoOriginal 확장, assignees 관계), 2) TodoAssignment 연결 테이블 (todoId, memberId, completedAt, completedBy), 3) 공유 할일 생성 시 친구만 추가 가능 검증, 4) 완료 합의 방식 설정 (ALL_REQUIRED, ANY_ONE, MAJORITY), 5) SharedTodoService 구현, 6) 공유 할일 전용 엔드포인트 추가, 7) 할일 업데이트 시 모든 참여자에게 알림",
-        "testStrategy": "1) 친구가 아닌 사용자 추가 시 에러 검증, 2) 다양한 완료 합의 방식별 시나리오 테스트, 3) 동시 완료 처리 시 동시성 문제 검증, 4) 참여자별 진행 상황 추적 테스트, 5) 알림 발송 검증",
-        "priority": "medium",
         "dependencies": [
-          3
+          "21",
+          "22",
+          "23"
         ],
-        "status": "pending",
+        "priority": "high",
+        "details": "1. 각 도메인 엔티티(Todo, Category, Team, Member)에 isOwn(Long memberId) 메서드 구현\n2. SecurityService 클래스 구현 - 현재 로그인한 사용자 정보 제공\n3. @PreAuthorize에서 엔티티의 isOwn 메서드 직접 호출\n4. 권한 매트릭스 정의 (ROLE_USER, ROLE_ADMIN)\n\n구현 예시:\n```java\n// 엔티티 내부\npublic class Todo {\n    public boolean isOwn(Long memberId) {\n        return this.member.getId().equals(memberId);\n    }\n}\n\n// SecurityService\n@Component\npublic class SecurityService {\n    public Long getCurrentMemberId() {\n        // SecurityContextHolder에서 현재 사용자 ID 추출\n    }\n}\n\n// 컨트롤러\n@PreAuthorize(\"#todo.isOwn(@securityService.getCurrentMemberId()) or hasRole('ADMIN')\")\npublic TodoResponse updateTodo(@PathVariable Long id, @RequestBody TodoUpdateRequest request) { }\n```",
+        "testStrategy": "1. 각 엔티티의 isOwn 메서드 단위 테스트\n2. SecurityService의 getCurrentMemberId 메서드 테스트\n3. @PreAuthorize를 통한 권한 검증 통합 테스트\n4. @WithMockUser를 활용한 다양한 권한 시나리오 테스트",
         "subtasks": [
           {
             "id": 1,
-            "title": "공유 할일 도메인 모델 설계",
-            "description": "SharedTodo 엔티티와 관련 도메인 모델 구조 설계 및 생성",
-            "dependencies": [],
-            "details": "1) SharedTodo 엔티티 생성 (TodoOriginal 확장), 2) 완료 합의 방식 enum (CompletionConsensusType: ALL_REQUIRED, ANY_ONE, MAJORITY), 3) 공유 할일 상태 관리를 위한 필드 추가, 4) JPA 관계 매핑 설정",
+            "title": "각 도메인 엔티티에 isOwn 메서드 구현",
+            "description": "Todo, Category, Team, Member 등 모든 도메인 엔티티에 소유권을 확인하는 isOwn(Long memberId) 메서드를 구현합니다.",
             "status": "pending",
-            "testStrategy": ""
+            "dependencies": [],
+            "details": "1. Todo 엔티티에 isOwn(Long memberId) 메서드 추가\n   - this.member.getId().equals(memberId) 로직 구현\n2. Category 엔티티에 isOwn 메서드 추가\n   - 카테고리 소유자 확인 로직\n3. Team 엔티티에 isOwn 메서드 추가\n   - 팀 생성자 확인 로직\n4. Member 엔티티에 isOwn 메서드 추가\n   - 본인 확인 로직 (this.getId().equals(memberId))\n5. 각 엔티티별로 null 체크 및 예외 처리 추가\n<info added on 2025-07-14T15:41:23.016Z>\n6. Category 엔티티에 canManage(Long memberId) 메서드 추가\n   - owner이거나 collaborator인 경우 true 반환\n   - this.owner.getId().equals(memberId) || this.collaborators.stream().anyMatch(collab -> collab.getMember().getId().equals(memberId))\n   - collaborator는 owner와 동일한 권한 보유\n\n7. Challenge 엔티티에 isOwner(Long memberId) 메서드 추가\n   - 챌린지 생성자 확인 로직\n   - this.owner.getId().equals(memberId)\n\n8. Challenge 엔티티에 isLeader(Long memberId) 메서드 추가\n   - 챌린지 리더 확인 로직\n   - this.leaders.stream().anyMatch(leader -> leader.getMember().getId().equals(memberId))\n\n9. Challenge 엔티티에 canManageParticipants(Long memberId) 메서드 추가\n   - owner이거나 leader인 경우 true 반환\n   - isOwner(memberId) || isLeader(memberId)\n\n10. 모든 권한 확인 메서드에 null 체크 추가\n    - memberId가 null인 경우 false 반환\n    - 관련 엔티티(owner, collaborators, leaders)가 null인 경우 적절한 처리\n</info added on 2025-07-14T15:41:23.016Z>",
+            "testStrategy": "각 엔티티의 isOwn 메서드가 올바른 소유자 확인을 수행하는지 단위 테스트로 검증"
           },
           {
             "id": 2,
-            "title": "TodoAssignment 연결 테이블 구현",
-            "description": "할일-참여자 간의 다대다 관계를 관리하는 연결 테이블 구현",
-            "dependencies": [
-              1
-            ],
-            "details": "1) TodoAssignment 엔티티 생성 (todoId, memberId, completedAt, completedBy), 2) 복합키 설정, 3) SharedTodo와 Member 엔티티 간 양방향 매핑, 4) JPA Repository 구현",
+            "title": "SecurityService 구현 및 현재 사용자 정보 제공",
+            "description": "Spring Security의 SecurityContextHolder를 활용하여 현재 로그인한 사용자 정보를 제공하는 SecurityService를 구현합니다.",
             "status": "pending",
-            "testStrategy": ""
+            "dependencies": [],
+            "details": "1. SecurityService @Component 클래스 생성\n2. getCurrentMemberId() 메서드 구현:\n   - SecurityContextHolder.getContext().getAuthentication() 사용\n   - Principal에서 사용자 ID 추출\n   - 인증되지 않은 경우 null 반환\n3. getCurrentMember() 메서드 구현 (선택적)\n   - MemberRepository 주입하여 전체 Member 객체 반환\n4. isAuthenticated() 헬퍼 메서드 추가\n5. hasRole(String role) 메서드 추가 - 현재 사용자의 특정 권한 확인\n<info added on 2025-07-14T15:24:46.147Z>\n구현 상세 내용:\n\n1. MemberPrincipal 타입으로 Authentication 객체 캐스팅\n   - SecurityContextHolder.getContext().getAuthentication().getPrincipal()을 MemberPrincipal로 형변환\n   - ClassCastException 방지를 위한 instanceof 검증\n\n2. getCurrentMemberId() 구현 보완:\n   - Authentication이 null이 아니고 인증된 상태인지 확인\n   - Principal이 MemberPrincipal 타입인 경우에만 ID 추출\n   - 그 외의 경우 Optional.empty() 반환\n\n3. getCurrentMember() 구현:\n   - getCurrentMemberId()를 통해 ID 획득\n   - MemberRepository.findById()로 Member 엔티티 조회\n   - Optional<Member> 타입으로 반환하여 null 안전성 보장\n\n4. isAuthenticated() 구현:\n   - Authentication 객체가 존재하고 isAuthenticated()가 true인지 확인\n   - AnonymousAuthenticationToken이 아닌지 추가 검증\n\n5. MemberPrincipal 클래스 구조:\n   - UserDetails 인터페이스 구현\n   - memberId, email, authorities 필드 포함\n   - CustomUserDetailsService에서 생성하여 반환\n</info added on 2025-07-14T15:24:46.147Z>",
+            "testStrategy": "MockAuthentication을 사용하여 다양한 인증 상태에서 SecurityService가 올바른 사용자 정보를 반환하는지 테스트"
           },
           {
             "id": 3,
-            "title": "친구 관계 검증 로직 구현",
-            "description": "공유 할일 생성 시 친구만 추가 가능하도록 하는 권한 검증 로직 구현",
-            "dependencies": [
-              2
-            ],
-            "details": "1) FriendshipService에서 친구 관계 검증 메소드 추가, 2) 공유 할일 생성 시 참여자 권한 검증, 3) 비친구 추가 시 예외 처리, 4) 권한 검증 실패 시 적절한 에러 메시지 반환",
+            "title": "Team 엔티티의 멤버 권한 확인 메서드 추가",
+            "description": "Team 엔티티에 팀 멤버 여부를 확인하는 추가 메서드를 구현하여 팀 리소스에 대한 세밀한 권한 관리를 지원합니다.",
             "status": "pending",
-            "testStrategy": ""
+            "dependencies": [
+              1
+            ],
+            "details": "1. Team 엔티티에 isMember(Long memberId) 메서드 추가:\n   - TeamMember 관계를 통해 멤버 여부 확인\n   - Stream API를 활용한 효율적인 검색\n2. hasPermission(Long memberId, TeamPermission permission) 메서드 추가:\n   - 특정 팀 내 권한 확인 (ADMIN, MEMBER 등)\n3. isOwnerOrMember(Long memberId) 복합 메서드 구현\n   - 소유자이거나 팀 멤버인 경우 true 반환\n4. TeamPermission enum 정의 (필요시)\n5. Lazy Loading 최적화를 위한 @Transactional 고려\n<info added on 2025-07-14T15:25:07.462Z>\nChallenge 엔티티에 대한 권한 확인 메서드 구현:\n1. Challenge 엔티티에 isOwner(Long memberId) 메서드 추가:\n   - createdBy 필드와 memberId 비교\n   - null 체크 포함\n2. isParticipant(Long memberId) 메서드 추가:\n   - ChallengeParticipant 관계를 통해 참가자 여부 확인\n   - Stream API를 활용한 효율적인 검색\n3. 복합 권한 확인 메서드 isOwnerOrParticipant(Long memberId) 구현\n   - 소유자이거나 참가자인 경우 true 반환\n4. Lazy Loading 최적화를 위한 @Transactional 고려\n</info added on 2025-07-14T15:25:07.462Z>",
+            "testStrategy": "팀 소유자, 팀 멤버, 외부인 등 다양한 시나리오에서 권한 확인 메서드들이 올바르게 동작하는지 검증"
           },
           {
             "id": 4,
-            "title": "완료 합의 메커니즘 구현",
-            "description": "다양한 완료 합의 방식에 따른 할일 완료 처리 로직 구현",
-            "dependencies": [
-              3
-            ],
-            "details": "1) 합의 방식별 완료 조건 검증 로직, 2) 부분 완료 상태 관리, 3) 완료 진행률 계산, 4) 전체 완료 시 상태 업데이트, 5) 완료 취소 처리 로직",
+            "title": "@PreAuthorize 어노테이션 적용 및 SpEL 표현식 구성",
+            "description": "모든 컨트롤러 메서드에 엔티티의 isOwn 메서드를 활용한 @PreAuthorize 어노테이션을 적용합니다.",
             "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "SharedTodoService 레이어 구현",
-            "description": "공유 할일의 비즈니스 로직을 처리하는 서비스 레이어 구현",
-            "dependencies": [
-              4
-            ],
-            "details": "1) 공유 할일 생성/수정/삭제 메소드, 2) 참여자 추가/제거 로직, 3) 개별 완료 처리 메소드, 4) 전체 진행 상황 조회, 5) 트랜잭션 관리 및 동시성 처리",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "공유 할일 API 엔드포인트 개발",
-            "description": "공유 할일 관리를 위한 REST API 엔드포인트 구현",
-            "dependencies": [
-              5
-            ],
-            "details": "1) POST /shared-todos (생성), 2) GET /shared-todos (목록 조회), 3) PUT /shared-todos/{id} (수정), 4) DELETE /shared-todos/{id} (삭제), 5) POST /shared-todos/{id}/complete (완료 처리), 6) 요청/응답 DTO 정의",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "알림 시스템 연동",
-            "description": "공유 할일 업데이트 시 참여자들에게 알림을 발송하는 시스템 연동",
-            "dependencies": [
-              6
-            ],
-            "details": "1) 할일 생성/수정 시 참여자 알림, 2) 완료 처리 시 다른 참여자 알림, 3) 전체 완료 시 모든 참여자 알림, 4) 이메일 알림 템플릿 추가, 5) 비동기 알림 발송 처리",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
-            "title": "동시성 처리 및 통합 테스트",
-            "description": "동시 완료 처리 시 발생할 수 있는 동시성 문제 해결 및 전체 기능 테스트",
-            "dependencies": [
-              7
-            ],
-            "details": "1) 동시 완료 처리 시 낙관적 락 적용, 2) 완료 상태 불일치 방지 로직, 3) 통합 테스트 시나리오 작성, 4) 다양한 완료 합의 방식별 테스트, 5) 성능 테스트 및 부하 테스트",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 5,
-        "title": "활동 피드 시스템 구현",
-        "description": "친구들의 할일 완료, 레벨업, 챌린지 참여 등의 활동을 보여주는 피드 구현",
-        "details": "1) ActivityEvent 엔티티 (type, actorId, targetId, metadata, createdAt), 2) EventType enum (TODO_COMPLETED, LEVEL_UP, CHALLENGE_JOINED, ACHIEVEMENT_UNLOCKED), 3) 이벤트 발행을 위한 ApplicationEventPublisher 활용, 4) ActivityFeedService로 친구 활동만 필터링, 5) GET /activity-feed 엔드포인트 (페이징, 시간순 정렬), 6) 활동별 렌더링 템플릿, 7) 읽음/안읽음 상태 관리",
-        "testStrategy": "1) 이벤트 발행 및 저장 검증, 2) 친구 활동만 표시되는지 확인, 3) 페이징 및 정렬 기능 테스트, 4) 대량 이벤트 처리 성능 테스트, 5) 읽음 상태 업데이트 동시성 테스트",
-        "priority": "medium",
-        "dependencies": [
-          3
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "이벤트 모델 및 엔티티 설계",
-            "description": "ActivityEvent 엔티티와 EventType enum을 설계하고 구현",
-            "dependencies": [],
-            "details": "ActivityEvent 엔티티 (id, type, actorId, targetId, metadata, createdAt, isRead) 및 EventType enum (TODO_COMPLETED, LEVEL_UP, CHALLENGE_JOINED, ACHIEVEMENT_UNLOCKED) 정의. JPA 어노테이션과 JSON 직렬화 설정 포함.",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "이벤트 발행 시스템 구축",
-            "description": "Spring Event를 활용한 이벤트 발행 메커니즘 구현",
-            "dependencies": [
-              1
-            ],
-            "details": "ApplicationEventPublisher를 주입받아 도메인 이벤트 발행. EventListener를 통한 ActivityEvent 생성 및 저장. 비동기 처리를 위한 @Async 설정 적용.",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "활동 피드 서비스 구현",
-            "description": "친구 관계를 고려한 ActivityFeedService 구현",
             "dependencies": [
               1,
-              2
-            ],
-            "details": "친구 활동만 필터링하는 로직, 페이징 처리, 시간순 정렬 기능. Repository에서 Friend 테이블과 조인하여 효율적인 쿼리 작성. 읽음 상태 업데이트 메소드 포함.",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "피드 API 엔드포인트 개발",
-            "description": "활동 피드 조회 및 관리를 위한 REST API 구현",
-            "dependencies": [
-              3
-            ],
-            "details": "GET /activity-feed (페이징, 필터링 파라미터), PUT /activity-feed/{id}/read (읽음 처리), GET /activity-feed/unread-count 엔드포인트. Swagger 문서화 및 응답 DTO 정의.",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "읽음 상태 관리 시스템",
-            "description": "활동 피드의 읽음/안읽음 상태 관리 기능 구현",
-            "dependencies": [
-              3,
-              4
-            ],
-            "details": "개별 읽음 처리, 일괄 읽음 처리, 안읽은 개수 조회 기능. 동시성 제어를 위한 낙관적 락 적용. 읽음 상태 변경 시 실시간 알림 연동.",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "성능 최적화 및 테스트",
-            "description": "활동 피드 시스템의 성능 최적화 및 종합 테스트 수행",
-            "dependencies": [
-              4,
-              5
-            ],
-            "details": "데이터베이스 인덱스 최적화, 쿼리 성능 튜닝, 대량 이벤트 처리 성능 테스트. 단위 테스트, 통합 테스트, 부하 테스트 작성. 읽음 상태 동시성 테스트 포함.",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 6,
-        "title": "챌린지 시스템 개선 및 리더보드 구현",
-        "description": "친구 그룹 전용 챌린지, 진행 마일스톤, 실시간 리더보드 기능 추가",
-        "details": "1) Challenge 엔티티에 visibility (PUBLIC, FRIENDS_ONLY, PRIVATE) 추가, 2) ChallengeMilestone 엔티티 (challengeId, requiredProgress, bonusXP), 3) 실시간 리더보드를 위한 Redis Sorted Set 활용, 4) ChallengeLeaderboardService 구현, 5) WebSocket을 통한 실시간 순위 업데이트, 6) 챌린지 완료 인증서 생성 (PDF), 7) 주간/월간 리더보드 리셋 스케줄러",
-        "testStrategy": "1) 가시성별 챌린지 접근 권한 테스트, 2) 마일스톤 달성 시 보너스 XP 지급 검증, 3) Redis 리더보드 정확성 테스트, 4) WebSocket 연결 및 실시간 업데이트 테스트, 5) 동시 점수 업데이트 시 일관성 검증",
-        "priority": "medium",
-        "dependencies": [
-          3
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "챌린지 모델 확장 및 기본 구조 설정",
-            "description": "Challenge 엔티티에 visibility(공개/친구/비공개) 필드 추가하고 ChallengeMilestone 엔티티 구현",
-            "dependencies": [],
-            "details": "1) Challenge 엔티티에 visibility enum 추가 (PUBLIC, FRIENDS_ONLY, PRIVATE), 2) ChallengeMilestone 엔티티 생성 (challengeId, requiredProgress, bonusXP, description), 3) 연관관계 매핑 설정, 4) 마이그레이션 스크립트 작성",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "마일스톤 시스템 비즈니스 로직 구현",
-            "description": "마일스톤 달성 검증 및 보너스 XP 지급 로직 구현",
-            "dependencies": [
-              1
-            ],
-            "details": "1) MilestoneService 생성하여 마일스톤 달성 체크 로직, 2) 진행률 계산 및 달성 검증 메소드, 3) 보너스 XP 지급 처리, 4) 마일스톤 달성 이벤트 발행, 5) 중복 보상 방지 로직",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "Redis 리더보드 구현",
-            "description": "Redis Sorted Set을 활용한 실시간 리더보드 시스템 구축",
-            "dependencies": [
-              1
-            ],
-            "details": "1) Redis 설정 및 연결 구성, 2) ChallengeLeaderboardService 구현, 3) Sorted Set으로 실시간 순위 관리, 4) 순위 조회/업데이트 메소드, 5) TTL 설정으로 자동 정리, 6) 배치 업데이트 최적화",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "WebSocket 실시간 업데이트 시스템",
-            "description": "WebSocket을 통한 리더보드 실시간 순위 업데이트 구현",
-            "dependencies": [
-              3
-            ],
-            "details": "1) WebSocket 설정 및 핸들러 구현, 2) 리더보드 변경 이벤트 리스너, 3) 클라이언트별 구독 관리, 4) 순위 변동 시 실시간 알림 전송, 5) 연결 상태 관리 및 재연결 처리",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "챌린지 완료 인증서 생성 기능",
-            "description": "PDF 라이브러리를 활용한 챌린지 완료 인증서 생성 시스템",
-            "dependencies": [
-              2
-            ],
-            "details": "1) iText PDF 라이브러리 설정, 2) CertificateService 구현, 3) 인증서 템플릿 디자인 및 구현, 4) 개인화된 정보 삽입 (이름, 챌린지명, 완료일), 5) PDF 파일 저장 및 다운로드 엔드포인트",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "리더보드 리셋 스케줄러 구현",
-            "description": "주간/월간 리더보드 자동 리셋 및 아카이브 시스템",
-            "dependencies": [
-              3
-            ],
-            "details": "1) Spring Scheduler 설정, 2) 주간/월간 리셋 스케줄 작업, 3) 이전 기록 아카이브 처리, 4) 시즌별 챔피언 기록 보관, 5) 스케줄러 실행 로그 및 모니터링",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "성능 최적화 및 동시성 처리",
-            "description": "대용량 동시 업데이트 처리 및 데이터 일관성 보장",
-            "dependencies": [
-              4
-            ],
-            "details": "1) Redis 파이프라인 처리로 배치 업데이트, 2) 낙관적 락을 통한 동시성 제어, 3) 리더보드 캐시 전략 구현, 4) 부하 분산을 위한 샤딩 고려, 5) 성능 메트릭 수집 및 모니터링",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
-            "title": "통합 테스트 및 API 엔드포인트 구현",
-            "description": "전체 챌린지 시스템 통합 테스트 및 REST API 완성",
-            "dependencies": [
-              5,
-              6,
-              7
-            ],
-            "details": "1) 챌린지 리더보드 조회 API 구현, 2) 실시간 순위 변동 테스트, 3) 대용량 동시 접속 시뮬레이션, 4) WebSocket 연결 안정성 테스트, 5) 전체 시스템 통합 검증 및 문서화",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 7,
-        "title": "업적 시스템 구현",
-        "description": "자동 추적되는 업적 시스템으로 장기적인 목표 달성 동기 부여",
-        "details": "1) Achievement 엔티티 (name, description, criteria, iconUrl, xpReward), 2) AchievementProgress 엔티티 (memberId, achievementId, progress, unlockedAt), 3) AchievementCriteria 인터페이스와 구현체들 (TodoCountCriteria, StreakCriteria, LevelCriteria), 4) 이벤트 리스너로 자동 진행도 업데이트, 5) 업적 달성 시 알림 및 XP 지급, 6) GET /achievements, GET /members/{id}/achievements 엔드포인트",
-        "testStrategy": "1) 다양한 업적 조건 충족 시나리오 테스트, 2) 진행도 자동 업데이트 검증, 3) 업적 달성 시 보상 지급 테스트, 4) 중복 달성 방지 테스트, 5) 업적 목록 필터링 및 정렬 테스트",
-        "priority": "low",
-        "dependencies": [
-          5
-        ],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "업적 도메인 모델 및 엔티티 설계",
-            "description": "Achievement, AchievementProgress 엔티티와 기본 도메인 모델을 설계하고 구현합니다.",
-            "dependencies": [],
-            "details": "Achievement 엔티티 (id, name, description, criteria, iconUrl, xpReward, isActive, createdAt), AchievementProgress 엔티티 (id, memberId, achievementId, progress, maxProgress, unlockedAt, createdAt), JPA 매핑 관계 설정, 기본 Repository 인터페이스 생성",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "업적 조건 인터페이스 및 구현체 개발",
-            "description": "확장 가능한 AchievementCriteria 인터페이스와 다양한 조건 구현체들을 개발합니다.",
-            "dependencies": [
-              1
-            ],
-            "details": "AchievementCriteria 인터페이스 (checkProgress, isCompleted 메소드), TodoCountCriteria (총 할일 완료 수), StreakCriteria (연속 완료 일수), LevelCriteria (레벨 달성), CategoryCompletionCriteria (카테고리별 완료), 팩토리 패턴으로 조건 객체 생성",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "업적 진행도 추적 서비스 구현",
-            "description": "업적 진행도를 자동으로 추적하고 업데이트하는 핵심 서비스 로직을 구현합니다.",
-            "dependencies": [
-              2
-            ],
-            "details": "AchievementService 구현 (updateProgress, checkAchievementCompletion, getAchievements), 사용자별 업적 진행도 계산 로직, 업적 달성 조건 확인 및 완료 처리, 중복 달성 방지 로직, 업적 진행도 배치 업데이트 최적화",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "이벤트 기반 업적 추적 리스너 구현",
-            "description": "할일 완료, 레벨업 등의 이벤트를 감지하여 자동으로 업적 진행도를 업데이트하는 이벤트 리스너를 구현합니다.",
-            "dependencies": [
-              3
-            ],
-            "details": "@EventListener 어노테이션 활용, TodoCompletedEvent, LevelUpEvent, StreakUpdatedEvent 처리, 비동기 이벤트 처리 (@Async), 이벤트 발행 실패 시 재처리 메커니즘, 트랜잭션 커밋 후 이벤트 처리 보장",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "업적 달성 보상 시스템 연동",
-            "description": "업적 달성 시 XP 지급과 알림 발송 등의 보상 시스템을 구현합니다.",
-            "dependencies": [
-              4
-            ],
-            "details": "업적 달성 시 XP 자동 지급 로직, 이메일 알림 서비스 연동 (sendAchievementUnlock), 업적 달성 알림 템플릿 작성, 보상 지급 이력 로깅, 업적 달성 축하 메시지 생성, 트랜잭션 안전성 보장",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "업적 관련 REST API 엔드포인트 개발",
-            "description": "업적 목록 조회와 사용자별 업적 진행도 조회를 위한 API를 개발합니다.",
-            "dependencies": [
-              5
-            ],
-            "details": "AchievementController 구현, GET /achievements (전체 업적 목록), GET /members/{id}/achievements (사용자별 업적 진행도), 업적 필터링 (달성/미달성, 카테고리별), 페이징 및 정렬 지원, OpenAPI 문서화, 응답 DTO 설계",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "업적 시스템 통합 테스트 및 자동화",
-            "description": "업적 시스템의 전체 플로우를 검증하는 포괄적인 테스트 스위트를 구현합니다.",
-            "dependencies": [
-              6
-            ],
-            "details": "다양한 업적 조건 충족 시나리오 테스트, 이벤트 리스너 작동 검증, 업적 달성 시 보상 지급 테스트, 중복 달성 방지 로직 테스트, API 엔드포인트 통합 테스트, 성능 테스트 (대량 사용자 시뮬레이션), TestContainers 활용한 실제 데이터베이스 테스트",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 8,
-        "title": "연속 기록(Streak) 추적 시스템",
-        "description": "일일 완료 연속 기록 추적 및 카테고리별 연속 기록 관리",
-        "details": "1) Streak 엔티티 (memberId, type, currentCount, longestCount, lastCompletedDate), 2) StreakType enum (DAILY, CATEGORY_SPECIFIC), 3) StreakService에서 할일 완료 시 연속 기록 업데이트, 4) 연속 기록 복구 메커니즘 (1일 유예), 5) 연속 기록별 보너스 XP 계산, 6) GET /members/{id}/streaks 엔드포인트, 7) 연속 기록 위젯용 데이터 제공",
-        "testStrategy": "1) 연속 기록 증가/중단 시나리오 테스트, 2) 시간대 고려한 일일 연속 기록 검증, 3) 복구 메커니즘 작동 테스트, 4) 보너스 XP 계산 정확성 검증, 5) 동시 완료 시 연속 기록 일관성 테스트",
-        "priority": "low",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Streak 도메인 모델 설계 및 구현",
-            "description": "Streak 엔티티와 StreakType enum을 설계하고 구현합니다. memberId, type, currentCount, longestCount, lastCompletedDate 필드를 포함하는 엔티티를 생성하고, DAILY와 CATEGORY_SPECIFIC을 포함하는 StreakType enum을 정의합니다.",
-            "dependencies": [],
-            "details": "1) Streak 엔티티 클래스 생성 (JPA 어노테이션 포함), 2) StreakType enum 정의, 3) 연관관계 매핑 (Member와의 관계), 4) 기본 Repository 인터페이스 생성, 5) 데이터베이스 스키마 마이그레이션 스크립트 작성",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "연속 기록 업데이트 로직 구현",
-            "description": "할일 완료 시 연속 기록을 업데이트하는 핵심 로직을 StreakService에 구현합니다. 일일 연속 기록과 카테고리별 연속 기록을 각각 처리하는 메소드를 만듭니다.",
-            "dependencies": [
-              1
-            ],
-            "details": "1) StreakService 클래스 생성, 2) 할일 완료 이벤트 리스너 구현, 3) 연속 기록 증가 로직 (updateDailyStreak), 4) 카테고리별 연속 기록 처리 (updateCategoryStreak), 5) 시간대 고려한 일자 계산 로직, 6) 연속 기록 중단 판단 로직",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "연속 기록 복구 메커니즘 구현",
-            "description": "1일 유예 기간을 포함한 연속 기록 복구 시스템을 구현합니다. 사용자가 하루 놓쳤을 때 다음날 완료하면 연속 기록을 유지할 수 있는 기능을 만듭니다.",
-            "dependencies": [
-              2
-            ],
-            "details": "1) 복구 가능 여부 판단 로직 (canRecoverStreak), 2) 연속 기록 복구 처리 메소드 (recoverStreak), 3) 복구 이력 추적을 위한 StreakRecovery 엔티티, 4) 복구 가능 상태 표시 로직, 5) 복구 제한 규칙 (최대 복구 횟수 등)",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "연속 기록 보너스 계산 시스템 구현",
-            "description": "연속 기록 달성에 따른 보너스 XP 계산 로직을 구현합니다. 연속일수에 따라 차등 지급되는 보너스 시스템을 만듭니다.",
-            "dependencies": [
-              2
-            ],
-            "details": "1) 보너스 XP 계산 공식 정의 (calculateStreakBonus), 2) 연속일수별 보너스 테이블 구성, 3) XP 서비스와의 연동, 4) 보너스 지급 이력 저장, 5) 특별 마일스톤 보너스 (7일, 30일, 100일 등)",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "연속 기록 API 및 위젯 데이터 제공",
-            "description": "연속 기록 조회를 위한 REST API 엔드포인트와 위젯용 데이터를 제공하는 기능을 구현합니다. 사용자의 현재 연속 기록 상태와 통계를 조회할 수 있는 API를 만듭니다.",
-            "dependencies": [
-              1,
-              3,
-              4
-            ],
-            "details": "1) StreakController 클래스 생성, 2) GET /members/{id}/streaks 엔드포인트 구현, 3) 연속 기록 DTO 클래스 정의, 4) 위젯용 요약 데이터 제공 (getCurrentStreakSummary), 5) 연속 기록 히스토리 조회 기능, 6) OpenAPI 문서화",
-            "status": "pending",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 9,
-        "title": "고급 통계 및 분석 기능",
-        "description": "생산성 인사이트, 완료 트렌드, 카테고리별 분석 제공",
-        "details": "1) StatisticsService 확장으로 고급 분석 메소드 추가, 2) 시간대별 완료 패턴 분석 (productivityByHour), 3) 카테고리별 완료율 및 평균 소요 시간, 4) 주간/월간 트렌드 차트 데이터, 5) PostgreSQL 윈도우 함수 활용한 효율적 집계, 6) GET /members/{id}/analytics 엔드포인트, 7) 분석 결과 캐싱 (Redis)",
-        "testStrategy": "1) 다양한 기간별 통계 정확성 검증, 2) 대량 데이터에서의 쿼리 성능 테스트, 3) 캐시 적중률 및 갱신 로직 테스트, 4) 시간대 변환 정확성 검증, 5) 엣지 케이스 (데이터 없음, 단일 데이터) 처리",
-        "priority": "low",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "StatisticsService 확장 및 기본 분석 메소드 구현",
-            "description": "기존 StatisticsService에 고급 분석을 위한 메소드들을 추가하고 기본 통계 계산 로직을 구현합니다.",
-            "dependencies": [],
-            "details": "1) StatisticsService 인터페이스에 고급 분석 메소드 정의 (getProductivityInsights, getCompletionTrends, getCategoryAnalysis), 2) 기본 통계 계산 로직 구현 (완료율, 평균 소요 시간, 생산성 지수), 3) 날짜 범위별 데이터 필터링 유틸리티 메소드 추가, 4) 통계 계산을 위한 DTO 클래스 정의",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "시간대별 생산성 패턴 분석 기능 구현",
-            "description": "사용자의 시간대별 할일 완료 패턴을 분석하여 생산성 인사이트를 제공하는 기능을 구현합니다.",
-            "dependencies": [
-              1
-            ],
-            "details": "1) productivityByHour 메소드 구현으로 시간대별 완료 통계 계산, 2) PostgreSQL EXTRACT 함수를 활용한 시간대별 그룹핑, 3) 시간대별 완료 건수 및 완료율 계산, 4) 가장 생산적인 시간대 식별 로직, 5) 시간대별 평균 작업 시간 분석, 6) ProductivityPattern DTO 정의",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "카테고리별 상세 분석 기능 구현",
-            "description": "카테고리별 완료율, 평균 소요 시간, 우선순위별 분포 등을 분석하는 기능을 구현합니다.",
-            "dependencies": [
-              1
-            ],
-            "details": "1) getCategoryAnalysis 메소드로 카테고리별 통계 계산, 2) 카테고리별 완료율 및 평균 소요 시간 분석, 3) 우선순위별 분포 및 완료 패턴 분석, 4) 카테고리별 성과 지표 계산, 5) CategoryAnalysis DTO 및 관련 통계 객체 정의, 6) 카테고리별 트렌드 변화 분석",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "트렌드 데이터 생성 및 윈도우 함수 활용 최적화",
-            "description": "주간/월간 트렌드 차트 데이터를 생성하고 PostgreSQL 윈도우 함수를 활용하여 효율적인 집계를 구현합니다.",
-            "dependencies": [
               2,
               3
             ],
-            "details": "1) PostgreSQL 윈도우 함수(LAG, LEAD, ROW_NUMBER)를 활용한 효율적 트렌드 계산, 2) 주간/월간 완료 트렌드 데이터 생성, 3) 이전 기간 대비 증감률 계산, 4) 이동 평균(Moving Average) 계산으로 트렌드 스무딩, 5) TrendData DTO 및 차트 데이터 포맷 정의, 6) 성능 최적화된 복합 쿼리 작성",
-            "status": "pending",
-            "testStrategy": ""
+            "details": "1. TodoController의 메서드별 권한 설정:\n   - 수정/삭제: @PreAuthorize(\"#todo.isOwn(@securityService.getCurrentMemberId()) or hasRole('ADMIN')\")\n   - 조회: 공개 설정에 따른 조건부 권한\n2. CategoryController 권한 설정:\n   - @PreAuthorize(\"#category.isOwn(@securityService.getCurrentMemberId())\")\n3. TeamController 권한 설정:\n   - 팀 수정: @PreAuthorize(\"#team.isOwn(@securityService.getCurrentMemberId())\")\n   - 팀 리소스 접근: @PreAuthorize(\"#team.isMember(@securityService.getCurrentMemberId())\")\n4. MemberController 권한 설정:\n   - @PreAuthorize(\"#member.isOwn(@securityService.getCurrentMemberId())\")\n5. @EnableGlobalMethodSecurity(prePostEnabled = true) 설정 확인\n<info added on 2025-07-14T15:25:33.723Z>\n구현 방식 변경사항:\n- 컨트롤러 메서드에서 서비스 레이어 호출 후 권한 검증\n- 서비스 메서드가 엔티티를 반환하도록 하여 @PreAuthorize에서 사용\n- SpEL 표현식에서 반환된 엔티티 객체를 직접 참조\n\n서비스 레이어 구현 예시:\n```java\n// TodoService\npublic Todo findTodoForAuth(Long todoId) {\n    return todoRepository.findById(todoId)\n        .orElseThrow(() -> new TodoNotFoundException(todoId));\n}\n\n// TodoController\n@PutMapping(\"/{todoId}\")\n@PreAuthorize(\"@todoService.findTodoForAuth(#todoId).isOwn(@securityService.getCurrentMemberId()) or hasRole('ADMIN')\")\npublic ResponseEntity<TodoResponse> updateTodo(@PathVariable Long todoId, @RequestBody TodoUpdateRequest request) {\n    // 권한 검증 통과 후 실제 업데이트 로직\n}\n```\n\n각 컨트롤러별 구현 패턴:\n- CategoryController: @PreAuthorize(\"@categoryService.findCategoryForAuth(#categoryId).isOwn(@securityService.getCurrentMemberId())\")\n- TeamController: @PreAuthorize(\"@teamService.findTeamForAuth(#teamId).isOwn(@securityService.getCurrentMemberId())\")\n- MemberController: @PreAuthorize(\"@memberService.findMemberForAuth(#memberId).isOwn(@securityService.getCurrentMemberId())\")\n</info added on 2025-07-14T15:25:33.723Z>\n<info added on 2025-07-14T15:41:57.002Z>\n새로운 권한 체계 반영사항:\n\nTodoController의 카테고리 기반 Todo 수정 권한:\n- 카테고리 내 Todo 생성: @PreAuthorize(\"@categoryService.findCategoryForAuth(#categoryId).canManage(@securityService.getCurrentMemberId())\")\n- 카테고리 Todo 수정: @PreAuthorize(\"@todoService.findTodoForAuth(#todoId).category.canManage(@securityService.getCurrentMemberId()) or hasRole('ADMIN')\")\n- 카테고리 Todo 삭제: @PreAuthorize(\"@todoService.findTodoForAuth(#todoId).category.canManage(@securityService.getCurrentMemberId()) or hasRole('ADMIN')\")\n\nChallengeController의 참여자 관리 권한:\n- 참여자 초대: @PreAuthorize(\"@challengeService.findChallengeForAuth(#challengeId).canManageParticipants(@securityService.getCurrentMemberId())\")\n- 참여자 추방: @PreAuthorize(\"@challengeService.findChallengeForAuth(#challengeId).canManageParticipants(@securityService.getCurrentMemberId())\")\n- Leader 지정: @PreAuthorize(\"@challengeService.findChallengeForAuth(#challengeId).isOwn(@securityService.getCurrentMemberId())\")\n- Leader 해제: @PreAuthorize(\"@challengeService.findChallengeForAuth(#challengeId).isOwn(@securityService.getCurrentMemberId())\")\n\nChallengeTodoController의 일반 참여자 권한:\n- ChallengeTodo 완료: @PreAuthorize(\"@challengeTodoService.findChallengeTodoForAuth(#todoId).challenge.isParticipant(@securityService.getCurrentMemberId())\")\n- ChallengeTodo 생성/수정/삭제: @PreAuthorize(\"@challengeTodoService.findChallengeTodoForAuth(#todoId).challenge.canManageParticipants(@securityService.getCurrentMemberId())\")\n\n권한 분리 구현:\n- canManage(): 카테고리 owner + collaborator 권한 (Todo CRUD 가능)\n- canManageParticipants(): 챌린지 owner + leader 권한 (참여자 관리 가능)\n- isParticipant(): 일반 참여자 권한 (ChallengeTodo 완료만 가능)\n</info added on 2025-07-14T15:41:57.002Z>",
+            "testStrategy": "MockMvc와 @WithMockUser를 사용하여 각 엔드포인트의 권한 검증이 올바르게 동작하는지 통합 테스트"
           },
           {
             "id": 5,
-            "title": "Redis 캐싱 시스템 구축",
-            "description": "분석 결과의 성능 향상을 위한 Redis 캐싱 시스템을 구축하고 캐시 전략을 구현합니다.",
+            "title": "권한 시스템 문서화 및 예외 처리 구현",
+            "description": "전체 권한 시스템의 동작 방식을 문서화하고, 권한 검증 실패 시 적절한 예외 처리를 구현합니다.",
+            "status": "pending",
             "dependencies": [
               4
             ],
-            "details": "1) Redis 설정 및 CacheManager 구성, 2) 분석 결과별 캐시 키 전략 정의 (사용자별, 기간별), 3) @Cacheable 어노테이션을 활용한 자동 캐싱, 4) 할일 완료/수정 시 관련 캐시 무효화(@CacheEvict), 5) 캐시 TTL 설정 (1시간), 6) 캐시 워밍업 전략 구현",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "Analytics API 엔드포인트 구현 및 성능 최적화",
-            "description": "고급 분석 데이터를 제공하는 REST API 엔드포인트를 구현하고 전체적인 성능을 최적화합니다.",
-            "dependencies": [
-              5
-            ],
-            "details": "1) GET /members/{id}/analytics 엔드포인트 구현, 2) 기간별 필터링 파라미터 지원 (startDate, endDate, period), 3) 페이지네이션 지원 및 응답 데이터 최적화, 4) API 응답 시간 모니터링 및 로깅, 5) 권한 검증 및 보안 강화, 6) OpenAPI 문서화 및 응답 예시 추가, 7) 에러 핸들링 및 예외 상황 처리",
-            "status": "pending",
-            "testStrategy": ""
+            "details": "1. 권한 매트릭스 문서 작성:\n   - 각 엔드포인트별 필요 권한 명시\n   - 엔티티별 isOwn 메서드 동작 설명\n   - SpEL 표현식 사용 예제\n2. AccessDeniedException 핸들링:\n   - @ExceptionHandler로 403 Forbidden 응답 처리\n   - 상세한 에러 메시지 제공 (개발 환경)\n3. 권한 검증 실패 로깅 추가\n4. SecurityTestUtils 클래스 작성:\n   - 테스트용 인증 객체 생성 헬퍼\n   - 다양한 권한 시나리오 생성 메서드\n5. README.md에 권한 시스템 사용 가이드 추가",
+            "testStrategy": "전체 권한 시스템의 엔드투엔드 테스트 및 예외 처리 동작 검증"
           }
         ]
       },
       {
-        "id": 10,
-        "title": "API 성능 최적화 및 모니터링",
-        "description": "응답 시간 개선, 데이터베이스 쿼리 최적화, 모니터링 시스템 구축",
-        "details": "1) Spring Boot Actuator로 헬스체크 및 메트릭 엔드포인트, 2) Micrometer + Prometheus 연동으로 메트릭 수집, 3) 권장 인덱스 생성 스크립트 실행, 4) N+1 쿼리 문제 해결 (fetch join, @EntityGraph), 5) Redis 캐싱 레이어 구현 (할일 목록, 통계), 6) Connection Pool 튜닝 (HikariCP), 7) Slow Query 로깅 및 알림",
-        "testStrategy": "1) JMeter로 부하 테스트 (목표: <200ms 평균 응답), 2) 쿼리 실행 계획 분석, 3) 캐시 적중률 측정, 4) 동시 사용자 시뮬레이션, 5) 메모리 누수 및 GC 패턴 분석",
+        "id": 12,
+        "title": "입력값 검증 어노테이션 및 유틸리티 구축",
+        "description": "커스텀 검증 어노테이션과 XSS 방지를 위한 sanitization 유틸리티를 구현합니다.",
+        "details": "1. 커스텀 어노테이션 구현:\n   - @StrongPassword (패스워드 강도 검증)\n   - @SafeHtml (XSS 방지)\n   - @ValidNickname (닉네임 검증)\n   - @ValidHexColor (색상 코드 검증)\n\n2. ValidationUtils 클래스 구현:\n```java\n@Component\npublic class ValidationUtils {\n    private static final PolicyFactory POLICY = Sanitizers.FORMATTING.and(Sanitizers.LINKS);\n    \n    public String sanitizeHtml(String input) {\n        return POLICY.sanitize(input);\n    }\n}\n```\n\n3. OWASP Java HTML Sanitizer 통합",
+        "testStrategy": "1. 각 커스텀 어노테이션별 유효/무효 케이스 테스트\n2. XSS 공격 패턴 필터링 테스트\n3. 경계값 테스트 (최소/최대 길이, 특수문자 등)\n4. ConstraintValidator 구현 테스트",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "에러 처리 체계 구축",
+        "description": "RFC 7807 Problem Details 표준을 준수하는 일관된 에러 처리 체계를 구축합니다.",
+        "details": "1. ProblemDetail 응답 클래스 구현\n2. 도메인별 예외 클래스 정의:\n   - BusinessException (추상 클래스)\n   - MemberNotFoundException\n   - DuplicateEmailException\n   - InvalidPasswordException 등\n\n3. 에러 코드 enum 정의:\n```java\n@Getter\n@AllArgsConstructor\npublic enum ErrorCode {\n    AUTH_001(\"인증 실패\", HttpStatus.UNAUTHORIZED),\n    AUTH_002(\"권한 부족\", HttpStatus.FORBIDDEN),\n    MEMBER_001(\"회원 정보 없음\", HttpStatus.NOT_FOUND);\n    \n    private final String message;\n    private final HttpStatus status;\n}\n```\n\n4. GlobalExceptionHandler 구현 (@RestControllerAdvice)",
+        "testStrategy": "1. 각 예외 타입별 응답 형식 테스트\n2. HTTP 상태 코드 매핑 테스트\n3. 에러 메시지 국제화 테스트\n4. 예외 체인 처리 테스트",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "AuthController 검증 강화",
+        "description": "회원가입/로그인 API의 이메일, 패스워드, 닉네임 검증을 강화합니다.",
+        "details": "1. SignUpRequest DTO 검증 강화:\n```java\npublic class SignUpRequest {\n    @Email(regexp = \"^[A-Za-z0-9+_.-]+@(.+)$\") // RFC 5322\n    private String email;\n    \n    @StrongPassword\n    @Size(min = 8, max = 100)\n    private String password;\n    \n    @ValidNickname\n    @Size(min = 2, max = 20)\n    private String nickname;\n}\n```\n\n2. 패스워드 강도 검증 규칙:\n   - 대소문자, 숫자, 특수문자 포함\n   - 연속된 문자/숫자 3개 이상 금지\n   - 일반적인 패스워드 패턴 차단\n\n3. 닉네임 금지어 필터링 구현",
+        "testStrategy": "1. 유효한 이메일/패스워드/닉네임 조합 테스트\n2. 각 필드별 검증 실패 케이스 테스트\n3. 금지어 필터링 테스트\n4. 통합 테스트 (MockMvc)",
+        "priority": "high",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "파일 업로드 보안 검증",
+        "description": "프로필 이미지 업로드 시 파일 형식, 크기, 파일명 검증을 구현합니다.",
+        "details": "1. FileValidationService 구현:\n```java\n@Service\npublic class FileValidationService {\n    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB\n    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(\"jpg\", \"jpeg\", \"png\", \"gif\");\n    \n    public void validateFile(MultipartFile file) {\n        // Magic number 검증\n        // 파일 크기 검증\n        // 파일명 sanitization\n    }\n}\n```\n\n2. 파일 내용 검증 (Magic Number):\n   - JPEG: FF D8 FF\n   - PNG: 89 50 4E 47\n   - GIF: 47 49 46\n\n3. 파일명 sanitization (특수문자, 경로 탐색 방지)",
+        "testStrategy": "1. 허용된 파일 형식 업로드 테스트\n2. 악의적인 파일 차단 테스트 (위장된 확장자)\n3. 파일 크기 제한 테스트\n4. 파일명 sanitization 테스트",
+        "priority": "high",
+        "dependencies": [
+          11,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "JPA Criteria API 기반 동적 쿼리 구현",
+        "description": "SQL Injection 방지를 위한 안전한 동적 쿼리 시스템을 구현합니다.",
+        "details": "1. BaseSpecification 클래스 구현:\n```java\npublic abstract class BaseSpecification<T> {\n    protected Specification<T> buildSpecification(SearchCriteria criteria) {\n        return (root, query, cb) -> {\n            List<Predicate> predicates = new ArrayList<>();\n            // 안전한 동적 쿼리 구성\n            return cb.and(predicates.toArray(new Predicate[0]));\n        };\n    }\n}\n```\n\n2. 도메인별 Specification 구현:\n   - TodoSpecification\n   - MemberSpecification\n   - CategorySpecification\n\n3. 정렬 필드 화이트리스트 검증:\n```java\nprivate static final Set<String> ALLOWED_SORT_FIELDS = Set.of(\"id\", \"title\", \"createdAt\");\n```",
+        "testStrategy": "1. 다양한 검색 조건 조합 테스트\n2. SQL Injection 시도 차단 테스트\n3. 허용되지 않은 필드 정렬 시도 테스트\n4. 복잡한 쿼리 성능 테스트",
         "priority": "medium",
         "dependencies": [],
         "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "페이지네이션 및 검색 파라미터 검증",
+        "description": "모든 컨트롤러의 페이징, 정렬, 검색 파라미터에 대한 일관된 검증을 구현합니다.",
+        "details": "1. PageableValidator 구현:\n```java\n@Component\npublic class PageableValidator {\n    public void validate(Pageable pageable, Set<String> allowedSortFields) {\n        if (pageable.getPageSize() > 100) {\n            throw new InvalidPaginationException(\"Page size cannot exceed 100\");\n        }\n        // 정렬 필드 검증\n    }\n}\n```\n\n2. SearchRequestDto 기본 클래스:\n```java\n@Getter\n@Setter\npublic abstract class BaseSearchRequest {\n    @Min(0)\n    private int page = 0;\n    \n    @Min(1) @Max(100)\n    private int size = 20;\n    \n    @Pattern(regexp = \"^[a-zA-Z0-9,_]+$\")\n    private String sort;\n}\n```\n\n3. 컨트롤러별 검증 적용",
+        "testStrategy": "1. 페이지 크기 경계값 테스트\n2. 음수 페이지 번호 차단 테스트\n3. 허용되지 않은 정렬 필드 테스트\n4. 대용량 페이지 요청 성능 테스트",
+        "priority": "medium",
+        "dependencies": [
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "비즈니스 로직 검증 레이어 구현",
+        "description": "서비스 레이어의 비즈니스 규칙 검증을 위한 Validator 클래스들을 구현합니다.",
+        "details": "1. Validator 인터페이스 정의:\n```java\npublic interface BusinessValidator<T> {\n    void validateCreate(T entity);\n    void validateUpdate(T entity, T existing);\n    void validateDelete(T entity);\n}\n```\n\n2. 도메인별 Validator 구현:\n   - MemberValidator: 이메일/닉네임 중복 검증\n   - TodoValidator: 우선순위(1-5), 반복 설정 검증\n   - CategoryValidator: 색상 코드, 이름 중복 검증\n   - ChallengeValidator: 기간, 참여자 검증\n\n3. 검증 실패 시 적절한 BusinessException 발생",
+        "testStrategy": "1. 각 도메인별 생성/수정/삭제 검증 테스트\n2. 중복 데이터 검증 테스트\n3. 비즈니스 규칙 위반 케이스 테스트\n4. 트랜잭션 롤백 테스트",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Log4j2 기반 구조화된 로깅 시스템 구축",
+        "description": "감사 로그와 에러 추적을 위한 구조화된 로깅 시스템을 구현합니다.",
+        "details": "1. log4j2.xml 설정:\n```xml\n<Configuration>\n    <Appenders>\n        <Console name=\"Console\" target=\"SYSTEM_OUT\">\n            <JsonLayout compact=\"true\" eventEol=\"true\"/>\n        </Console>\n    </Appenders>\n</Configuration>\n```\n\n2. AuditLogService 구현:\n```java\n@Service\n@Slf4j\npublic class AuditLogService {\n    public void logUserAction(String action, String resource, Long resourceId) {\n        MDC.put(\"userId\", getCurrentUserId());\n        MDC.put(\"action\", action);\n        MDC.put(\"resource\", resource);\n        log.info(\"User action executed\");\n    }\n}\n```\n\n3. 주요 이벤트 로깅:\n   - 로그인/로그아웃\n   - CRUD 작업\n   - 권한 검증 실패\n   - 예외 발생",
+        "testStrategy": "1. 로그 출력 형식 검증\n2. MDC 컨텍스트 전파 테스트\n3. 로그 레벨별 필터링 테스트\n4. 성능 영향 측정",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "통합 테스트 및 문서화",
+        "description": "전체 검증 시스템에 대한 통합 테스트와 API 문서를 작성합니다.",
+        "details": "1. 통합 테스트 시나리오:\n   - 엔드투엔드 시나리오 테스트\n   - 보안 취약점 스캔 (OWASP ZAP)\n   - 부하 테스트 (JMeter)\n\n2. API 문서 업데이트:\n   - OpenAPI 3.0 스펙 업데이트\n   - 에러 코드 목록 문서화\n   - 검증 규칙 명세\n\n3. 개발자 가이드:\n   - 커스텀 검증 어노테이션 사용법\n   - 예외 처리 가이드라인\n   - 보안 체크리스트",
+        "testStrategy": "1. 전체 API 엔드포인트 커버리지 100% 달성\n2. 다양한 에러 시나리오 재현 테스트\n3. 동시성 및 트랜잭션 테스트\n4. 문서 정확성 검증",
+        "priority": "low",
+        "dependencies": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "모든 도메인 엔티티의 member 필드를 owner로 리네이밍",
+        "description": "Todo, Category, Challenge 등 모든 도메인 엔티티의 member 필드명을 owner로 변경하고, 관련된 getter/setter, repository 쿼리, 서비스 로직, 테스트 코드를 모두 수정합니다. 이 작업은 권한 시스템 구현 전에 완료되어야 합니다.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "details": "**중요: 이 리팩토링은 권한 시스템(Task 11) 구현 전에 반드시 완료되어야 합니다.**\n\n1. 엔티티 필드 리네이밍:\n   - Todo.java: @ManyToOne private Member member → Member owner\n   - Category.java: @ManyToOne private Member member → Member owner\n   - Challenge.java: @ManyToOne private Member member → Member owner\n   - ChallengeParticipation.java: 필요시 member → owner\n\n2. Getter/Setter 메서드 변경:\n   ```java\n   // 변경 전\n   public Member getMember() { return member; }\n   public void setMember(Member member) { this.member = member; }\n   \n   // 변경 후\n   public Member getOwner() { return owner; }\n   public void setOwner(Member owner) { this.owner = owner; }\n   ```\n\n3. Repository 쿼리 수정:\n   - JPQL: \"SELECT t FROM Todo t WHERE t.member = :member\" → \"t.owner = :owner\"\n   - @Query 어노테이션 파라미터: @Param(\"member\") → @Param(\"owner\")\n   - 메서드명: findByMember() → findByOwner()\n   - Specification: root.get(\"member\") → root.get(\"owner\")\n\n4. 서비스 레이어 수정:\n   - todo.setMember(currentMember) → todo.setOwner(currentMember)\n   - todo.getMember().getId() → todo.getOwner().getId()\n   - 권한 검증 로직의 member 참조를 owner로 변경\n\n5. DTO 및 Mapper 수정:\n   - ResponseDto의 member 필드 → owner\n   - MapStruct @Mapping 어노테이션 수정\n\n6. 테스트 코드 수정:\n   - 모든 테스트에서 member 관련 assertion을 owner로 변경\n   - Mock 객체 설정 시 member → owner\n   - 테스트 데이터 빌더 패턴의 withMember() → withOwner()\n\n7. 데이터베이스 마이그레이션:\n   - Flyway 스크립트: ALTER TABLE todo RENAME COLUMN member_id TO owner_id;\n   - 모든 테이블에 대해 동일하게 적용\n\n**권한 시스템과의 연관성:**\n- Task 11에서 구현할 isOwn() 메서드가 owner 필드를 참조하므로 이 리팩토링이 선행되어야 함\n- 일관된 네이밍으로 권한 검증 로직의 가독성 향상",
+        "testStrategy": "1. 엔티티 단위 테스트:\n   - 각 엔티티의 owner getter/setter 동작 확인\n   - null owner 처리 테스트\n\n2. Repository 계층 테스트:\n   - findByOwner() 메서드 정상 동작 확인\n   - JPQL 쿼리의 owner 조건 검증\n   - 데이터베이스 실제 쿼리 실행 확인\n\n3. 서비스 계층 통합 테스트:\n   - 소유자 기반 조회 로직 검증\n   - 권한 검증 로직의 owner 체크 확인\n   - 트랜잭션 내 owner 변경 테스트\n\n4. 컨트롤러 통합 테스트:\n   - API 응답의 owner 필드 확인\n   - 소유자 필터링 API 동작 검증\n\n5. 전체 테스트 스위트 실행:\n   - mvn test 실행하여 모든 테스트 통과 확인\n   - 테스트 커버리지 유지 확인\n   - 리네이밍 누락 여부 검색 (grep -r \"member\" 실행)\n\n6. 회귀 테스트:\n   - 리팩토링 후 기존 기능이 정상 동작하는지 확인\n   - 권한 시스템 구현을 위한 기반이 마련되었는지 검증",
         "subtasks": [
           {
             "id": 1,
-            "title": "Spring Boot Actuator 설정 및 헬스체크 구현",
-            "description": "Actuator 의존성 추가, 기본 엔드포인트 활성화, 커스텀 헬스 인디케이터 구현",
+            "title": "도메인 엔티티의 member 필드를 owner로 리네이밍",
+            "description": "Todo, Category, Challenge, ChallengeParticipation 엔티티의 member 필드명을 owner로 변경하고 관련 getter/setter 메서드를 수정합니다.",
             "dependencies": [],
-            "details": "spring-boot-starter-actuator 의존성 추가, application.yml에서 management.endpoints.web.exposure 설정, 데이터베이스와 외부 서비스용 커스텀 HealthIndicator 구현, 보안 설정으로 민감한 정보 보호",
+            "details": "- Todo.java: @ManyToOne private Member member → Member owner\n- Category.java: @ManyToOne private Member member → Member owner\n- Challenge.java: @ManyToOne private Member member → Member owner\n- ChallengeParticipation.java: 필요시 member → owner\n- 각 엔티티의 getMember()/setMember() → getOwner()/setOwner()로 변경",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "엔티티 단위 테스트를 통해 owner getter/setter 동작 확인 및 null owner 처리 테스트"
           },
           {
             "id": 2,
-            "title": "Micrometer + Prometheus 메트릭 수집 시스템 구축",
-            "description": "Prometheus 연동 설정, 커스텀 메트릭 정의, Grafana 대시보드 연동 준비",
+            "title": "Repository 계층의 쿼리 메서드 수정",
+            "description": "모든 Repository 클래스의 JPQL 쿼리, 메서드명, 파라미터명을 member에서 owner로 변경합니다.",
             "dependencies": [
               1
             ],
-            "details": "micrometer-registry-prometheus 의존성 추가, 비즈니스 메트릭 정의 (API 요청 수, 응답 시간, 에러율), @Timed 및 @Counted 어노테이션 적용, Prometheus scrape 엔드포인트 노출",
+            "details": "- JPQL 쿼리: WHERE t.member = :member → WHERE t.owner = :owner\n- @Query 어노테이션 파라미터: @Param(\"member\") → @Param(\"owner\")\n- 메서드명: findByMember() → findByOwner()\n- Specification: root.get(\"member\") → root.get(\"owner\")\n- 모든 Repository 인터페이스 및 구현체 수정",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "findByOwner() 메서드 정상 동작 확인, JPQL 쿼리의 owner 조건 검증, 데이터베이스 실제 쿼리 실행 확인"
           },
           {
             "id": 3,
-            "title": "데이터베이스 인덱스 최적화 및 쿼리 성능 개선",
-            "description": "슬로우 쿼리 분석, 인덱스 생성 스크립트 작성, N+1 쿼리 문제 해결",
-            "dependencies": [],
-            "details": "현재 실행되는 쿼리 분석, 자주 사용되는 검색 조건에 대한 복합 인덱스 생성, @EntityGraph와 fetch join을 활용한 N+1 문제 해결, EXPLAIN ANALYZE로 쿼리 실행 계획 검증",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "Redis 캐싱 레이어 구현",
-            "description": "Redis 설정, 할일 목록과 통계 데이터 캐싱, 캐시 무효화 전략 구현",
-            "dependencies": [
-              3
-            ],
-            "details": "spring-boot-starter-data-redis 설정, @Cacheable과 @CacheEvict 어노테이션 적용, 할일 목록과 사용자 통계에 대한 캐싱 전략 수립, TTL 설정 및 캐시 적중률 모니터링",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "HikariCP 연결 풀 튜닝 및 최적화",
-            "description": "데이터베이스 연결 풀 설정 최적화, 모니터링 메트릭 추가",
-            "dependencies": [],
-            "details": "HikariCP 설정 최적화 (maximumPoolSize, minimumIdle, connectionTimeout), 연결 풀 메트릭 노출, 리크 감지 설정, 데이터베이스 커넥션 라이프사이클 모니터링",
-            "status": "pending",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "구조화된 로깅 시스템 및 슬로우 쿼리 모니터링 구축",
-            "description": "Logback 설정 최적화, 슬로우 쿼리 감지 및 알림 시스템 구현",
+            "title": "서비스 계층의 비즈니스 로직 수정",
+            "description": "모든 서비스 클래스에서 member 관련 로직을 owner로 변경하고 권한 검증 로직을 업데이트합니다.",
             "dependencies": [
               2
             ],
-            "details": "JSON 형태의 구조화된 로깅 설정, JPA 슬로우 쿼리 로깅 활성화, 로그 레벨별 메트릭 수집, 에러 및 경고 로그에 대한 알림 시스템 구축",
+            "details": "- todo.setMember(currentMember) → todo.setOwner(currentMember)\n- todo.getMember().getId() → todo.getOwner().getId()\n- 권한 검증 로직의 member 참조를 owner로 변경\n- 모든 서비스 메서드에서 owner 관련 로직 수정",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "소유자 기반 조회 로직 검증, 권한 검증 로직의 owner 체크 확인, 트랜잭션 내 owner 변경 테스트"
           },
           {
-            "id": 7,
-            "title": "JMeter 부하 테스트 및 성능 검증",
-            "description": "부하 테스트 시나리오 작성, 성능 목표 달성 검증, 최종 성능 리포트 생성",
+            "id": 4,
+            "title": "DTO 및 MapStruct 매핑 수정",
+            "description": "ResponseDto, RequestDto의 member 필드를 owner로 변경하고 MapStruct 매핑 설정을 업데이트합니다.",
             "dependencies": [
-              4,
-              5,
-              6
+              3
             ],
-            "details": "JMeter 테스트 플랜 작성 (동시 사용자 시뮬레이션), 평균 응답 시간 200ms 목표 달성 검증, 메모리 사용량 및 GC 패턴 분석, 성능 개선 전후 비교 리포트 작성",
+            "details": "- ResponseDto의 member 필드 → owner로 변경\n- RequestDto의 member 관련 필드 → owner로 변경\n- MapStruct @Mapping 어노테이션 수정\n- 모든 DTO 변환 로직 업데이트",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "DTO 변환 로직의 정확성 검증, MapStruct 매핑 동작 확인, 직렬화/역직렬화 테스트"
+          },
+          {
+            "id": 5,
+            "title": "테스트 코드 및 데이터베이스 마이그레이션",
+            "description": "모든 테스트 코드의 member 참조를 owner로 변경하고 데이터베이스 컬럼명 변경을 위한 Flyway 마이그레이션 스크립트를 작성합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "- 모든 테스트에서 member 관련 assertion을 owner로 변경\n- Mock 객체 설정 시 member → owner\n- 테스트 데이터 빌더 패턴의 withMember() → withOwner()\n- Flyway 스크립트: ALTER TABLE todo RENAME COLUMN member_id TO owner_id;\n- 모든 테이블에 대해 동일하게 적용",
+            "status": "pending",
+            "testStrategy": "모든 테스트 케이스 실행 및 통과 확인, 데이터베이스 마이그레이션 스크립트 검증, 기존 데이터 무결성 확인"
           }
         ]
+      },
+      {
+        "id": 22,
+        "title": "카테고리 Collaborator 시스템 구현",
+        "description": "CategoryCollaborator 엔티티를 생성하고 카테고리의 협업자 관리 기능을 구현합니다. 협업자는 owner와 동일한 권한을 가지며 Todo 생성/수정/삭제/완료가 가능합니다. Collaborator가 되면 해당 카테고리의 모든 투두가 협업 투두로 표시되어 자신의 투두 목록에 나타납니다.",
+        "status": "pending",
+        "dependencies": [
+          21
+        ],
+        "priority": "medium",
+        "details": "1. CategoryCollaborator 엔티티 생성:\n```java\n@Entity\n@Table(name = \"category_collaborators\")\n@Getter\n@Setter\n@NoArgsConstructor\npublic class CategoryCollaborator extends BaseEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"category_id\", nullable = false)\n    private Category category;\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"member_id\", nullable = false)\n    private Member member;\n    \n    @Column(name = \"invited_at\", nullable = false)\n    private LocalDateTime invitedAt;\n    \n    @Column(name = \"accepted_at\")\n    private LocalDateTime acceptedAt;\n    \n    @Enumerated(EnumType.STRING)\n    @Column(name = \"status\", nullable = false)\n    private CollaboratorStatus status = CollaboratorStatus.PENDING;\n    \n    // 생성자\n    public CategoryCollaborator(Category category, Member member) {\n        this.category = category;\n        this.member = member;\n        this.invitedAt = LocalDateTime.now();\n    }\n}\n\n@Getter\npublic enum CollaboratorStatus {\n    PENDING, ACCEPTED, REJECTED\n}\n```\n\n2. Todo 엔티티 수정 - 협업 투두 구분:\n```java\n@Entity\n@Table(name = \"todos\")\npublic class Todo extends BaseEntity {\n    // 기존 필드들...\n    \n    @Column(name = \"is_collaborative\")\n    private Boolean isCollaborative = false;\n    \n    // 투두 생성 시 협업 여부 자동 설정\n    @PrePersist\n    @PreUpdate\n    public void updateCollaborativeStatus() {\n        // 카테고리에 협업자가 있으면 협업 투두로 설정\n        if (this.category != null && !this.category.getCollaborators().isEmpty()) {\n            this.isCollaborative = true;\n        }\n    }\n    \n    // 협업 투두인지 확인\n    public boolean isCollaborativeTodo() {\n        return Boolean.TRUE.equals(isCollaborative);\n    }\n    \n    // 특정 사용자가 접근 가능한지 확인\n    public boolean isAccessibleBy(Member member) {\n        if (member == null) return false;\n        return this.category.canManage(member);\n    }\n}\n```\n\n3. Category 엔티티 수정:\n```java\n@Entity\npublic class Category extends BaseEntity {\n    // 기존 필드들...\n    \n    @OneToMany(mappedBy = \"category\", cascade = CascadeType.ALL, orphanRemoval = true)\n    private Set<CategoryCollaborator> collaborators = new HashSet<>();\n    \n    // 협업자 확인 메서드\n    public boolean isCollaborator(Member member) {\n        if (member == null) return false;\n        if (this.owner.equals(member)) return true;\n        \n        return collaborators.stream()\n            .anyMatch(c -> c.getMember().equals(member) \n                && c.getStatus() == CollaboratorStatus.ACCEPTED);\n    }\n    \n    // 관리 권한 확인 메서드\n    public boolean canManage(Member member) {\n        return isCollaborator(member);\n    }\n    \n    // 협업자 추가\n    public void addCollaborator(Member member) {\n        if (this.owner.equals(member)) {\n            throw new IllegalArgumentException(\"Owner cannot be a collaborator\");\n        }\n        \n        CategoryCollaborator collaborator = new CategoryCollaborator(this, member);\n        this.collaborators.add(collaborator);\n        \n        // 기존 투두들을 협업 투두로 업데이트\n        this.todos.forEach(todo -> todo.setIsCollaborative(true));\n    }\n    \n    // 협업자 제거\n    public void removeCollaborator(Member member) {\n        collaborators.removeIf(c -> c.getMember().equals(member));\n        \n        // 협업자가 없으면 투두들을 비협업으로 변경\n        if (collaborators.isEmpty()) {\n            this.todos.forEach(todo -> todo.setIsCollaborative(false));\n        }\n    }\n    \n    // 수락된 협업자 목록 조회\n    public Set<Member> getAcceptedCollaborators() {\n        return collaborators.stream()\n            .filter(c -> c.getStatus() == CollaboratorStatus.ACCEPTED)\n            .map(CategoryCollaborator::getMember)\n            .collect(Collectors.toSet());\n    }\n}\n```\n\n4. CategoryCollaboratorRepository 구현:\n```java\n@Repository\npublic interface CategoryCollaboratorRepository extends JpaRepository<CategoryCollaborator, Long> {\n    Optional<CategoryCollaborator> findByCategoryAndMember(Category category, Member member);\n    \n    @Query(\"SELECT cc FROM CategoryCollaborator cc WHERE cc.member = :member AND cc.status = :status\")\n    List<CategoryCollaborator> findByMemberAndStatus(@Param(\"member\") Member member, @Param(\"status\") CollaboratorStatus status);\n    \n    @Query(\"SELECT COUNT(cc) FROM CategoryCollaborator cc WHERE cc.category = :category AND cc.status = 'ACCEPTED'\")\n    long countAcceptedCollaboratorsByCategory(@Param(\"category\") Category category);\n    \n    boolean existsByCategoryAndMemberAndStatus(Category category, Member member, CollaboratorStatus status);\n    \n    // 협업자인 카테고리의 ID 목록 조회\n    @Query(\"SELECT cc.category.id FROM CategoryCollaborator cc WHERE cc.member = :member AND cc.status = 'ACCEPTED'\")\n    List<Long> findCollaborativeCategoryIdsByMember(@Param(\"member\") Member member);\n}\n```\n\n5. TodoRepository 수정 - 협업 투두 포함 조회:\n```java\n@Repository\npublic interface TodoRepository extends JpaRepository<Todo, Long> {\n    // 내 투두 조회 (소유한 카테고리 + 협업하는 카테고리의 투두 모두 포함)\n    @Query(\"SELECT DISTINCT t FROM Todo t \" +\n           \"LEFT JOIN t.category c \" +\n           \"LEFT JOIN c.collaborators cc \" +\n           \"WHERE (c.owner = :member \" +\n           \"OR (cc.member = :member AND cc.status = 'ACCEPTED')) \" +\n           \"AND (:includeCompleted = true OR t.isCompleted = false) \" +\n           \"ORDER BY t.priority DESC, t.deadline ASC\")\n    List<Todo> findMyTodosIncludingCollaborative(\n        @Param(\"member\") Member member, \n        @Param(\"includeCompleted\") boolean includeCompleted\n    );\n    \n    // 협업 투두만 조회\n    @Query(\"SELECT t FROM Todo t \" +\n           \"JOIN t.category c \" +\n           \"JOIN c.collaborators cc \" +\n           \"WHERE cc.member = :member \" +\n           \"AND cc.status = 'ACCEPTED' \" +\n           \"AND t.isCollaborative = true \" +\n           \"ORDER BY t.priority DESC\")\n    List<Todo> findCollaborativeTodos(@Param(\"member\") Member member);\n}\n```\n\n6. CategoryService 수정:\n```java\n@Service\n@Transactional\npublic class CategoryService {\n    // 기존 메서드들...\n    \n    public void inviteCollaborator(Long categoryId, Long memberId, Member currentUser) {\n        Category category = categoryRepository.findById(categoryId)\n            .orElseThrow(() -> new EntityNotFoundException(\"Category not found\"));\n            \n        // owner만 협업자 초대 가능\n        if (!category.getOwner().equals(currentUser)) {\n            throw new UnauthorizedException(\"Only owner can invite collaborators\");\n        }\n        \n        Member invitee = memberRepository.findById(memberId)\n            .orElseThrow(() -> new EntityNotFoundException(\"Member not found\"));\n            \n        category.addCollaborator(invitee);\n        categoryRepository.save(category);\n    }\n    \n    public void acceptInvitation(Long categoryId, Member currentUser) {\n        CategoryCollaborator collaborator = collaboratorRepository\n            .findByCategoryAndMember(\n                categoryRepository.findById(categoryId).orElseThrow(),\n                currentUser\n            )\n            .orElseThrow(() -> new EntityNotFoundException(\"Invitation not found\"));\n            \n        collaborator.setStatus(CollaboratorStatus.ACCEPTED);\n        collaborator.setAcceptedAt(LocalDateTime.now());\n        collaboratorRepository.save(collaborator);\n    }\n    \n    // 협업 중인 카테고리 목록 조회\n    public List<CategoryDto> getCollaborativeCategories(Member member) {\n        List<Long> categoryIds = collaboratorRepository.findCollaborativeCategoryIdsByMember(member);\n        return categoryRepository.findAllById(categoryIds).stream()\n            .map(this::toDto)\n            .collect(Collectors.toList());\n    }\n}\n```\n\n7. TodoService 수정:\n```java\n@Service\npublic class TodoService {\n    // 투두 조회 - 협업 투두 포함\n    public List<TodoDto> getMyTodos(Member member, boolean includeCompleted) {\n        return todoRepository.findMyTodosIncludingCollaborative(member, includeCompleted)\n            .stream()\n            .map(todo -> {\n                TodoDto dto = toDto(todo);\n                // 협업 투두 표시\n                dto.setIsCollaborative(todo.isCollaborativeTodo());\n                // 협업 투두인 경우 카테고리 owner 정보 추가\n                if (todo.isCollaborativeTodo() && !todo.getCategory().getOwner().equals(member)) {\n                    dto.setCategoryOwnerName(todo.getCategory().getOwner().getNickname());\n                }\n                return dto;\n            })\n            .collect(Collectors.toList());\n    }\n    \n    public Todo createTodo(TodoCreateDto dto, Member member) {\n        Category category = categoryRepository.findById(dto.getCategoryId())\n            .orElseThrow(() -> new EntityNotFoundException(\"Category not found\"));\n            \n        // owner 또는 협업자만 Todo 생성 가능\n        if (!category.canManage(member)) {\n            throw new UnauthorizedException(\"You don't have permission to create todos in this category\");\n        }\n        \n        Todo todo = new Todo();\n        // ... 투두 생성 로직\n        todo.setIsCollaborative(!category.getCollaborators().isEmpty());\n        \n        return todoRepository.save(todo);\n    }\n    \n    public Todo updateTodo(Long todoId, TodoUpdateDto dto, Member member) {\n        Todo todo = todoRepository.findById(todoId)\n            .orElseThrow(() -> new EntityNotFoundException(\"Todo not found\"));\n            \n        // owner 또는 협업자만 수정 가능\n        if (!todo.getCategory().canManage(member)) {\n            throw new UnauthorizedException(\"You don't have permission to update this todo\");\n        }\n        \n        // Todo 수정 로직...\n    }\n}\n```\n\n8. TodoDto 수정:\n```java\n@Data\npublic class TodoDto {\n    // 기존 필드들...\n    \n    private Boolean isCollaborative;\n    private String categoryOwnerName; // 협업 투두인 경우 카테고리 소유자 이름\n    private List<String> collaboratorNames; // 협업자 목록\n}\n```\n\n9. 컨트롤러 엔드포인트 추가:\n```java\n@RestController\n@RequestMapping(\"/api/categories\")\npublic class CategoryController {\n    // 협업자 초대\n    @PostMapping(\"/{categoryId}/collaborators\")\n    public ResponseEntity<Void> inviteCollaborator(\n            @PathVariable Long categoryId,\n            @RequestBody CollaboratorInviteDto dto,\n            @AuthenticationPrincipal Member member) {\n        categoryService.inviteCollaborator(categoryId, dto.getMemberId(), member);\n        return ResponseEntity.ok().build();\n    }\n    \n    // 초대 수락\n    @PostMapping(\"/{categoryId}/collaborators/accept\")\n    public ResponseEntity<Void> acceptInvitation(\n            @PathVariable Long categoryId,\n            @AuthenticationPrincipal Member member) {\n        categoryService.acceptInvitation(categoryId, member);\n        return ResponseEntity.ok().build();\n    }\n    \n    // 협업 중인 카테고리 목록 조회\n    @GetMapping(\"/collaborative\")\n    public ResponseEntity<List<CategoryDto>> getCollaborativeCategories(\n            @AuthenticationPrincipal Member member) {\n        return ResponseEntity.ok(categoryService.getCollaborativeCategories(member));\n    }\n}\n\n@RestController\n@RequestMapping(\"/api/todos\")\npublic class TodoController {\n    // 협업 투두만 조회\n    @GetMapping(\"/collaborative\")\n    public ResponseEntity<List<TodoDto>> getCollaborativeTodos(\n            @AuthenticationPrincipal Member member) {\n        return ResponseEntity.ok(todoService.getCollaborativeTodos(member));\n    }\n}\n```",
+        "testStrategy": "1. 엔티티 단위 테스트:\n   - CategoryCollaborator 엔티티 생성 및 상태 변경 테스트\n   - Category.isCollaborator() 메서드 테스트 (owner, 협업자, 비협업자 케이스)\n   - Category.canManage() 메서드 테스트\n   - 협업자 추가/제거 메서드 테스트\n   - Todo.isCollaborativeTodo() 메서드 테스트\n   - Todo.updateCollaborativeStatus() 메서드 테스트\n   - Todo.isAccessibleBy() 메서드 테스트\n\n2. Repository 계층 테스트:\n   - 카테고리별 협업자 조회 테스트\n   - 멤버별 초대 목록 조회 테스트\n   - 협업자 수 카운트 쿼리 테스트\n   - 중복 협업자 방지 테스트\n   - findMyTodosIncludingCollaborative() 쿼리 테스트\n   - findCollaborativeTodos() 쿼리 테스트\n   - 협업 카테고리 ID 목록 조회 테스트\n\n3. 서비스 계층 통합 테스트:\n   - owner만 협업자 초대 가능 검증\n   - 협업자의 Todo CRUD 권한 검증\n   - 초대 수락/거절 프로세스 테스트\n   - owner는 협업자로 추가 불가 검증\n   - 협업자 추가 시 기존 투두 isCollaborative 플래그 업데이트 테스트\n   - 협업자 제거 시 투두 플래그 변경 테스트\n   - 협업 투두 조회 시 owner/collaborator 구분 테스트\n\n4. 컨트롤러 통합 테스트:\n   - 협업자 초대 API 테스트\n   - 초대 수락 API 테스트\n   - 비인가 사용자 접근 차단 테스트\n   - 협업자의 Todo 관련 API 접근 권한 테스트\n   - 협업 카테고리 목록 조회 API 테스트\n   - 협업 투두만 조회 API 테스트\n\n5. 시나리오 테스트:\n   - owner가 협업자 초대 → 협업자 수락 → 협업자가 Todo 생성/수정/삭제\n   - 협업자 제거 후 권한 상실 확인\n   - 여러 협업자가 동시에 같은 카테고리 수정 시 동시성 테스트\n   - 협업 투두가 각 협업자의 투두 목록에 표시되는지 확인\n   - 협업 투두 UI 구분 표시 테스트 (isCollaborative 플래그 확인)\n   - 협업자가 투두 생성 시 자동으로 isCollaborative=true 설정 확인",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "CategoryCollaborator 엔티티 및 Repository 구현",
+            "description": "CategoryCollaborator 엔티티를 생성하고 협업자 상태 관리를 위한 enum과 Repository를 구현합니다",
+            "dependencies": [],
+            "details": "CategoryCollaborator 엔티티 생성 (id, category, member, invitedAt, acceptedAt, status 필드 포함), CollaboratorStatus enum 생성 (PENDING, ACCEPTED, REJECTED), CategoryCollaboratorRepository 인터페이스 구현 (findByCategoryAndMember, findByMemberAndStatus, countAcceptedCollaboratorsByCategory, existsByCategoryAndMemberAndStatus, findCollaborativeCategoryIdsByMember 메소드 포함), BaseEntity 상속으로 생성/수정 시간 자동 관리",
+            "status": "pending",
+            "testStrategy": "엔티티 생성 테스트, Repository 메소드별 쿼리 동작 검증, 협업자 상태 변경 시나리오 테스트"
+          },
+          {
+            "id": 2,
+            "title": "Category 엔티티에 협업자 관리 기능 추가",
+            "description": "Category 엔티티에 협업자 Set과 협업자 관리 메소드들을 추가하여 협업자 초대/제거 및 권한 확인 기능을 구현합니다",
+            "dependencies": [],
+            "details": "Category 엔티티에 Set<CategoryCollaborator> collaborators 필드 추가 (@OneToMany 매핑), isCollaborator(Member) 메소드 구현 (owner와 수락된 협업자 확인), canManage(Member) 메소드 구현, addCollaborator(Member) 메소드 구현 (owner 체크, 협업자 추가, 기존 투두 협업 설정), removeCollaborator(Member) 메소드 구현 (협업자 제거, 투두 협업 해제), getAcceptedCollaborators() 메소드 구현",
+            "status": "pending",
+            "testStrategy": "협업자 추가/제거 테스트, owner를 협업자로 추가 시 예외 발생 테스트, 권한 확인 메소드 테스트"
+          },
+          {
+            "id": 3,
+            "title": "Todo 엔티티에 협업 투두 지원 기능 추가",
+            "description": "Todo 엔티티에 협업 투두 구분을 위한 필드와 메소드를 추가하고, 협업 상태 자동 업데이트 로직을 구현합니다",
+            "dependencies": [],
+            "details": "Todo 엔티티에 Boolean isCollaborative 필드 추가 (기본값 false), updateCollaborativeStatus() 메소드 구현 (@PrePersist, @PreUpdate로 카테고리 협업자 존재 시 자동 설정), isCollaborativeTodo() 메소드 구현, isAccessibleBy(Member) 메소드 구현 (category.canManage() 활용), setIsCollaborative() setter 메소드 추가\n<info added on 2025-07-14T15:50:00.080Z>\n협업자 관리 API 추가: CategoryCollaboratorController 생성하여 협업자 초대(@PostMapping(\"/api/categories/{categoryId}/collaborators\"), 협업자 강제 퇴장(@DeleteMapping(\"/api/categories/{categoryId}/collaborators/{collaboratorId}\"), 협업자 자진 퇴장(@DeleteMapping(\"/api/categories/{categoryId}/collaborators/leave\"), 초대 거절(@DeleteMapping(\"/api/categories/{categoryId}/invitations/reject\") 엔드포인트 구현. 각 API는 권한 검증 후 CategoryCollaboratorService를 통해 처리. 협업자 퇴장 시 CategoryCollaborator 엔티티를 soft delete(deletedAt 설정)하고, 해당 협업자의 투두 목록에서 협업 투두가 즉시 사라지도록 TodoRepository의 쿼리 조건에 deletedAt IS NULL 추가. 협업 기록 보존을 위해 물리적 삭제는 하지 않음.\n</info added on 2025-07-14T15:50:00.080Z>",
+            "status": "pending",
+            "testStrategy": "협업 상태 자동 업데이트 테스트, 접근 권한 확인 테스트, null 멤버 처리 테스트"
+          },
+          {
+            "id": 4,
+            "title": "TodoRepository 수정 및 협업 투두 조회 쿼리 구현",
+            "description": "TodoRepository에 협업 투두를 포함한 조회 쿼리와 협업 투두만 조회하는 쿼리를 추가합니다",
+            "dependencies": [],
+            "details": "findMyTodosIncludingCollaborative() 메소드 구현 (소유 카테고리 + 협업 카테고리의 투두 조회, LEFT JOIN으로 카테고리와 협업자 연결, includeCompleted 파라미터로 완료 투두 포함 여부 제어), findCollaborativeTodos() 메소드 구현 (협업 투두만 조회, ACCEPTED 상태 협업자 필터링, isCollaborative=true 조건 추가)",
+            "status": "pending",
+            "testStrategy": "소유자 투두만 있는 경우 테스트, 협업 투두만 있는 경우 테스트, 혼합된 경우 테스트, 완료 투두 포함/제외 테스트"
+          },
+          {
+            "id": 5,
+            "title": "Service 계층 구현 및 Controller 엔드포인트 추가",
+            "description": "CategoryService와 TodoService에 협업자 관리 메소드를 추가하고, 관련 Controller 엔드포인트를 구현합니다",
+            "dependencies": [],
+            "details": "CategoryService: inviteCollaborator() 메소드 구현 (owner 권한 검증, 협업자 추가), acceptInvitation() 메소드 구현 (초대 수락 처리), getCollaborativeCategories() 메소드 구현; TodoService: getMyTodos() 수정 (협업 투두 포함, isCollaborative 플래그 설정, 협업 카테고리 owner 정보 추가), createTodo()/updateTodo() 수정 (canManage() 권한 검증); Controller: POST /api/categories/{id}/collaborators (초대), POST /api/categories/{id}/collaborators/accept (수락), GET /api/categories/collaborative (협업 카테고리 목록), GET /api/todos/collaborative (협업 투두 조회)",
+            "status": "pending",
+            "testStrategy": "권한 검증 테스트, 협업자 초대/수락 시나리오 테스트, 협업 투두 CRUD 권한 테스트, API 통합 테스트"
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "title": "챌린지 Leader(그룹장) 시스템 구현",
+        "description": "ChallengeLeader 엔티티를 생성하고 챌린지 생성자와 Leader의 참여자 초대/추방 권한을 구현합니다. 일반 Participant는 ChallengeTodo 완료만 가능하도록 권한을 제한합니다.",
+        "details": "1. ChallengeLeader 엔티티 생성:\n```java\n@Entity\n@Table(name = \"challenge_leaders\")\n@Getter\n@Setter\n@NoArgsConstructor\npublic class ChallengeLeader extends BaseEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"challenge_id\", nullable = false)\n    private Challenge challenge;\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"member_id\", nullable = false)\n    private Member member;\n    \n    @Column(nullable = false)\n    private LocalDateTime appointedAt;\n    \n    @Column\n    private String appointedBy; // 'CREATOR' or Leader의 ID\n    \n    @Builder\n    public ChallengeLeader(Challenge challenge, Member member, String appointedBy) {\n        this.challenge = challenge;\n        this.member = member;\n        this.appointedBy = appointedBy;\n        this.appointedAt = LocalDateTime.now();\n    }\n}\n```\n\n2. Challenge 엔티티 수정:\n```java\n@Entity\npublic class Challenge extends BaseEntity {\n    // 기존 필드들...\n    \n    @OneToMany(mappedBy = \"challenge\", cascade = CascadeType.ALL)\n    private List<ChallengeLeader> leaders = new ArrayList<>();\n    \n    // 권한 확인 메서드\n    public boolean isLeader(Member member) {\n        if (this.owner.equals(member)) {\n            return true;\n        }\n        return leaders.stream()\n            .anyMatch(leader -> leader.getMember().equals(member));\n    }\n    \n    public boolean canManageParticipants(Member member) {\n        return isLeader(member);\n    }\n    \n    // Leader 관리 메서드\n    public void addLeader(Member member, String appointedBy) {\n        if (isLeader(member)) {\n            throw new BusinessException(ErrorCode.ALREADY_LEADER);\n        }\n        ChallengeLeader leader = ChallengeLeader.builder()\n            .challenge(this)\n            .member(member)\n            .appointedBy(appointedBy)\n            .build();\n        this.leaders.add(leader);\n    }\n    \n    public void removeLeader(Member member) {\n        leaders.removeIf(leader -> leader.getMember().equals(member));\n    }\n}\n```\n\n3. ChallengeLeaderRepository 구현:\n```java\n@Repository\npublic interface ChallengeLeaderRepository extends JpaRepository<ChallengeLeader, Long> {\n    List<ChallengeLeader> findByChallengeId(Long challengeId);\n    Optional<ChallengeLeader> findByChallengeIdAndMemberId(Long challengeId, Long memberId);\n    boolean existsByChallengeIdAndMemberId(Long challengeId, Long memberId);\n    int countByChallengeId(Long challengeId);\n}\n```\n\n4. ChallengeService 권한 체크 로직 추가:\n```java\n@Service\n@RequiredArgsConstructor\npublic class ChallengeService {\n    private final ChallengeRepository challengeRepository;\n    private final ChallengeLeaderRepository leaderRepository;\n    \n    @Transactional\n    public void inviteParticipant(Long challengeId, Long memberId, Member requester) {\n        Challenge challenge = challengeRepository.findById(challengeId)\n            .orElseThrow(() -> new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND));\n            \n        if (!challenge.canManageParticipants(requester)) {\n            throw new BusinessException(ErrorCode.NO_PERMISSION_MANAGE_PARTICIPANTS);\n        }\n        \n        // 참여자 초대 로직...\n    }\n    \n    @Transactional\n    public void removeParticipant(Long challengeId, Long participantId, Member requester) {\n        Challenge challenge = challengeRepository.findById(challengeId)\n            .orElseThrow(() -> new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND));\n            \n        if (!challenge.canManageParticipants(requester)) {\n            throw new BusinessException(ErrorCode.NO_PERMISSION_MANAGE_PARTICIPANTS);\n        }\n        \n        // 참여자 추방 로직...\n    }\n    \n    @Transactional\n    public void appointLeader(Long challengeId, Long memberId, Member requester) {\n        Challenge challenge = challengeRepository.findById(challengeId)\n            .orElseThrow(() -> new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND));\n            \n        // Owner만 Leader 임명 가능\n        if (!challenge.getOwner().equals(requester)) {\n            throw new BusinessException(ErrorCode.ONLY_OWNER_CAN_APPOINT_LEADER);\n        }\n        \n        Member newLeader = memberRepository.findById(memberId)\n            .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));\n            \n        challenge.addLeader(newLeader, requester.getId().toString());\n    }\n}\n```\n\n5. ChallengeTodoService 권한 체크:\n```java\n@Service\npublic class ChallengeTodoService {\n    @Transactional\n    public void completeTodo(Long todoId, Member member) {\n        ChallengeTodo todo = todoRepository.findById(todoId)\n            .orElseThrow(() -> new BusinessException(ErrorCode.TODO_NOT_FOUND));\n            \n        Challenge challenge = todo.getChallenge();\n        \n        // 참여자인지 확인 (Leader도 참여자에 포함)\n        if (!participationRepository.existsByChallengeIdAndMemberId(challenge.getId(), member.getId())) {\n            throw new BusinessException(ErrorCode.NOT_CHALLENGE_PARTICIPANT);\n        }\n        \n        // Todo 완료 처리...\n    }\n}\n```\n\n6. 데이터베이스 마이그레이션:\n```sql\nCREATE TABLE challenge_leaders (\n    id BIGINT PRIMARY KEY AUTO_INCREMENT,\n    challenge_id BIGINT NOT NULL,\n    member_id BIGINT NOT NULL,\n    appointed_at TIMESTAMP NOT NULL,\n    appointed_by VARCHAR(50),\n    created_at TIMESTAMP NOT NULL,\n    updated_at TIMESTAMP NOT NULL,\n    FOREIGN KEY (challenge_id) REFERENCES challenges(id),\n    FOREIGN KEY (member_id) REFERENCES members(id),\n    UNIQUE KEY uk_challenge_member (challenge_id, member_id)\n);\n```",
+        "testStrategy": "1. 엔티티 단위 테스트:\n   - ChallengeLeader 엔티티 생성 및 필드 검증\n   - Challenge.isLeader() 메서드 테스트 (owner, leader, 일반 참여자 케이스)\n   - Challenge.canManageParticipants() 메서드 테스트\n   - Leader 추가/제거 메서드 테스트\n   - 중복 Leader 추가 시 예외 발생 테스트\n\n2. Repository 계층 테스트:\n   - 챌린지별 Leader 목록 조회 테스트\n   - 특정 멤버의 Leader 여부 확인 테스트\n   - Leader 수 카운트 쿼리 테스트\n\n3. 서비스 계층 통합 테스트:\n   - Owner의 참여자 초대/추방 권한 테스트\n   - Leader의 참여자 초대/추방 권한 테스트\n   - 일반 참여자의 권한 제한 테스트 (초대/추방 불가)\n   - Owner만 Leader 임명 가능 테스트\n   - 일반 참여자의 ChallengeTodo 완료 가능 테스트\n\n4. 컨트롤러 통합 테스트:\n   - API 엔드포인트별 권한 검증 테스트\n   - 403 Forbidden 응답 검증\n   - Leader 임명 API 테스트\n\n5. 시나리오 테스트:\n   - Owner가 챌린지 생성 → Leader 임명 → Leader가 참여자 초대 → 일반 참여자가 Todo 완료\n   - Leader 권한 박탈 후 참여자 관리 불가 확인\n   - 다중 Leader 시나리오 테스트",
+        "status": "pending",
+        "dependencies": [
+          21
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "투두 조회 시스템 개선 - 협업 투두와 챌린지 투두 구분",
+        "description": "Todo 엔티티에 collaborativeCategory 필드를 추가하여 협업 카테고리를 표시하고, TodoService에서 내 투두 조회 시 소유자와 협업자 투두를 모두 포함하도록 개선합니다. ChallengeTodo는 별도 API로 분리합니다.",
+        "details": "1. Todo 엔티티 수정:\n```java\n@Entity\n@Table(name = \"todos\")\npublic class Todo extends BaseEntity {\n    // 기존 필드들...\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"collaborative_category_id\")\n    private Category collaborativeCategory;\n    \n    @Column(name = \"is_collaborative\")\n    private Boolean isCollaborative = false;\n    \n    // 협업 투두인지 확인\n    public boolean isCollaborativeTodo() {\n        return collaborativeCategory != null && isCollaborative;\n    }\n    \n    // 소유자 확인 (owner 또는 협업자)\n    public boolean isAccessibleBy(Member member) {\n        if (this.owner.equals(member)) {\n            return true;\n        }\n        if (isCollaborativeTodo() && collaborativeCategory.isCollaborator(member)) {\n            return true;\n        }\n        return false;\n    }\n}\n```\n\n2. TodoRepository 쿼리 수정:\n```java\n@Repository\npublic interface TodoRepository extends JpaRepository<Todo, Long> {\n    // 내 투두 조회 (소유자 + 협업자)\n    @Query(\"SELECT DISTINCT t FROM Todo t \" +\n           \"LEFT JOIN t.collaborativeCategory cc \" +\n           \"LEFT JOIN cc.collaborators c \" +\n           \"WHERE (t.owner = :member OR \" +\n           \"(t.isCollaborative = true AND c.member = :member)) \" +\n           \"AND t.deletedAt IS NULL \" +\n           \"ORDER BY t.createdAt DESC\")\n    Page<Todo> findMyTodos(@Param(\"member\") Member member, Pageable pageable);\n    \n    // 특정 카테고리의 투두 조회\n    @Query(\"SELECT t FROM Todo t \" +\n           \"WHERE t.category = :category \" +\n           \"AND t.deletedAt IS NULL \" +\n           \"ORDER BY t.priority DESC, t.createdAt DESC\")\n    List<Todo> findByCategoryOrderByPriority(@Param(\"category\") Category category);\n    \n    // 협업 카테고리의 투두 조회\n    @Query(\"SELECT t FROM Todo t \" +\n           \"WHERE t.collaborativeCategory = :category \" +\n           \"AND t.isCollaborative = true \" +\n           \"AND t.deletedAt IS NULL \" +\n           \"ORDER BY t.priority DESC, t.createdAt DESC\")\n    List<Todo> findByCollaborativeCategory(@Param(\"category\") Category category);\n}\n```\n\n3. TodoService 수정:\n```java\n@Service\n@Transactional\n@RequiredArgsConstructor\npublic class TodoService {\n    private final TodoRepository todoRepository;\n    private final CategoryRepository categoryRepository;\n    private final ChallengeRepository challengeRepository;\n    \n    // 내 투두 조회 (협업 투두 포함)\n    public Page<TodoResponseDto> getMyTodos(Member member, Pageable pageable) {\n        Page<Todo> todos = todoRepository.findMyTodos(member, pageable);\n        return todos.map(todo -> TodoResponseDto.of(todo, \n            todo.isCollaborativeTodo() ? \"COLLABORATIVE\" : \"PERSONAL\"));\n    }\n    \n    // 투두 생성 (협업 카테고리 지원)\n    public TodoResponseDto createTodo(Member member, TodoCreateDto dto) {\n        Todo todo = new Todo();\n        todo.setOwner(member);\n        todo.setTitle(dto.getTitle());\n        todo.setDescription(dto.getDescription());\n        \n        if (dto.getCategoryId() != null) {\n            Category category = categoryRepository.findById(dto.getCategoryId())\n                .orElseThrow(() -> new CategoryNotFoundException(dto.getCategoryId()));\n            \n            // 협업 카테고리인 경우\n            if (dto.isCollaborative() && category.isCollaborator(member)) {\n                todo.setCollaborativeCategory(category);\n                todo.setIsCollaborative(true);\n            } else if (category.getOwner().equals(member)) {\n                todo.setCategory(category);\n            } else {\n                throw new UnauthorizedException(\"카테고리에 대한 권한이 없습니다.\");\n            }\n        }\n        \n        return TodoResponseDto.of(todoRepository.save(todo));\n    }\n    \n    // 투두 수정 권한 검증\n    public void updateTodo(Member member, Long todoId, TodoUpdateDto dto) {\n        Todo todo = todoRepository.findById(todoId)\n            .orElseThrow(() -> new TodoNotFoundException(todoId));\n        \n        if (!todo.isAccessibleBy(member)) {\n            throw new UnauthorizedException(\"투두 수정 권한이 없습니다.\");\n        }\n        \n        // 투두 업데이트 로직...\n    }\n}\n```\n\n4. ChallengeTodoService 분리:\n```java\n@Service\n@Transactional\n@RequiredArgsConstructor\npublic class ChallengeTodoService {\n    private final ChallengeTodoRepository challengeTodoRepository;\n    private final ChallengeRepository challengeRepository;\n    \n    // 챌린지 투두 조회 (별도 API)\n    public Page<ChallengeTodoResponseDto> getMyChallengeTodos(Member member, Pageable pageable) {\n        return challengeTodoRepository.findByParticipantMember(member, pageable)\n            .map(ChallengeTodoResponseDto::of);\n    }\n    \n    // 특정 챌린지의 투두 조회\n    public List<ChallengeTodoResponseDto> getChallengeTodos(Member member, Long challengeId) {\n        Challenge challenge = challengeRepository.findById(challengeId)\n            .orElseThrow(() -> new ChallengeNotFoundException(challengeId));\n        \n        if (!challenge.isParticipant(member)) {\n            throw new UnauthorizedException(\"챌린지 참여자가 아닙니다.\");\n        }\n        \n        return challengeTodoRepository.findByChallengeOrderByCreatedAt(challenge)\n            .stream()\n            .map(ChallengeTodoResponseDto::of)\n            .collect(Collectors.toList());\n    }\n}\n```\n\n5. Controller 엔드포인트 분리:\n```java\n@RestController\n@RequestMapping(\"/api/todos\")\n@RequiredArgsConstructor\npublic class TodoController {\n    private final TodoService todoService;\n    \n    @GetMapping(\"/my\")\n    public ResponseEntity<Page<TodoResponseDto>> getMyTodos(\n            @AuthenticationPrincipal Member member,\n            Pageable pageable) {\n        return ResponseEntity.ok(todoService.getMyTodos(member, pageable));\n    }\n}\n\n@RestController\n@RequestMapping(\"/api/challenge-todos\")\n@RequiredArgsConstructor\npublic class ChallengeTodoController {\n    private final ChallengeTodoService challengeTodoService;\n    \n    @GetMapping(\"/my\")\n    public ResponseEntity<Page<ChallengeTodoResponseDto>> getMyChallengeTodos(\n            @AuthenticationPrincipal Member member,\n            Pageable pageable) {\n        return ResponseEntity.ok(challengeTodoService.getMyChallengeTodos(member, pageable));\n    }\n}\n```\n\n6. DTO 수정:\n```java\n@Getter\n@Builder\npublic class TodoResponseDto {\n    private Long id;\n    private String title;\n    private String description;\n    private String status;\n    private String priority;\n    private LocalDateTime dueDate;\n    private String todoType; // PERSONAL, COLLABORATIVE\n    private Long categoryId;\n    private String categoryName;\n    private Long collaborativeCategoryId;\n    private String collaborativeCategoryName;\n    private Long ownerId;\n    private String ownerName;\n    \n    public static TodoResponseDto of(Todo todo, String todoType) {\n        return TodoResponseDto.builder()\n            .id(todo.getId())\n            .title(todo.getTitle())\n            .todoType(todoType)\n            .categoryId(todo.getCategory() != null ? todo.getCategory().getId() : null)\n            .collaborativeCategoryId(todo.getCollaborativeCategory() != null ? \n                todo.getCollaborativeCategory().getId() : null)\n            // ... 나머지 필드 매핑\n            .build();\n    }\n}\n```",
+        "testStrategy": "1. 엔티티 단위 테스트:\n   - Todo.isCollaborativeTodo() 메서드 테스트\n   - Todo.isAccessibleBy() 메서드 테스트 (owner, collaborator, 외부인 케이스)\n   - collaborativeCategory 필드 null 처리 테스트\n\n2. Repository 계층 테스트:\n   - findMyTodos() 쿼리 테스트:\n     * owner인 투두만 있는 경우\n     * collaborator인 투두만 있는 경우\n     * owner와 collaborator 투두가 섞여있는 경우\n     * 삭제된 투두 제외 확인\n   - findByCollaborativeCategory() 테스트\n   - 페이징 처리 정확성 검증\n\n3. 서비스 계층 통합 테스트:\n   - 협업 카테고리로 투두 생성 테스트\n   - 일반 카테고리로 투두 생성 테스트\n   - 권한 없는 카테고리로 투두 생성 시 예외 발생 테스트\n   - 협업자가 협업 투두 수정 가능 테스트\n   - 비협업자가 협업 투두 수정 시 예외 발생 테스트\n\n4. ChallengeTodoService 분리 테스트:\n   - 챌린지 투두 조회가 일반 투두 조회와 분리되었는지 확인\n   - 챌린지 참여자만 챌린지 투두 조회 가능 테스트\n   - 챌린지 비참여자 접근 시 예외 발생 테스트\n\n5. API 엔드포인트 테스트:\n   - GET /api/todos/my 응답에 협업 투두 포함 확인\n   - GET /api/challenge-todos/my 별도 엔드포인트 동작 확인\n   - todoType 필드가 올바르게 설정되는지 검증\n   - 응답 DTO에 협업 카테고리 정보 포함 확인\n\n6. 성능 테스트:\n   - 대량의 협업 투두가 있을 때 조회 성능\n   - N+1 쿼리 문제 발생 여부 확인\n   - 인덱스 최적화 필요성 검토",
+        "status": "pending",
+        "dependencies": [
+          22
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Notification System 구현 - 시스템 알림 및 알림 이력 관리",
+        "description": "협업자 초대, 초대 수락/거절, 챌린지 참여 요청 등의 이벤트를 알림으로 저장하는 Notification 엔티티와 NotificationHistory를 구현합니다. 읽음/안읽음 상태 관리와 알림 타입별 분류를 포함하며, 실시간 알림(SSE/WebSocket)을 위한 확장 가능한 구조로 설계합니다.",
+        "details": "1. Notification 엔티티 생성:\n```java\n@Entity\n@Table(name = \"notifications\")\n@Getter\n@Setter\n@NoArgsConstructor\npublic class Notification extends BaseEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"recipient_id\", nullable = false)\n    private Member recipient; // 알림 수신자\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"sender_id\")\n    private Member sender; // 알림 발신자 (시스템 알림의 경우 null)\n    \n    @Enumerated(EnumType.STRING)\n    @Column(nullable = false)\n    private NotificationType type;\n    \n    @Column(nullable = false)\n    private String title;\n    \n    @Column(columnDefinition = \"TEXT\")\n    private String content;\n    \n    @Column(name = \"is_read\", nullable = false)\n    private Boolean isRead = false;\n    \n    @Column(name = \"related_entity_id\")\n    private Long relatedEntityId; // 관련 엔티티 ID (category_id, challenge_id 등)\n    \n    @Column(name = \"related_entity_type\")\n    private String relatedEntityType; // CATEGORY, CHALLENGE, TODO 등\n    \n    @Column(columnDefinition = \"TEXT\")\n    private String actionUrl; // 알림 클릭 시 이동할 URL\n    \n    @Column(name = \"expires_at\")\n    private LocalDateTime expiresAt; // 알림 만료 시간\n    \n    // 읽음 처리\n    public void markAsRead() {\n        this.isRead = true;\n    }\n    \n    // 만료 여부 확인\n    public boolean isExpired() {\n        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);\n    }\n}\n```\n\n2. NotificationType enum 정의:\n```java\npublic enum NotificationType {\n    // 협업 관련\n    CATEGORY_INVITATION(\"카테고리 협업 초대\"),\n    CATEGORY_INVITATION_ACCEPTED(\"카테고리 협업 수락\"),\n    CATEGORY_INVITATION_REJECTED(\"카테고리 협업 거절\"),\n    CATEGORY_COLLABORATOR_REMOVED(\"카테고리 협업자 제거\"),\n    \n    // 챌린지 관련\n    CHALLENGE_INVITATION(\"챌린지 참여 초대\"),\n    CHALLENGE_INVITATION_ACCEPTED(\"챌린지 참여 수락\"),\n    CHALLENGE_INVITATION_REJECTED(\"챌린지 참여 거절\"),\n    CHALLENGE_PARTICIPANT_REMOVED(\"챌린지 참여자 제거\"),\n    CHALLENGE_LEADER_ASSIGNED(\"챌린지 리더 임명\"),\n    CHALLENGE_TODO_COMPLETED(\"챌린지 투두 완료\"),\n    \n    // 시스템 알림\n    SYSTEM_ANNOUNCEMENT(\"시스템 공지\"),\n    SYSTEM_MAINTENANCE(\"시스템 점검\");\n    \n    private final String description;\n    \n    NotificationType(String description) {\n        this.description = description;\n    }\n}\n```\n\n3. NotificationHistory 엔티티 생성:\n```java\n@Entity\n@Table(name = \"notification_history\")\n@Getter\n@Setter\n@NoArgsConstructor\npublic class NotificationHistory extends BaseEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = \"notification_id\", nullable = false)\n    private Notification notification;\n    \n    @Enumerated(EnumType.STRING)\n    @Column(nullable = false)\n    private NotificationAction action;\n    \n    @Column(name = \"action_timestamp\", nullable = false)\n    private LocalDateTime actionTimestamp;\n    \n    @Column(columnDefinition = \"TEXT\")\n    private String additionalInfo;\n}\n\npublic enum NotificationAction {\n    CREATED(\"생성됨\"),\n    READ(\"읽음\"),\n    DELETED(\"삭제됨\"),\n    EXPIRED(\"만료됨\");\n    \n    private final String description;\n    \n    NotificationAction(String description) {\n        this.description = description;\n    }\n}\n```\n\n4. NotificationRepository 구현:\n```java\n@Repository\npublic interface NotificationRepository extends JpaRepository<Notification, Long> {\n    // 사용자별 알림 조회\n    @Query(\"SELECT n FROM Notification n WHERE n.recipient.id = :recipientId \" +\n           \"AND (n.expiresAt IS NULL OR n.expiresAt > :now) \" +\n           \"ORDER BY n.createdAt DESC\")\n    Page<Notification> findActiveByRecipientId(@Param(\"recipientId\") Long recipientId, \n                                               @Param(\"now\") LocalDateTime now, \n                                               Pageable pageable);\n    \n    // 읽지 않은 알림 개수\n    @Query(\"SELECT COUNT(n) FROM Notification n WHERE n.recipient.id = :recipientId \" +\n           \"AND n.isRead = false AND (n.expiresAt IS NULL OR n.expiresAt > :now)\")\n    long countUnreadByRecipientId(@Param(\"recipientId\") Long recipientId, \n                                  @Param(\"now\") LocalDateTime now);\n    \n    // 타입별 알림 조회\n    List<Notification> findByRecipientIdAndType(Long recipientId, NotificationType type);\n    \n    // 관련 엔티티별 알림 조회\n    List<Notification> findByRelatedEntityIdAndRelatedEntityType(Long entityId, String entityType);\n    \n    // 만료된 알림 조회\n    @Query(\"SELECT n FROM Notification n WHERE n.expiresAt < :now AND n.isRead = false\")\n    List<Notification> findExpiredNotifications(@Param(\"now\") LocalDateTime now);\n}\n```\n\n5. NotificationService 구현:\n```java\n@Service\n@Transactional\n@RequiredArgsConstructor\npublic class NotificationService {\n    private final NotificationRepository notificationRepository;\n    private final NotificationHistoryRepository historyRepository;\n    private final ApplicationEventPublisher eventPublisher;\n    \n    // 알림 생성\n    public Notification createNotification(NotificationCreateDto dto) {\n        Notification notification = new Notification();\n        notification.setRecipient(dto.getRecipient());\n        notification.setSender(dto.getSender());\n        notification.setType(dto.getType());\n        notification.setTitle(dto.getTitle());\n        notification.setContent(dto.getContent());\n        notification.setRelatedEntityId(dto.getRelatedEntityId());\n        notification.setRelatedEntityType(dto.getRelatedEntityType());\n        notification.setActionUrl(dto.getActionUrl());\n        notification.setExpiresAt(dto.getExpiresAt());\n        \n        notification = notificationRepository.save(notification);\n        \n        // 히스토리 기록\n        createHistory(notification, NotificationAction.CREATED);\n        \n        // 실시간 알림 이벤트 발행 (향후 SSE/WebSocket 연동)\n        eventPublisher.publishEvent(new NotificationCreatedEvent(notification));\n        \n        return notification;\n    }\n    \n    // 알림 읽음 처리\n    public void markAsRead(Long notificationId, Long memberId) {\n        Notification notification = notificationRepository.findById(notificationId)\n            .orElseThrow(() -> new NotFoundException(\"알림을 찾을 수 없습니다.\"));\n        \n        if (!notification.getRecipient().getId().equals(memberId)) {\n            throw new UnauthorizedException(\"알림 읽기 권한이 없습니다.\");\n        }\n        \n        if (!notification.isRead()) {\n            notification.markAsRead();\n            notificationRepository.save(notification);\n            createHistory(notification, NotificationAction.READ);\n        }\n    }\n    \n    // 알림 일괄 읽음 처리\n    public void markAllAsRead(Long memberId) {\n        List<Notification> unreadNotifications = notificationRepository\n            .findActiveByRecipientId(memberId, LocalDateTime.now(), PageRequest.of(0, 1000))\n            .getContent()\n            .stream()\n            .filter(n -> !n.isRead())\n            .collect(Collectors.toList());\n        \n        unreadNotifications.forEach(n -> {\n            n.markAsRead();\n            createHistory(n, NotificationAction.READ);\n        });\n        \n        notificationRepository.saveAll(unreadNotifications);\n    }\n    \n    // 알림 목록 조회\n    public Page<NotificationDto> getNotifications(Long memberId, Pageable pageable) {\n        return notificationRepository.findActiveByRecipientId(memberId, LocalDateTime.now(), pageable)\n            .map(this::toDto);\n    }\n    \n    // 읽지 않은 알림 개수 조회\n    public long getUnreadCount(Long memberId) {\n        return notificationRepository.countUnreadByRecipientId(memberId, LocalDateTime.now());\n    }\n    \n    // 협업 초대 알림 생성\n    public void createCollaborationInviteNotification(Member recipient, Member sender, Category category) {\n        NotificationCreateDto dto = NotificationCreateDto.builder()\n            .recipient(recipient)\n            .sender(sender)\n            .type(NotificationType.CATEGORY_INVITATION)\n            .title(\"카테고리 협업 초대\")\n            .content(String.format(\"%s님이 '%s' 카테고리의 협업자로 초대했습니다.\", \n                sender.getName(), category.getName()))\n            .relatedEntityId(category.getId())\n            .relatedEntityType(\"CATEGORY\")\n            .actionUrl(\"/categories/\" + category.getId() + \"/invitation\")\n            .expiresAt(LocalDateTime.now().plusDays(7)) // 7일 후 만료\n            .build();\n        \n        createNotification(dto);\n    }\n    \n    // 챌린지 초대 알림 생성\n    public void createChallengeInviteNotification(Member recipient, Member sender, Challenge challenge) {\n        NotificationCreateDto dto = NotificationCreateDto.builder()\n            .recipient(recipient)\n            .sender(sender)\n            .type(NotificationType.CHALLENGE_INVITATION)\n            .title(\"챌린지 참여 초대\")\n            .content(String.format(\"%s님이 '%s' 챌린지에 초대했습니다.\", \n                sender.getName(), challenge.getTitle()))\n            .relatedEntityId(challenge.getId())\n            .relatedEntityType(\"CHALLENGE\")\n            .actionUrl(\"/challenges/\" + challenge.getId() + \"/invitation\")\n            .expiresAt(LocalDateTime.now().plusDays(3)) // 3일 후 만료\n            .build();\n        \n        createNotification(dto);\n    }\n    \n    // 히스토리 생성\n    private void createHistory(Notification notification, NotificationAction action) {\n        NotificationHistory history = new NotificationHistory();\n        history.setNotification(notification);\n        history.setAction(action);\n        history.setActionTimestamp(LocalDateTime.now());\n        historyRepository.save(history);\n    }\n    \n    // 만료된 알림 처리 (스케줄러에서 호출)\n    @Scheduled(cron = \"0 0 * * * *\") // 매시간 실행\n    public void processExpiredNotifications() {\n        List<Notification> expiredNotifications = notificationRepository\n            .findExpiredNotifications(LocalDateTime.now());\n        \n        expiredNotifications.forEach(n -> {\n            createHistory(n, NotificationAction.EXPIRED);\n        });\n    }\n}\n```\n\n6. 실시간 알림 이벤트 (향후 SSE/WebSocket 연동용):\n```java\n@Getter\n@AllArgsConstructor\npublic class NotificationCreatedEvent {\n    private final Notification notification;\n    private final LocalDateTime timestamp = LocalDateTime.now();\n}\n\n@Component\n@RequiredArgsConstructor\npublic class NotificationEventListener {\n    // 향후 SSE/WebSocket 구현 시 사용\n    @EventListener\n    public void handleNotificationCreated(NotificationCreatedEvent event) {\n        // SSE 또는 WebSocket을 통해 클라이언트에 실시간 전송\n        // 현재는 로깅만 수행\n        log.info(\"New notification created for user {}: {}\", \n            event.getNotification().getRecipient().getId(),\n            event.getNotification().getTitle());\n    }\n}\n```\n\n7. NotificationController 구현:\n```java\n@RestController\n@RequestMapping(\"/api/notifications\")\n@RequiredArgsConstructor\n@Tag(name = \"Notification\", description = \"알림 관리 API\")\npublic class NotificationController {\n    private final NotificationService notificationService;\n    \n    @GetMapping\n    @Operation(summary = \"알림 목록 조회\")\n    public ResponseEntity<Page<NotificationDto>> getNotifications(\n            @AuthenticationPrincipal Long memberId,\n            @PageableDefault(size = 20, sort = \"createdAt,desc\") Pageable pageable) {\n        return ResponseEntity.ok(notificationService.getNotifications(memberId, pageable));\n    }\n    \n    @GetMapping(\"/unread-count\")\n    @Operation(summary = \"읽지 않은 알림 개수 조회\")\n    public ResponseEntity<Map<String, Long>> getUnreadCount(\n            @AuthenticationPrincipal Long memberId) {\n        long count = notificationService.getUnreadCount(memberId);\n        return ResponseEntity.ok(Map.of(\"unreadCount\", count));\n    }\n    \n    @PutMapping(\"/{id}/read\")\n    @Operation(summary = \"알림 읽음 처리\")\n    public ResponseEntity<Void> markAsRead(\n            @PathVariable Long id,\n            @AuthenticationPrincipal Long memberId) {\n        notificationService.markAsRead(id, memberId);\n        return ResponseEntity.ok().build();\n    }\n    \n    @PutMapping(\"/read-all\")\n    @Operation(summary = \"모든 알림 읽음 처리\")\n    public ResponseEntity<Void> markAllAsRead(\n            @AuthenticationPrincipal Long memberId) {\n        notificationService.markAllAsRead(memberId);\n        return ResponseEntity.ok().build();\n    }\n}\n```",
+        "testStrategy": "1. 엔티티 단위 테스트:\n   - Notification 엔티티 생성 및 필드 검증\n   - markAsRead() 메서드 동작 확인\n   - isExpired() 메서드 테스트 (만료 시간 null, 과거, 미래 케이스)\n   - NotificationHistory 엔티티 생성 및 관계 설정 테스트\n\n2. Repository 계층 테스트:\n   - findActiveByRecipientId() 쿼리 테스트:\n     * 만료되지 않은 알림만 조회되는지 확인\n     * 페이징 및 정렬 동작 확인\n   - countUnreadByRecipientId() 쿼리 테스트:\n     * 읽지 않은 알림 개수 정확성\n     * 만료된 알림 제외 확인\n   - findExpiredNotifications() 쿼리 테스트\n   - 타입별, 관련 엔티티별 조회 테스트\n\n3. 서비스 계층 통합 테스트:\n   - 알림 생성 테스트:\n     * 정상 생성 확인\n     * 히스토리 자동 생성 확인\n     * 이벤트 발행 확인\n   - 읽음 처리 테스트:\n     * 개별 읽음 처리\n     * 일괄 읽음 처리\n     * 권한 없는 사용자 접근 시 예외 발생\n   - 협업/챌린지 초대 알림 생성 테스트:\n     * 적절한 내용과 만료 시간 설정 확인\n     * actionUrl 정확성 검증\n\n4. 컨트롤러 통합 테스트:\n   - GET /api/notifications 엔드포인트 테스트\n   - GET /api/notifications/unread-count 테스트\n   - PUT /api/notifications/{id}/read 테스트\n   - PUT /api/notifications/read-all 테스트\n   - 인증 없는 요청 시 401 응답 확인\n\n5. 동시성 테스트:\n   - 동일 알림에 대한 동시 읽음 처리\n   - 대량 알림 생성 시 성능 테스트\n\n6. 스케줄러 테스트:\n   - processExpiredNotifications() 메서드 동작 확인\n   - 만료된 알림 히스토리 기록 검증",
+        "status": "pending",
+        "dependencies": [
+          21
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
-      "created": "2025-07-13T16:45:38.605Z",
-      "updated": "2025-07-13T16:45:38.605Z",
+      "created": "2025-07-14T14:54:00.173Z",
+      "updated": "2025-07-14T15:53:34.654Z",
       "description": "Tasks for master context"
     }
   }
