@@ -142,8 +142,64 @@
         "testStrategy": "1. 각 예외 타입별 응답 형식 테스트\n2. HTTP 상태 코드 매핑 테스트\n3. 에러 메시지 국제화 테스트\n4. 예외 체인 처리 테스트",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "ProblemDetail 응답 클래스 및 에러 코드 체계 구현",
+            "description": "RFC 7807 Problem Details 표준을 준수하는 응답 클래스와 도메인별 에러 코드 enum을 구현합니다.",
+            "dependencies": [],
+            "details": "1. ProblemDetail 응답 DTO 클래스 구현:\n- type: 문제 유형을 식별하는 URI\n- title: 문제에 대한 간단한 제목\n- status: HTTP 상태 코드\n- detail: 문제에 대한 상세 설명\n- instance: 문제가 발생한 구체적인 위치\n- timestamp: 발생 시간\n- traceId: 추적용 ID\n\n2. ErrorCode enum 구현:\n- 도메인별로 에러 코드 분류 (AUTH_, MEMBER_, TODO_, CHALLENGE_ 등)\n- 각 에러 코드에 메시지, HTTP 상태 코드, 에러 타입 포함\n- getMessage() 메서드로 국제화 지원 준비",
+            "status": "done",
+            "testStrategy": "ErrorCode enum의 각 값이 올바른 HTTP 상태 코드와 메시지를 반환하는지 테스트, ProblemDetail 객체가 RFC 7807 스펙에 맞게 직렬화되는지 검증"
+          },
+          {
+            "id": 2,
+            "title": "비즈니스 예외 클래스 계층 구조 구현",
+            "description": "BusinessException 추상 클래스를 기반으로 도메인별 구체적인 예외 클래스들을 구현합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "1. BusinessException 추상 클래스 구현:\n- ErrorCode를 필드로 가짐\n- 생성자에서 ErrorCode 받아서 message 설정\n- getErrorCode(), getHttpStatus() 메서드 제공\n\n2. 도메인별 예외 클래스 구현:\n- MemberNotFoundException: 회원 조회 실패\n- DuplicateEmailException: 이메일 중복\n- InvalidPasswordException: 비밀번호 규칙 위반\n- UnauthorizedException: 인증 실패\n- ForbiddenException: 권한 부족\n- TodoNotFoundException: 할 일 조회 실패\n- ChallengeNotFoundException: 챌린지 조회 실패\n\n3. 각 예외 클래스는 적절한 ErrorCode를 부모 생성자에 전달",
+            "status": "done",
+            "testStrategy": "각 예외 클래스가 올바른 ErrorCode를 가지고 있는지, getMessage()가 적절한 메시지를 반환하는지 단위 테스트"
+          },
+          {
+            "id": 3,
+            "title": "GlobalExceptionHandler 구현",
+            "description": "@RestControllerAdvice를 사용하여 전역 예외 처리기를 구현하고 RFC 7807 형식으로 응답을 반환합니다.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "1. GlobalExceptionHandler 클래스 구현:\n- @RestControllerAdvice 어노테이션 적용\n- @Slf4j로 로깅 활성화\n\n2. 예외 처리 메서드 구현:\n- @ExceptionHandler(BusinessException.class): 비즈니스 예외 처리\n- @ExceptionHandler(MethodArgumentNotValidException.class): 유효성 검증 실패 처리\n- @ExceptionHandler(BindException.class): 바인딩 오류 처리\n- @ExceptionHandler(HttpMessageNotReadableException.class): 요청 본문 파싱 오류\n- @ExceptionHandler(Exception.class): 예상치 못한 서버 오류 처리\n\n3. 각 핸들러는 ProblemDetail 객체를 생성하여 ResponseEntity로 반환\n4. traceId 생성 및 로깅 구현",
+            "status": "done",
+            "testStrategy": "MockMvc를 사용하여 각 예외 타입별로 올바른 HTTP 상태 코드와 응답 형식이 반환되는지 통합 테스트"
+          },
+          {
+            "id": 4,
+            "title": "유효성 검증 실패 에러 처리 강화",
+            "description": "Bean Validation 실패 시 필드별 상세 에러 정보를 포함한 응답을 생성합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "1. ValidationErrorDetail 클래스 구현:\n- field: 검증 실패한 필드명\n- value: 입력된 값\n- reason: 실패 이유\n\n2. ProblemDetail 클래스에 violations 필드 추가:\n- List<ValidationErrorDetail> 타입\n- 유효성 검증 실패 시에만 포함\n\n3. GlobalExceptionHandler의 validation 관련 핸들러 개선:\n- FieldError 정보를 ValidationErrorDetail로 변환\n- 여러 필드의 검증 실패를 모두 수집하여 한 번에 반환\n- @Valid, @Validated 어노테이션 처리 지원\n\n4. 커스텀 유효성 검증 어노테이션의 에러 메시지 통합",
+            "status": "done",
+            "testStrategy": "여러 필드가 동시에 검증 실패할 때 모든 에러 정보가 violations 배열에 포함되는지 테스트, 중첩된 객체의 검증 실패도 올바르게 처리되는지 확인"
+          },
+          {
+            "id": 5,
+            "title": "에러 로깅 및 모니터링 체계 구축",
+            "description": "예외 발생 시 적절한 로깅과 추적을 위한 메커니즘을 구현합니다.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "1. TraceIdGenerator 유틸리티 구현:\n- UUID 기반의 고유한 추적 ID 생성\n- MDC(Mapped Diagnostic Context)에 traceId 저장\n\n2. 로깅 전략 구현:\n- BusinessException: WARN 레벨로 로깅\n- ValidationException: INFO 레벨로 로깅\n- 서버 오류(500): ERROR 레벨로 스택트레이스와 함께 로깅\n\n3. 에러 응답에 traceId 포함:\n- 클라이언트가 문제 보고 시 참조할 수 있도록\n- 로그 검색 시 해당 요청 추적 가능\n\n4. AOP를 활용한 컨트롤러 진입점 로깅:\n- 요청 시작 시 traceId 생성 및 MDC 설정\n- 요청 완료 시 MDC 정리",
+            "status": "done",
+            "testStrategy": "로그 출력을 캡처하여 적절한 레벨과 포맷으로 로깅되는지 확인, traceId가 응답과 로그에 동일하게 포함되는지 검증"
+          }
+        ]
       },
       {
         "id": 14,
@@ -408,7 +464,7 @@
     ],
     "metadata": {
       "created": "2025-07-14T14:54:00.173Z",
-      "updated": "2025-07-14T16:24:09.094Z",
+      "updated": "2025-07-14T16:40:16.418Z",
       "description": "Tasks for master context"
     }
   }

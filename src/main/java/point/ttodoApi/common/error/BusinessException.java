@@ -1,43 +1,41 @@
 package point.ttodoApi.common.error;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * 비즈니스 로직 예외
+ * 비즈니스 로직 예외의 기본 클래스
+ * 모든 비즈니스 예외는 이 클래스를 상속받아야 함
  */
-public class BusinessException extends RuntimeException {
-    private final String errorCode;
-    private final HttpStatus httpStatus;
+@Getter
+public abstract class BusinessException extends RuntimeException {
+    private final ErrorCode errorCode;
     
-    public BusinessException(String message) {
-        super(message);
-        this.errorCode = "BIZ_001";
-        this.httpStatus = HttpStatus.BAD_REQUEST;
+    protected BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
     
-    public BusinessException(String errorCode, String message) {
+    protected BusinessException(ErrorCode errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
-        this.httpStatus = HttpStatus.BAD_REQUEST;
     }
     
-    public BusinessException(String errorCode, String message, HttpStatus httpStatus) {
-        super(message);
-        this.errorCode = errorCode;
-        this.httpStatus = httpStatus;
-    }
-    
-    public BusinessException(String message, Throwable cause) {
+    protected BusinessException(ErrorCode errorCode, String message, Throwable cause) {
         super(message, cause);
-        this.errorCode = "BIZ_001";
-        this.httpStatus = HttpStatus.BAD_REQUEST;
+        this.errorCode = errorCode;
     }
     
-    public String getErrorCode() {
-        return errorCode;
+    protected BusinessException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.errorCode = errorCode;
+    }
+    
+    public String getErrorCodeValue() {
+        return errorCode.getCode();
     }
     
     public HttpStatus getHttpStatus() {
-        return httpStatus;
+        return errorCode.getHttpStatus();
     }
 }
