@@ -1,533 +1,312 @@
 <context>
-# Overview
-
-This todo management application solves the problem of maintaining consistent productivity and habit formation by combining traditional task management with gamification and social accountability features. Unlike conventional todo apps that users abandon after initial enthusiasm wanes, our solution creates sustained engagement through experience points, achievement systems, and collaborative challenges.
-
-The product targets individuals who struggle with maintaining routines, want to build habits with friends, and prefer game-like reward systems for motivation. This includes young professionals managing work-life balance, students coordinating study groups, and anyone seeking a more engaging approach to personal productivity.
-
-The core value proposition lies in transforming mundane task completion into an engaging, social experience where users level up, earn titles, and achieve goals together with friends, making productivity feel less like a chore and more like a rewarding game.
-
-# Core Features
-
-## Todo Management with Repetition
-- **What it does**: Allows creation of one-time and recurring tasks with customizable repeat patterns (daily, weekly, monthly, yearly) and priority levels
-- **Why it's important**: Handles both single tasks and routine habits, eliminating the need to recreate recurring tasks manually
-- **How it works**: Users create todos with optional repeat settings using RepeatType patterns; the system automatically generates virtual instances based on completion patterns and specified rules
-
-## Member System with Profiles
-- **What it does**: Provides JWT-based authentication, profile management with statistics, and member preferences
-- **Why it's important**: Forms the foundation for all personalized features and gamification tracking
-- **How it works**: Users register with email/password, create profiles with customizable settings, and have their progress tracked through the Profile and Statistics entities
-
-## Experience Point and Level System
-- **What it does**: Awards XP for completed tasks based on difficulty (TodoOriginal.experiencePoint), with automatic level progression
-- **Why it's important**: Provides immediate positive feedback and long-term progression visibility
-- **How it works**: Each todo completion grants XP stored in Profile entity; Level entity defines thresholds and titles for each level from 1-100
-
-## Category and Tag Organization
-- **What it does**: Enables hierarchical categorization and flexible tagging for todo items
-- **Why it's important**: Allows users to organize tasks by project, area of life, or custom taxonomies
-- **How it works**: Categories support parent-child relationships for nested organization; Tags provide flexible cross-category labeling
-
-## Challenge System
-- **What it does**: Time-bound competitions where users complete specific goals for bonus rewards
-- **Why it's important**: Builds community engagement and provides competitive motivation
-- **How it works**: Challenges define participation rules, track member progress through ChallengeParticipation, and award bonus XP upon completion
-
-## Virtual Todo System
-- **What it does**: Generates temporary instances of recurring todos without duplicating data
-- **Why it's important**: Efficiently handles recurring tasks while maintaining single source of truth
-- **How it works**: VirtualTodoService creates on-demand instances based on TodoOriginal repeat patterns, managing completion states separately
-
-# User Experience
-
-## User Personas
-
-**Sarah Chen - Software Developer (29)**
-- Wants to maintain coding practice outside work
-- Uses priority levels to balance work and personal tasks
-- Tracks experience points for motivation
-- Organizes tasks with nested categories (Work/Projects/ClientA)
-
-**Marcus Johnson - Graduate Student (24)**  
-- Manages thesis deadlines with high-priority todos
-- Uses repeat patterns for weekly research tasks
-- Participates in study challenges with classmates
-- Tags todos by subject for easy filtering
-
-**Elena Rodriguez - Freelance Designer (31)**
-- Creates categories for each client project
-- Sets daily creative habit todos with RepeatType.DAILY
-- Values the pinned todo feature for urgent tasks
-- Tracks productivity through Statistics dashboard
-
-## Key User Flows
-
-**Todo Creation Flow**
-1. Select category from hierarchical tree
-2. Enter title and optional description
-3. Set priority level (LOW/MEDIUM/HIGH)
-4. Configure repeat pattern if recurring
-5. Add relevant tags
-6. Set experience points based on difficulty
-7. Save and view in daily list
-
-**Daily Dashboard Flow**
-1. View today's todos including virtual instances
-2. See pinned items at top regardless of priority
-3. Filter by category, tag, or completion status
-4. Complete todo with single action
-5. Watch experience bar progress
-6. Check updated statistics
-
-**Challenge Participation Flow**
-1. Browse active challenges
-2. View challenge details and current participants
-3. Join challenge
-4. Complete challenge-specific todos
-5. Track progress on leaderboard
-6. Receive completion rewards
-
-## UI/UX Considerations
-
-- **RESTful API Design**: Clean endpoints following REST conventions with proper HTTP status codes
-- **Swagger Documentation**: Interactive API documentation for all endpoints
-- **Consistent Response Format**: Standardized error messages and data structures
-- **Filtering and Pagination**: Comprehensive query parameters for todo lists
-- **Security**: JWT-based authentication with Spring Security
-- **Performance**: Optimized queries with proper JPA relationships
+  <project-name>TTodo API</project-name>
+  <project-type>Spring Boot REST API</project-type>
+  <current-issues>
+    밸리데이션 로직과 에러 처리가 체계적이지 못함. 일부 엔드포인트는 검증이 없고, 에러 응답 형식이 일관되지 않음.
+  </current-issues>
 </context>
+
 <PRD>
-# Technical Architecture
+# TTodo API 밸리데이션 및 에러 처리 개선 PRD
 
-## System Components
+## 1. 프로젝트 개요
 
-### Current Backend Stack
-- **Language**: Java 21
-- **Framework**: Spring Boot 3.x
-- **Database**: PostgreSQL (via JPA/Hibernate)
-- **Security**: Spring Security with JWT tokens
-- **API Documentation**: SpringDoc OpenAPI (Swagger)
-- **Build Tool**: Gradle
-- **Testing**: JUnit 5, Spring Boot Test
+### 1.1 목적
+TTodo API의 입력값 검증, 비즈니스 로직 검증, 에러 처리 체계를 전면 개선하여 API의 안정성과 보안성을 향상시킨다.
 
-### Package Structure
+### 1.2 현재 상태
+- 컨트롤러 레벨의 입력값 검증이 일부 누락됨
+- 서비스 레이어의 비즈니스 로직 검증이 불완전함
+- 에러 응답 형식이 일관되지 않음
+- 예외 처리가 부족하거나 누락된 메서드들이 존재함
+- 권한 검증(소유자/관리자) 체계가 미흡함
+
+### 1.3 목표
+- 모든 API 엔드포인트에 철저한 입력값 검증 구현
+- 비즈니스 규칙 검증 체계 확립
+- 일관된 에러 응답 형식 제공
+- 포괄적인 예외 처리 구현
+- 엄격한 권한 검증 시스템 구축
+
+## 2. 기술 요구사항
+
+### 2.1 검증 프레임워크
+- Spring Validation (JSR-303/JSR-380) 활용
+- 커스텀 밸리데이션 어노테이션 구현
+- Cross-field validation 지원
+- 최신 Jakarta Bean Validation 3.0 활용
+
+### 2.2 에러 처리
+- RFC 7807 Problem Details 표준 준수
+- 도메인별 에러 코드 체계
+- Log4j2를 활용한 구조화된 로깅
+
+### 2.3 보안 고려사항
+- XSS 방지를 위한 입력값 sanitization
+- JPA Criteria API를 활용한 안전한 동적 쿼리
+- 엄격한 권한 검증 (소유자/관리자)
+
+## 3. 상세 구현 계획
+
+### 3.1 컨트롤러 레벨 검증 강화
+
+#### 3.1.1 AuthController
+- **signUpAndIn 메서드 개선**
+  - 이메일 형식 검증 강화 (RFC 5322 준수)
+  - 패스워드 강도 검증 추가
+    - 최소 8자 이상
+    - 대소문자, 숫자, 특수문자 포함
+    - 연속된 문자/숫자 제한
+  - 닉네임 검증 추가
+    - 길이: 2-20자
+    - 허용 문자: 한글, 영문, 숫자, 일부 특수문자
+    - 금지어 필터링
+
+#### 3.1.2 MemberController
+- **페이지네이션 파라미터 검증**
+  - page: 0 이상
+  - size: 1-100 범위
+  - sort: 허용된 필드명만 가능 (화이트리스트)
+  - 정렬 필드는 Criteria API를 통해 안전하게 처리
+  
+- **파일 업로드 검증**
+  - 컨트롤러 레벨 파일 형식 검증
+  - 파일 크기 제한 (5MB)
+  - 파일명 sanitization
+
+- **권한 검증**
+  - 소유자(Owner) 또는 관리자(Admin)만 데이터 조회/수정 가능
+  - @PreAuthorize 어노테이션 활용
+
+#### 3.1.3 TodoController
+- **날짜 관련 검증**
+  - 날짜 범위 제한 (최대 1년)
+  - 시작일이 종료일보다 이전인지 검증
+  
+- **검색 파라미터 검증**
+  - 검색어 길이 제한 (최대 100자)
+  - 특수문자 이스케이프 처리
+
+- **반복 설정 검증**
+  - 반복 주기 유효성
+  - 반복 횟수 제한 (최대 365회)
+
+#### 3.1.4 CategoryController
+- **정렬 파라미터 검증**
+  - 허용된 필드명만 정렬 가능 (화이트리스트)
+  - JPA Criteria API를 통한 안전한 동적 쿼리 구성
+
+#### 3.1.5 ChallengeController
+- **페이지네이션 검증 일관성**
+  - 모든 페이징 엔드포인트에 validatePaginationParams 적용
+
+### 3.2 서비스 레벨 비즈니스 로직 검증
+
+#### 3.2.1 검증 레이어 구조
 ```
-point.ttodoApi/
-├── auth/           # Authentication & JWT handling
-├── category/       # Category management
-├── challenge/      # Challenge system
-├── common/         # Shared utilities, config, exceptions
-├── experience/     # Experience points & levels
-├── member/         # Member management
-├── profile/        # Profile & statistics
-└── todo/           # Core todo functionality
-```
-
-## Data Models
-
-### Core Entities
-
-**Member** (auth.domain)
-- id: UUID
-- email: String (unique)
-- password: String (encrypted)
-- role: MemberRole (USER/ADMIN)
-- createdAt/updatedAt: LocalDateTime
-- Relations: One-to-One with Profile
-
-**Profile** (profile.domain)
-- id: ProfileId
-- memberId: MemberId
-- experiencePoint: Long
-- Relations: One-to-One with Member, One-to-One with Statistics
-
-**TodoOriginal** (todo.domain)
-- id: TodoOriginalId  
-- memberId: MemberId
-- categoryId: CategoryId
-- title: String
-- memo: String
-- priority: Priority (LOW/MEDIUM/HIGH)
-- experiencePoint: Integer
-- repeatType: RepeatType
-- repeatEndDate: LocalDate
-- Relations: Many-to-Many with Tags
-
-**Category** (category.domain)
-- id: CategoryId
-- memberId: MemberId
-- name: String
-- parentId: CategoryId (self-reference)
-- color: String
-- displayOrder: Integer
-
-**Challenge** (challenge.domain)
-- id: ChallengeId
-- title: String
-- description: String
-- startDate/endDate: LocalDate
-- maxParticipants: Integer
-- rewardExperience: Integer
-- Relations: One-to-Many with ChallengeParticipation
-
-**Level** (experience.domain)
-- level: Integer (1-100)
-- requiredExperience: Long
-- title: String
-- description: String
-
-## APIs and Integrations
-
-### RESTful Endpoints (Already Implemented)
-
-**Authentication** (/auth)
-- POST /auth/register
-- POST /auth/login  
-- POST /auth/refresh
-- POST /auth/logout
-
-**Todo Operations** (/todos)
-- GET /todos - List with filtering
-- POST /todos - Create new todo
-- GET /todos/{id} - Get details
-- PUT /todos/{id} - Full update
-- PATCH /todos/{id} - Partial update
-- DELETE /todos/{id} - Soft delete
-- PUT /todos/{id}/pin - Toggle pin
-- PATCH /todos/{id}/order - Update order
-- GET /todos/monthly - Monthly view
-- GET /todos/statistics - User statistics
-
-**Category Management** (/categories)
-- GET /categories - List user categories
-- POST /categories - Create category
-- PUT /categories/{id} - Update category
-- DELETE /categories/{id} - Delete category
-- PATCH /categories/reorder - Bulk reorder
-
-**Challenge System** (/challenges)
-- GET /challenges - List challenges
-- POST /challenges - Create challenge
-- GET /challenges/{id} - Get details
-- POST /challenges/{id}/join - Join challenge
-- GET /challenges/{id}/participants - List participants
-
-**Supporting Endpoints**
-- GET /priorities - Priority reference data
-- GET /repeat-types - RepeatType reference
-- GET /experiences/levels - Level progression
-- GET /profiles/{id}/statistics - User statistics
-- GET /tags/popular - Popular tags
-
-### Service Layer Architecture
-- **Application Services**: Handle business logic and orchestration
-- **Domain Services**: Encapsulate domain rules
-- **Infrastructure Services**: External integrations
-- **Presentation Mappers**: DTO transformations
-
-## Infrastructure Requirements
-
-### Development Environment
-- Java 21
-- PostgreSQL 15+
-- Redis (for future caching)
-- Docker for containerization
-
-### Production Considerations
-- Spring Boot embedded Tomcat
-- Database connection pooling (HikariCP)
-- Structured logging with SLF4J
-- Environment-based configuration
-- Health check endpoints
-
-# Development Roadmap
-
-## MVP Phase (Core Functionality)
-**Scope**: Essential features for a working todo application
-
-### Already Implemented
-- Member registration and JWT authentication
-- Todo CRUD with priorities and categories
-- Virtual todo system for recurring tasks
-- Basic experience point tracking
-- Category hierarchy management
-- Tag system for organization
-- RESTful API with Swagger documentation
-
-### To Be Implemented
-1. **Frontend Client** (Not in current scope)
-   - Web interface using the REST API
-   - Mobile-responsive design
-   - Real-time updates
-
-2. **Email Notifications**
-   - Due date reminders
-   - Challenge invitations
-   - Achievement unlocks
-
-3. **Data Validation Enhancements**
-   - Business rule validations
-   - Constraint checking
-   - Error message localization
-
-## Phase 2: Social Features
-**Scope**: Enable collaboration and competition
-
-### Features to Build
-1. **Friend System**
-   - Friend requests via MemberId
-   - Friend list management
-   - Privacy settings
-   - Activity visibility controls
-
-2. **Shared Todos**
-   - Create todos with multiple assignees
-   - Require consensus for completion
-   - Progress tracking per member
-   - Notification on updates
-
-3. **Challenge Enhancements**
-   - Private challenges for friend groups
-   - Custom challenge rules
-   - Progress milestones
-   - Completion certificates
-
-4. **Activity Feed**
-   - Friend todo completions
-   - Level-up announcements
-   - Challenge participation
-   - Achievement unlocks
-
-## Phase 3: Advanced Gamification
-**Scope**: Deepen engagement through achievements
-
-### Features to Build
-1. **Achievement System**
-   - Define achievement criteria
-   - Track progress automatically
-   - Unlock notifications
-   - Display on profile
-
-2. **Streak Tracking**
-   - Daily completion streaks
-   - Category-specific streaks
-   - Streak recovery mechanics
-   - Bonus XP for streaks
-
-3. **Advanced Statistics**
-   - Completion trends
-   - Productivity insights
-   - Category analytics
-   - Time-based patterns
-
-4. **Leaderboards**
-   - Global rankings
-   - Friend rankings
-   - Category-specific boards
-   - Weekly/monthly resets
-
-## Phase 4: Platform Expansion
-**Scope**: Extend beyond single-user experience
-
-### Features to Build
-1. **Team Workspaces**
-   - Shared categories
-   - Team challenges
-   - Role-based permissions
-   - Team statistics
-
-2. **Public Challenges**
-   - Browse public challenges
-   - Challenge templates
-   - Sponsored challenges
-   - Prize distribution
-
-3. **API Rate Limiting**
-   - User-based limits
-   - Endpoint-specific rules
-   - Usage analytics
-   - Premium tiers
-
-4. **Data Export/Import**
-   - Export user data
-   - Import from other apps
-   - Backup functionality
-   - GDPR compliance
-
-# Logical Dependency Chain
-
-## Foundation Layer (Current Implementation)
-1. **Core Domain Models**
-   - Member, Profile, TodoOriginal entities ✓
-   - Category hierarchy system ✓
-   - Tag management ✓
-   - Experience/Level structure ✓
-
-2. **Authentication & Security**
-   - JWT token generation ✓
-   - Spring Security configuration ✓
-   - Role-based access control ✓
-   - API endpoint protection ✓
-
-3. **RESTful API Layer**
-   - Todo CRUD operations ✓
-   - Category management ✓
-   - Virtual todo generation ✓
-   - Swagger documentation ✓
-
-## Enhancement Layer (Next Steps)
-1. **Notification Service**
-   - Requires: Member system
-   - Enables: Reminders, alerts
-   - Dependencies: Email service integration
-
-2. **Friend Relationships**
-   - Requires: Member profiles
-   - Enables: Social features
-   - Dependencies: Invitation system
-
-3. **Challenge Participation**
-   - Requires: Todo system, Member system
-   - Enables: Competition features
-   - Dependencies: Leaderboard calculation
-
-## Social Layer
-1. **Shared Todos**
-   - Requires: Friend system
-   - Enables: Collaboration
-   - Dependencies: Multi-member todo tracking
-
-2. **Activity Feeds**
-   - Requires: Friend system, Event tracking
-   - Enables: Social engagement
-   - Dependencies: Event sourcing
-
-3. **Team Features**
-   - Requires: Shared todos, Permissions
-   - Enables: Group productivity
-   - Dependencies: Workspace management
-
-## Advanced Layer
-1. **Analytics Engine**
-   - Requires: Historical data
-   - Enables: Insights
-   - Dependencies: Data warehouse
-
-2. **Achievement System**
-   - Requires: Event tracking
-   - Enables: Long-term goals
-   - Dependencies: Rule engine
-
-3. **Public Platform**
-   - Requires: All social features
-   - Enables: Community
-   - Dependencies: Moderation system
-
-# Risks and Mitigations
-
-## Technical Challenges
-
-### Virtual Todo Complexity
-- **Risk**: Complex date calculations for recurring patterns, especially with timezone handling
-- **Mitigation**: Use Java Time API, comprehensive test coverage for edge cases, clear timezone handling strategy
-
-### Performance at Scale
-- **Risk**: Virtual todo generation becoming slow with many recurring tasks
-- **Mitigation**: Implement caching layer, optimize queries with proper indexes, consider materialized views
-
-### Concurrent Modifications  
-- **Risk**: Race conditions in challenge participation, shared todos
-- **Mitigation**: Use optimistic locking (@Version), implement proper transaction boundaries, design idempotent operations
-
-### Data Consistency
-- **Risk**: Statistics becoming out of sync with actual completions
-- **Mitigation**: Event-driven updates, periodic reconciliation jobs, audit logging
-
-## MVP Scope Risks
-
-### Feature Completeness
-- **Risk**: Current API-only approach may limit user adoption
-- **Mitigation**: Clear API documentation, consider simple web UI, provide API client examples
-
-### Mobile Experience
-- **Risk**: No native mobile app in MVP
-- **Mitigation**: Ensure API is mobile-friendly, plan for future mobile development, responsive web option
-
-### User Onboarding
-- **Risk**: Complex API may discourage new users
-- **Mitigation**: Comprehensive Swagger docs, getting-started guide, example use cases
-
-## Resource Constraints
-
-### Development Resources
-- **Risk**: Limited bandwidth for feature development
-- **Mitigation**: Prioritize core features, modular architecture for incremental additions
-
-### Testing Coverage
-- **Risk**: Complex business rules may have gaps
-- **Mitigation**: Automated testing strategy, unit + integration tests, test data generators
-
-### Monitoring & Operations
-- **Risk**: Limited visibility into production issues
-- **Mitigation**: Implement logging standards, health checks, performance metrics
-
-# Appendix
-
-## Research Findings
-
-### Competitor Analysis
-- **Todoist**: Excellent recurring task handling - influenced our RepeatType design
-- **Habitica**: Strong gamification - inspired our XP and level system
-- **Microsoft To-Do**: Clean API design - influenced our REST endpoint structure
-- **Any.do**: Category organization - influenced our hierarchical categories
-
-### Technical Decisions
-- **Why Spring Boot**: Mature ecosystem, excellent testing support, strong community
-- **Why PostgreSQL**: JSONB support for flexible data, strong consistency, window functions for analytics
-- **Why JWT**: Stateless authentication, mobile-friendly, standard implementation
-- **Why Virtual Todos**: Avoids data duplication, simplifies recurring task modifications
-
-## Technical Specifications
-
-### Database Indexes (Recommended)
-```sql
--- Performance critical indexes
-CREATE INDEX idx_todo_member_date ON todo_original(member_id, created_at);
-CREATE INDEX idx_todo_category ON todo_original(category_id);
-CREATE INDEX idx_virtual_todo_date ON todo_original(repeat_end_date) WHERE repeat_type IS NOT NULL;
-CREATE INDEX idx_category_hierarchy ON category(parent_id, display_order);
-CREATE INDEX idx_challenge_active ON challenge(end_date) WHERE status = 'ACTIVE';
+- validators/
+  - MemberValidator
+  - TodoValidator
+  - CategoryValidator
+  - ChallengeValidator
 ```
 
-### API Design Principles
-- RESTful conventions (GET, POST, PUT, PATCH, DELETE)
-- Consistent URL patterns (/resource/{id}/action)
-- Standard HTTP status codes
-- JSON request/response bodies
-- Pagination for list endpoints
-- Filtering via query parameters
+#### 3.2.2 MemberService 검증
+- **회원 생성 시**
+  - 이메일 중복 검증
+  - 닉네임 중복 검증 (대소문자 구분)
+  - 프로필 정보 유효성 검증
 
-### Security Considerations
-- BCrypt password hashing
-- JWT token expiration (24 hours)
-- Refresh token rotation
-- Role-based access control
-- API rate limiting (future)
-- Input validation on all endpoints
+- **회원 수정 시**
+  - 변경 가능 필드 검증
+  - 닉네임 변경 시 중복 검증 (대소문자 구분)
+  - 소유자 본인만 수정 가능
 
-### Performance Targets
-- API response time: < 200ms average
-- Todo list query: < 100ms
-- Virtual todo generation: < 50ms per todo
-- Database connection pool: 10-20 connections
-- JVM heap: 512MB - 2GB
+#### 3.2.3 CategoryService 검증
+- **카테고리 생성**
+  - 카테고리명 중복 검증 (대소문자 구분)
+  - 색상 코드 유효성 검증 (HEX 형식)
+  - 사용자당 카테고리 수 제한 없음
 
-### Monitoring Metrics
-- API endpoint latency
-- Error rates by endpoint
-- Daily active users
-- Todos created per day
-- Challenge participation rate
-- Database query performance
+- **카테고리 삭제**
+  - 연관된 Todo 존재 여부 확인
+  - 소유자만 삭제 가능
+
+#### 3.2.4 TodoService 검증
+- **Todo 생성**
+  - 우선순위 값 범위 (1-5)
+  - 태그 개수 제한 없음
+  - 태그 길이 제한 없음
+  - 반복 설정 논리적 검증
+
+- **Todo 수정**
+  - 완료된 Todo 수정 제한
+  - 반복 Todo의 개별 수정 시 처리
+  - 소유자만 수정 가능
+
+#### 3.2.5 ChallengeService 검증
+- **챌린지 생성**
+  - 참가자 수 제한 없음
+  - 챌린지 기간 제한 없음
+  - 시작일 검증 (현재 시간 이후)
+
+- **챌린지 참여**
+  - 중복 참여 방지
+  - 챌린지 상태 확인
+
+### 3.3 에러 처리 체계 개선
+
+#### 3.3.1 에러 코드 체계
+```
+- AUTH_001: 인증 실패
+- AUTH_002: 권한 부족
+- MEMBER_001: 회원 정보 없음
+- MEMBER_002: 중복된 이메일
+- TODO_001: Todo 없음
+- TODO_002: 유효하지 않은 반복 설정
+- CATEGORY_001: 카테고리 없음
+- CATEGORY_002: 카테고리 수 초과
+- CHALLENGE_001: 챌린지 없음
+- CHALLENGE_002: 참가자 수 초과
+```
+
+#### 3.3.2 에러 응답 형식
+```json
+{
+  "type": "/errors/member-not-found",
+  "title": "Member Not Found",
+  "status": 404,
+  "detail": "회원을 찾을 수 없습니다.",
+  "instance": "/members/123",
+  "errorCode": "MEMBER_001",
+  "timestamp": "2024-01-14T10:30:00Z",
+  "traceId": "abc123"
+}
+```
+
+#### 3.3.3 예외 처리 전략
+- **컨트롤러 어드바이스 확장**
+  - 도메인별 예외 핸들러 구현
+  - 검증 실패 시 상세 정보 제공
+  - 로깅 레벨 세분화
+
+- **서비스 레이어 예외**
+  - BusinessException 서브클래스 생성
+  - 도메인별 커스텀 예외 정의
+  - 예외 체인 관리
+
+### 3.4 추가 보안 강화
+
+#### 3.4.1 입력값 Sanitization
+- **XSS 방지**
+  - HTML 태그 제거
+  - JavaScript 코드 필터링
+  - 특수문자 이스케이프
+
+#### 3.4.2 권한 기반 접근 제어
+- **소유자/관리자 검증**
+  - @PreAuthorize를 활용한 메서드 레벨 보안
+  - 소유자(isOwner) 검증 로직 구현
+  - 관리자 권한 체크
+  - 리소스별 접근 권한 매트릭스 정의
+
+#### 3.4.3 감사 로그
+- **주요 작업 로깅**
+  - 로그인/로그아웃
+  - 데이터 생성/수정/삭제
+  - 권한 변경
+  - 에러 발생
+  - Log4j2 구조화된 로깅 활용
+
+### 3.5 테스트 전략
+
+#### 3.5.1 단위 테스트
+- 각 밸리데이터 클래스 테스트
+- 에러 핸들러 테스트
+- 커스텀 어노테이션 테스트
+
+#### 3.5.2 통합 테스트
+- 엔드포인트별 검증 테스트
+- 에러 시나리오 테스트
+- 보안 테스트
+
+#### 3.5.3 부하 테스트
+- 동시성 이슈 테스트
+- 대용량 데이터 처리 테스트
+
+## 4. 구현 우선순위
+
+### Phase 1 (긴급)
+1. 권한 검증 시스템 구축 (소유자/관리자)
+2. AuthController 패스워드/이메일 검증
+3. 파일 업로드 보안 검증
+4. XSS 방지
+
+### Phase 2 (중요)
+1. JPA Criteria API 기반 동적 쿼리 구현
+2. 페이지네이션 검증
+3. 비즈니스 로직 검증 레이어
+4. 에러 코드 체계 구축
+5. 일관된 에러 응답
+
+### Phase 3 (개선)
+1. Log4j2 기반 감사 로그
+2. 성능 최적화
+3. 메이저 라이브러리 활용한 코드 간소화
+
+## 5. 성공 지표
+
+### 5.1 기술적 지표
+- 모든 API 엔드포인트 검증 커버리지 100%
+- 에러 응답 형식 일관성 100%
+- 보안 취약점 0건
+
+### 5.2 운영 지표
+- API 에러율 50% 감소
+- 잘못된 요청으로 인한 서버 부하 감소
+- 디버깅 시간 30% 단축
+
+## 6. 위험 요소 및 대응
+
+### 6.1 기존 클라이언트 호환성
+- 단계적 마이그레이션
+- API 버전 관리
+- 충분한 전환 기간 제공
+
+### 6.2 성능 영향
+- 검증 로직 최적화
+- 캐싱 전략 수립
+- 비동기 처리 고려
+
+### 6.3 개발 복잡도 증가
+- 명확한 가이드라인 제공
+- 재사용 가능한 컴포넌트 개발
+- 팀 교육 실시
+
+## 7. 타임라인
+
+- **Week 1-2**: Phase 1 구현 (보안 critical 이슈)
+- **Week 3-4**: Phase 2 구현 (검증 체계 구축)
+- **Week 5-6**: Phase 3 구현 (추가 개선사항)
+- **Week 7**: 통합 테스트 및 문서화
+- **Week 8**: 배포 및 모니터링
+
+## 8. 참고사항
+
+### 8.1 관련 표준
+- RFC 7807 (Problem Details for HTTP APIs)
+- OWASP Top 10
+- Spring Security Best Practices
+
+### 8.2 참고 구현
+- Spring Boot Starter Validation
+- Hibernate Validator
+- Apache Commons Validator
+
+### 8.3 도구 및 라이브러리
+- OWASP Java HTML Sanitizer
+- Log4j2 (Structured Logging)
+- Apache Commons Lang3 (유틸리티)
+- Guava (캐싱 및 유틸리티)
+- ModelMapper/MapStruct (객체 매핑)
 </PRD>
