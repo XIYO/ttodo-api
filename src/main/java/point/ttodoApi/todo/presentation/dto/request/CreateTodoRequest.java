@@ -3,6 +3,8 @@ package point.ttodoApi.todo.presentation.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import point.ttodoApi.common.validation.annotations.NoSqlInjection;
+import point.ttodoApi.common.validation.annotations.SanitizeHtml;
 
 import java.time.*;
 import java.util.*;
@@ -21,6 +23,7 @@ public class CreateTodoRequest {
         minLength = 1,
         maxLength = 255
     )
+    @NoSqlInjection
     private String title;
     
     @Size(max = 1000, message = "설명은 1000자를 초과할 수 없습니다") 
@@ -29,6 +32,7 @@ public class CreateTodoRequest {
         example = "토익 문제집 2장 풀기",
         maxLength = 1000
     )
+    @SanitizeHtml(mode = SanitizeHtml.SanitizeMode.STANDARD)
     private String description;
     
     @Schema(

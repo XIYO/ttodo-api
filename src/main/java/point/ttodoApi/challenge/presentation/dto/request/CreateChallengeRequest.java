@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import point.ttodoApi.challenge.domain.*;
+import point.ttodoApi.common.validation.annotations.NoSqlInjection;
+import point.ttodoApi.common.validation.annotations.SanitizeHtml;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,10 +15,12 @@ public record CreateChallengeRequest(
     @NotBlank
     @Size(min = 1, max = 255, message = "제목은 1자 이상 255자 이하여야 합니다")
     @Schema(description = "챌린지 제목", example = "하루 만보 걷기")
+    @NoSqlInjection
     String title,
     
     @Size(max = 65535, message = "설명은 65535자 이하여야 합니다")
     @Schema(description = "챌린지 설명", example = "매일 만보를 걸으면 인증!")
+    @SanitizeHtml(mode = SanitizeHtml.SanitizeMode.STANDARD)
     String description,
     
     @NotNull

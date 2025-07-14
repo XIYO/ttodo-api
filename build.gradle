@@ -47,6 +47,8 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     
+    implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1'
+    
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'org.postgresql:postgresql'
     

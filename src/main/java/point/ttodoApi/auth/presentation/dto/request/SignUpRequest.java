@@ -4,6 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import point.ttodoApi.common.validation.fieldcompare.*;
 import point.ttodoApi.member.domain.validation.UniqueEmail;
+import point.ttodoApi.common.validation.annotations.NoSqlInjection;
+import point.ttodoApi.common.validation.annotations.SecurePassword;
+import point.ttodoApi.common.validation.annotations.ValidUsername;
+import point.ttodoApi.common.validation.annotations.SanitizeHtml;
 
 @Schema(description = "사용자 사인-업에 필요한 데이터 DTO")
 @FieldComparison(message = "패스워드와 확인 패스워드가 일치하지 않습니다.")
@@ -12,10 +16,12 @@ public record SignUpRequest(
         @Schema(description = "사용자 이메일", example = "user@example.com") 
         @Email(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "{email.valid}") 
         @UniqueEmail(message = "이미 등록된 이메일입니다.") 
+        @NoSqlInjection
         String email,
         
         @NotBlank(message = "{password.required}") 
         @Schema(description = "사용자 비밀번호", example = "Strong@123") 
+        @SecurePassword
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,16}$", message = "비밀번호는 최소 8자, 최대 16자, 대문자, 소문자, 숫자, 특수문자를 포함해야 합니다.") 
         @CompareTarget 
         String password,
@@ -27,9 +33,12 @@ public record SignUpRequest(
         
         @NotBlank(message = "{nickname.required}") 
         @Schema(description = "사용자 이름", example = "홍길동") 
+        @ValidUsername
+        @NoSqlInjection
         String nickname,
         
         @Schema(description = "소개글", example = "안녕하세요! 새로운 회원입니다.")
+        @SanitizeHtml(mode = SanitizeHtml.SanitizeMode.STRICT)
         String introduction,
         @Schema(description = "사용자 타임존", example = "Asia/Seoul")
         String timeZone,
