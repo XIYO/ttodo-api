@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.application.command.*;
 import point.ttodoApi.category.application.dto.result.CategoryResult;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.common.error.BusinessException;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
@@ -22,26 +22,26 @@ public class CategoryService {
     private final MemberService memberService;
     
     public List<CategoryResult> getCategories(UUID memberId) {
-        return categoryRepository.findByOwnerIdOrderByNameAsc(memberId)
+        return categoryRepository.findByMemberIdOrderByNameAsc(memberId)
                 .stream()
                 .map(this::toCategoryResult)
                 .toList();
     }
     
     public Page<CategoryResult> getCategories(UUID memberId, Pageable pageable) {
-        return categoryRepository.findByOwnerId(memberId, pageable)
+        return categoryRepository.findByMemberId(memberId, pageable)
                 .map(this::toCategoryResult);
     }
     
     public CategoryResult getCategory(UUID memberId, UUID categoryId) {
-        Category category = categoryRepository.findByIdAndOwnerId(categoryId, memberId)
+        Category category = categoryRepository.findByIdAndMemberId(categoryId, memberId)
                 .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
         return toCategoryResult(category);
     }
     
     @Transactional
     public CategoryResult createCategory(CreateCategoryCommand command) {
-        Optional<Category> existingCategory = categoryRepository.findByNameAndOwnerId(command.name(), command.memberId());
+        Optional<Category> existingCategory = categoryRepository.findByNameAndMemberId(command.name(), command.memberId());
         if (existingCategory.isPresent()) {
             return toCategoryResult(existingCategory.get());
         }
@@ -52,7 +52,7 @@ public class CategoryService {
                 .name(command.name())
                 .color(command.color())
                 .description(command.description())
-                .owner(member)
+                .member(member)
                 .build();
                 
         Category savedCategory = categoryRepository.save(category);
@@ -61,11 +61,11 @@ public class CategoryService {
     
     @Transactional
     public CategoryResult updateCategory(UpdateCategoryCommand command) {
-        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
+        Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
                 .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
                 
         if (!category.getName().equals(command.name()) &&
-            categoryRepository.existsByNameAndOwnerId(command.name(), command.memberId())) {
+            categoryRepository.existsByNameAndMemberId(command.name(), command.memberId())) {
             throw new BusinessException("이미 존재하는 카테고리명입니다.");
         }
 
@@ -76,7 +76,7 @@ public class CategoryService {
     
     @Transactional
     public void deleteCategory(DeleteCategoryCommand command) {
-        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
+        Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
                 .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
                 
         categoryRepository.delete(category);
@@ -88,8 +88,8 @@ public class CategoryService {
      * @param memberId 회원 ID
      * @return 소유자 여부
      */
-    public boolean isOwner(UUID categoryId, UUID memberId) {
-        return categoryRepository.existsByIdAndOwnerId(categoryId, memberId);
+    public boolean isMember(UUID categoryId, UUID memberId) {
+        return categoryRepository.existsByIdAndMemberId(categoryId, memberId);
     }
     
     /**
@@ -98,7 +98,7 @@ public class CategoryService {
      * @return 카테고리 개수
      */
     public long countByMemberId(UUID memberId) {
-        return categoryRepository.countByOwnerId(memberId);
+        return categoryRepository.countByMemberId(memberId);
     }
     
     /**

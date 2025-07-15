@@ -42,7 +42,7 @@ public class CategorySearchService {
         
         Specification<Category> spec = builder
                 // 필수 조건
-                .with("owner.id", request.getOwnerId())
+                .with("member.id", request.getMemberId())
                 .with("active", true)
                 
                 // 선택적 조건들
@@ -80,11 +80,11 @@ public class CategorySearchService {
     /**
      * 특정 색상의 카테고리 조회
      */
-    public List<Category> getCategoriesByColor(String colorCode, UUID ownerId) {
+    public List<Category> getCategoriesByColor(String colorCode, UUID memberId) {
         SpecificationBuilder<Category> builder = new SpecificationBuilder<>(categorySpecification);
         
         Specification<Category> spec = builder
-                .with("owner.id", ownerId)
+                .with("member.id", memberId)
                 .with("active", true)
                 .with("colorCode", colorCode)
                 .build();

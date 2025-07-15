@@ -1,4 +1,5 @@
 package point.ttodoApi.todo.presentation;
+import point.ttodoApi.test.IntegrationTestSupport;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,7 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.test.config.*;
@@ -28,12 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * TodoController 단위 테스트
  * MockMvc를 사용하여 HTTP 레이어만 테스트
  */
-@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @Import({TestSecurityConfig.class, TestDataConfig.class})
-public class TodoControllerTest {
+public class TodoControllerTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -64,7 +64,7 @@ public class TodoControllerTest {
 
     @Nested
     @DisplayName("Todo 생성 테스트")
-    class CreateTodoTest {
+    class CreateTodoTest extends IntegrationTestSupport {
         
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -386,7 +386,7 @@ public class TodoControllerTest {
 
     @Nested
     @DisplayName("Todo 조회 테스트")
-    class RetrieveTodoTest {
+    class RetrieveTodoTest extends IntegrationTestSupport {
         
         private Long todoId;
         
@@ -492,7 +492,7 @@ public class TodoControllerTest {
 
     @Nested
     @DisplayName("Todo 수정 테스트")
-    class UpdateTodoTest {
+    class UpdateTodoTest extends IntegrationTestSupport {
         
         private Long todoId;
         
@@ -561,7 +561,7 @@ public class TodoControllerTest {
 
     @Nested
     @DisplayName("Todo 삭제 테스트")
-    class DeleteTodoTest {
+    class DeleteTodoTest extends IntegrationTestSupport {
         
         private Long todoId;
         
@@ -607,7 +607,7 @@ public class TodoControllerTest {
 
     @Nested
     @DisplayName("인증 및 검증 테스트")
-    class AuthAndValidationTest {
+    class AuthAndValidationTest extends IntegrationTestSupport {
         
         @Test
         @DisplayName("인증 없이 요청 시 실패")
@@ -655,7 +655,7 @@ public class TodoControllerTest {
 
     @Nested
     @DisplayName("확장 기능 테스트")
-    class ExtendedFeatureTest {
+    class ExtendedFeatureTest extends IntegrationTestSupport {
         
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -821,7 +821,7 @@ public class TodoControllerTest {
 
     @Nested
     @DisplayName("Todo 통계 테스트")
-    class TodoStatisticsTest {
+    class TodoStatisticsTest extends IntegrationTestSupport {
         
         @BeforeEach
         void setUpTodos() {

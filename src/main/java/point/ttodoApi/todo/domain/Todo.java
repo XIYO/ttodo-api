@@ -1,5 +1,7 @@
 package point.ttodoApi.todo.domain;
 
+import java.util.UUID;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.*;
@@ -55,8 +57,8 @@ public class Todo {
   private Set<String> tags;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "owner_id", nullable = false)
-  private Member owner;
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
 
   @CreatedDate
   @Column(updatable = false)
@@ -79,7 +81,7 @@ public class Todo {
               LocalDate date,
               LocalTime time,
               Set<String> tags,
-              Member owner) {
+              Member member) {
     this.todoId = todoId;
     this.title = title;
     this.description = description;
@@ -93,7 +95,7 @@ public class Todo {
     this.date = date;
     this.time = time;
     this.tags = tags;
-    this.owner = owner;
+    this.member = member;
   }
 
   public Long getOriginalTodoId() {
@@ -121,10 +123,10 @@ public class Todo {
   public boolean isAccessibleBy(Member member) {
     if (member == null) return false;
     
-    // owner는 항상 접근 가능
-    if (this.owner.equals(member)) return true;
+    // member는 항상 접근 가능
+    if (this.member.equals(member)) return true;
     
-    // 협업 투두가 아니면 owner만 접근 가능
+    // 협업 투두가 아니면 member만 접근 가능
     if (!isCollaborativeTodo()) return false;
     
     // 카테고리가 없으면 협업 불가
@@ -141,10 +143,10 @@ public class Todo {
   public boolean isEditableBy(Member member) {
     if (member == null) return false;
     
-    // owner는 항상 수정 가능
-    if (this.owner.equals(member)) return true;
+    // member는 항상 수정 가능
+    if (this.member.equals(member)) return true;
     
-    // 협업 투두가 아니면 owner만 수정 가능
+    // 협업 투두가 아니면 member만 수정 가능
     if (!isCollaborativeTodo()) return false;
     
     // 카테고리가 없으면 협업 불가
@@ -191,8 +193,8 @@ public class Todo {
    * @return 소유자인지 여부
    */
   public boolean isOwn(UUID memberId) {
-    if (memberId == null || this.owner == null) return false;
-    return this.owner.getId().equals(memberId);
+    if (memberId == null || this.member == null) return false;
+    return this.member.getId().equals(memberId);
   }
 }
 

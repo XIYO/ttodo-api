@@ -32,8 +32,8 @@ public class CollaborativeTodoResponse {
     private Integer priorityId;
     private UUID categoryId;
     private String categoryName;
-    private UUID ownerId;
-    private String ownerNickname;
+    private UUID memberId;
+    private String memberNickname;
     private LocalDate date;
     private LocalTime time;
     private Set<String> tags;
@@ -44,7 +44,7 @@ public class CollaborativeTodoResponse {
     public static CollaborativeTodoResponse from(Todo todo, boolean canEdit) {
         return CollaborativeTodoResponse.builder()
             .originalTodoId(todo.getTodoId().getId())
-            .daysDifference(todo.getTodoId().getDaysDifference())
+            .daysDifference(todo.getTodoId().getDaysDifference().intValue())
             .title(todo.getTitle())
             .description(todo.getDescription())
             .complete(todo.getComplete())
@@ -54,8 +54,8 @@ public class CollaborativeTodoResponse {
             .priorityId(todo.getPriorityId())
             .categoryId(todo.getCategory() != null ? todo.getCategory().getId() : null)
             .categoryName(todo.getCategory() != null ? todo.getCategory().getName() : null)
-            .ownerId(todo.getOwner().getId())
-            .ownerNickname(todo.getOwner().getNickname())
+            .memberId(todo.getMember().getId())
+            .memberNickname(todo.getMember().getNickname())
             .date(todo.getDate())
             .time(todo.getTime())
             .tags(todo.getTags())

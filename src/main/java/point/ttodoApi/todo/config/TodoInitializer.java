@@ -3,9 +3,10 @@ package point.ttodoApi.todo.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.*;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.todo.domain.TodoOriginal;
 import point.ttodoApi.todo.infrastructure.persistence.TodoOriginalRepository;
@@ -15,6 +16,7 @@ import java.util.*;
 
 @Slf4j
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class TodoInitializer implements ApplicationRunner {
   private final TodoOriginalRepository todoOriginalRepository;

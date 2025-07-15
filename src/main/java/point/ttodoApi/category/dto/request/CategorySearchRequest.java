@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 import point.ttodoApi.common.dto.BaseSearchRequest;
 
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.UUID;
 public class CategorySearchRequest extends BaseSearchRequest {
     
     @Schema(description = "소유자 ID", hidden = true)
-    private UUID ownerId;
+    private UUID memberId;
     
     @Schema(description = "제목 검색 키워드", example = "개인")
     @Size(max = 100, message = "제목 검색어는 100자를 초과할 수 없습니다")
@@ -47,6 +48,7 @@ public class CategorySearchRequest extends BaseSearchRequest {
     private boolean includeSubCategories;
     
     @Schema(description = "활성 상태만 조회", example = "true")
+    @Builder.Default
     private Boolean active = true;
     
     @Schema(description = "상위 카테고리 ID (하위 카테고리 조회 시)")

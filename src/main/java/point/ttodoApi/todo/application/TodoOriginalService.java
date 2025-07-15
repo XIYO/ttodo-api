@@ -6,7 +6,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.common.error.EntityNotFoundException;
 import point.ttodoApi.experience.application.event.*;
 import point.ttodoApi.member.application.MemberService;
@@ -34,7 +34,7 @@ public class TodoOriginalService {
     private final ApplicationEventPublisher eventPublisher;
     
     public TodoResult getTodo(TodoQuery query) {
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(query.todoId(), query.memberId())
+        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(query.todoId(), query.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.todoId()));
         return todoApplicationMapper.toResult(todoOriginal);
     }
@@ -47,7 +47,7 @@ public class TodoOriginalService {
         
         Category category = null;
         if (command.categoryId() != null) {
-            category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
+            category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
                     .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
         }
         
@@ -72,7 +72,7 @@ public class TodoOriginalService {
                 .daysOfWeek(command.daysOfWeek())
                 .tags(command.tags())
                 .category(category)
-                .owner(member)
+                .member(member)
                 .build();
         
         todoOriginalRepository.save(todoOriginal);
@@ -82,7 +82,7 @@ public class TodoOriginalService {
     public void updateTodo(UpdateTodoCommand command) {
         command.validateRepeatDates();
         
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(command.todoId(), command.memberId())
+        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(command.todoId(), command.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
         
         boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
@@ -131,7 +131,7 @@ public class TodoOriginalService {
     public void partialUpdateTodo(UpdateTodoCommand command) {
         command.validateRepeatDates();
         
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(command.todoId(), command.memberId())
+        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(command.todoId(), command.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
         
         boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
@@ -173,7 +173,7 @@ public class TodoOriginalService {
         
         // 카테고리 처리
         if (command.categoryId() != null) {
-            Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
+            Category category = categoryRepository.findByIdAndMemberId(command.categoryId(), command.memberId())
                     .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
             todoOriginal.setCategory(category);
         }
@@ -203,18 +203,18 @@ public class TodoOriginalService {
 
     @Transactional
     public void deactivateTodo(DeleteTodoCommand command) {
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(command.originalTodoId(), command.memberId())
+        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndMemberId(command.originalTodoId(), command.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
         
         todoOriginal.setActive(false);
     }
     
     public List<TodoOriginal> getTodoOriginals(UUID memberId) {
-        return todoOriginalRepository.findByOwnerId(memberId);
+        return todoOriginalRepository.findByMemberId(memberId);
     }
     
     public Page<String> getTags(UUID memberId, List<UUID> categoryIds, Pageable pageable) {
-        return todoOriginalRepository.findDistinctTagsByOwnerId(memberId, categoryIds, pageable);
+        return todoOriginalRepository.findDistinctTagsByMemberId(memberId, categoryIds, pageable);
     }
     
     /**
@@ -223,12 +223,12 @@ public class TodoOriginalService {
      * @return 완료한 할일 개수
      */
     public long countCompletedTodos(UUID memberId) {
-        return todoRepository.countCompletedTodosByOwnerId(memberId);
+        return todoRepository.countCompletedTodosByMemberId(memberId);
     }
     
     @Transactional
     public void togglePin(TodoQuery query) {
-        TodoOriginal todo = todoOriginalRepository.findByIdAndOwnerId(query.todoId(), query.memberId())
+        TodoOriginal todo = todoOriginalRepository.findByIdAndMemberId(query.todoId(), query.memberId())
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.todoId()));
         
         boolean wasPinned = todo.getIsPinned();
@@ -237,7 +237,7 @@ public class TodoOriginalService {
         if (!wasPinned && todo.getIsPinned()) {
             // 현재 투두를 제외한 기존 핀 고정 투두들을 조회
             List<TodoOriginal> existingPinnedTodos = todoOriginalRepository
-                    .findByOwnerIdAndIsPinnedTrueOrderByDisplayOrderAsc(query.memberId())
+                    .findByMemberIdAndIsPinnedTrueOrderByDisplayOrderAsc(query.memberId())
                     .stream()
                     .filter(t -> !t.getId().equals(todo.getId()))
                     .toList();
@@ -249,7 +249,7 @@ public class TodoOriginalService {
     
     @Transactional
     public void changeOrder(UUID memberId, Long todoId, Integer newOrder) {
-        TodoOriginal target = todoOriginalRepository.findByIdAndOwnerId(todoId, memberId)
+        TodoOriginal target = todoOriginalRepository.findByIdAndMemberId(todoId, memberId)
                 .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", todoId));
         
         if (!target.getIsPinned()) {
@@ -257,7 +257,7 @@ public class TodoOriginalService {
         }
         
         List<TodoOriginal> pinnedTodos = todoOriginalRepository
-                .findByOwnerIdAndIsPinnedTrueOrderByDisplayOrderAsc(memberId);
+                .findByMemberIdAndIsPinnedTrueOrderByDisplayOrderAsc(memberId);
         
         if (newOrder < 0 || newOrder >= pinnedTodos.size()) {
             throw new IllegalArgumentException("Invalid order index");
@@ -276,7 +276,7 @@ public class TodoOriginalService {
      * 먼저 Todo 테이블을 확인하고, 없으면 TodoOriginal을 확인
      */
     public boolean isOwner(Long todoId, UUID memberId) {
-        return todoOriginalRepository.findByIdAndOwnerId(todoId, memberId).isPresent();
+        return todoOriginalRepository.findByIdAndMemberId(todoId, memberId).isPresent();
     }
     
     /**
@@ -286,14 +286,14 @@ public class TodoOriginalService {
     public boolean isOwnerWithDaysDifference(Long originalTodoId, Long daysDifference, UUID memberId) {
         // 먼저 Virtual Todo 테이블 확인
         TodoId todoId = new TodoId(originalTodoId, daysDifference);
-        boolean existsInTodoTable = todoRepository.findByTodoIdAndOwnerId(todoId, memberId).isPresent();
+        boolean existsInTodoTable = todoRepository.findByTodoIdAndMemberId(todoId, memberId).isPresent();
         
         if (existsInTodoTable) {
             return true;
         }
         
         // Todo 테이블에 없으면 TodoOriginal 확인
-        return todoOriginalRepository.findByIdAndOwnerId(originalTodoId, memberId).isPresent();
+        return todoOriginalRepository.findByIdAndMemberId(originalTodoId, memberId).isPresent();
     }
     
     /**

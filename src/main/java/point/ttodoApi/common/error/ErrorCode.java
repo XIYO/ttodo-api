@@ -10,6 +10,7 @@ public enum ErrorCode {
     // Common Errors
     VALIDATION_ERROR("COMMON_001", "입력값 검증 실패", HttpStatus.BAD_REQUEST),
     INVALID_ARGUMENT("COMMON_002", "잘못된 요청 파라미터", HttpStatus.BAD_REQUEST),
+    INVALID_INPUT_VALUE("COMMON_008", "잘못된 입력값", HttpStatus.BAD_REQUEST),
     MISSING_PARAMETER("COMMON_003", "필수 파라미터 누락", HttpStatus.BAD_REQUEST),
     MISSING_FILE("COMMON_004", "필수 파일 누락", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND("COMMON_005", "리소스를 찾을 수 없음", HttpStatus.NOT_FOUND),

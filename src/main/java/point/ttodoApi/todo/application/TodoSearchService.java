@@ -43,7 +43,7 @@ public class TodoSearchService {
         
         Specification<Todo> spec = builder
                 // 필수 조건
-                .with("owner.id", request.getOwnerId())
+                .with("member.id", request.getMemberId())
                 .with("active", true)
                 
                 // 선택적 조건들
@@ -66,11 +66,11 @@ public class TodoSearchService {
     /**
      * 완료되지 않은 오늘의 Todo 조회
      */
-    public List<Todo> getTodayIncompleteTodos(UUID ownerId) {
+    public List<Todo> getTodayIncompleteTodos(UUID memberId) {
         SpecificationBuilder<Todo> builder = new SpecificationBuilder<>(todoSpecification);
         
         Specification<Todo> spec = builder
-                .with("owner.id", ownerId)
+                .with("member.id", memberId)
                 .with("active", true)
                 .with("complete", false)
                 .with("date", LocalDate.now())
@@ -82,11 +82,11 @@ public class TodoSearchService {
     /**
      * 카테고리별 Todo 개수 조회
      */
-    public long countTodosByCategory(UUID ownerId, UUID categoryId) {
+    public long countTodosByCategory(UUID memberId, UUID categoryId) {
         SpecificationBuilder<Todo> builder = new SpecificationBuilder<>(todoSpecification);
         
         Specification<Todo> spec = builder
-                .with("owner.id", ownerId)
+                .with("member.id", memberId)
                 .with("active", true)
                 .with("category.id", categoryId)
                 .build();

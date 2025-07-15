@@ -35,6 +35,11 @@ public enum SearchOperator {
     LESS_THAN_OR_EQUALS,
     
     /**
+     * 작거나 같다 (<=) - 별칭
+     */
+    LESS_THAN_OR_EQUAL,
+    
+    /**
      * 포함 (LIKE %value%)
      */
     LIKE,
@@ -72,5 +77,10 @@ public enum SearchOperator {
     /**
      * BETWEEN 절
      */
-    BETWEEN
+    BETWEEN,
+    
+    /**
+     * OR 그룹 - OR로 연결될 조건들의 그룹
+     */
+    OR_GROUP
 }

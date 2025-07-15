@@ -52,7 +52,7 @@ public class SearchController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal Member member) {
         
-        request.setOwnerId(member.getId());
+        request.setMemberId(member.getId());
         request.validate();
         Page<Todo> result = todoSearchService.searchTodos(request, pageable);
         return ResponseEntity.ok(PageResponse.of(result));
@@ -80,7 +80,7 @@ public class SearchController {
             @PageableDefault(size = 20, sort = "orderIndex", direction = Sort.Direction.ASC) Pageable pageable,
             @AuthenticationPrincipal Member member) {
         
-        request.setOwnerId(member.getId());
+        request.setMemberId(member.getId());
         request.validate();
         Page<Category> result = categorySearchService.searchCategories(request, pageable);
         return ResponseEntity.ok(PageResponse.of(result));

@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 /**
  * 검색 요청의 기본 클래스
@@ -25,11 +26,13 @@ public abstract class BaseSearchRequest {
     @Schema(description = "페이지 번호 (0부터 시작)", example = "0", defaultValue = "0")
     @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
     @Max(value = 10000, message = "페이지 번호는 10000을 초과할 수 없습니다")
+    @Builder.Default
     private Integer page = 0;
     
     @Schema(description = "페이지 크기", example = "20", defaultValue = "20")
     @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다")
     @Max(value = 100, message = "페이지 크기는 100을 초과할 수 없습니다")
+    @Builder.Default
     private Integer size = 20;
     
     @Schema(description = "정렬 조건 (필드명,방향 형식)", example = "createdAt,desc")

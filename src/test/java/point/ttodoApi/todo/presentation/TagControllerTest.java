@@ -1,4 +1,5 @@
 package point.ttodoApi.todo.presentation;
+import point.ttodoApi.test.IntegrationTestSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
@@ -11,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.test.config.*;
@@ -25,13 +26,12 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @Import({TestSecurityConfig.class, TestDataConfig.class})
 @DisplayName("TagController 통합 테스트")
-public class TagControllerTest {
+public class TagControllerTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -86,7 +86,7 @@ public class TagControllerTest {
 
     @Nested
     @DisplayName("태그 조회 기본 테스트")
-    class BasicTagRetrievalTest {
+    class BasicTagRetrievalTest extends IntegrationTestSupport {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -143,7 +143,7 @@ public class TagControllerTest {
 
     @Nested
     @DisplayName("카테고리 필터링 테스트")
-    class CategoryFilteringTest {
+    class CategoryFilteringTest extends IntegrationTestSupport {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -202,7 +202,7 @@ public class TagControllerTest {
 
     @Nested
     @DisplayName("페이지네이션 테스트")
-    class PaginationTest {
+    class PaginationTest extends IntegrationTestSupport {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -267,7 +267,7 @@ public class TagControllerTest {
 
     @Nested
     @DisplayName("정렬 테스트")
-    class SortingTest {
+    class SortingTest extends IntegrationTestSupport {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -323,7 +323,7 @@ public class TagControllerTest {
 
     @Nested
     @DisplayName("데이터 격리 테스트")
-    class DataIsolationTest {
+    class DataIsolationTest extends IntegrationTestSupport {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -362,7 +362,7 @@ public class TagControllerTest {
 
     @Nested
     @DisplayName("엣지 케이스 테스트")
-    class EdgeCaseTest {
+    class EdgeCaseTest extends IntegrationTestSupport {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -404,7 +404,7 @@ public class TagControllerTest {
 
     @Nested
     @DisplayName("인증 및 권한 테스트")
-    class AuthAndValidationTest {
+    class AuthAndValidationTest extends IntegrationTestSupport {
 
         @Test
         @DisplayName("인증되지 않은 사용자 접근 거부")

@@ -21,7 +21,6 @@ import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.presentation.dto.response.MemberResponse;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.todo.config.TodoInitializer;
 
 import java.util.List;
 
@@ -39,7 +38,6 @@ public class AuthController {
   private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
   private final CookieService cookieService;
-  private final TodoInitializer todoInitializer;
 
   @Operation(
       summary = "회원가입 및 자동 로그인", 

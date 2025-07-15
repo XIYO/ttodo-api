@@ -46,7 +46,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "카테고리 조회 성공")
     @ApiResponse(responseCode = "403", description = "접근 권한 없음")
     @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
-    @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
+    @PreAuthorize("@categoryService.isMember(#categoryId, authentication.principal.id)")
     public CategoryResponse getCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
@@ -97,7 +97,7 @@ public class CategoryController {
             @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
         }
     )
-    @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
+    @PreAuthorize("@categoryService.isMember(#categoryId, authentication.principal.id)")
     public CategoryResponse updateCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
@@ -117,7 +117,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "403", description = "접근 권한 없음")
     @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@categoryService.isOwner(#categoryId, authentication.principal.id)")
+    @PreAuthorize("@categoryService.isMember(#categoryId, authentication.principal.id)")
     public void deleteCategory(
             @AuthenticationPrincipal MemberPrincipal principal,
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {

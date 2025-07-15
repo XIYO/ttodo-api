@@ -11,15 +11,15 @@ import java.util.*;
  */
 public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecificationExecutor<Todo> {
     
-    @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.owner.id = :ownerId AND t.active = true")
-    Optional<Todo> findByTodoIdAndOwnerId(@Param("todoId") TodoId todoId, @Param("ownerId") UUID ownerId);
+    @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.member.id = :memberId AND t.active = true")
+    Optional<Todo> findByTodoIdAndMemberId(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);
 
-    @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.owner.id = :ownerId")
-    Optional<Todo> findByTodoIdAndOwnerIdIgnoreActive(@Param("todoId") TodoId todoId, @Param("ownerId") UUID ownerId);
+    @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.member.id = :memberId")
+    Optional<Todo> findByTodoIdAndMemberIdIgnoreActive(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);
     
     // 통계용 메서드 - 완료한 할일 수
-    @Query("SELECT COUNT(t) FROM Todo t WHERE t.owner.id = :ownerId AND t.complete = true AND t.active = true")
-    long countCompletedTodosByOwnerId(@Param("ownerId") UUID ownerId);
+    @Query("SELECT COUNT(t) FROM Todo t WHERE t.member.id = :memberId AND t.complete = true AND t.active = true")
+    long countCompletedTodosByMemberId(@Param("memberId") UUID memberId);
     
     /**
      * 멤버가 접근 가능한 모든 투두 조회 (owner + 협업 투두)
@@ -29,7 +29,7 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
            "LEFT JOIN c.collaborators cc " +
            "WHERE t.active = true AND " +
            "(" +
-           "    t.owner.id = :memberId OR " +
+           "    t.member.id = :memberId OR " +
            "    (t.isCollaborative = true AND " +
            "     cc.member.id = :memberId AND " +
            "     cc.status = 'ACCEPTED' AND " +
@@ -71,7 +71,7 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
            "WHERE t.todoId = :todoId AND " +
            "t.active = true AND " +
            "(" +
-           "    t.owner.id = :memberId OR " +
+           "    t.member.id = :memberId OR " +
            "    (t.isCollaborative = true AND " +
            "     cc.member.id = :memberId AND " +
            "     cc.status = 'ACCEPTED' AND " +
@@ -124,7 +124,7 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
      */
     @Modifying
     @Query("UPDATE Todo t SET t.isCollaborative = false " +
-           "WHERE t.owner.id = :memberId AND " +
+           "WHERE t.member.id = :memberId AND " +
            "t.category.id = :categoryId AND " +
            "t.isCollaborative = true")
     int updateMemberCollaborativeTodosToPersonal(

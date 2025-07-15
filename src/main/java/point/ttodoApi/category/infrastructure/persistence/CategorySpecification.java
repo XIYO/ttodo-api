@@ -1,4 +1,4 @@
-package point.ttodoApi.category.infrastructure;
+package point.ttodoApi.category.infrastructure.persistence;
 
 import org.springframework.stereotype.Component;
 import point.ttodoApi.category.domain.Category;
@@ -17,8 +17,8 @@ public class CategorySpecification extends BaseSpecification<Category> {
         "name",
         "color",
         "description",
-        "owner.email",
-        "owner.nickname"
+        "member.email",
+        "member.nickname"
     );
     
     @Override

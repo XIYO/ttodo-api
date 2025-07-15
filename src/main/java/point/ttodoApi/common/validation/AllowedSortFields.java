@@ -32,7 +32,7 @@ public final class AllowedSortFields {
         "date",
         "priorityId",
         "orderIndex",
-        "owner.nickname",
+        "member.nickname",
         "category.title"
     );
     

@@ -69,7 +69,7 @@ public class ChallengeParticipationService {
             log.debug("챌린지 활성 상태 확인 - challengeId: {}, isActive: {}", challenge.getId(), isActive);
             if (!isActive) {
                 log.warn("비활성 챌린지 참여 시도 - challengeId: {}", challenge.getId());
-                throw new BusinessException("BIZ_001", "종료되었거나 시작되지 않은 챌린지입니다");
+                throw new BusinessException(ErrorCode.INVALID_OPERATION, "종료되었거나 시작되지 않은 챌린지입니다");
             }
             
             // 참여 가능 여부 확인
@@ -77,7 +77,7 @@ public class ChallengeParticipationService {
             log.debug("챌린지 참여 가능 여부 확인 - challengeId: {}, isJoinable: {}", challenge.getId(), isJoinable);
             if (!isJoinable) {
                 log.warn("참여 불가능한 챌린지 참여 시도 - challengeId: {}", challenge.getId());
-                throw new BusinessException("BIZ_001", "참여 인원이 가득 찼습니다");
+                throw new BusinessException(ErrorCode.CHALLENGE_FULL, "참여 인원이 가득 찼습니다");
             }
             
             // 중복 참여 확인

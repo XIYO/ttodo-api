@@ -18,6 +18,10 @@ public class TodoId implements Serializable {
     @Column(name = "days_difference")
     private Long seq;
     
+    public Long getDaysDifference() {
+        return seq;
+    }
+    
     public String getVirtualId() {
         return id + ":" + seq;
     }

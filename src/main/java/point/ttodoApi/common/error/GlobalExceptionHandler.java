@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.*;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.*;
@@ -55,7 +57,7 @@ public class GlobalExceptionHandler {
         metricsCollector.recordError(ex.getErrorCodeValue(), ex.getHttpStatus().value(), ex.getClass().getSimpleName());
         
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .type(buildErrorType(ex.getErrorCodeValue()))
+                .type(buildErrorType(ex.getErrorCode()))
                 .title(ex.getErrorCode().getMessage())
                 .status(ex.getHttpStatus().value())
                 .detail(ex.getMessage())
@@ -234,6 +236,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
     
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(
+            AuthorizationDeniedException ex, HttpServletRequest request) {
+        
+        ErrorResponse errorResponse = ErrorResponse.of(
+                ErrorCode.ACCESS_DENIED,
+                "해당 리소스에 접근할 권한이 없습니다.",
+                request.getRequestURI()
+        );
+        
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+    
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(
             IllegalArgumentException ex, HttpServletRequest request) {
@@ -300,7 +315,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex, HttpServletRequest request) {
-        log.warn("Resource not found - errorCode: {}, message: {}", ex.getErrorCode(), ex.getMessage());
+        log.warn("Resource not found - errorCode: {}, message: {}", ex.getErrorCodeValue(), ex.getMessage());
         
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type(buildErrorType(ex.getErrorCode()))
@@ -308,7 +323,7 @@ public class GlobalExceptionHandler {
                 .status(ex.getHttpStatus().value())
                 .detail(ex.getMessage())
                 .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCode())
+                .errorCode(ex.getErrorCodeValue())
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
         
@@ -317,7 +332,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ErrorResponse> handleConflictException(ConflictException ex, HttpServletRequest request) {
-        log.warn("Resource conflict - errorCode: {}, message: {}", ex.getErrorCode(), ex.getMessage());
+        log.warn("Resource conflict - errorCode: {}, message: {}", ex.getErrorCodeValue(), ex.getMessage());
         
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type(buildErrorType(ex.getErrorCode()))
@@ -325,7 +340,7 @@ public class GlobalExceptionHandler {
                 .status(ex.getHttpStatus().value())
                 .detail(ex.getMessage())
                 .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCode())
+                .errorCode(ex.getErrorCodeValue())
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
         
@@ -334,7 +349,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException ex, HttpServletRequest request) {
-        log.warn("Access forbidden - errorCode: {}, message: {}", ex.getErrorCode(), ex.getMessage());
+        log.warn("Access forbidden - errorCode: {}, message: {}", ex.getErrorCodeValue(), ex.getMessage());
         
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .type(buildErrorType(ex.getErrorCode()))
@@ -342,7 +357,7 @@ public class GlobalExceptionHandler {
                 .status(ex.getHttpStatus().value())
                 .detail(ex.getMessage())
                 .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCode())
+                .errorCode(ex.getErrorCodeValue())
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
         
@@ -353,6 +368,10 @@ public class GlobalExceptionHandler {
         return "/errors/" + errorCode.toLowerCase().replace("_", "-");
     }
     
+    private String buildErrorType(ErrorCode errorCode) {
+        return "/errors/" + errorCode.getCode().toLowerCase().replace("_", "-");
+    }
+    
     private String getErrorTitle(String errorCode) {
         try {
             ErrorCode code = ErrorCode.valueOf(errorCode.replace("-", "_").toUpperCase());
@@ -360,5 +379,9 @@ public class GlobalExceptionHandler {
         } catch (IllegalArgumentException e) {
             return "오류 발생";
         }
+    }
+    
+    private String getErrorTitle(ErrorCode errorCode) {
+        return errorCode.getMessage();
     }
 }

@@ -97,7 +97,7 @@ public class SpecificationPerformanceAspect {
         String specString = spec.toString();
         
         // 일반적인 필드 패턴 매칭 (예시)
-        if (specString.contains("owner.id")) fields.add("owner.id");
+        if (specString.contains("member.id")) fields.add("member.id");
         if (specString.contains("active")) fields.add("active");
         if (specString.contains("title")) fields.add("title");
         if (specString.contains("createdAt")) fields.add("createdAt");

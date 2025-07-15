@@ -21,8 +21,8 @@ public class TodoSpecificationV2 extends BaseSpecification<Todo> {
         "complete",
         "active",
         "displayOrder",
-        "owner.email",
-        "owner.nickname",
+        "member.email",
+        "member.nickname",
         "category.name"
     );
     

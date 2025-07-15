@@ -237,7 +237,7 @@ public class Challenge {
         if (member == null) return false;
         
         return participations.stream()
-            .anyMatch(p -> p.getMemberId().equals(member.getId()) && p.getJoinOut() == null);
+            .anyMatch(p -> p.getMember().getId().equals(member.getId()) && p.getJoinOut() == null);
     }
     
     /**
@@ -247,7 +247,7 @@ public class Challenge {
         if (memberId == null) return false;
         
         return participations.stream()
-            .anyMatch(p -> p.getMemberId().equals(memberId) && p.getJoinOut() == null);
+            .anyMatch(p -> p.getMember().getId().equals(memberId) && p.getJoinOut() == null);
     }
     
     /**

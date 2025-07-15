@@ -1,4 +1,5 @@
 package point.ttodoApi.profile.application;
+import point.ttodoApi.test.IntegrationTestSupport;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.profile.domain.Statistics;
@@ -22,10 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * StatisticsService 통계 기능 테스트
  */
-@SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class StatisticsServiceTest {
+class StatisticsServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private StatisticsService statisticsService;

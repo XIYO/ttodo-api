@@ -14,7 +14,7 @@ import point.ttodoApi.category.application.CategoryCollaboratorService;
 import point.ttodoApi.category.domain.CategoryCollaborator;
 import point.ttodoApi.category.dto.CollaboratorInviteRequest;
 import point.ttodoApi.category.dto.CollaboratorResponse;
-import point.ttodoApi.common.dto.ApiResponse;
+// ApiResponse import removed - using full path to avoid conflict with Swagger's @ApiResponse
 
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 초대된 멤버, 존재하지 않는 카테고리/멤버 등)"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (카테고리 owner가 아님)")
     })
-    public ResponseEntity<ApiResponse<CollaboratorResponse>> inviteCollaborator(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<CollaboratorResponse>> inviteCollaborator(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Valid @RequestBody CollaboratorInviteRequest request) {
         
@@ -50,7 +50,7 @@ public class CategoryCollaboratorController {
         );
         
         CollaboratorResponse response = CollaboratorResponse.from(collaborator);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
     }
     
     @PostMapping("/{memberId}/accept")
@@ -60,13 +60,13 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (초대가 없거나 이미 처리됨)"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<ApiResponse<CollaboratorResponse>> acceptInvitation(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<CollaboratorResponse>> acceptInvitation(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         CategoryCollaborator collaborator = collaboratorService.acceptInvitation(categoryId, memberId);
         CollaboratorResponse response = CollaboratorResponse.from(collaborator);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
     }
     
     @PostMapping("/{memberId}/reject")
@@ -76,13 +76,13 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (초대가 없거나 이미 처리됨)"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<ApiResponse<CollaboratorResponse>> rejectInvitation(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<CollaboratorResponse>> rejectInvitation(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         CategoryCollaborator collaborator = collaboratorService.rejectInvitation(categoryId, memberId);
         CollaboratorResponse response = CollaboratorResponse.from(collaborator);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
     }
     
     @DeleteMapping("/{memberId}")
@@ -92,13 +92,13 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (카테고리 owner가 아님)")
     })
-    public ResponseEntity<ApiResponse<Void>> removeCollaborator(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<Void>> removeCollaborator(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Parameter(description = "제거할 멤버 ID") @PathVariable UUID memberId,
             @Parameter(description = "요청자 ID") @RequestParam UUID requesterId) {
         
         collaboratorService.removeCollaborator(categoryId, memberId, requesterId);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(null));
     }
     
     @PostMapping("/leave")
@@ -108,12 +108,12 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<ApiResponse<Void>> leaveCollaboration(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<Void>> leaveCollaboration(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Parameter(description = "멤버 ID") @RequestParam UUID memberId) {
         
         collaboratorService.leaveCollaboration(categoryId, memberId);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(null));
     }
     
     @GetMapping
@@ -122,7 +122,7 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "200", description = "협업자 목록 조회 성공"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (카테고리 owner 또는 협업자가 아님)")
     })
-    public ResponseEntity<ApiResponse<List<CollaboratorResponse>>> getCategoryCollaborators(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<CollaboratorResponse>>> getCategoryCollaborators(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Parameter(description = "요청자 ID") @RequestParam UUID requesterId) {
         
@@ -131,7 +131,7 @@ public class CategoryCollaboratorController {
             .map(CollaboratorResponse::from)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(responses));
     }
 }
 
@@ -150,7 +150,7 @@ class MemberCollaborationController {
         @ApiResponse(responseCode = "200", description = "초대 목록 조회 성공"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<ApiResponse<List<CollaboratorResponse>>> getPendingInvitations(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<CollaboratorResponse>>> getPendingInvitations(
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         List<CategoryCollaborator> invitations = collaboratorService.getPendingInvitations(memberId);
@@ -158,7 +158,7 @@ class MemberCollaborationController {
             .map(CollaboratorResponse::from)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(responses));
     }
     
     @GetMapping("/categories")
@@ -167,7 +167,7 @@ class MemberCollaborationController {
         @ApiResponse(responseCode = "200", description = "협업 카테고리 목록 조회 성공"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<ApiResponse<List<String>>> getCollaborativeCategories(
+    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<String>>> getCollaborativeCategories(
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         // 이 엔드포인트는 나중에 CategoryResponse DTO를 만들어서 개선 필요
@@ -176,6 +176,6 @@ class MemberCollaborationController {
             .map(point.ttodoApi.category.domain.Category::getName)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(ApiResponse.success(categoryNames));
+        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(categoryNames));
     }
 }

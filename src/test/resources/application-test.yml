@@ -1,7 +1,6 @@
 spring:
   datasource:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:postgresql:17-alpine:///testdb
+    # Testcontainers가 자동으로 설정하므로 별도 설정 불필요
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -14,12 +13,13 @@ spring:
 logging:
   level:
     root: info
-    point.zzicback: debug
-    org.springframework.web: info
-    org.springframework.security: info
+    point.ttodoApi: debug
+    org.springframework.web: debug
+    org.springframework.security: debug
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
-    org.testcontainers: info
+    org.testcontainers: debug
+    org.springframework.data.jpa: debug
 
 jwt:
   private-key: classpath:ttodo/jwt/test-private.pem

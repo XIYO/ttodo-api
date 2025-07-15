@@ -12,7 +12,10 @@ import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.exception.ChallengeNotFoundException;
 import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.challenge.presentation.dto.response.*;
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.common.error.BusinessException;
+import point.ttodoApi.common.error.ErrorCode;
+import point.ttodoApi.common.error.NotFoundException;
+import point.ttodoApi.common.error.ForbiddenException;
 import point.ttodoApi.member.domain.Member;
 
 import java.time.LocalDate;
@@ -32,7 +35,7 @@ public class ChallengeService {
     public Long createChallenge(CreateChallengeCommand command) {
         // 날짜 유효성 검증
         if (command.startDate().isAfter(command.endDate())) {
-            throw new BusinessException("BIZ_001", "시작일이 종료일보다 늦을 수 없습니다");
+            throw new BusinessException(ErrorCode.INVALID_OPERATION, "시작일이 종료일보다 늦을 수 없습니다");
         }
         
         // 챌린지 생성
@@ -165,7 +168,7 @@ public class ChallengeService {
         if (challenge.isActive()) {
             if (command.maxParticipants() != null && 
                 command.maxParticipants() < challenge.getActiveParticipantCount()) {
-                throw new BusinessException("BIZ_001", 
+                throw new BusinessException(ErrorCode.INVALID_OPERATION, 
                     "현재 참여 인원보다 적은 수로 제한할 수 없습니다");
             }
         }
@@ -183,12 +186,12 @@ public class ChallengeService {
         
         // 참여자가 있는 챌린지는 삭제 불가
         if (challenge.getActiveParticipantCount() > 0) {
-            throw new BusinessException("BIZ_001", "참여자가 있는 챌린지는 삭제할 수 없습니다");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "참여자가 있는 챌린지는 삭제할 수 없습니다");
         }
         
         // 진행 중인 챌린지는 삭제 불가
         if (challenge.isActive()) {
-            throw new BusinessException("BIZ_001", "진행 중인 챌린지는 삭제할 수 없습니다");
+            throw new BusinessException(ErrorCode.OPERATION_NOT_ALLOWED, "진행 중인 챌린지는 삭제할 수 없습니다");
         }
         
         challengeRepository.delete(challenge);
@@ -204,7 +207,7 @@ public class ChallengeService {
         }
         
         if (challenge.getVisibility() != ChallengeVisibility.INVITE_ONLY) {
-            throw new BusinessException("BIZ_001", "공개 챌린지는 초대 링크가 필요 없습니다");
+            throw new BusinessException(ErrorCode.INVALID_OPERATION, "공개 챌린지는 초대 링크가 필요 없습니다");
         }
         
         return new InviteLinkResponse(

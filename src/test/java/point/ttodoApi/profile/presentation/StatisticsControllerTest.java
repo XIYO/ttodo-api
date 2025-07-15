@@ -1,4 +1,5 @@
 package point.ttodoApi.profile.presentation;
+import point.ttodoApi.test.IntegrationTestSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
@@ -11,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.test.config.*;
@@ -28,12 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * StatisticsController 통계 기능 테스트
  */
-@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @Import({TestSecurityConfig.class, TestDataConfig.class})
-class StatisticsControllerTest {
+class StatisticsControllerTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;

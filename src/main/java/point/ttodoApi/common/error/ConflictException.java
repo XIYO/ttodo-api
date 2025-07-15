@@ -8,6 +8,6 @@ import org.springframework.http.HttpStatus;
 public class ConflictException extends BusinessException {
     
     public ConflictException(String message) {
-        super("RESOURCE_002", message, HttpStatus.CONFLICT);
+        super(ErrorCode.DEPENDENCY_EXISTS, message);
     }
 }

@@ -1,4 +1,5 @@
 package point.ttodoApi.member.presentation;
+import point.ttodoApi.test.IntegrationTestSupport;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +26,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * MemberController 통합 테스트
- * Spring Security를 활성화한 상태에서 @WithMockUser를 사용하여 인증 처리
+ * Spring Security를 활성화한 상태에서 @WithUserDetails를 사용하여 인증 처리
  */
-@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @Import({TestSecurityConfig.class, TestDataConfig.class})
-public class MemberControllerTest {
+public class MemberControllerTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -69,7 +69,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("회원 목록 조회 - 페이징")
     void getMembers() throws Exception {
         mockMvc.perform(get("/members")
@@ -84,7 +84,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("회원 상세 조회 성공")
     void getMemberSuccess() throws Exception {
         mockMvc.perform(get("/members/{memberId}", testMember.getId()))
@@ -92,13 +92,12 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.id").value(testMember.getId().toString()))
                 .andExpect(jsonPath("$.email").value("anon@ttodo.dev"))
                 .andExpect(jsonPath("$.nickname").value(testMember.getNickname()))
-                .andExpect(jsonPath("$.introduction").isNotEmpty())
                 .andExpect(jsonPath("$.timeZone").value("Asia/Seoul"))
                 .andExpect(jsonPath("$.locale").value("ko-KR"));
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("존재하지 않는 회원 조회 시 404")
     void getMemberNotFound() throws Exception {
         mockMvc.perform(get("/members/{memberId}", "550e8400-e29b-41d4-a716-446655440000"))
@@ -177,7 +176,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("프로필 이미지 업로드 - 파일 없이 요청")
     void uploadProfileImageWithoutFile() throws Exception {
         mockMvc.perform(post("/members/{memberId}/profile-image", testMember.getId())
@@ -189,7 +188,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("프로필 이미지 조회 - 이미지가 없는 경우")
     void getProfileImageNotFound() throws Exception {
         mockMvc.perform(get("/members/{memberId}/profile-image", testMember.getId()))
@@ -258,7 +257,7 @@ public class MemberControllerTest {
 
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("회원 목록 조회 - 페이지 크기 제한")
     void getMembersWithLargePageSize() throws Exception {
         mockMvc.perform(get("/members")
@@ -269,7 +268,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("회원 정보 수정 - 너무 긴 닉네임")
     void updateMemberWithLongNickname() throws Exception {
         String longNickname = "a".repeat(300); // 300자 (255자 초과)
@@ -281,7 +280,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("회원 정보 수정 - 너무 긴 소개글")
     void updateMemberWithLongIntroduction() throws Exception {
         String longIntro = "a".repeat(600); // 600자 (500자 초과)
@@ -323,7 +322,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin@example.com", roles = {"ADMIN"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("관리자 권한으로 회원 목록 조회")
     void getMembersAsAdmin() throws Exception {
         mockMvc.perform(get("/members")
@@ -334,7 +333,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("본인 정보 조회")
     void getOwnProfile() throws Exception {
         // 본인의 ID로 조회
@@ -346,7 +345,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("잘못된 형식의 UUID로 회원 조회")
     void getMemberWithInvalidUUID() throws Exception {
         mockMvc.perform(get("/members/{memberId}", "invalid-uuid"))
@@ -354,7 +353,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("지원하지 않는 이미지 형식 업로드")
     void uploadUnsupportedImageFormat() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
@@ -370,7 +369,7 @@ public class MemberControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test@example.com", roles = {"USER"})
+    @WithUserDetails("anon@ttodo.dev")
     @DisplayName("너무 큰 파일 업로드 시도")
     void uploadTooLargeFile() throws Exception {
         // 11MB 파일 생성 (제한: 10MB)

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "categories",
     indexes = {
-        @Index(name = "idx_category_owner", columnList = "owner_id")
+        @Index(name = "idx_category_member", columnList = "member_id")
     }
 )
 public class Category {
@@ -32,18 +32,18 @@ public class Category {
     private String description;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private Member owner;
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
     
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CategoryCollaborator> collaborators = new HashSet<>();
     
     @Builder
-    public Category(String name, String color, String description, Member owner) {
+    public Category(String name, String color, String description, Member member) {
         this.name = name;
         this.color = color;
         this.description = description;
-        this.owner = owner;
+        this.member = member;
     }
 
     public void update(String name, String color, String description) {
@@ -54,11 +54,11 @@ public class Category {
     
     /**
      * 협업자 확인 메서드
-     * owner이거나 수락된 협업자인 경우 true 반환
+     * member이거나 수락된 협업자인 경우 true 반환
      */
     public boolean isCollaborator(Member member) {
         if (member == null) return false;
-        if (this.owner.equals(member)) return true;
+        if (this.member.equals(member)) return true;
         
         return collaborators.stream()
             .anyMatch(c -> c.getMember().equals(member) 
@@ -68,7 +68,7 @@ public class Category {
     
     /**
      * 관리 권한 확인 메서드
-     * owner이거나 협업자인 경우 관리 권한 보유
+     * member이거나 협업자인 경우 관리 권한 보유
      */
     public boolean canManage(Member member) {
         return isCollaborator(member);
@@ -76,11 +76,11 @@ public class Category {
     
     /**
      * 협업자 추가
-     * owner는 협업자로 추가할 수 없음
+     * member는 협업자로 추가할 수 없음
      */
     public CategoryCollaborator addCollaborator(Member member) {
-        if (this.owner.equals(member)) {
-            throw new IllegalArgumentException("Owner cannot be a collaborator");
+        if (this.member.equals(member)) {
+            throw new IllegalArgumentException("Member cannot be a collaborator");
         }
         
         // 이미 협업자인지 확인
@@ -104,8 +104,8 @@ public class Category {
      * 초대 메시지와 함께 협업자 추가
      */
     public CategoryCollaborator addCollaborator(Member member, String invitationMessage) {
-        if (this.owner.equals(member)) {
-            throw new IllegalArgumentException("Owner cannot be a collaborator");
+        if (this.member.equals(member)) {
+            throw new IllegalArgumentException("Member cannot be a collaborator");
         }
         
         // 이미 협업자인지 확인
@@ -146,7 +146,7 @@ public class Category {
     }
     
     /**
-     * 활성 협업자 수 조회 (owner 제외)
+     * 활성 협업자 수 조회 (member 제외)
      */
     public long getActiveCollaboratorCount() {
         return collaborators.stream()
@@ -171,10 +171,10 @@ public class Category {
     }
     
     /**
-     * 특정 멤버가 이 카테고리의 owner인지 확인
+     * 특정 멤버가 이 카테고리의 member인지 확인
      */
     public boolean isOwner(Member member) {
-        return member != null && this.owner.equals(member);
+        return member != null && this.member.equals(member);
     }
     
     /**
@@ -183,20 +183,20 @@ public class Category {
      * @return 소유자인지 여부
      */
     public boolean isOwn(UUID memberId) {
-        if (memberId == null || this.owner == null) return false;
-        return this.owner.getId().equals(memberId);
+        if (memberId == null || this.member == null) return false;
+        return this.member.getId().equals(memberId);
     }
     
     /**
      * 관리 권한 확인 메서드 (Spring Security @PreAuthorize용)
-     * owner이거나 협업자인 경우 관리 권한 보유
+     * member이거나 협업자인 경우 관리 권한 보유
      * @param memberId 확인할 멤버 ID
      * @return 관리 권한 보유 여부
      */
     public boolean canManage(UUID memberId) {
         if (memberId == null) return false;
         
-        // owner인 경우
+        // member인 경우
         if (isOwn(memberId)) return true;
         
         // 협업자인 경우

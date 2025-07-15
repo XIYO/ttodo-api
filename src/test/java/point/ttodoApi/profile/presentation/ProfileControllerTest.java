@@ -1,4 +1,5 @@
 package point.ttodoApi.profile.presentation;
+import point.ttodoApi.test.IntegrationTestSupport;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * ProfileController 통합 테스트
  */
-@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @Import({TestSecurityConfig.class, TestDataConfig.class})
-public class ProfileControllerTest {
+public class ProfileControllerTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;

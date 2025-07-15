@@ -8,6 +8,6 @@ import org.springframework.http.HttpStatus;
 public class ForbiddenException extends BusinessException {
     
     public ForbiddenException(String message) {
-        super("AUTH_002", message, HttpStatus.FORBIDDEN);
+        super(ErrorCode.ACCESS_DENIED, message);
     }
 }

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 import point.ttodoApi.common.dto.BaseSearchRequest;
 
 import java.time.LocalDate;
@@ -72,6 +73,7 @@ public class ChallengeSearchRequest extends BaseSearchRequest {
     private Integer maxParticipants;
     
     @Schema(description = "활성 상태만 조회", example = "true")
+    @Builder.Default
     private Boolean active = true;
     
     @Override

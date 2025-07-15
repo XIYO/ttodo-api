@@ -12,7 +12,7 @@ import point.ttodoApi.common.specification.SortValidator;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.domain.Role;
 import point.ttodoApi.member.dto.request.MemberSearchRequest;
-import point.ttodoApi.member.infrastructure.MemberRepository;
+import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.member.infrastructure.MemberSpecification;
 
 import java.time.LocalDateTime;

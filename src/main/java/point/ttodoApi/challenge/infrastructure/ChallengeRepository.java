@@ -8,7 +8,7 @@ import point.ttodoApi.challenge.domain.*;
 import java.time.LocalDate;
 import java.util.*;
 
-public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
+public interface ChallengeRepository extends JpaRepository<Challenge, Long>, JpaSpecificationExecutor<Challenge> {
 
     @Query(value = "SELECT DISTINCT c FROM Challenge c LEFT JOIN FETCH c.participations p LEFT JOIN FETCH p.member",
            countQuery = "SELECT COUNT(DISTINCT c) FROM Challenge c")

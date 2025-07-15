@@ -25,8 +25,8 @@ import java.util.UUID;
 @Schema(description = "Todo 검색 조건")
 public class TodoSearchRequest extends BaseSearchRequest {
     
-    @Schema(description = "소유자 ID", hidden = true)
-    private UUID ownerId;
+    @Schema(description = "회원 ID", hidden = true)
+    private UUID memberId;
     
     @Schema(description = "완료 여부", example = "false")
     private Boolean complete;

@@ -1,4 +1,5 @@
 package point.ttodoApi.category.presentation;
+import point.ttodoApi.test.IntegrationTestSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
@@ -12,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.infrastructure.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
@@ -29,12 +30,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * CategoryController 통합 테스트
  * MockMvc를 사용하여 HTTP 레이어부터 DB까지 통합 테스트
  */
-@SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
 @Transactional
 @Import({TestSecurityConfig.class, TestDataConfig.class})
-public class CategoryControllerTest {
+public class CategoryControllerTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;

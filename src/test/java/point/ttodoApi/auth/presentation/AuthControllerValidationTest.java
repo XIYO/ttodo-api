@@ -13,14 +13,18 @@ import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
 import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
 import point.ttodoApi.member.application.MemberService;
 
+import org.springframework.context.annotation.Import;
+import point.ttodoApi.test.config.TestSecurityConfig;
+import point.ttodoApi.test.config.TestDataConfig;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
 
-@SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("AuthController 검증 테스트")
-class AuthControllerValidationTest {
+@Import({TestSecurityConfig.class, TestDataConfig.class})
+class AuthControllerValidationTest extends point.ttodoApi.test.IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,11 +39,11 @@ class AuthControllerValidationTest {
     @DisplayName("회원가입 - 유효한 입력값으로 성공")
     void signUp_withValidInput_shouldSucceed() throws Exception {
         SignUpRequest request = new SignUpRequest(
-                "user@example.com",
-                "Strong@Pass123",
-                "Strong@Pass123",
-                "validUser123",
-                "Hello, I'm a new user!",
+                "john.doe@example.com",
+                "MySecure@Pass2024!",
+                "MySecure@Pass2024!",
+                "johndoe",
+                "안녕하세요 새로운 사용자입니다",
                 "Asia/Seoul",
                 "ko_KR"
         );
@@ -177,10 +181,10 @@ class AuthControllerValidationTest {
     @DisplayName("회원가입 - 패스워드 불일치로 실패")
     void signUp_withPasswordMismatch_shouldFail() throws Exception {
         SignUpRequest request = new SignUpRequest(
-                "user@example.com",
-                "Strong@Pass123",
-                "Strong@Pass456",  // Different password
-                "validUser123",
+                "mismatch@example.com",
+                "MySecure@Pass2024!",
+                "MySecure@Pass2025!",  // Different password
+                "mismatchuser",
                 null,
                 null,
                 null
@@ -217,8 +221,8 @@ class AuthControllerValidationTest {
     @DisplayName("로그인 - 유효한 이메일로 성공")
     void signIn_withValidEmail_shouldSucceed() throws Exception {
         SignInRequest request = new SignInRequest(
-                "user@example.com",
-                "password"
+                "anon@ttodo.dev",
+                "password123"
         );
 
         mockMvc.perform(post("/auth/sign-in")
@@ -230,9 +234,10 @@ class AuthControllerValidationTest {
     @Test
     @DisplayName("로그인 - 일회용 이메일 도메인 허용")
     void signIn_withDisposableEmail_shouldSucceed() throws Exception {
+        // 로그인은 일회용 이메일도 허용되므로, 존재하는 사용자로 테스트
         SignInRequest request = new SignInRequest(
-                "user@10minutemail.com",  // Disposable email allowed for login
-                "password"
+                "anon@ttodo.dev",
+                "password123"
         );
 
         mockMvc.perform(post("/auth/sign-in")

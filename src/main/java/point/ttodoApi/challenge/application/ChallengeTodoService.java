@@ -38,7 +38,7 @@ public class ChallengeTodoService {
         
         // 챌린지 활성 상태 확인
         if (!challenge.isActive()) {
-            throw new BusinessException("BIZ_001", "종료되었거나 시작되지 않은 챌린지입니다");
+            throw new BusinessException(ErrorCode.INVALID_OPERATION, "종료되었거나 시작되지 않은 챌린지입니다");
         }
         
         // 기존 투두 확인
