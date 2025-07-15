@@ -291,4 +291,14 @@ public class Challenge {
         
         return currentLeaders < maxLeaders;
     }
+    
+    /**
+     * 소유권 확인 메서드 (Spring Security @PreAuthorize용)
+     * @param memberId 확인할 멤버 ID
+     * @return 소유자인지 여부
+     */
+    public boolean isOwn(UUID memberId) {
+        if (memberId == null) return false;
+        return this.creatorId.equals(memberId);
+    }
 }

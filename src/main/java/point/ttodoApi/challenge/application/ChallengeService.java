@@ -9,6 +9,7 @@ import point.ttodoApi.challenge.application.dto.command.*;
 import point.ttodoApi.challenge.application.dto.result.*;
 import point.ttodoApi.challenge.application.mapper.ChallengeMapper;
 import point.ttodoApi.challenge.domain.*;
+import point.ttodoApi.challenge.exception.ChallengeNotFoundException;
 import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.common.error.*;
@@ -253,5 +254,16 @@ public class ChallengeService {
             .countCompletedParticipantsForDate(challenge.getId(), today);
         
         return (double) completedCount / activeParticipants * 100.0;
+    }
+    
+    /**
+     * Challenge 권한 검증을 위한 엔티티 조회 (Spring Security @PreAuthorize용)
+     * @param challengeId 챌린지 ID
+     * @return Challenge 엔티티
+     */
+    @Transactional(readOnly = true)
+    public Challenge findChallengeForAuth(Long challengeId) {
+        return challengeRepository.findById(challengeId)
+            .orElseThrow(() -> new ChallengeNotFoundException(challengeId));
     }
 }

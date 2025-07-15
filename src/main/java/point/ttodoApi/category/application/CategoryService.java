@@ -101,6 +101,16 @@ public class CategoryService {
         return categoryRepository.countByOwnerId(memberId);
     }
     
+    /**
+     * 카테고리 권한 검증을 위한 엔티티 조회 (Spring Security @PreAuthorize용)
+     * @param categoryId 카테고리 ID
+     * @return 카테고리 엔티티
+     */
+    public Category findCategoryForAuth(UUID categoryId) {
+        return categoryRepository.findById(categoryId)
+            .orElseThrow(() -> new BusinessException("카테고리를 찾을 수 없습니다."));
+    }
+    
     private CategoryResult toCategoryResult(Category category) {
         return new CategoryResult(
                 category.getId(),

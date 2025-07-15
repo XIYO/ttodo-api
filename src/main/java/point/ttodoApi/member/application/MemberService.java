@@ -104,4 +104,15 @@ public class MemberService {
             member.getEmail(),
             member.getNickname());
   }
+  
+  /**
+   * Member 권한 검증을 위한 엔티티 조회 (Spring Security @PreAuthorize용)
+   * @param memberId 멤버 ID
+   * @return Member 엔티티
+   */
+  @Transactional(readOnly = true)
+  public Member findMemberForAuth(UUID memberId) {
+    return memberRepository.findById(memberId)
+        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
+  }
 }

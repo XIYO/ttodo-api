@@ -304,4 +304,14 @@ public class TodoOriginalService {
         // 인증된 사용자라면 자신의 태그에는 항상 접근 가능
         return memberId != null;
     }
+    
+    /**
+     * TodoOriginal 권한 검증을 위한 엔티티 조회 (Spring Security @PreAuthorize용)
+     * @param todoId 투두 ID
+     * @return TodoOriginal 엔티티
+     */
+    public TodoOriginal findTodoOriginalForAuth(Long todoId) {
+        return todoOriginalRepository.findById(todoId)
+            .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", todoId));
+    }
 }

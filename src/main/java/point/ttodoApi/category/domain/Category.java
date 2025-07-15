@@ -176,4 +176,33 @@ public class Category {
     public boolean isOwner(Member member) {
         return member != null && this.owner.equals(member);
     }
+    
+    /**
+     * 소유권 확인 메서드 (Spring Security @PreAuthorize용)
+     * @param memberId 확인할 멤버 ID
+     * @return 소유자인지 여부
+     */
+    public boolean isOwn(UUID memberId) {
+        if (memberId == null || this.owner == null) return false;
+        return this.owner.getId().equals(memberId);
+    }
+    
+    /**
+     * 관리 권한 확인 메서드 (Spring Security @PreAuthorize용)
+     * owner이거나 협업자인 경우 관리 권한 보유
+     * @param memberId 확인할 멤버 ID
+     * @return 관리 권한 보유 여부
+     */
+    public boolean canManage(UUID memberId) {
+        if (memberId == null) return false;
+        
+        // owner인 경우
+        if (isOwn(memberId)) return true;
+        
+        // 협업자인 경우
+        return collaborators.stream()
+            .anyMatch(c -> c.getMember().getId().equals(memberId)
+                && c.getStatus() == CollaboratorStatus.ACCEPTED
+                && !c.isDeleted());
+    }
 }
