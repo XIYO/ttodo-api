@@ -211,8 +211,54 @@
         "dependencies": [
           12
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "StrongPassword 커스텀 어노테이션 및 검증 로직 구현",
+            "description": "패스워드 강도를 검증하는 @StrongPassword 어노테이션과 ConstraintValidator를 구현합니다. 대소문자, 숫자, 특수문자 포함 여부 및 연속된 문자/숫자 패턴을 검사합니다.",
+            "dependencies": [],
+            "details": "1. @StrongPassword 어노테이션 생성:\n- @Constraint(validatedBy = StrongPasswordValidator.class) 지정\n- 기본 에러 메시지 정의\n\n2. StrongPasswordValidator 구현:\n- 최소 8자, 최대 100자 검증\n- 정규식으로 대문자, 소문자, 숫자, 특수문자 포함 검증\n- 연속된 문자(abc, 123) 3개 이상 패턴 검출\n- 일반적인 취약 패스워드 목록(password123, admin123 등) 차단\n\n3. ValidationMessages.properties에 에러 메시지 정의",
+            "status": "done",
+            "testStrategy": "1. 유효한 패스워드 케이스: Abc123!@#, P@ssw0rd!\n2. 실패 케이스: password(특수문자 없음), 12345678(문자 없음), abc123def(연속 패턴)\n3. 경계값 테스트: 7자(너무 짧음), 101자(너무 긺)"
+          },
+          {
+            "id": 2,
+            "title": "ValidNickname 어노테이션 및 금지어 필터링 구현",
+            "description": "닉네임 유효성을 검증하는 @ValidNickname 어노테이션과 금지어 필터링 시스템을 구현합니다. 부적절한 단어나 특수문자를 차단합니다.",
+            "dependencies": [],
+            "details": "1. @ValidNickname 어노테이션 생성:\n- @Constraint(validatedBy = ValidNicknameValidator.class) 지정\n\n2. ValidNicknameValidator 구현:\n- 한글, 영문, 숫자만 허용 (특수문자 금지)\n- 금지어 목록 관리 (properties 파일 또는 DB)\n- 대소문자 구분 없이 금지어 포함 여부 검사\n- 공백 및 연속 공백 처리\n\n3. ForbiddenWordService 구현:\n- 금지어 목록 로드 및 캐싱\n- contains 검사 로직 (부분 일치도 차단)",
+            "status": "done",
+            "testStrategy": "1. 유효한 닉네임: 홍길동, user123, 테스트유저\n2. 금지어 포함: admin, root, 욕설포함닉네임\n3. 특수문자 포함: user@123, nick!name\n4. 길이 검증: 1자(너무 짧음), 21자(너무 긺)"
+          },
+          {
+            "id": 3,
+            "title": "이메일 검증 정규식 고도화 및 도메인 검증",
+            "description": "RFC 5322 표준에 맞는 이메일 정규식을 적용하고, 추가적으로 일회용 이메일 도메인 차단 기능을 구현합니다.",
+            "dependencies": [],
+            "details": "1. EmailValidator 커스텀 구현:\n- @Email 어노테이션 기본 동작 확장\n- RFC 5322 정규식 적용\n- 로컬 파트: 영문, 숫자, 특수문자(._-+) 허용\n- 도메인 파트: 유효한 도메인 형식 검증\n\n2. 일회용 이메일 도메인 차단:\n- 차단할 도메인 목록 관리 (10minutemail.com 등)\n- 도메인 검증 시 차단 목록 체크\n\n3. 이메일 형식 정규화:\n- 소문자 변환\n- 공백 제거",
+            "status": "done",
+            "testStrategy": "1. 유효한 이메일: user@example.com, test.user+tag@company.co.kr\n2. 무효한 형식: @example.com, user@, user@@example.com\n3. 차단 도메인: user@10minutemail.com\n4. 특수 케이스: 한글@도메인.com (차단)"
+          },
+          {
+            "id": 4,
+            "title": "SignUpRequest/LoginRequest DTO 검증 통합 및 에러 응답 표준화",
+            "description": "회원가입과 로그인 DTO에 구현한 검증 어노테이션들을 적용하고, 검증 실패 시 일관된 에러 응답 형식을 제공합니다.",
+            "dependencies": [],
+            "details": "1. SignUpRequest DTO 업데이트:\n```java\npublic class SignUpRequest {\n    @Email(regexp = \"^[A-Za-z0-9+_.-]+@(.+)$\")\n    @ValidEmail // 커스텀 검증 추가\n    private String email;\n    \n    @StrongPassword\n    @Size(min = 8, max = 100)\n    private String password;\n    \n    @ValidNickname\n    @Size(min = 2, max = 20)\n    private String nickname;\n}\n```\n\n2. ValidationErrorResponse 구조화:\n- 필드별 에러 메시지 매핑\n- 에러 코드 표준화\n\n3. @RestControllerAdvice에서 MethodArgumentNotValidException 처리",
+            "status": "done",
+            "testStrategy": "1. 전체 유효성 검증 성공 케이스\n2. 각 필드별 단일 검증 실패\n3. 복수 필드 동시 검증 실패\n4. 에러 응답 형식 일관성 확인"
+          },
+          {
+            "id": 5,
+            "title": "AuthController 통합 테스트 및 검증 문서화",
+            "description": "MockMvc를 사용한 AuthController 통합 테스트를 작성하고, 검증 규칙과 에러 코드를 API 문서에 반영합니다.",
+            "dependencies": [],
+            "details": "1. AuthControllerTest 통합 테스트:\n- @WebMvcTest(AuthController.class) 설정\n- 정상 회원가입/로그인 시나리오\n- 각 검증 규칙별 실패 시나리오\n- 에러 응답 형식 검증\n\n2. API 문서 업데이트:\n- Swagger/OpenAPI 어노테이션 추가\n- 각 필드의 검증 규칙 명시\n- 에러 코드 및 메시지 예시\n\n3. 검증 규칙 문서:\n- 패스워드 정책 명시\n- 닉네임 규칙 및 금지어 정책\n- 이메일 형식 요구사항",
+            "status": "done",
+            "testStrategy": "1. MockMvc 통합 테스트 전체 실행\n2. 테스트 커버리지 90% 이상 확인\n3. API 문서 생성 및 검증\n4. 실제 API 호출 테스트 (Postman/curl)"
+          }
+        ]
       },
       {
         "id": 15,
@@ -302,7 +348,7 @@
         "id": 21,
         "title": "모든 도메인 엔티티의 member 필드를 owner로 리네이밍",
         "description": "Todo, Category, Challenge 등 모든 도메인 엔티티의 member 필드명을 owner로 변경하고, 관련된 getter/setter, repository 쿼리, 서비스 로직, 테스트 코드를 모두 수정합니다. 이 작업은 권한 시스템 구현 전에 완료되어야 합니다.",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
         "details": "**중요: 이 리팩토링은 권한 시스템(Task 11) 구현 전에 반드시 완료되어야 합니다.**\n\n1. 엔티티 필드 리네이밍:\n   - Todo.java: @ManyToOne private Member member → Member owner\n   - Category.java: @ManyToOne private Member member → Member owner\n   - Challenge.java: @ManyToOne private Member member → Member owner\n   - ChallengeParticipation.java: 필요시 member → owner\n\n2. Getter/Setter 메서드 변경:\n   ```java\n   // 변경 전\n   public Member getMember() { return member; }\n   public void setMember(Member member) { this.member = member; }\n   \n   // 변경 후\n   public Member getOwner() { return owner; }\n   public void setOwner(Member owner) { this.owner = owner; }\n   ```\n\n3. Repository 쿼리 수정:\n   - JPQL: \"SELECT t FROM Todo t WHERE t.member = :member\" → \"t.owner = :owner\"\n   - @Query 어노테이션 파라미터: @Param(\"member\") → @Param(\"owner\")\n   - 메서드명: findByMember() → findByOwner()\n   - Specification: root.get(\"member\") → root.get(\"owner\")\n\n4. 서비스 레이어 수정:\n   - todo.setMember(currentMember) → todo.setOwner(currentMember)\n   - todo.getMember().getId() → todo.getOwner().getId()\n   - 권한 검증 로직의 member 참조를 owner로 변경\n\n5. DTO 및 Mapper 수정:\n   - ResponseDto의 member 필드 → owner\n   - MapStruct @Mapping 어노테이션 수정\n\n6. 테스트 코드 수정:\n   - 모든 테스트에서 member 관련 assertion을 owner로 변경\n   - Mock 객체 설정 시 member → owner\n   - 테스트 데이터 빌더 패턴의 withMember() → withOwner()\n\n7. 데이터베이스 마이그레이션:\n   - Flyway 스크립트: ALTER TABLE todo RENAME COLUMN member_id TO owner_id;\n   - 모든 테이블에 대해 동일하게 적용\n\n**권한 시스템과의 연관성:**\n- Task 11에서 구현할 isOwn() 메서드가 owner 필드를 참조하므로 이 리팩토링이 선행되어야 함\n- 일관된 네이밍으로 권한 검증 로직의 가독성 향상",
@@ -336,7 +382,7 @@
               2
             ],
             "details": "- todo.setMember(currentMember) → todo.setOwner(currentMember)\n- todo.getMember().getId() → todo.getOwner().getId()\n- 권한 검증 로직의 member 참조를 owner로 변경\n- 모든 서비스 메서드에서 owner 관련 로직 수정",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "소유자 기반 조회 로직 검증, 권한 검증 로직의 owner 체크 확인, 트랜잭션 내 owner 변경 테스트"
           },
           {
@@ -347,7 +393,7 @@
               3
             ],
             "details": "- ResponseDto의 member 필드 → owner로 변경\n- RequestDto의 member 관련 필드 → owner로 변경\n- MapStruct @Mapping 어노테이션 수정\n- 모든 DTO 변환 로직 업데이트",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "DTO 변환 로직의 정확성 검증, MapStruct 매핑 동작 확인, 직렬화/역직렬화 테스트"
           },
           {
@@ -358,7 +404,7 @@
               4
             ],
             "details": "- 모든 테스트에서 member 관련 assertion을 owner로 변경\n- Mock 객체 설정 시 member → owner\n- 테스트 데이터 빌더 패턴의 withMember() → withOwner()\n- Flyway 스크립트: ALTER TABLE todo RENAME COLUMN member_id TO owner_id;\n- 모든 테이블에 대해 동일하게 적용",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "모든 테스트 케이스 실행 및 통과 확인, 데이터베이스 마이그레이션 스크립트 검증, 기존 데이터 무결성 확인"
           }
         ]
@@ -464,7 +510,7 @@
     ],
     "metadata": {
       "created": "2025-07-14T14:54:00.173Z",
-      "updated": "2025-07-14T23:39:35.679Z",
+      "updated": "2025-07-15T00:09:38.545Z",
       "description": "Tasks for master context"
     }
   }

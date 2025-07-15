@@ -1,0 +1,28 @@
+# Forbidden words for nicknames
+# One word per line
+# Lines starting with # are comments
+
+# System-related words
+admin
+administrator
+root
+system
+moderator
+superuser
+owner
+
+# Offensive words (examples - add more as needed)
+test
+demo
+
+# Reserved keywords
+anonymous
+guest
+user
+member
+
+# Company/Brand names
+ttodo
+staff
+official
+support

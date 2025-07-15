@@ -1,0 +1,45 @@
+# Disposable/Temporary email domains to block
+# One domain per line
+# Lines starting with # are comments
+
+# Common disposable email providers
+10minutemail.com
+10minutemail.net
+tempmail.com
+guerrillamail.com
+guerrillamail.net
+guerrillamail.org
+mailinator.com
+mailinator.net
+trashmail.com
+throwawaymail.com
+yopmail.com
+yopmail.fr
+yopmail.net
+tempinbox.com
+tempmailaddress.com
+tempmail.net
+temp-mail.org
+tempmailo.com
+getnada.com
+getairmail.com
+moakt.com
+mohmal.com
+inboxkitten.com
+inboxfox.com
+sharklasers.com
+guerrillamailblock.com
+pokemail.net
+spam4.me
+grr.la
+mailnesia.com
+receivemail.org
+kuku.lu
+lackmail.ru
+coole.ru
+10minemail.com
+cuvox.de
+tempmail.eu
+nwldx.com
+tmpmail.net
+tmpmail.org

@@ -8,21 +8,21 @@ import point.ttodoApi.common.validation.annotations.NoSqlInjection;
 import point.ttodoApi.common.validation.annotations.SecurePassword;
 import point.ttodoApi.common.validation.annotations.ValidUsername;
 import point.ttodoApi.common.validation.annotations.SanitizeHtml;
+import point.ttodoApi.common.validation.annotations.ValidEmail;
 
 @Schema(description = "사용자 사인-업에 필요한 데이터 DTO")
 @FieldComparison(message = "패스워드와 확인 패스워드가 일치하지 않습니다.")
 public record SignUpRequest(
         @NotBlank(message = "{email.required}") 
         @Schema(description = "사용자 이메일", example = "user@example.com") 
-        @Email(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "{email.valid}") 
+        @ValidEmail(allowDisposable = false)
         @UniqueEmail(message = "이미 등록된 이메일입니다.") 
-        @NoSqlInjection
         String email,
         
         @NotBlank(message = "{password.required}") 
         @Schema(description = "사용자 비밀번호", example = "Strong@123") 
         @SecurePassword
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,16}$", message = "비밀번호는 최소 8자, 최대 16자, 대문자, 소문자, 숫자, 특수문자를 포함해야 합니다.") 
+        @Size(min = 8, max = 100, message = "비밀번호는 8자 이상 100자 이하여야 합니다.")
         @CompareTarget 
         String password,
         
@@ -34,6 +34,7 @@ public record SignUpRequest(
         @NotBlank(message = "{nickname.required}") 
         @Schema(description = "사용자 이름", example = "홍길동") 
         @ValidUsername
+        @Size(min = 2, max = 20, message = "닉네임은 2자 이상 20자 이하여야 합니다.")
         @NoSqlInjection
         String nickname,
         

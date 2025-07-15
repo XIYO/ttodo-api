@@ -7,12 +7,14 @@ import java.lang.annotation.*;
 
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = {point.ttodoApi.common.validation.validators.ValidUsernameValidator.class})
+@Constraint(validatedBy = {point.ttodoApi.common.validation.validators.ValidEmailValidator.class})
 @Documented
-public @interface ValidUsername {
-    String message() default "Username must be 2-20 characters long, can only contain letters, numbers, Korean characters, dots, underscores, and hyphens, and must not contain forbidden words";
+public @interface ValidEmail {
+    String message() default "Invalid email address or email domain is not allowed";
     
     Class<?>[] groups() default {};
     
     Class<? extends Payload>[] payload() default {};
+    
+    boolean allowDisposable() default false;
 }
