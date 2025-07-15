@@ -1,0 +1,124 @@
+package point.ttodoApi.category.application;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import point.ttodoApi.category.domain.Category;
+import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
+import point.ttodoApi.category.infrastructure.persistence.CategorySpecification;
+import point.ttodoApi.common.specification.SpecificationBuilder;
+import point.ttodoApi.common.specification.SortValidator;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * 동적 쿼리를 사용한 Category 검색 서비스 예제
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class CategorySearchService {
+    
+    private final CategoryRepository categoryRepository;
+    private final CategorySpecification categorySpecification;
+    private final SortValidator sortValidator;
+    
+    /**
+     * 카테고리 검색 - 다양한 조건으로 검색
+     */
+    public Page<Category> searchCategories(CategorySearchRequest request, Pageable pageable) {
+        // 정렬 필드 검증
+        sortValidator.validateSort(pageable.getSort(), categorySpecification);
+        
+        // SpecificationBuilder를 사용한 동적 쿼리 구성
+        SpecificationBuilder<Category> builder = new SpecificationBuilder<>(categorySpecification);
+        
+        Specification<Category> spec = builder
+                // 필수 조건
+                .with("owner.id", request.getOwnerId())
+                .with("active", true)
+                
+                // 선택적 조건들
+                .withLike("title", request.getTitleKeyword())
+                .withLike("colorCode", request.getColorCode())
+                .withIn("shareType", request.getShareTypes())
+                
+                // 아이콘 필터링
+                .withIf(request.getIconKeyword() != null, 
+                       "icon", request.getIconKeyword())
+                
+                // 하위 카테고리 포함 여부
+                .withIf(request.isIncludeSubCategories(), builder2 ->
+                    builder2.or(spec2 -> spec2.isNotNull("parentCategory")))
+                
+                .build();
+        
+        return categoryRepository.findAll(spec, pageable);
+    }
+    
+    /**
+     * 공개 카테고리 조회
+     */
+    public List<Category> getPublicCategories() {
+        SpecificationBuilder<Category> builder = new SpecificationBuilder<>(categorySpecification);
+        
+        Specification<Category> spec = builder
+                .with("active", true)
+                .with("shareType", "PUBLIC")
+                .build();
+        
+        return categoryRepository.findAll(spec);
+    }
+    
+    /**
+     * 특정 색상의 카테고리 조회
+     */
+    public List<Category> getCategoriesByColor(String colorCode, UUID ownerId) {
+        SpecificationBuilder<Category> builder = new SpecificationBuilder<>(categorySpecification);
+        
+        Specification<Category> spec = builder
+                .with("owner.id", ownerId)
+                .with("active", true)
+                .with("colorCode", colorCode)
+                .build();
+        
+        return categoryRepository.findAll(spec);
+    }
+    
+    /**
+     * 검색 요청 DTO
+     */
+    public static class CategorySearchRequest {
+        private UUID ownerId;
+        private String titleKeyword;
+        private String colorCode;
+        private String iconKeyword;
+        private List<String> shareTypes;
+        private boolean includeSubCategories;
+        
+        // Getters and setters
+        public UUID getOwnerId() { return ownerId; }
+        public void setOwnerId(UUID ownerId) { this.ownerId = ownerId; }
+        
+        public String getTitleKeyword() { return titleKeyword; }
+        public void setTitleKeyword(String titleKeyword) { this.titleKeyword = titleKeyword; }
+        
+        public String getColorCode() { return colorCode; }
+        public void setColorCode(String colorCode) { this.colorCode = colorCode; }
+        
+        public String getIconKeyword() { return iconKeyword; }
+        public void setIconKeyword(String iconKeyword) { this.iconKeyword = iconKeyword; }
+        
+        public List<String> getShareTypes() { return shareTypes; }
+        public void setShareTypes(List<String> shareTypes) { this.shareTypes = shareTypes; }
+        
+        public boolean isIncludeSubCategories() { return includeSubCategories; }
+        public void setIncludeSubCategories(boolean includeSubCategories) { this.includeSubCategories = includeSubCategories; }
+    }
+}

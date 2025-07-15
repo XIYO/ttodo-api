@@ -26,6 +26,16 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+# 동적 쿼리 시스템 설정
+app:
+  specification:
+    index-advisor:
+      enabled: true # 인덱스 추천 기능 활성화
+      daily-reset: false # 매일 통계 리셋 여부
+    performance:
+      slow-query-threshold: 1000 # 느린 쿼리 임계값 (ms)
+      log-all-queries: false # 모든 쿼리 로깅 여부
+
 ---
 
 spring:

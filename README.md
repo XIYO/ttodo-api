@@ -26,6 +26,8 @@ TTODO의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통�
 - **Lombok** - 보일러플레이트 코드 제거
 - **MapStruct** - 객체 매핑
 - **JWT** - 토큰 기반 인증
+- **OWASP Java HTML Sanitizer** - XSS 방지
+- **JPA Criteria API** - 타입 안전 동적 쿼리
 
 ### DevOps
 - **Docker** - 컨테이너화
@@ -189,6 +191,9 @@ docker-compose -f docker-compose.local.yml down -v
 - 개인 TODO 관리 (생성, 조회, 수정, 삭제)
 - 챌린지 관리 (생성, 조회, 수정, 삭제, 참여/탈퇴)
 - 챌린지 TODO 관리 (조회, 완료/취소)
+- 동적 쿼리 시스템 (타입 안전 검색, SQL Injection 방지)
+- 입력값 검증 시스템 (커스텀 어노테이션, XSS 방지)
+- 에러 처리 시스템 (RFC 7807 표준)
 
 ## API 명세서
 
@@ -254,6 +259,17 @@ docker-compose -f docker-compose.local.yml down -v
 - `page`: 페이지 번호 (기본값: 0)
 - `size`: 페이지 크기 (기본값: 10)
 - `sort`: 정렬 방식 (기본값: "id,desc")
+
+### 통합 검색 API (동적 쿼리 시스템)
+| HTTP Method | Endpoint | 설명 | 쿼리 파라미터 | 응답 Body | 상태 코드 |
+|-------------|----------|------|---------------|-----------|-----------|
+| **GET** | `/api/search/todos` | Todo 검색 | keyword, complete, categoryIds, priorityIds, startDate, endDate | `Page<Todo>` | `200`: 성공 |
+| **GET** | `/api/search/members` | 멤버 검색 (관리자) | emailKeyword, nicknameKeyword, role, lastLoginFrom, lastLoginTo | `Page<Member>` | `200`: 성공 |
+| **GET** | `/api/search/categories` | 카테고리 검색 | titleKeyword, colorCode, shareTypes, includeSubCategories | `Page<Category>` | `200`: 성공 |
+| **GET** | `/api/search/challenges` | 챌린지 검색 | titleKeyword, visibility, periodType, ongoingOnly, joinableOnly | `Page<Challenge>` | `200`: 성공 |
+| **GET** | `/api/search/todos/today-incomplete` | 오늘의 미완료 Todo | 없음 | `List<Todo>` | `200`: 성공 |
+| **GET** | `/api/search/members/inactive` | 비활성 회원 조회 | days (기본값: 90) | `Page<Member>` | `200`: 성공 |
+| **GET** | `/api/search/challenges/public-ongoing` | 공개 진행중 챌린지 | 없음 | `Page<Challenge>` | `200`: 성공 |
 
 ## 인증 방식
 - **JWT 토큰**: HTTP-Only 쿠키로 관리

@@ -1,0 +1,134 @@
+package point.ttodoApi.todo.application;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import point.ttodoApi.common.specification.SpecificationBuilder;
+import point.ttodoApi.common.specification.SortValidator;
+import point.ttodoApi.todo.domain.Todo;
+import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
+import point.ttodoApi.todo.infrastructure.persistence.TodoSpecificationV2;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * 동적 쿼리를 사용한 Todo 검색 서비스 예제
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class TodoSearchService {
+    
+    private final TodoRepository todoRepository;
+    private final TodoSpecificationV2 todoSpecification;
+    private final SortValidator sortValidator;
+    
+    /**
+     * 동적 검색 예제 - 다양한 조건으로 Todo 검색
+     */
+    public Page<Todo> searchTodos(TodoSearchRequest request, Pageable pageable) {
+        // 정렬 필드 검증
+        sortValidator.validateSort(pageable.getSort(), todoSpecification);
+        
+        // SpecificationBuilder를 사용한 동적 쿼리 구성
+        SpecificationBuilder<Todo> builder = new SpecificationBuilder<>(todoSpecification);
+        
+        Specification<Todo> spec = builder
+                // 필수 조건
+                .with("owner.id", request.getOwnerId())
+                .with("active", true)
+                
+                // 선택적 조건들
+                .withIf(request.getComplete() != null, "complete", request.getComplete())
+                .withLike("title", request.getKeyword())
+                .withIn("category.id", request.getCategoryIds())
+                .withIn("priorityId", request.getPriorityIds())
+                .withDateRange("date", request.getStartDate(), request.getEndDate())
+                
+                // 복잡한 조건 예제
+                .withIf(request.isUrgentOnly(), builder2 -> 
+                    builder2.with("priorityId", 1)
+                           .withBetween("date", LocalDate.now(), LocalDate.now().plusDays(3)))
+                
+                .build();
+        
+        return todoRepository.findAll(spec, pageable);
+    }
+    
+    /**
+     * 완료되지 않은 오늘의 Todo 조회
+     */
+    public List<Todo> getTodayIncompleteTodos(UUID ownerId) {
+        SpecificationBuilder<Todo> builder = new SpecificationBuilder<>(todoSpecification);
+        
+        Specification<Todo> spec = builder
+                .with("owner.id", ownerId)
+                .with("active", true)
+                .with("complete", false)
+                .with("date", LocalDate.now())
+                .build();
+        
+        return todoRepository.findAll(spec);
+    }
+    
+    /**
+     * 카테고리별 Todo 개수 조회
+     */
+    public long countTodosByCategory(UUID ownerId, UUID categoryId) {
+        SpecificationBuilder<Todo> builder = new SpecificationBuilder<>(todoSpecification);
+        
+        Specification<Todo> spec = builder
+                .with("owner.id", ownerId)
+                .with("active", true)
+                .with("category.id", categoryId)
+                .build();
+        
+        return todoRepository.count(spec);
+    }
+    
+    /**
+     * 검색 요청 DTO
+     */
+    public static class TodoSearchRequest {
+        private UUID ownerId;
+        private Boolean complete;
+        private String keyword;
+        private List<UUID> categoryIds;
+        private List<Integer> priorityIds;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private boolean urgentOnly;
+        
+        // Getters and setters
+        public UUID getOwnerId() { return ownerId; }
+        public void setOwnerId(UUID ownerId) { this.ownerId = ownerId; }
+        
+        public Boolean getComplete() { return complete; }
+        public void setComplete(Boolean complete) { this.complete = complete; }
+        
+        public String getKeyword() { return keyword; }
+        public void setKeyword(String keyword) { this.keyword = keyword; }
+        
+        public List<UUID> getCategoryIds() { return categoryIds; }
+        public void setCategoryIds(List<UUID> categoryIds) { this.categoryIds = categoryIds; }
+        
+        public List<Integer> getPriorityIds() { return priorityIds; }
+        public void setPriorityIds(List<Integer> priorityIds) { this.priorityIds = priorityIds; }
+        
+        public LocalDate getStartDate() { return startDate; }
+        public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+        
+        public LocalDate getEndDate() { return endDate; }
+        public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+        
+        public boolean isUrgentOnly() { return urgentOnly; }
+        public void setUrgentOnly(boolean urgentOnly) { this.urgentOnly = urgentOnly; }
+    }
+}

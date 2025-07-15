@@ -282,8 +282,62 @@
         "testStrategy": "1. 다양한 검색 조건 조합 테스트\n2. SQL Injection 시도 차단 테스트\n3. 허용되지 않은 필드 정렬 시도 테스트\n4. 복잡한 쿼리 성능 테스트",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "BaseSpecification 추상 클래스 구현",
+            "description": "모든 도메인 Specification의 기반이 되는 추상 클래스를 구현하여 공통 로직을 제공합니다.",
+            "dependencies": [],
+            "details": "1. BaseSpecification<T> 추상 클래스 생성\n2. buildSpecification 메소드 구현 - SearchCriteria를 받아 Specification<T> 반환\n3. 공통 메소드 구현:\n   - addLikeCondition(): LIKE 검색 조건 추가\n   - addEqualsCondition(): 동등 비교 조건 추가\n   - addRangeCondition(): 범위 검색 조건 추가\n   - addInCondition(): IN 절 조건 추가\n4. SQL Injection 방지를 위한 파라미터 바인딩 처리\n5. null/empty 값 체크 및 필터링 로직 포함",
+            "status": "done",
+            "testStrategy": "1. 각 조건 메소드별 단위 테스트\n2. null/empty 파라미터 처리 테스트\n3. 여러 조건 조합 테스트"
+          },
+          {
+            "id": 2,
+            "title": "도메인별 Specification 구현체 작성",
+            "description": "Todo, Member, Category 각 도메인에 맞는 Specification 구현체를 작성합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "1. TodoSpecification 구현:\n   - 제목, 내용, 상태별 검색\n   - 생성일자 범위 검색\n   - 카테고리별 필터링\n2. MemberSpecification 구현:\n   - 이메일, 닉네임 검색\n   - 가입일자 범위 검색\n   - 활성/비활성 상태 필터링\n3. CategorySpecification 구현:\n   - 카테고리명 검색\n   - 상위 카테고리별 필터링\n4. 각 도메인별 허용 정렬 필드 상수 정의",
+            "status": "done",
+            "testStrategy": "1. 도메인별 단일 조건 검색 테스트\n2. 복합 조건 검색 테스트\n3. 정렬 조건 적용 테스트"
+          },
+          {
+            "id": 3,
+            "title": "정렬 필드 화이트리스트 검증 시스템 구현",
+            "description": "동적 정렬 요청에 대한 보안 검증을 위한 화이트리스트 기반 검증 시스템을 구현합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "1. SortFieldValidator 유틸리티 클래스 구현\n2. 도메인별 허용 정렬 필드 정의:\n   - Todo: id, title, createdAt, updatedAt, status\n   - Member: id, email, nickname, createdAt\n   - Category: id, name, createdAt\n3. validateSortFields 메소드 구현:\n   - Pageable의 Sort 객체에서 필드 추출\n   - 화이트리스트와 대조 검증\n   - 미허용 필드 발견 시 InvalidSortFieldException 발생\n4. 대소문자 무시 비교 옵션 제공",
+            "status": "done",
+            "testStrategy": "1. 허용된 필드 정렬 성공 테스트\n2. 미허용 필드 정렬 차단 테스트\n3. SQL Injection 시도 차단 테스트"
+          },
+          {
+            "id": 4,
+            "title": "Repository 레이어 통합 및 메소드 구현",
+            "description": "JpaSpecificationExecutor를 상속받은 Repository에 Specification을 활용한 메소드를 구현합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "1. 각 Repository 인터페이스에 JpaSpecificationExecutor 상속 추가\n2. Service 레이어에 동적 쿼리 메소드 구현:\n   - findAllWithFilters(SearchCriteria criteria, Pageable pageable)\n   - countWithFilters(SearchCriteria criteria)\n3. 트랜잭션 및 읽기 전용 설정 적용\n4. 쿼리 힌트 및 페치 조인 최적화\n5. 검색 결과 DTO 매핑 처리",
+            "status": "done",
+            "testStrategy": "1. 다양한 검색 조건 통합 테스트\n2. 페이징 처리 정확성 테스트\n3. N+1 쿼리 발생 여부 확인"
+          },
+          {
+            "id": 5,
+            "title": "성능 최적화 및 모니터링 구현",
+            "description": "동적 쿼리의 성능을 최적화하고 모니터링 체계를 구축합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "1. 쿼리 실행 계획 분석 및 인덱스 추가:\n   - 자주 사용되는 검색 필드에 인덱스 생성\n   - 복합 인덱스 전략 수립\n2. 쿼리 캐싱 전략 구현:\n   - Spring Cache를 활용한 결과 캐싱\n   - 캐시 무효화 정책 설정\n3. 쿼리 실행 시간 로깅:\n   - AOP를 활용한 실행 시간 측정\n   - Slow Query 임계값 설정 및 알림\n4. 쿼리 복잡도 제한:\n   - 최대 조건 개수 제한\n   - 조인 깊이 제한",
+            "status": "in-progress",
+            "testStrategy": "1. 대용량 데이터 성능 테스트\n2. 캐시 적중률 확인\n3. 동시성 테스트\n4. 메모리 사용량 모니터링"
+          }
+        ]
       },
       {
         "id": 17,
@@ -510,7 +564,7 @@
     ],
     "metadata": {
       "created": "2025-07-14T14:54:00.173Z",
-      "updated": "2025-07-15T00:09:38.545Z",
+      "updated": "2025-07-15T01:42:01.962Z",
       "description": "Tasks for master context"
     }
   }
