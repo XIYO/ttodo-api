@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.common.specification.SpecificationBuilder;
 import point.ttodoApi.common.specification.SortValidator;
 import point.ttodoApi.todo.domain.Todo;
+import point.ttodoApi.todo.dto.request.TodoSearchRequest;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 import point.ttodoApi.todo.infrastructure.persistence.TodoSpecificationV2;
 
@@ -93,42 +94,4 @@ public class TodoSearchService {
         return todoRepository.count(spec);
     }
     
-    /**
-     * 검색 요청 DTO
-     */
-    public static class TodoSearchRequest {
-        private UUID ownerId;
-        private Boolean complete;
-        private String keyword;
-        private List<UUID> categoryIds;
-        private List<Integer> priorityIds;
-        private LocalDate startDate;
-        private LocalDate endDate;
-        private boolean urgentOnly;
-        
-        // Getters and setters
-        public UUID getOwnerId() { return ownerId; }
-        public void setOwnerId(UUID ownerId) { this.ownerId = ownerId; }
-        
-        public Boolean getComplete() { return complete; }
-        public void setComplete(Boolean complete) { this.complete = complete; }
-        
-        public String getKeyword() { return keyword; }
-        public void setKeyword(String keyword) { this.keyword = keyword; }
-        
-        public List<UUID> getCategoryIds() { return categoryIds; }
-        public void setCategoryIds(List<UUID> categoryIds) { this.categoryIds = categoryIds; }
-        
-        public List<Integer> getPriorityIds() { return priorityIds; }
-        public void setPriorityIds(List<Integer> priorityIds) { this.priorityIds = priorityIds; }
-        
-        public LocalDate getStartDate() { return startDate; }
-        public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
-        
-        public LocalDate getEndDate() { return endDate; }
-        public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
-        
-        public boolean isUrgentOnly() { return urgentOnly; }
-        public void setUrgentOnly(boolean urgentOnly) { this.urgentOnly = urgentOnly; }
-    }
 }

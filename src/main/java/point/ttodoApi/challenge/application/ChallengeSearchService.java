@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.challenge.domain.Challenge;
 import point.ttodoApi.challenge.domain.ChallengeStatus;
+import point.ttodoApi.challenge.dto.request.ChallengeSearchRequest;
 import point.ttodoApi.challenge.infrastructure.ChallengeRepository;
 import point.ttodoApi.challenge.infrastructure.ChallengeSpecification;
 import point.ttodoApi.common.specification.SpecificationBuilder;
@@ -102,54 +103,4 @@ public class ChallengeSearchService {
         return challengeRepository.findAll(spec, pageable);
     }
     
-    /**
-     * 검색 요청 DTO
-     */
-    public static class ChallengeSearchRequest {
-        private String titleKeyword;
-        private String descriptionKeyword;
-        private UUID creatorId;
-        private String visibility;
-        private String periodType;
-        private LocalDate startDateFrom;
-        private LocalDate startDateTo;
-        private LocalDate endDateFrom;
-        private LocalDate endDateTo;
-        private boolean ongoingOnly;
-        private boolean joinableOnly;
-        
-        // Getters and setters
-        public String getTitleKeyword() { return titleKeyword; }
-        public void setTitleKeyword(String titleKeyword) { this.titleKeyword = titleKeyword; }
-        
-        public String getDescriptionKeyword() { return descriptionKeyword; }
-        public void setDescriptionKeyword(String descriptionKeyword) { this.descriptionKeyword = descriptionKeyword; }
-        
-        public UUID getCreatorId() { return creatorId; }
-        public void setCreatorId(UUID creatorId) { this.creatorId = creatorId; }
-        
-        public String getVisibility() { return visibility; }
-        public void setVisibility(String visibility) { this.visibility = visibility; }
-        
-        public String getPeriodType() { return periodType; }
-        public void setPeriodType(String periodType) { this.periodType = periodType; }
-        
-        public LocalDate getStartDateFrom() { return startDateFrom; }
-        public void setStartDateFrom(LocalDate startDateFrom) { this.startDateFrom = startDateFrom; }
-        
-        public LocalDate getStartDateTo() { return startDateTo; }
-        public void setStartDateTo(LocalDate startDateTo) { this.startDateTo = startDateTo; }
-        
-        public LocalDate getEndDateFrom() { return endDateFrom; }
-        public void setEndDateFrom(LocalDate endDateFrom) { this.endDateFrom = endDateFrom; }
-        
-        public LocalDate getEndDateTo() { return endDateTo; }
-        public void setEndDateTo(LocalDate endDateTo) { this.endDateTo = endDateTo; }
-        
-        public boolean isOngoingOnly() { return ongoingOnly; }
-        public void setOngoingOnly(boolean ongoingOnly) { this.ongoingOnly = ongoingOnly; }
-        
-        public boolean isJoinableOnly() { return joinableOnly; }
-        public void setJoinableOnly(boolean joinableOnly) { this.joinableOnly = joinableOnly; }
-    }
 }

@@ -282,7 +282,7 @@
         "testStrategy": "1. 다양한 검색 조건 조합 테스트\n2. SQL Injection 시도 차단 테스트\n3. 허용되지 않은 필드 정렬 시도 테스트\n4. 복잡한 쿼리 성능 테스트",
         "priority": "medium",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -334,7 +334,7 @@
               4
             ],
             "details": "1. 쿼리 실행 계획 분석 및 인덱스 추가:\n   - 자주 사용되는 검색 필드에 인덱스 생성\n   - 복합 인덱스 전략 수립\n2. 쿼리 캐싱 전략 구현:\n   - Spring Cache를 활용한 결과 캐싱\n   - 캐시 무효화 정책 설정\n3. 쿼리 실행 시간 로깅:\n   - AOP를 활용한 실행 시간 측정\n   - Slow Query 임계값 설정 및 알림\n4. 쿼리 복잡도 제한:\n   - 최대 조건 개수 제한\n   - 조인 깊이 제한",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "1. 대용량 데이터 성능 테스트\n2. 캐시 적중률 확인\n3. 동시성 테스트\n4. 메모리 사용량 모니터링"
           }
         ]
@@ -349,8 +349,61 @@
         "dependencies": [
           16
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "PageableValidator 컴포넌트 구현",
+            "description": "페이지네이션 파라미터를 검증하는 PageableValidator 컴포넌트를 구현합니다. 페이지 크기 제한, 허용된 정렬 필드 검증, 정렬 방향 검증 등의 기능을 포함합니다.",
+            "dependencies": [],
+            "details": "PageableValidator 클래스를 @Component로 생성하고, validate(Pageable pageable, Set<String> allowedSortFields) 메서드를 구현합니다. 페이지 크기가 100을 초과하면 InvalidPaginationException을 발생시키고, 정렬 필드가 allowedSortFields에 포함되지 않으면 InvalidSortFieldException을 발생시킵니다. 정렬 방향은 ASC/DESC만 허용하도록 검증합니다.",
+            "status": "done",
+            "testStrategy": "PageableValidatorTest를 작성하여 페이지 크기 경계값(0, 1, 100, 101), 허용/비허용 정렬 필드, null Pageable 처리 등을 테스트합니다."
+          },
+          {
+            "id": 2,
+            "title": "BaseSearchRequest DTO 클래스 구현",
+            "description": "모든 검색 요청에서 공통으로 사용할 BaseSearchRequest 추상 클래스를 구현합니다. 페이지 번호, 크기, 정렬 파라미터에 대한 Bean Validation 어노테이션을 적용합니다.",
+            "dependencies": [],
+            "details": "BaseSearchRequest 추상 클래스에 @Min, @Max, @Pattern 등의 검증 어노테이션을 적용합니다. page는 @Min(0), size는 @Min(1) @Max(100), sort는 @Pattern(regexp = \"^[a-zA-Z0-9,_]+$\")으로 검증합니다. 기본값은 page=0, size=20으로 설정하고, toPageable() 메서드를 추가하여 Spring Pageable 객체로 변환할 수 있도록 합니다.",
+            "status": "done",
+            "testStrategy": "Bean Validation 테스트를 작성하여 각 필드의 제약 조건이 올바르게 동작하는지 확인합니다. ValidatorFactory를 사용한 단위 테스트를 구성합니다."
+          },
+          {
+            "id": 3,
+            "title": "도메인별 SearchRequest DTO 구현",
+            "description": "각 도메인(Todo, Category, Team, Member)별로 BaseSearchRequest를 상속받은 구체적인 SearchRequest 클래스를 구현합니다. 도메인 특화 검색 필드를 추가합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "TodoSearchRequest, CategorySearchRequest, TeamSearchRequest, MemberSearchRequest 클래스를 생성합니다. 각 클래스는 BaseSearchRequest를 상속받고, 도메인별 검색 필드(예: TodoSearchRequest의 status, priority, dueDate 등)를 추가합니다. 각 필드에 적절한 검증 어노테이션을 적용하고, getAllowedSortFields() 메서드를 구현하여 허용된 정렬 필드 목록을 반환합니다.",
+            "status": "done",
+            "testStrategy": "각 SearchRequest 클래스에 대한 단위 테스트를 작성하여 도메인별 검증 규칙이 올바르게 동작하는지 확인합니다."
+          },
+          {
+            "id": 4,
+            "title": "컨트롤러 레이어에 검증 적용",
+            "description": "모든 컨트롤러의 검색 엔드포인트에 PageableValidator와 SearchRequest DTO를 적용합니다. @Valid 어노테이션과 함께 일관된 검증 로직을 구현합니다.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "TodoController, CategoryController, TeamController, MemberController의 검색 메서드를 수정합니다. 기존의 Pageable 파라미터를 SearchRequest DTO로 변경하고, @Valid 어노테이션을 추가합니다. 각 컨트롤러에 PageableValidator를 주입하고, 검색 메서드 시작 부분에서 pageableValidator.validate()를 호출합니다. ControllerAdvice에서 InvalidPaginationException과 InvalidSortFieldException을 처리하는 핸들러를 추가합니다.",
+            "status": "done",
+            "testStrategy": "MockMvc를 사용한 통합 테스트를 작성하여 각 컨트롤러의 검증이 올바르게 동작하는지 확인합니다. 유효/무효한 파라미터로 API를 호출하고 적절한 응답을 반환하는지 테스트합니다."
+          },
+          {
+            "id": 5,
+            "title": "검색 파라미터 로깅 및 모니터링 구현",
+            "description": "검색 요청에 대한 로깅을 추가하고, 잘못된 검색 파라미터 사용 패턴을 모니터링할 수 있는 기능을 구현합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "SearchParameterAspect를 구현하여 모든 검색 요청을 로깅합니다. 요청된 페이지 크기, 정렬 필드, 검색 조건 등을 기록하고, 검증 실패 시 상세한 에러 정보를 로깅합니다. SearchMetrics 클래스를 만들어 검색 파라미터 사용 통계(평균 페이지 크기, 자주 사용되는 정렬 필드 등)를 수집합니다. 개발 환경에서는 DEBUG 레벨로, 운영 환경에서는 INFO 레벨로 로깅하도록 설정합니다.",
+            "status": "done",
+            "testStrategy": "AOP 테스트를 작성하여 검색 요청이 올바르게 로깅되는지 확인합니다. 로그 출력을 캡처하여 예상된 정보가 포함되어 있는지 검증합니다."
+          }
+        ]
       },
       {
         "id": 18,
@@ -564,7 +617,7 @@
     ],
     "metadata": {
       "created": "2025-07-14T14:54:00.173Z",
-      "updated": "2025-07-15T01:42:01.962Z",
+      "updated": "2025-07-15T02:05:01.882Z",
       "description": "Tasks for master context"
     }
   }

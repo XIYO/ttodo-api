@@ -11,6 +11,7 @@ import point.ttodoApi.common.specification.SpecificationBuilder;
 import point.ttodoApi.common.specification.SortValidator;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.domain.Role;
+import point.ttodoApi.member.dto.request.MemberSearchRequest;
 import point.ttodoApi.member.infrastructure.MemberRepository;
 import point.ttodoApi.member.infrastructure.MemberSpecification;
 
@@ -89,34 +90,4 @@ public class MemberSearchService {
         return memberRepository.findAll(spec, pageable);
     }
     
-    /**
-     * 검색 요청 DTO
-     */
-    public static class MemberSearchRequest {
-        private String emailKeyword;
-        private String nicknameKeyword;
-        private Role role;
-        private LocalDateTime lastLoginFrom;
-        private LocalDateTime lastLoginTo;
-        private boolean recentlyActiveOnly;
-        
-        // Getters and setters
-        public String getEmailKeyword() { return emailKeyword; }
-        public void setEmailKeyword(String emailKeyword) { this.emailKeyword = emailKeyword; }
-        
-        public String getNicknameKeyword() { return nicknameKeyword; }
-        public void setNicknameKeyword(String nicknameKeyword) { this.nicknameKeyword = nicknameKeyword; }
-        
-        public Role getRole() { return role; }
-        public void setRole(Role role) { this.role = role; }
-        
-        public LocalDateTime getLastLoginFrom() { return lastLoginFrom; }
-        public void setLastLoginFrom(LocalDateTime lastLoginFrom) { this.lastLoginFrom = lastLoginFrom; }
-        
-        public LocalDateTime getLastLoginTo() { return lastLoginTo; }
-        public void setLastLoginTo(LocalDateTime lastLoginTo) { this.lastLoginTo = lastLoginTo; }
-        
-        public boolean isRecentlyActiveOnly() { return recentlyActiveOnly; }
-        public void setRecentlyActiveOnly(boolean recentlyActiveOnly) { this.recentlyActiveOnly = recentlyActiveOnly; }
-    }
 }

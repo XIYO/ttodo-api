@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
+import point.ttodoApi.category.dto.request.CategorySearchRequest;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.category.infrastructure.persistence.CategorySpecification;
 import point.ttodoApi.common.specification.SpecificationBuilder;
@@ -91,34 +92,4 @@ public class CategorySearchService {
         return categoryRepository.findAll(spec);
     }
     
-    /**
-     * 검색 요청 DTO
-     */
-    public static class CategorySearchRequest {
-        private UUID ownerId;
-        private String titleKeyword;
-        private String colorCode;
-        private String iconKeyword;
-        private List<String> shareTypes;
-        private boolean includeSubCategories;
-        
-        // Getters and setters
-        public UUID getOwnerId() { return ownerId; }
-        public void setOwnerId(UUID ownerId) { this.ownerId = ownerId; }
-        
-        public String getTitleKeyword() { return titleKeyword; }
-        public void setTitleKeyword(String titleKeyword) { this.titleKeyword = titleKeyword; }
-        
-        public String getColorCode() { return colorCode; }
-        public void setColorCode(String colorCode) { this.colorCode = colorCode; }
-        
-        public String getIconKeyword() { return iconKeyword; }
-        public void setIconKeyword(String iconKeyword) { this.iconKeyword = iconKeyword; }
-        
-        public List<String> getShareTypes() { return shareTypes; }
-        public void setShareTypes(List<String> shareTypes) { this.shareTypes = shareTypes; }
-        
-        public boolean isIncludeSubCategories() { return includeSubCategories; }
-        public void setIncludeSubCategories(boolean includeSubCategories) { this.includeSubCategories = includeSubCategories; }
-    }
 }

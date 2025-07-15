@@ -13,6 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.domain.MemberPrincipal;
+import point.ttodoApi.common.validation.ValidPageable;
+import point.ttodoApi.common.validation.SortFieldsProvider;
 import point.ttodoApi.todo.application.*;
 import point.ttodoApi.todo.application.dto.command.DeleteTodoCommand;
 import point.ttodoApi.todo.application.dto.query.*;
@@ -39,6 +41,7 @@ public class TodoController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
+  @ValidPageable(sortFields = SortFieldsProvider.TODO)
   @Operation(
       summary = "할 일 목록 조회", 
       description = "사용자의 할 일 목록을 페이지네이션과 함께 조회합니다. 다양한 필터링 옵션을 제공하며, 반복 할 일의 가상 인스턴스도 포함합니다.\n\n" +

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,8 @@ import point.ttodoApi.challenge.domain.Challenge;
 import point.ttodoApi.challenge.presentation.dto.request.*;
 import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
+import point.ttodoApi.common.validation.ValidPageable;
+import point.ttodoApi.common.validation.SortFieldsProvider;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 
@@ -64,8 +67,6 @@ public class ChallengeController {
             @Valid CreateChallengeRequest request,
             @AuthenticationPrincipal MemberPrincipal principal) {
         
-        validatePaginationParams(0, 20, "id,desc"); // 기본 검증
-        
         Member member = memberService.findVerifiedMember(principal.id());
         CreateChallengeCommand command = challengePresentationMapper.toCommand(request, member.getId());
         Long challengeId = challengeService.createChallenge(command);
@@ -83,14 +84,10 @@ public class ChallengeController {
     )
     @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
     @GetMapping
+    @ValidPageable(sortFields = SortFieldsProvider.CHALLENGE)
     public Page<ChallengeResponse> getChallenges(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id,desc") String sort) {
+            @PageableDefault(page = 0, size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         
-        validatePaginationParams(page, size, sort);
-        
-        Pageable pageable = createPageable(page, size, sort);
         Page<ChallengeListResult> challengePage = challengeService.searchChallengesWithFilter(null, null, null, null, pageable);
         return challengePage.map(challengePresentationMapper::toResponse);
     }
@@ -161,33 +158,5 @@ public class ChallengeController {
             challenge.getInviteCode(),
             "https://ttodo.dev/challenges/invite/" + challenge.getInviteCode()
         );
-    }
-
-    private void validatePaginationParams(int page, int size, String sort) {
-        if (page < 0) {
-            throw new IllegalArgumentException("페이지 번호는 0 이상이어야 합니다");
-        }
-        if (size <= 0) {
-            throw new IllegalArgumentException("페이지 크기는 1 이상이어야 합니다");
-        }
-        if (size > 100) {
-            throw new IllegalArgumentException("페이지 크기는 100 이하여야 합니다");
-        }
-        
-        String[] sortParams = sort.split(",");
-        String sortBy = sortParams[0];
-        List<String> allowedSortFields = Arrays.asList("id", "title", "createdAt", "updatedAt", "startDate", "endDate", "participantCount");
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IllegalArgumentException("허용되지 않은 정렬 필드입니다: " + sortBy);
-        }
-    }
-
-    private Pageable createPageable(int page, int size, String sort) {
-        String[] sortParams = sort.split(",");
-        String sortBy = sortParams[0];
-        Sort.Direction direction = sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1])
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC;
-        return PageRequest.of(page, size, Sort.by(direction, sortBy));
     }
 }
