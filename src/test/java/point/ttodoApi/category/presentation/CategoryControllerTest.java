@@ -75,7 +75,7 @@ public class CategoryControllerTest extends IntegrationTestSupport {
         @DisplayName("필수 필드만으로 카테고리 생성 - 이름만")
         void createCategoryWithNameOnly() throws Exception {
             String uniqueName = "테스트카테고리_" + System.currentTimeMillis();
-            int beforeCount = categoryRepository.findByMemberIdOrderByNameAsc(testMember.getId()).size();
+            int beforeCount = categoryRepository.findByOwnerIdOrderByNameAsc(testMember.getId()).size();
             
             mockMvc.perform(post("/categories")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -87,7 +87,7 @@ public class CategoryControllerTest extends IntegrationTestSupport {
                     .andExpect(jsonPath("$.id").exists());
             
             // DB 검증
-            List<Category> categories = categoryRepository.findByMemberIdOrderByNameAsc(testMember.getId());
+            List<Category> categories = categoryRepository.findByOwnerIdOrderByNameAsc(testMember.getId());
             assertThat(categories).hasSize(beforeCount + 1);
             
             Category newCategory = categories.stream()
@@ -180,7 +180,7 @@ public class CategoryControllerTest extends IntegrationTestSupport {
                     .name("테스트카테고리")
                     .color("#ff0000")
                     .description("테스트용 카테고리")
-                    .member(testMember)
+                    .owner(testMember)
                     .build();
             testCategory = categoryRepository.save(testCategory);
             
@@ -188,7 +188,7 @@ public class CategoryControllerTest extends IntegrationTestSupport {
             otherCategory = Category.builder()
                     .name("다른사용자카테고리")
                     .color("#00ff00")
-                    .member(otherMember)
+                    .owner(otherMember)
                     .build();
             otherCategory = categoryRepository.save(otherCategory);
         }
@@ -248,13 +248,13 @@ public class CategoryControllerTest extends IntegrationTestSupport {
                     .name("수정전카테고리")
                     .color("#ff0000")
                     .description("수정전 설명")
-                    .member(testMember)
+                    .owner(testMember)
                     .build();
             testCategory = categoryRepository.save(testCategory);
             
             otherCategory = Category.builder()
                     .name("다른사용자카테고리")
-                    .member(otherMember)
+                    .owner(otherMember)
                     .build();
             otherCategory = categoryRepository.save(otherCategory);
         }
@@ -314,13 +314,13 @@ public class CategoryControllerTest extends IntegrationTestSupport {
         void setUpCategories() {
             testCategory = Category.builder()
                     .name("삭제할카테고리")
-                    .member(testMember)
+                    .owner(testMember)
                     .build();
             testCategory = categoryRepository.save(testCategory);
             
             otherCategory = Category.builder()
                     .name("다른사용자카테고리")
-                    .member(otherMember)
+                    .owner(otherMember)
                     .build();
             otherCategory = categoryRepository.save(otherCategory);
         }
@@ -411,7 +411,7 @@ public class CategoryControllerTest extends IntegrationTestSupport {
                 Category category = Category.builder()
                         .name("카테고리" + String.format("%02d", i))
                         .color("#ff000" + (i % 10))
-                        .member(testMember)
+                        .owner(testMember)
                         .build();
                 categoryRepository.save(category);
             }

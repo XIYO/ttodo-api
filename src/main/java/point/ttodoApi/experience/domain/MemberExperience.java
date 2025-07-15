@@ -15,14 +15,14 @@ public class MemberExperience {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private UUID memberId;
+    private UUID ownerId;
 
     @Column(nullable = false)
     private int experience;
 
     @Builder
-    public MemberExperience(UUID memberId, int experience) {
-        this.memberId = memberId;
+    public MemberExperience(UUID ownerId, int experience) {
+        this.ownerId = ownerId;
         this.experience = experience;
     }
 

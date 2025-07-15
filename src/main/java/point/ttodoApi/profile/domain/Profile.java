@@ -21,7 +21,7 @@ public class Profile {
     private Long id;
     
     @Column(nullable = false, unique = true)
-    private UUID memberId;
+    private UUID ownerId;
     
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -53,8 +53,8 @@ public class Profile {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
     
-    public Profile(UUID memberId) {
-        this.memberId = memberId;
+    public Profile(UUID ownerId) {
+        this.ownerId = ownerId;
         this.theme = Theme.PINKY;
         this.timeZone = "Asia/Seoul";
         this.locale = "ko-KR";

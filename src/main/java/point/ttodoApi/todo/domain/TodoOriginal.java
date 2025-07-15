@@ -81,7 +81,7 @@ public class TodoOriginal {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    private Member owner;
 
     @Builder
     public TodoOriginal(
@@ -101,7 +101,7 @@ public class TodoOriginal {
             Set<Integer> daysOfWeek,
             Set<String> tags,
             Category category,
-            Member member
+            Member owner
     ) {
         this.title = title;
         this.description = description;
@@ -119,7 +119,7 @@ public class TodoOriginal {
         this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;
-        this.member = member;
+        this.owner = owner;
     }
     
     public void togglePin() {
@@ -136,7 +136,7 @@ public class TodoOriginal {
      * @return 소유자인지 여부
      */
     public boolean isOwn(UUID memberId) {
-        if (memberId == null || this.member == null) return false;
-        return this.member.getId().equals(memberId);
+        if (memberId == null || this.owner == null) return false;
+        return this.owner.getId().equals(memberId);
     }
 }

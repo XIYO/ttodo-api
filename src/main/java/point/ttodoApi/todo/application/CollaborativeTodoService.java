@@ -100,9 +100,9 @@ public class CollaborativeTodoService {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
         
-        // member만 협업 전환 가능
-        if (!todo.getMember().equals(member)) {
-            throw new IllegalArgumentException("Only todo member can enable collaboration");
+        // owner만 협업 전환 가능
+        if (!todo.getOwner().equals(member)) {
+            throw new IllegalArgumentException("Only todo owner can enable collaboration");
         }
         
         todo.enableCollaboration();
@@ -119,9 +119,9 @@ public class CollaborativeTodoService {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
         
-        // member만 협업 해제 가능
-        if (!todo.getMember().equals(member)) {
-            throw new IllegalArgumentException("Only todo member can disable collaboration");
+        // owner만 협업 해제 가능
+        if (!todo.getOwner().equals(member)) {
+            throw new IllegalArgumentException("Only todo owner can disable collaboration");
         }
         
         todo.disableCollaboration();
@@ -144,10 +144,10 @@ public class CollaborativeTodoService {
             throw new IllegalArgumentException("No permission to access this todo");
         }
         
-        // 협업 투두가 아니면 일반 완료 처리 (member만)
+        // 협업 투두가 아니면 일반 완료 처리 (owner만)
         if (!todo.isCollaborativeTodo()) {
-            if (!todo.getMember().equals(member)) {
-                throw new IllegalArgumentException("Only todo member can complete non-collaborative todo");
+            if (!todo.getOwner().equals(member)) {
+                throw new IllegalArgumentException("Only todo owner can complete non-collaborative todo");
             }
         }
         

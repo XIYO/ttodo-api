@@ -123,13 +123,13 @@ public interface CategoryCollaboratorRepository extends JpaRepository<CategoryCo
     List<CategoryCollaborator> findPendingInvitationsByMember(@Param("member") Member member);
     
     /**
-     * 특정 member가 소유한 카테고리들의 모든 협업자 조회
+     * 특정 owner가 소유한 카테고리들의 모든 협업자 조회
      */
     @Query("SELECT cc FROM CategoryCollaborator cc " +
            "JOIN cc.category c " +
-           "WHERE c.member = :member AND cc.deletedAt IS NULL " +
+           "WHERE c.owner = :owner AND cc.deletedAt IS NULL " +
            "ORDER BY c.name, cc.acceptedAt DESC, cc.invitedAt DESC")
-    List<CategoryCollaborator> findByCategoryMember(@Param("member") Member member);
+    List<CategoryCollaborator> findByCategoryOwner(@Param("owner") Member owner);
     
     /**
      * 중복 초대 방지를 위한 존재 여부 확인

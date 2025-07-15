@@ -71,7 +71,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @DisplayName("필수 필드만으로 Todo 생성 - 타이틀만")
         void createTodoWithTitleOnly() throws Exception {
             // 기존 Todo 개수 확인
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             mockMvc.perform(post("/todos")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -79,7 +79,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .andExpect(status().isCreated());
             
             // DB 검증
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             assertThat(todos).hasSize(beforeCount + 1);
             
             // 새로 생성된 Todo 찾기
@@ -96,7 +96,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @WithUserDetails("anon@ttodo.dev")
         @DisplayName("타이틀과 설명으로 Todo 생성")
         void createTodoWithTitleAndDescription() throws Exception {
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             mockMvc.perform(post("/todos")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -104,7 +104,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("description", "이것은 상세한 설명입니다. 최대 1000자까지 가능합니다."))
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             assertThat(todos).hasSize(beforeCount + 1);
             
             var newTodo = todos.stream()
@@ -118,7 +118,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @WithUserDetails("anon@ttodo.dev")
         @DisplayName("날짜와 시간이 설정된 Todo 생성")
         void createTodoWithDateTime() throws Exception {
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             LocalDate tomorrow = LocalDate.now().plusDays(1);
             
             mockMvc.perform(post("/todos")
@@ -128,7 +128,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("time", "18:30"))
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             assertThat(todos).hasSize(beforeCount + 1);
             
             var newTodo = todos.stream()
@@ -143,7 +143,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @WithUserDetails("anon@ttodo.dev")
         @DisplayName("우선순위가 설정된 Todo 생성")
         void createTodoWithPriority() throws Exception {
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             // 높은 우선순위 (2)
             mockMvc.perform(post("/todos")
@@ -152,7 +152,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("priorityId", "2"))
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             var urgentTodo = todos.stream()
                     .filter(t -> "긴급한 할일".equals(t.getTitle()))
                     .findFirst()
@@ -168,11 +168,11 @@ public class TodoControllerTest extends IntegrationTestSupport {
             var category = point.ttodoApi.category.domain.Category.builder()
                     .name("테스트 카테고리")
                     .color("#FF0000")
-                    .member(testMember)
+                    .owner(testMember)
                     .build();
             category = categoryRepository.save(category);
             
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             mockMvc.perform(post("/todos")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -180,7 +180,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("categoryId", category.getId().toString()))
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             var categoryTodo = todos.stream()
                     .filter(t -> "업무 관련 할일".equals(t.getTitle()))
                     .findFirst()
@@ -195,7 +195,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @WithUserDetails("anon@ttodo.dev")
         @DisplayName("매일 반복되는 Todo 생성")
         void createDailyRepeatingTodo() throws Exception {
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             LocalDate today = LocalDate.now();
             LocalDate endDate = today.plusMonths(1);
             
@@ -208,7 +208,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("repeatEndDate", endDate.toString()))
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             var dailyTodo = todos.stream()
                     .filter(t -> "매일 운동하기".equals(t.getTitle()))
                     .findFirst()
@@ -223,7 +223,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @WithUserDetails("anon@ttodo.dev")
         @DisplayName("매주 특정 요일에 반복되는 Todo 생성")
         void createWeeklyRepeatingTodo() throws Exception {
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             mockMvc.perform(post("/todos")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -234,7 +234,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("daysOfWeek", "5")) // 금요일
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             var weeklyTodo = todos.stream()
                     .filter(t -> "주간 회의".equals(t.getTitle()))
                     .findFirst()
@@ -247,7 +247,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @WithUserDetails("anon@ttodo.dev")
         @DisplayName("태그가 포함된 Todo 생성")
         void createTodoWithTags() throws Exception {
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             mockMvc.perform(post("/todos")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -257,7 +257,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("tags", "긴급"))
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             assertThat(todos).hasSize(beforeCount + 1);
             // 태그 검증은 실제 엔티티 구조에 따라 조정 필요
         }
@@ -270,11 +270,11 @@ public class TodoControllerTest extends IntegrationTestSupport {
             var category = point.ttodoApi.category.domain.Category.builder()
                     .name("전체 테스트 카테고리")
                     .color("#0000FF")
-                    .member(testMember)
+                    .owner(testMember)
                     .build();
             category = categoryRepository.save(category);
             
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             LocalDate tomorrow = LocalDate.now().plusDays(1);
             LocalDate nextMonth = LocalDate.now().plusMonths(1);
             
@@ -295,7 +295,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .param("tags", "태그2"))
                     .andExpect(status().isCreated());
             
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             var completeTodo = todos.stream()
                     .filter(t -> "완전한 할일".equals(t.getTitle()))
                     .findFirst()
@@ -356,7 +356,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         void createTodoWithInvalidPriority() throws Exception {
             // 우선순위는 0-2 범위를 벗어나도 현재 서버에서 허용하는 것으로 보임
             // 테스트를 수정하거나 서버 검증 로직이 필요함
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             mockMvc.perform(post("/todos")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -365,7 +365,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
                     .andExpect(status().isCreated()); // 현재는 성공적으로 생성됨
                     
             // 생성된 Todo의 우선순위 확인
-            var todos = todoOriginalRepository.findByMemberId(testMember.getId());
+            var todos = todoOriginalRepository.findByOwnerId(testMember.getId());
             assertThat(todos).hasSize(beforeCount + 1);
             var invalidPriorityTodo = todos.stream()
                     .filter(t -> "잘못된 우선순위".equals(t.getTitle()))
@@ -396,7 +396,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             TodoOriginal todo = TodoOriginal.builder()
                     .title("조회 테스트용 할일")
                     .description("설명입니다")
-                    .member(testMember)
+                    .owner(testMember)
                     .priorityId(1)
                     .repeatType(0)
                     .build();
@@ -423,7 +423,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             for (int i = 1; i <= 3; i++) {
                 TodoOriginal todo = TodoOriginal.builder()
                         .title("할일 " + i)
-                        .member(testMember)
+                        .owner(testMember)
                         .priorityId(i)
                         .repeatType(0)
                         .build();
@@ -449,7 +449,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             // 오늘 날짜의 Todo 생성
             TodoOriginal todayTodo = TodoOriginal.builder()
                     .title("오늘의 할일")
-                    .member(testMember)
+                    .owner(testMember)
                     .date(today)
                     .priorityId(1)
                     .repeatType(0)
@@ -459,7 +459,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             // 내일 날짜의 Todo 생성
             TodoOriginal tomorrowTodo = TodoOriginal.builder()
                     .title("내일의 할일")
-                    .member(testMember)
+                    .owner(testMember)
                     .date(tomorrow)
                     .priorityId(1)
                     .repeatType(0)
@@ -501,7 +501,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             TodoOriginal todo = TodoOriginal.builder()
                     .title("수정 전 할일")
                     .description("수정 전 설명")
-                    .member(testMember)
+                    .owner(testMember)
                     .priorityId(1)
                     .repeatType(0)
                     .build();
@@ -569,7 +569,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         void setUpTodo() {
             TodoOriginal todo = TodoOriginal.builder()
                     .title("삭제할 할일")
-                    .member(testMember)
+                    .owner(testMember)
                     .priorityId(1)
                     .repeatType(0)
                     .build();
@@ -666,7 +666,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             TodoOriginal todo = TodoOriginal.builder()
                     .title("원래 제목")
                     .description("원래 설명")
-                    .member(testMember)
+                    .owner(testMember)
                     .priorityId(1)
                     .repeatType(0)
                     .build();
@@ -694,7 +694,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
         @DisplayName("여러 개의 Todo 생성 후 페이지네이션 테스트")
         void createMultipleTodosAndTestPagination() throws Exception {
             // 기존 Todo 개수 확인
-            int beforeCount = todoOriginalRepository.findByMemberId(testMember.getId()).size();
+            int beforeCount = todoOriginalRepository.findByOwnerId(testMember.getId()).size();
             
             // 여러 개의 Todo 생성
             for (int i = 1; i <= 15; i++) {
@@ -738,7 +738,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             // 매일 반복되는 Todo 생성 (어제부터 다음 주까지)
             TodoOriginal repeatingTodo = TodoOriginal.builder()
                     .title("매일 반복 할일")
-                    .member(testMember)
+                    .owner(testMember)
                     .repeatType(1) // DAILY
                     .repeatInterval(1)
                     .repeatStartDate(yesterday)
@@ -781,7 +781,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             // 매일 반복되는 Todo 생성
             TodoOriginal repeatingTodo = TodoOriginal.builder()
                     .title("매일 운동")
-                    .member(testMember)
+                    .owner(testMember)
                     .repeatType(1) // DAILY
                     .repeatStartDate(today)
                     .repeatEndDate(nextWeek)
@@ -833,7 +833,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
             for (int i = 0; i < 5; i++) {
                 TodoOriginal todo = TodoOriginal.builder()
                         .title("테스트 할일 " + i)
-                        .member(testMember)
+                        .owner(testMember)
                         .priorityId(1)
                         .repeatType(0)
                         .date(LocalDate.now())

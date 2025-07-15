@@ -27,7 +27,7 @@ public class ProfileService {
     
     @Transactional
     public Profile createProfile(UUID memberId) {
-        if (profileRepository.existsByMemberId(memberId)) {
+        if (profileRepository.existsByOwnerId(memberId)) {
             throw new IllegalStateException("Profile already exists for member: " + memberId);
         }
         
@@ -36,7 +36,7 @@ public class ProfileService {
     }
     
     public Profile getProfile(UUID memberId) {
-        return profileRepository.findByMemberId(memberId)
+        return profileRepository.findByOwnerId(memberId)
                 .orElseGet(() -> createProfile(memberId));
     }
     

@@ -33,14 +33,14 @@ public class TodoInitializer implements ApplicationRunner {
       return;
     }
     
-    if (!todoOriginalRepository.findByMemberId(member.getId()).isEmpty()) {
+    if (!todoOriginalRepository.findByOwnerId(member.getId()).isEmpty()) {
       log.debug("Member {} already has todos, skipping initialization", member.getNickname());
       return;
     }
 
     createDummyCategoriesForMember(member);
     
-    List<Category> categories = categoryRepository.findByMemberIdOrderByNameAsc(member.getId());
+    List<Category> categories = categoryRepository.findByOwnerIdOrderByNameAsc(member.getId());
     Map<String, Category> categoryMap = new HashMap<>();
     for (Category c : categories) categoryMap.put(c.getName(), c);
 
@@ -56,7 +56,7 @@ public class TodoInitializer implements ApplicationRunner {
             .tags(Set.of("시작", "튜토리얼"))
             .repeatType(0)
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     // === 개인 카테고리 할일 ===
@@ -68,7 +68,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("명상", "습관", "아침"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -79,7 +79,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("일기", "성찰", "습관"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -90,7 +90,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("목표", "계획", "성장"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -101,7 +101,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("독서", "성장", "지식"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -112,7 +112,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("취미", "영화", "여가"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -123,7 +123,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("미용", "예약", "관리"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -134,7 +134,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("청소", "정리", "집"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -145,7 +145,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("건강", "쇼핑", "영양제"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -156,7 +156,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("쇼핑", "패션", "신발"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -167,7 +167,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("커피", "쇼핑", "취미"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -178,7 +178,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("블로그", "글쓰기", "취미"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -189,7 +189,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("식물", "가꾸기", "집"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -200,7 +200,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("독서", "모임", "발표"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -211,7 +211,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("디자인", "명함", "피드백"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -222,7 +222,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("여행", "계획", "휴가"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     // === 업무 카테고리 할일 ===
@@ -234,7 +234,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("회의", "업무", "중요"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -245,7 +245,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("보고서", "업무", "마감"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -256,7 +256,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("프로젝트", "일정", "관리"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -267,7 +267,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("미팅", "팀워크", "협업"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -278,7 +278,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("이메일", "정리", "커뮤니케이션"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -289,7 +289,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("교육", "인사", "매뉴얼"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -300,7 +300,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("거래처", "계약", "미팅"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -311,7 +311,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("분석", "실적", "보고서"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -322,7 +322,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("경비", "정산", "출장"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -333,7 +333,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("고객", "피드백", "개선"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -344,7 +344,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("웹사이트", "UI", "기획"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -355,7 +355,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("매뉴얼", "프로세스", "문서"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -366,7 +366,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("마케팅", "전략", "회의"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -377,7 +377,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("인사", "평가", "관리"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -388,7 +388,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("개발", "API", "문서"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -399,7 +399,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("리스크", "관리", "프로젝트"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     // === 공부 카테고리 할일 ===
@@ -411,7 +411,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .tags(Set.of("영어", "학습", "반복"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -422,7 +422,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("알고리즘", "코딩", "문제해결"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -433,7 +433,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("개발", "스프링", "강의"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -444,7 +444,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("데이터", "분석", "과제"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -455,7 +455,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("일본어", "문법", "복습"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -466,7 +466,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("개발", "디자인패턴", "스터디"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -477,7 +477,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("통계", "수학", "복습"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -488,7 +488,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("AWS", "클라우드", "IT"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -499,7 +499,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("마케팅", "독서", "전략"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -510,7 +510,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("재테크", "투자", "강의"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -521,7 +521,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("디자인", "포토샵", "실습"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -532,7 +532,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("데이터베이스", "SQL", "개발"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -543,7 +543,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("스페인어", "회화", "언어"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -554,7 +554,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("심리학", "논문", "연구"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -565,7 +565,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("기획", "문서", "프로젝트"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     // === 가족 카테고리 할일 ===
@@ -577,7 +577,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("가족", "식사", "저녁"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -588,7 +588,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("선물", "부모님", "효도"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -599,7 +599,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("여행", "가족", "계획"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -610,7 +610,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("병원", "아이", "건강"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -621,7 +621,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("모임", "친척", "준비"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -632,7 +632,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("상담", "학교", "교육"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -643,7 +643,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("사진", "추억", "정리"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -654,7 +654,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("교육", "학원", "아이"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -665,7 +665,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("명절", "준비", "계획"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -676,7 +676,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("식단", "계획", "가족"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     // === 약속 카테고리 할일 ===
@@ -688,7 +688,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("친구", "점심", "사교"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -699,7 +699,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("동창회", "친구", "모임"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -710,7 +710,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("업무", "미팅", "네트워킹"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -721,7 +721,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("멘토링", "경력", "성장"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -732,7 +732,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("생일", "축하", "친구"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -743,7 +743,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("스터디", "개발", "학습"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -754,7 +754,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("취미", "사진", "모임"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -765,7 +765,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("병원", "건강", "검진"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -776,7 +776,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("부동산", "상담", "주택"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -787,7 +787,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("컨퍼런스", "개발", "온라인"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     // === 운동 카테고리 할일 ===
@@ -799,7 +799,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("운동", "건강", "복근"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -810,7 +810,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("PT", "헬스", "예약"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -821,7 +821,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("쇼핑", "운동용품", "러닝"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -832,7 +832,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("필라테스", "코어", "건강"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -843,7 +843,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("홈트", "HIIT", "스쿼트"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -854,7 +854,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("등산", "아웃도어", "취미"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -865,7 +865,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("수영", "강습", "기술"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -876,7 +876,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("요가", "명상", "스트레칭"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -887,7 +887,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("식단", "영양", "건강"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -898,7 +898,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("테니스", "레슨", "기술"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -909,7 +909,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("축구", "동호회", "사교"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -920,7 +920,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("인바디", "측정", "목표"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -931,7 +931,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now())
             .tags(Set.of("사이클링", "자전거", "한강"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     defaultTodos.add(TodoOriginal.builder()
@@ -942,7 +942,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("스트레칭", "유연성", "몸관리"))
             .repeatType(0)
-            .member(member)
+            .owner(member)
             .build());
 
     todoOriginalRepository.saveAll(defaultTodos);
@@ -951,10 +951,10 @@ public class TodoInitializer implements ApplicationRunner {
 
   public void createDummyCategoriesForMember(Member member) {
     var dummyCategories = List.of(
-        Category.builder().name("약속").color(null).description(null).member(member).build(),
-        Category.builder().name("가족").color(null).description(null).member(member).build(),
-        Category.builder().name("공부").color(null).description(null).member(member).build(),
-        Category.builder().name("운동").color(null).description(null).member(member).build()
+        Category.builder().name("약속").color(null).description(null).owner(member).build(),
+        Category.builder().name("가족").color(null).description(null).owner(member).build(),
+        Category.builder().name("공부").color(null).description(null).owner(member).build(),
+        Category.builder().name("운동").color(null).description(null).owner(member).build()
     );
     categoryRepository.saveAll(dummyCategories);
   }

@@ -16,9 +16,9 @@ public class ExperienceEventHandler {
 
     @EventListener
     public void handleMemberCreated(MemberCreatedEvent event) {
-        repository.findByMemberId(event.memberId())
+        repository.findByOwnerId(event.memberId())
                 .orElseGet(() -> repository.save(MemberExperience.builder()
-                        .memberId(event.memberId())
+                        .ownerId(event.memberId())
                         .experience(0)
                         .build()));
     }

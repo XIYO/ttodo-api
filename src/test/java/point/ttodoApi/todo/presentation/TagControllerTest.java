@@ -72,14 +72,14 @@ public class TagControllerTest extends IntegrationTestSupport {
         testCategory = Category.builder()
                 .name("테스트 카테고리")
                 .color("#FF0000")
-                .member(testMember)
+                .owner(testMember)
                 .build();
         testCategory = categoryRepository.save(testCategory);
 
         anotherCategory = Category.builder()
                 .name("다른 카테고리")
                 .color("#00FF00")
-                .member(testMember)
+                .owner(testMember)
                 .build();
         anotherCategory = categoryRepository.save(anotherCategory);
     }
@@ -458,7 +458,7 @@ public class TagControllerTest extends IntegrationTestSupport {
     private TodoOriginal createTodoWithTagsAndCategory(String title, Set<String> tags, Category category) {
         TodoOriginal todo = TodoOriginal.builder()
                 .title(title)
-                .member(testMember)
+                .owner(testMember)
                 .category(category)
                 .tags(new HashSet<>(tags))  // 가변 Set으로 생성
                 .date(LocalDate.now())
@@ -473,13 +473,13 @@ public class TagControllerTest extends IntegrationTestSupport {
         Category anotherMemberCategory = Category.builder()
                 .name("다른사용자 카테고리")
                 .color("#0000FF")
-                .member(anotherMember)
+                .owner(anotherMember)
                 .build();
         anotherMemberCategory = categoryRepository.save(anotherMemberCategory);
 
         TodoOriginal todo = TodoOriginal.builder()
                 .title(title)
-                .member(anotherMember)
+                .owner(anotherMember)
                 .category(anotherMemberCategory)
                 .tags(new HashSet<>(tags))  // 가변 Set으로 생성
                 .date(LocalDate.now())

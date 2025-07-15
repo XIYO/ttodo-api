@@ -61,8 +61,8 @@ class StatisticsControllerTest extends IntegrationTestSupport {
                 .orElseThrow(() -> new RuntimeException("anon@ttodo.dev 사용자가 없습니다"));
 
         // 기존 데이터 카운트 저장
-        initialCompletedTodos = todoRepository.countCompletedTodosByMemberId(testMember.getId());
-        initialCategories = categoryRepository.countByMemberId(testMember.getId());
+        initialCompletedTodos = todoRepository.countCompletedTodosByOwnerId(testMember.getId());
+        initialCategories = categoryRepository.countByOwnerId(testMember.getId());
 
         setupTestData();
     }
@@ -74,14 +74,14 @@ class StatisticsControllerTest extends IntegrationTestSupport {
         Category category1 = Category.builder()
                 .name("업무")
                 .color("#FF0000")
-                .member(testMember)
+                .owner(testMember)
                 .build();
         categoryRepository.save(category1);
 
         Category category2 = Category.builder()
                 .name("개인")
                 .color("#00FF00")
-                .member(testMember)
+                .owner(testMember)
                 .build();
         categoryRepository.save(category2);
 
@@ -93,7 +93,7 @@ class StatisticsControllerTest extends IntegrationTestSupport {
                     .complete(true)
                     .active(true)
                     .category(category1)
-                    .member(testMember)
+                    .owner(testMember)
                     .date(today)
                     .tags(Set.of("completed"))
                     .build();
@@ -108,7 +108,7 @@ class StatisticsControllerTest extends IntegrationTestSupport {
                     .complete(false)
                     .active(true)
                     .category(category2)
-                    .member(testMember)
+                    .owner(testMember)
                     .date(today)
                     .tags(Set.of("incomplete"))
                     .build();

@@ -29,12 +29,12 @@ public class StatisticsService {
     public Statistics getStatistics(UUID memberId) {
         // 실시간으로 완료한 할일 수와 카테고리 수를 계산
         long completedTodos = todoOriginalService.countCompletedTodos(memberId);
-        long totalCategories = categoryService.countByMemberId(memberId);
+        long totalCategories = categoryService.countByOwnerId(memberId);
 
         // Statistics 엔티티에 저장/업데이트
         updateStatisticsEntity(memberId, (int) completedTodos, (int) totalCategories);
 
-        return statisticsRepository.findByMemberId(memberId)
+        return statisticsRepository.findByOwnerId(memberId)
                 .orElseThrow(() -> new IllegalStateException("Statistics not found"));
     }
 
@@ -42,11 +42,11 @@ public class StatisticsService {
      * Statistics 엔티티 업데이트
      */
     private void updateStatisticsEntity(UUID memberId, int completedTodos, int totalCategories) {
-        Statistics statistics = statisticsRepository.findByMemberId(memberId)
+        Statistics statistics = statisticsRepository.findByOwnerId(memberId)
                 .orElseGet(() -> {
                     Member member = memberService.findByIdOrThrow(memberId);
                     return Statistics.builder()
-                            .member(member)
+                            .owner(member)
                             .succeededTodosCount(completedTodos)
                             .categoryCount(totalCategories)
                             .build();

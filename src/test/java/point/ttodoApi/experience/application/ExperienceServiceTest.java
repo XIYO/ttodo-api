@@ -36,7 +36,7 @@ class ExperienceServiceTest {
         memberId = UUID.randomUUID();
         memberExperienceRepository.save(
                 MemberExperience.builder()
-                        .memberId(memberId)
+                        .ownerId(memberId)
                         .experience(15)
                         .build()
         );

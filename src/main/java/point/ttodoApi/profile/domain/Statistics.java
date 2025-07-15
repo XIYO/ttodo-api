@@ -17,8 +17,8 @@ public class Statistics {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false, unique = true)
-    private Member member;
+    @JoinColumn(name = "owner_id", nullable = false, unique = true)
+    private Member owner;
 
     @Column
     private Integer succeededTodosCount;
@@ -45,8 +45,8 @@ public class Statistics {
     private LocalDateTime updatedAt;
     
     @Builder
-    public Statistics(Member member, Integer succeededTodosCount, Integer categoryCount) {
-        this.member = member;
+    public Statistics(Member owner, Integer succeededTodosCount, Integer categoryCount) {
+        this.owner = owner;
         this.succeededTodosCount = succeededTodosCount != null ? succeededTodosCount : 0;
         this.categoryCount = categoryCount != null ? categoryCount : 0;
         this.succeededChallengesCount = 0;

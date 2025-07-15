@@ -60,14 +60,14 @@ class StatisticsServiceTest extends IntegrationTestSupport {
         category1 = Category.builder()
                 .name("업무")
                 .color("#FF0000")
-                .member(testMember)
+                .owner(testMember)
                 .build();
         category1 = categoryRepository.save(category1);
 
         category2 = Category.builder()
                 .name("개인")
                 .color("#00FF00")
-                .member(testMember)
+                .owner(testMember)
                 .build();
         category2 = categoryRepository.save(category2);
 
@@ -85,7 +85,7 @@ class StatisticsServiceTest extends IntegrationTestSupport {
                     .complete(true)
                     .active(true)
                     .category(category1)
-                    .member(testMember)
+                    .owner(testMember)
                     .date(today)
                     .tags(Set.of("completed"))
                     .build();
@@ -100,7 +100,7 @@ class StatisticsServiceTest extends IntegrationTestSupport {
                     .complete(false)
                     .active(true)
                     .category(category2)
-                    .member(testMember)
+                    .owner(testMember)
                     .date(today)
                     .tags(Set.of("incomplete"))
                     .build();
@@ -118,7 +118,7 @@ class StatisticsServiceTest extends IntegrationTestSupport {
         assertThat(statistics).isNotNull();
         assertThat(statistics.getSucceededTodosCount()).isEqualTo(5); // 완료된 할일 5개
         assertThat(statistics.getCategoryCount()).isEqualTo(2);       // 카테고리 2개
-        assertThat(statistics.getMember().getId()).isEqualTo(testMember.getId());
+        assertThat(statistics.getOwner().getId()).isEqualTo(testMember.getId());
         
         // DB에 저장되었는지 확인
         assertThat(statistics.getId()).isNotNull();
@@ -131,7 +131,7 @@ class StatisticsServiceTest extends IntegrationTestSupport {
     void testGetStatistics_UpdateExisting() {
         // Given - 기존 Statistics 생성
         Statistics existingStats = Statistics.builder()
-                .member(testMember)
+                .owner(testMember)
                 .succeededTodosCount(3)
                 .categoryCount(1)
                 .build();
@@ -164,7 +164,7 @@ class StatisticsServiceTest extends IntegrationTestSupport {
         // Then
         assertThat(statistics.getSucceededTodosCount()).isEqualTo(0);
         assertThat(statistics.getCategoryCount()).isEqualTo(0);
-        assertThat(statistics.getMember().getId()).isEqualTo(newMember.getId());
+        assertThat(statistics.getOwner().getId()).isEqualTo(newMember.getId());
     }
 
     @Test
@@ -178,7 +178,7 @@ class StatisticsServiceTest extends IntegrationTestSupport {
         Category newCategory = Category.builder()
                 .name("운동")
                 .color("#0000FF")
-                .member(testMember)
+                .owner(testMember)
                 .build();
         categoryRepository.save(newCategory);
 
@@ -210,7 +210,7 @@ class StatisticsServiceTest extends IntegrationTestSupport {
                 .complete(true)
                 .active(true)
                 .category(category1)
-                .member(testMember)
+                .owner(testMember)
                 .date(LocalDate.now())
                 .tags(Set.of("newly_completed"))
                 .build();

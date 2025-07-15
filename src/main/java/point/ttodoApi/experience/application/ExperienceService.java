@@ -19,18 +19,18 @@ public class ExperienceService {
     private final LevelService levelService;
 
     public void addExperience(UUID memberId, int amount) {
-        MemberExperience exp = repository.findByMemberId(memberId)
+        MemberExperience exp = repository.findByOwnerId(memberId)
                 .orElseGet(() -> repository.save(MemberExperience.builder()
-                        .memberId(memberId)
+                        .ownerId(memberId)
                         .experience(0)
                         .build()));
         exp.addExperience(amount);
     }
 
     public void subtractExperience(UUID memberId, int amount) {
-        MemberExperience exp = repository.findByMemberId(memberId)
+        MemberExperience exp = repository.findByOwnerId(memberId)
                 .orElseGet(() -> repository.save(MemberExperience.builder()
-                        .memberId(memberId)
+                        .ownerId(memberId)
                         .experience(0)
                         .build()));
         exp.subtractExperience(amount);
@@ -38,7 +38,7 @@ public class ExperienceService {
 
     @Transactional(readOnly = true)
     public int getExperience(UUID memberId) {
-        return repository.findByMemberId(memberId)
+        return repository.findByOwnerId(memberId)
                 .map(MemberExperience::getExperience)
                 .orElse(0);
     }

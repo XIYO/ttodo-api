@@ -32,8 +32,8 @@ public class CollaborativeTodoResponse {
     private Integer priorityId;
     private UUID categoryId;
     private String categoryName;
-    private UUID memberId;
-    private String memberNickname;
+    private UUID ownerId;
+    private String ownerNickname;
     private LocalDate date;
     private LocalTime time;
     private Set<String> tags;
@@ -54,8 +54,8 @@ public class CollaborativeTodoResponse {
             .priorityId(todo.getPriorityId())
             .categoryId(todo.getCategory() != null ? todo.getCategory().getId() : null)
             .categoryName(todo.getCategory() != null ? todo.getCategory().getName() : null)
-            .memberId(todo.getMember().getId())
-            .memberNickname(todo.getMember().getNickname())
+            .ownerId(todo.getOwner().getId())
+            .ownerNickname(todo.getOwner().getNickname())
             .date(todo.getDate())
             .time(todo.getTime())
             .tags(todo.getTags())
