@@ -520,7 +520,7 @@
         "id": 22,
         "title": "카테고리 Collaborator 시스템 구현",
         "description": "CategoryCollaborator 엔티티를 생성하고 카테고리의 협업자 관리 기능을 구현합니다. 협업자는 owner와 동일한 권한을 가지며 Todo 생성/수정/삭제/완료가 가능합니다. Collaborator가 되면 해당 카테고리의 모든 투두가 협업 투두로 표시되어 자신의 투두 목록에 나타납니다.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           21
         ],
@@ -534,7 +534,7 @@
             "description": "CategoryCollaborator 엔티티를 생성하고 협업자 상태 관리를 위한 enum과 Repository를 구현합니다",
             "dependencies": [],
             "details": "CategoryCollaborator 엔티티 생성 (id, category, member, invitedAt, acceptedAt, status 필드 포함), CollaboratorStatus enum 생성 (PENDING, ACCEPTED, REJECTED), CategoryCollaboratorRepository 인터페이스 구현 (findByCategoryAndMember, findByMemberAndStatus, countAcceptedCollaboratorsByCategory, existsByCategoryAndMemberAndStatus, findCollaborativeCategoryIdsByMember 메소드 포함), BaseEntity 상속으로 생성/수정 시간 자동 관리",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "엔티티 생성 테스트, Repository 메소드별 쿼리 동작 검증, 협업자 상태 변경 시나리오 테스트"
           },
           {
@@ -543,7 +543,7 @@
             "description": "Category 엔티티에 협업자 Set과 협업자 관리 메소드들을 추가하여 협업자 초대/제거 및 권한 확인 기능을 구현합니다",
             "dependencies": [],
             "details": "Category 엔티티에 Set<CategoryCollaborator> collaborators 필드 추가 (@OneToMany 매핑), isCollaborator(Member) 메소드 구현 (owner와 수락된 협업자 확인), canManage(Member) 메소드 구현, addCollaborator(Member) 메소드 구현 (owner 체크, 협업자 추가, 기존 투두 협업 설정), removeCollaborator(Member) 메소드 구현 (협업자 제거, 투두 협업 해제), getAcceptedCollaborators() 메소드 구현",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "협업자 추가/제거 테스트, owner를 협업자로 추가 시 예외 발생 테스트, 권한 확인 메소드 테스트"
           },
           {
@@ -552,7 +552,7 @@
             "description": "Todo 엔티티에 협업 투두 구분을 위한 필드와 메소드를 추가하고, 협업 상태 자동 업데이트 로직을 구현합니다",
             "dependencies": [],
             "details": "Todo 엔티티에 Boolean isCollaborative 필드 추가 (기본값 false), updateCollaborativeStatus() 메소드 구현 (@PrePersist, @PreUpdate로 카테고리 협업자 존재 시 자동 설정), isCollaborativeTodo() 메소드 구현, isAccessibleBy(Member) 메소드 구현 (category.canManage() 활용), setIsCollaborative() setter 메소드 추가\n<info added on 2025-07-14T15:50:00.080Z>\n협업자 관리 API 추가: CategoryCollaboratorController 생성하여 협업자 초대(@PostMapping(\"/api/categories/{categoryId}/collaborators\"), 협업자 강제 퇴장(@DeleteMapping(\"/api/categories/{categoryId}/collaborators/{collaboratorId}\"), 협업자 자진 퇴장(@DeleteMapping(\"/api/categories/{categoryId}/collaborators/leave\"), 초대 거절(@DeleteMapping(\"/api/categories/{categoryId}/invitations/reject\") 엔드포인트 구현. 각 API는 권한 검증 후 CategoryCollaboratorService를 통해 처리. 협업자 퇴장 시 CategoryCollaborator 엔티티를 soft delete(deletedAt 설정)하고, 해당 협업자의 투두 목록에서 협업 투두가 즉시 사라지도록 TodoRepository의 쿼리 조건에 deletedAt IS NULL 추가. 협업 기록 보존을 위해 물리적 삭제는 하지 않음.\n</info added on 2025-07-14T15:50:00.080Z>",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "협업 상태 자동 업데이트 테스트, 접근 권한 확인 테스트, null 멤버 처리 테스트"
           },
           {
@@ -617,7 +617,7 @@
     ],
     "metadata": {
       "created": "2025-07-14T14:54:00.173Z",
-      "updated": "2025-07-15T02:05:01.882Z",
+      "updated": "2025-07-15T02:38:13.132Z",
       "description": "Tasks for master context"
     }
   }
