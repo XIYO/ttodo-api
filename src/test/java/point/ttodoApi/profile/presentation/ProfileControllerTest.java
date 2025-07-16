@@ -1,23 +1,27 @@
 package point.ttodoApi.profile.presentation;
-import point.ttodoApi.test.IntegrationTestSupport;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
-import point.ttodoApi.member.domain.Member;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.test.config.*;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -26,43 +30,41 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * ProfileController 통합 테스트
  */
+@SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
 @Transactional
-@Import({TestSecurityConfig.class, TestDataConfig.class})
-public class ProfileControllerTest extends IntegrationTestSupport {
+@ActiveProfiles("test")
+@Testcontainers
+@Import(TestSecurityConfig.class)
+@Sql("/test-data.sql")
+public class ProfileControllerTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgres:17-alpine")
+    );
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private MemberService memberService;
+    private MemberRepository memberRepository;
 
-    private Member testMember;
+    private UUID testMemberId;
 
     @BeforeEach
     void setUp() {
-        // anon@ttodo.dev 사용자를 테스트 멤버로 사용
-        testMember = memberService.findByEmail("anon@ttodo.dev")
-                .orElseGet(() -> {
-                    CreateMemberCommand command = new CreateMemberCommand(
-                        "anon@ttodo.dev", 
-                        "password", 
-                        "익명의 찍찍이", 
-                        "안녕하세요"
-                    );
-                    return memberService.createMember(command);
-                });
+        testMemberId = memberRepository.findByEmail("anon@ttodo.dev").get().getId();
     }
 
     @Test
     @WithUserDetails("anon@ttodo.dev")
     @DisplayName("프로필 정보 조회 성공")
     void getProfileSuccess() throws Exception {
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value(testMember.getNickname()))
-                .andExpect(jsonPath("$.introduction").isNotEmpty())
+                .andExpect(jsonPath("$.nickname").value("익명사용자"))
                 .andExpect(jsonPath("$.theme").value("PINKY"))
                 .andExpect(jsonPath("$.imageUrl").isEmpty());
     }
@@ -78,13 +80,13 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             }
             """;
 
-        mockMvc.perform(patch("/members/{memberId}/profile", testMember.getId())
+        mockMvc.perform(patch("/members/{memberId}/profile", testMemberId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isNoContent());
 
         // 수정 확인
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nickname").value("수정된닉네임"))
                 .andExpect(jsonPath("$.introduction").value("수정된 소개글입니다."));
@@ -100,13 +102,13 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             }
             """;
 
-        mockMvc.perform(patch("/members/{memberId}/profile", testMember.getId())
+        mockMvc.perform(patch("/members/{memberId}/profile", testMemberId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isNoContent());
 
         // 수정 확인
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.theme").value("PINKY"));
     }
@@ -125,10 +127,10 @@ public class ProfileControllerTest extends IntegrationTestSupport {
                 imageContent
             );
 
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(file))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
         }
     }
 
@@ -136,7 +138,7 @@ public class ProfileControllerTest extends IntegrationTestSupport {
     @WithUserDetails("anon@ttodo.dev")
     @DisplayName("프로필 이미지 조회 - 이미지가 없는 경우")
     void getProfileImageNotFound() throws Exception {
-        mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                 .andExpect(status().isNotFound());
     }
 
@@ -155,21 +157,21 @@ public class ProfileControllerTest extends IntegrationTestSupport {
                 imageContent
             );
 
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(file))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
         }
         
         // 이미지 조회
-        mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.IMAGE_JPEG_VALUE));
         
         // 프로필 정보에서 이미지 URL 확인
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
     }
 
     @Test
@@ -187,21 +189,21 @@ public class ProfileControllerTest extends IntegrationTestSupport {
                 imageContent
             );
 
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(file))
                     .andExpect(status().isOk());
         }
 
         // 이미지 삭제
-        mockMvc.perform(delete("/members/{memberId}/profile/image", testMember.getId()))
+        mockMvc.perform(delete("/members/{memberId}/profile/image", testMemberId))
                 .andExpect(status().isNoContent());
         
         // 삭제 후 조회 시 404
-        mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                 .andExpect(status().isNotFound());
         
         // 프로필 정보에서 이미지 URL이 null인지 확인
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imageUrl").isEmpty());
     }
@@ -210,7 +212,7 @@ public class ProfileControllerTest extends IntegrationTestSupport {
     @WithUserDetails("anon@ttodo.dev")
     @DisplayName("프로필 정보 수정 - 빈 요청 본문")
     void updateProfileEmptyBody() throws Exception {
-        mockMvc.perform(patch("/members/{memberId}/profile", testMember.getId())
+        mockMvc.perform(patch("/members/{memberId}/profile", testMemberId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(status().isNoContent());
@@ -227,7 +229,7 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             }
             """, longNickname);
 
-        mockMvc.perform(patch("/members/{memberId}/profile", testMember.getId())
+        mockMvc.perform(patch("/members/{memberId}/profile", testMemberId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isBadRequest());
@@ -244,7 +246,7 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             }
             """, longIntroduction);
 
-        mockMvc.perform(patch("/members/{memberId}/profile", testMember.getId())
+        mockMvc.perform(patch("/members/{memberId}/profile", testMemberId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
                 .andExpect(status().isBadRequest());
@@ -267,7 +269,7 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             );
 
             // 업로드 요청 후 반환된 URL 추출
-            String response = mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            String response = mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(file))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.imageUrl").exists())
@@ -291,7 +293,7 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             assertThat(downloadedImageContent).isEqualTo(originalImageContent);
             
             // 4. 프로필 조회 시에도 같은 URL이 반환되는지 확인
-            mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+            mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.imageUrl").value(returnedImageUrl));
         }
@@ -312,32 +314,32 @@ public class ProfileControllerTest extends IntegrationTestSupport {
                 imageContent
             );
 
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(file))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
         }
         
         // 2. 업로드 확인 - 이미지 조회 가능
-        mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.IMAGE_JPEG_VALUE));
         
         // 3. 프로필 조회 시 imageUrl 있음
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
         
         // 4. 이미지 삭제
-        mockMvc.perform(delete("/members/{memberId}/profile/image", testMember.getId()))
+        mockMvc.perform(delete("/members/{memberId}/profile/image", testMemberId))
                 .andExpect(status().isNoContent());
         
         // 5. 삭제 후 이미지 조회 시 404
-        mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                 .andExpect(status().isNotFound());
         
         // 6. 프로필 조회 시 imageUrl이 null
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imageUrl").isEmpty());
     }
@@ -358,13 +360,13 @@ public class ProfileControllerTest extends IntegrationTestSupport {
                 firstImageContent
             );
 
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(firstFile))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
             
             // 첫 번째 이미지 다운로드하여 확인
-            byte[] downloadedFirstImage = mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+            byte[] downloadedFirstImage = mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.IMAGE_JPEG_VALUE))
                     .andReturn()
@@ -386,13 +388,13 @@ public class ProfileControllerTest extends IntegrationTestSupport {
                 secondImageContent
             );
 
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(secondFile))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                    .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
             
             // 두 번째 이미지 다운로드하여 확인
-            byte[] downloadedSecondImage = mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+            byte[] downloadedSecondImage = mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.IMAGE_PNG_VALUE))
                     .andReturn()
@@ -406,9 +408,9 @@ public class ProfileControllerTest extends IntegrationTestSupport {
         }
         
         // 3. 프로필 조회 시에도 같은 URL 유지
-        mockMvc.perform(get("/members/{memberId}/profile", testMember.getId()))
+        mockMvc.perform(get("/members/{memberId}/profile", testMemberId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imageUrl").value("/members/" + testMember.getId() + "/profile/image"));
+                .andExpect(jsonPath("$.imageUrl").value("/members/" + testMemberId + "/profile/image"));
     }
     
     @Test
@@ -430,12 +432,12 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             );
 
             // 업로드
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(firstFile))
                     .andExpect(status().isOk());
             
             // 다운로드하여 저장
-            firstImageDownloaded = mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+            firstImageDownloaded = mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                     .andExpect(status().isOk())
                     .andReturn()
                     .getResponse()
@@ -460,12 +462,12 @@ public class ProfileControllerTest extends IntegrationTestSupport {
             );
 
             // 업로드
-            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMember.getId())
+            mockMvc.perform(multipart("/members/{memberId}/profile/image", testMemberId)
                     .file(secondFile))
                     .andExpect(status().isOk());
             
             // 다운로드
-            secondImageDownloaded = mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+            secondImageDownloaded = mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                     .andExpect(status().isOk())
                     .andReturn()
                     .getResponse()
@@ -484,7 +486,7 @@ public class ProfileControllerTest extends IntegrationTestSupport {
         
         // 같은 URL로 여러 번 요청해도 같은 이미지가 나오는지 확인
         for (int i = 0; i < 3; i++) {
-            byte[] repeatedDownload = mockMvc.perform(get("/members/{memberId}/profile/image", testMember.getId()))
+            byte[] repeatedDownload = mockMvc.perform(get("/members/{memberId}/profile/image", testMemberId))
                     .andExpect(status().isOk())
                     .andReturn()
                     .getResponse()

@@ -16,7 +16,7 @@ public class TodoSpecification {
             List<Predicate> predicates = new ArrayList<>();
             
             // 필수 조건들
-            predicates.add(criteriaBuilder.equal(root.get("member").get("id"), memberId));
+            predicates.add(criteriaBuilder.equal(root.get("owner").get("id"), memberId));
             predicates.add(criteriaBuilder.isTrue(root.get("active")));
             
             // 완료 여부 필터

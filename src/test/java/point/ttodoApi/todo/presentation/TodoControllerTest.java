@@ -1,19 +1,24 @@
 package point.ttodoApi.todo.presentation;
-import point.ttodoApi.test.IntegrationTestSupport;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import point.ttodoApi.test.config.*;
 import point.ttodoApi.todo.domain.TodoOriginal;
 import point.ttodoApi.todo.infrastructure.persistence.*;
@@ -24,16 +29,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 
 /**
  * TodoController 단위 테스트
  * MockMvc를 사용하여 HTTP 레이어만 테스트
  */
+@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@Import({TestSecurityConfig.class, TestDataConfig.class})
-public class TodoControllerTest extends IntegrationTestSupport {
+@Testcontainers
+@Import(TestSecurityConfig.class)
+@Sql("/test-data.sql")
+public class TodoControllerTest {
+    
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgres:17-alpine")
+    );
 
     @Autowired
     private MockMvc mockMvc;
@@ -64,7 +79,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("Todo 생성 테스트")
-    class CreateTodoTest extends IntegrationTestSupport {
+    class CreateTodoTest {
         
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -386,7 +401,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("Todo 조회 테스트")
-    class RetrieveTodoTest extends IntegrationTestSupport {
+    class RetrieveTodoTest {
         
         private Long todoId;
         
@@ -492,7 +507,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("Todo 수정 테스트")
-    class UpdateTodoTest extends IntegrationTestSupport {
+    class UpdateTodoTest {
         
         private Long todoId;
         
@@ -561,7 +576,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("Todo 삭제 테스트")
-    class DeleteTodoTest extends IntegrationTestSupport {
+    class DeleteTodoTest {
         
         private Long todoId;
         
@@ -607,7 +622,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("인증 및 검증 테스트")
-    class AuthAndValidationTest extends IntegrationTestSupport {
+    class AuthAndValidationTest {
         
         @Test
         @DisplayName("인증 없이 요청 시 실패")
@@ -655,7 +670,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("확장 기능 테스트")
-    class ExtendedFeatureTest extends IntegrationTestSupport {
+    class ExtendedFeatureTest {
         
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -821,7 +836,7 @@ public class TodoControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("Todo 통계 테스트")
-    class TodoStatisticsTest extends IntegrationTestSupport {
+    class TodoStatisticsTest {
         
         @BeforeEach
         void setUpTodos() {

@@ -11,7 +11,7 @@ import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * WithAnonUser 애너테이션을 처리하는 팩토리

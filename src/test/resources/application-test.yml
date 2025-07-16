@@ -1,6 +1,9 @@
 spring:
   datasource:
-    # Testcontainers가 자동으로 설정하므로 별도 설정 불필요
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 10000
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

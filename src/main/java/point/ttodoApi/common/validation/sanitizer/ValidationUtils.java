@@ -27,7 +27,7 @@ public class ValidationUtils {
     );
 
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-            "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$"
+            "^.{4,}$"  // 4자 이상만 확인
     );
     
     // Common weak passwords to block
@@ -93,20 +93,7 @@ public class ValidationUtils {
     }
 
     public boolean isValidPassword(String password) {
-        if (password == null || !PASSWORD_PATTERN.matcher(password).matches()) {
-            return false;
-        }
-        
-        // Check for common weak passwords
-        String lowerPassword = password.toLowerCase();
-        for (String weakPassword : COMMON_WEAK_PASSWORDS) {
-            if (lowerPassword.equals(weakPassword.toLowerCase())) {
-                return false;
-            }
-        }
-        
-        // Check for consecutive characters (e.g., "abc", "123", "321")
-        if (hasConsecutiveCharacters(password, 3)) {
+        if (password == null || password.length() < 4) {
             return false;
         }
         

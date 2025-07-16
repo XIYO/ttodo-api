@@ -13,6 +13,8 @@ import java.util.UUID;
 @Table(name = "profiles")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
 public class Profile {
     

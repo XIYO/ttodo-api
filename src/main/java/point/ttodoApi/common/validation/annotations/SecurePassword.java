@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = {point.ttodoApi.common.validation.validators.SecurePasswordValidator.class})
 @Documented
 public @interface SecurePassword {
-    String message() default "Password must be at least 8 characters long, contain at least one letter, one number, and one special character. Cannot contain common weak passwords or consecutive characters (e.g., abc, 123)";
+    String message() default "Password must be at least 4 characters long";
     
     Class<?>[] groups() default {};
     

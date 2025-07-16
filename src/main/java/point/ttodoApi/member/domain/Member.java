@@ -1,7 +1,6 @@
 package point.ttodoApi.member.domain;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.data.annotation.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,9 +16,8 @@ import java.util.UUID;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 public class Member {
-  @Id
+  @jakarta.persistence.Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Setter(AccessLevel.NONE)
   private UUID id;
   @Column(unique = true, nullable = false)
   private String email;

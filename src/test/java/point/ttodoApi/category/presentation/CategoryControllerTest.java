@@ -1,25 +1,34 @@
 package point.ttodoApi.category.presentation;
-import point.ttodoApi.test.IntegrationTestSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.test.config.*;
 
 import java.util.*;
+
+import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -30,10 +39,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * CategoryController 통합 테스트
  * MockMvc를 사용하여 HTTP 레이어부터 DB까지 통합 테스트
  */
+@SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Transactional
-@Import({TestSecurityConfig.class, TestDataConfig.class})
-public class CategoryControllerTest extends IntegrationTestSupport {
+@Testcontainers
+@Import(TestSecurityConfig.class)
+@Sql("/test-data.sql")
+public class CategoryControllerTest {
+    
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgres:17-alpine")
+    );
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,16 +64,29 @@ public class CategoryControllerTest extends IntegrationTestSupport {
     private MemberService memberService;
     
     @Autowired
+    private MemberRepository memberRepository;
+    
+    @Autowired
     private CategoryRepository categoryRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private Member testMember;
     private Member otherMember;
 
     @BeforeEach
     void setUp() {
-        // anon@ttodo.dev 사용자 사용
-        testMember = memberService.findByEmail("anon@ttodo.dev")
-                .orElseThrow(() -> new RuntimeException("anon@ttodo.dev 사용자가 없습니다"));
+        // 시스템 사용자 확인 또는 생성
+        testMember = memberRepository.findById(ANON_USER_ID).orElseGet(() -> {
+            Member anonMember = Member.builder()
+                    .email(ANON_USER_EMAIL)
+                    .password(passwordEncoder.encode(ANON_USER_PASSWORD))
+                    .nickname(ANON_USER_NICKNAME)
+                    .build();
+            anonMember.setId(ANON_USER_ID);
+            return memberRepository.save(anonMember);
+        });
         
         // 다른 사용자 생성 (소유자 검증 테스트용)
         CreateMemberCommand otherCommand = new CreateMemberCommand(

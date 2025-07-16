@@ -1,20 +1,25 @@
 package point.ttodoApi.todo.presentation;
-import point.ttodoApi.test.IntegrationTestSupport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import point.ttodoApi.test.config.*;
 import point.ttodoApi.todo.domain.TodoOriginal;
 import point.ttodoApi.todo.infrastructure.persistence.TodoOriginalRepository;
@@ -25,13 +30,23 @@ import java.util.*;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 
+@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@Import({TestSecurityConfig.class, TestDataConfig.class})
+@Testcontainers
+@Import(TestSecurityConfig.class)
+@Sql("/test-data.sql")
 @DisplayName("TagController 통합 테스트")
-public class TagControllerTest extends IntegrationTestSupport {
+public class TagControllerTest {
+    
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgres:17-alpine")
+    );
 
     @Autowired
     private MockMvc mockMvc;
@@ -86,7 +101,7 @@ public class TagControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("태그 조회 기본 테스트")
-    class BasicTagRetrievalTest extends IntegrationTestSupport {
+    class BasicTagRetrievalTest {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -143,7 +158,7 @@ public class TagControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("카테고리 필터링 테스트")
-    class CategoryFilteringTest extends IntegrationTestSupport {
+    class CategoryFilteringTest {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -202,7 +217,7 @@ public class TagControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("페이지네이션 테스트")
-    class PaginationTest extends IntegrationTestSupport {
+    class PaginationTest {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -267,7 +282,7 @@ public class TagControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("정렬 테스트")
-    class SortingTest extends IntegrationTestSupport {
+    class SortingTest {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -323,7 +338,7 @@ public class TagControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("데이터 격리 테스트")
-    class DataIsolationTest extends IntegrationTestSupport {
+    class DataIsolationTest {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -362,7 +377,7 @@ public class TagControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("엣지 케이스 테스트")
-    class EdgeCaseTest extends IntegrationTestSupport {
+    class EdgeCaseTest {
 
         @Test
         @WithUserDetails("anon@ttodo.dev")
@@ -404,7 +419,7 @@ public class TagControllerTest extends IntegrationTestSupport {
 
     @Nested
     @DisplayName("인증 및 권한 테스트")
-    class AuthAndValidationTest extends IntegrationTestSupport {
+    class AuthAndValidationTest {
 
         @Test
         @DisplayName("인증되지 않은 사용자 접근 거부")
@@ -446,7 +461,7 @@ public class TagControllerTest extends IntegrationTestSupport {
         void getTagsWithInvalidCategoryId() throws Exception {
             mockMvc.perform(get("/tags")
                             .param("categoryIds", "invalid-uuid-format"))
-                    .andExpect(status().isInternalServerError());
+                    .andExpect(status().isBadRequest());
         }
     }
 

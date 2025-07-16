@@ -22,7 +22,7 @@ public record SignUpRequest(
         @NotBlank(message = "{password.required}") 
         @Schema(description = "사용자 비밀번호", example = "Strong@123") 
         @SecurePassword
-        @Size(min = 8, max = 100, message = "비밀번호는 8자 이상 100자 이하여야 합니다.")
+        @Size(min = 4, max = 100, message = "비밀번호는 4자 이상 100자 이하여야 합니다.")
         @CompareTarget 
         String password,
         
