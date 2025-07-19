@@ -61,6 +61,5 @@ jobs:
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            cd ~/Projects/ttodo-api
-            docker compose pull
-            docker compose up -d
+            cd ~/Projects
+            ./ttodo-api.deploy.sh
