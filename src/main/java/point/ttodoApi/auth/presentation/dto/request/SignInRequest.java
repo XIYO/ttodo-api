@@ -1,7 +1,7 @@
 package point.ttodoApi.auth.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
 import point.ttodoApi.common.validation.annotations.ValidEmail;
 
 @Schema(description = "사용자 사인-인 요청 DTO")

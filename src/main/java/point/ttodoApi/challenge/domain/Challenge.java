@@ -2,12 +2,11 @@ package point.ttodoApi.challenge.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import point.ttodoApi.member.domain.Member;
 
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import point.ttodoApi.member.domain.Member;
 
 @Entity
 @Getter

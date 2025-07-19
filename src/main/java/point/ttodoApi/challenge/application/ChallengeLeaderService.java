@@ -4,16 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.challenge.domain.Challenge;
-import point.ttodoApi.challenge.domain.ChallengeLeader;
-import point.ttodoApi.challenge.domain.ChallengeRole;
-import point.ttodoApi.challenge.infrastructure.ChallengeLeaderRepository;
-import point.ttodoApi.challenge.infrastructure.ChallengeRepository;
+import point.ttodoApi.challenge.domain.*;
+import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 챌린지 리더 관리 서비스

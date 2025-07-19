@@ -1,7 +1,5 @@
 package point.ttodoApi.todo.domain;
 
-import java.util.UUID;
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.*;
@@ -10,7 +8,7 @@ import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.member.domain.Member;
 
 import java.time.*;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)

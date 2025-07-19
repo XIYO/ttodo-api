@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import point.ttodoApi.member.domain.Member;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity

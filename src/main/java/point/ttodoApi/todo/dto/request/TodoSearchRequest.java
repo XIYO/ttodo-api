@@ -2,17 +2,12 @@ package point.ttodoApi.todo.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
-import point.ttodoApi.common.dto.BaseSearchRequest;
-import point.ttodoApi.common.dto.DateRangeRequest;
+import point.ttodoApi.common.dto.*;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Todo 검색 요청 DTO

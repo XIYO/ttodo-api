@@ -1,7 +1,6 @@
 package point.ttodoApi.member.exception;
 
-import point.ttodoApi.common.error.DuplicateResourceException;
-import point.ttodoApi.common.error.ErrorCode;
+import point.ttodoApi.common.error.*;
 
 public class DuplicateEmailException extends DuplicateResourceException {
     

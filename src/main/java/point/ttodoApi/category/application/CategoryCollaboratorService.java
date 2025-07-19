@@ -4,18 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.domain.CategoryCollaborator;
-import point.ttodoApi.category.domain.CollaboratorStatus;
-import point.ttodoApi.category.infrastructure.persistence.CategoryCollaboratorRepository;
-import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
+import point.ttodoApi.category.domain.*;
+import point.ttodoApi.category.infrastructure.persistence.*;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 카테고리 협업자 관리 서비스

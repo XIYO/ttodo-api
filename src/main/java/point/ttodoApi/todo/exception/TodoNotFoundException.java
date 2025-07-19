@@ -1,7 +1,6 @@
 package point.ttodoApi.todo.exception;
 
-import point.ttodoApi.common.error.DataNotFoundException;
-import point.ttodoApi.common.error.ErrorCode;
+import point.ttodoApi.common.error.*;
 
 import java.util.UUID;
 

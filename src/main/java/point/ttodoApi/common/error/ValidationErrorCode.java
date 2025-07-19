@@ -1,7 +1,6 @@
 package point.ttodoApi.common.error;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.http.HttpStatus;
 
 /**

@@ -1,18 +1,12 @@
 package point.ttodoApi.category.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
-import lombok.Builder;
 import point.ttodoApi.common.dto.BaseSearchRequest;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Category 검색 요청 DTO

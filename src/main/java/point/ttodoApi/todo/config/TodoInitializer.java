@@ -3,7 +3,6 @@ package point.ttodoApi.todo.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.*;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +16,7 @@ import point.ttodoApi.todo.infrastructure.persistence.TodoOriginalRepository;
 import java.time.LocalDate;
 import java.util.*;
 
-import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
+import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_USER_ID;
 
 @Slf4j
 @Component

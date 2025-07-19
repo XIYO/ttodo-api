@@ -2,18 +2,15 @@ package point.ttodoApi.member.application;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.common.specification.SpecificationBuilder;
-import point.ttodoApi.common.specification.SortValidator;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.domain.Role;
+import point.ttodoApi.common.specification.*;
+import point.ttodoApi.member.domain.*;
 import point.ttodoApi.member.dto.request.MemberSearchRequest;
-import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.member.infrastructure.MemberSpecification;
+import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;

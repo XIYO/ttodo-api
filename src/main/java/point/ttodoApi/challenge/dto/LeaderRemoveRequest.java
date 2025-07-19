@@ -1,9 +1,7 @@
 package point.ttodoApi.challenge.dto;
 
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * 리더 해제 요청 DTO

@@ -1,9 +1,7 @@
 package point.ttodoApi.category.presentation;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.category.application.CategoryCollaboratorService;
 import point.ttodoApi.category.domain.CategoryCollaborator;
-import point.ttodoApi.category.dto.CollaboratorInviteRequest;
-import point.ttodoApi.category.dto.CollaboratorResponse;
-// ApiResponse import removed - using full path to avoid conflict with Swagger's @ApiResponse
+import point.ttodoApi.category.dto.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

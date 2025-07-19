@@ -1,7 +1,5 @@
 package point.ttodoApi.common.error;
 
-import org.springframework.http.HttpStatus;
-
 /**
  * 리소스를 찾을 수 없을 때 발생하는 예외
  */

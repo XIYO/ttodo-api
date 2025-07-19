@@ -2,27 +2,19 @@ package point.ttodoApi.challenge.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.challenge.application.ChallengeParticipationService;
-import point.ttodoApi.challenge.application.ChallengeService;
-import point.ttodoApi.challenge.application.ChallengeTodoService;
+import point.ttodoApi.challenge.application.*;
 import point.ttodoApi.challenge.application.dto.command.CreateChallengeCommand;
-import point.ttodoApi.challenge.domain.ChallengeVisibility;
-import point.ttodoApi.challenge.domain.PeriodType;
+import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.infrastructure.ChallengeRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 챌린지 초기화 담당

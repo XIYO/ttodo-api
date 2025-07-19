@@ -2,21 +2,17 @@ package point.ttodoApi.todo.application;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.common.specification.SpecificationBuilder;
-import point.ttodoApi.common.specification.SortValidator;
+import point.ttodoApi.common.specification.*;
 import point.ttodoApi.todo.domain.Todo;
 import point.ttodoApi.todo.dto.request.TodoSearchRequest;
-import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
-import point.ttodoApi.todo.infrastructure.persistence.TodoSpecificationV2;
+import point.ttodoApi.todo.infrastructure.persistence.*;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 동적 쿼리를 사용한 Todo 검색 서비스 예제

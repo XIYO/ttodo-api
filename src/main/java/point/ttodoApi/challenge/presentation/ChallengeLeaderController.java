@@ -1,9 +1,7 @@
 package point.ttodoApi.challenge.presentation;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,13 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.challenge.application.ChallengeLeaderService;
-import point.ttodoApi.challenge.domain.Challenge;
-import point.ttodoApi.challenge.domain.ChallengeLeader;
-import point.ttodoApi.challenge.domain.ChallengeRole;
+import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.dto.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

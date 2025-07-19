@@ -1,12 +1,9 @@
 package point.ttodoApi.search;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,10 +14,8 @@ import point.ttodoApi.category.dto.request.CategorySearchRequest;
 import point.ttodoApi.challenge.application.ChallengeSearchService;
 import point.ttodoApi.challenge.domain.Challenge;
 import point.ttodoApi.challenge.dto.request.ChallengeSearchRequest;
-import point.ttodoApi.common.dto.PageResponse;
-import point.ttodoApi.common.dto.SearchRequestUtils;
-import point.ttodoApi.common.validation.ValidPageable;
-import point.ttodoApi.common.validation.SortFieldsProvider;
+import point.ttodoApi.common.dto.*;
+import point.ttodoApi.common.validation.*;
 import point.ttodoApi.member.application.MemberSearchService;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.dto.request.MemberSearchRequest;

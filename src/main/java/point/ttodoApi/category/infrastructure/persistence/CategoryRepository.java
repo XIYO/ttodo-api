@@ -1,8 +1,7 @@
 package point.ttodoApi.category.infrastructure.persistence;
 
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.*;
 import point.ttodoApi.category.domain.Category;
 
 import java.util.*;

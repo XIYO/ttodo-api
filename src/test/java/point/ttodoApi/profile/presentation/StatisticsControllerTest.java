@@ -9,28 +9,25 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.junit.jupiter.*;
 import org.testcontainers.utility.DockerImageName;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
-import point.ttodoApi.test.config.*;
+import point.ttodoApi.test.config.TestSecurityConfig;
 import point.ttodoApi.todo.domain.*;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.time.LocalDate;
-import java.util.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
+import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_USER_ID;
 
 /**
  * StatisticsController 통계 기능 테스트

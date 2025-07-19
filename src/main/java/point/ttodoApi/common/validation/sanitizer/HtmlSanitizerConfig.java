@@ -1,9 +1,7 @@
 package point.ttodoApi.common.validation.sanitizer;
 
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.owasp.html.*;
+import org.springframework.context.annotation.*;
 
 @Configuration
 public class HtmlSanitizerConfig {

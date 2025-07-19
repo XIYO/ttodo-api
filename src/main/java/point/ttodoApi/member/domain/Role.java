@@ -1,7 +1,6 @@
 package point.ttodoApi.member.domain;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 /**
  * 회원 권한 Enum

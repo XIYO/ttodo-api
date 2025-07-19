@@ -2,8 +2,7 @@ package point.ttodoApi.member.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -13,8 +12,7 @@ import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.profile.application.ProfileService;
-import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.profile.domain.Theme;
+import point.ttodoApi.profile.domain.*;
 import point.ttodoApi.profile.infrastructure.persistence.ProfileRepository;
 
 import java.util.UUID;

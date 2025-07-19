@@ -1,17 +1,12 @@
 package point.ttodoApi.category.infrastructure.persistence;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.domain.CategoryCollaborator;
-import point.ttodoApi.category.domain.CollaboratorStatus;
+import point.ttodoApi.category.domain.*;
 import point.ttodoApi.member.domain.Member;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * CategoryCollaborator Repository

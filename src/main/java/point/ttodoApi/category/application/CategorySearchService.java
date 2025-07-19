@@ -2,20 +2,16 @@ package point.ttodoApi.category.application;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.dto.request.CategorySearchRequest;
-import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
-import point.ttodoApi.category.infrastructure.persistence.CategorySpecification;
-import point.ttodoApi.common.specification.SpecificationBuilder;
-import point.ttodoApi.common.specification.SortValidator;
+import point.ttodoApi.category.infrastructure.persistence.*;
+import point.ttodoApi.common.specification.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 동적 쿼리를 사용한 Category 검색 서비스 예제

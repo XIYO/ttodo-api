@@ -1,7 +1,6 @@
 package point.ttodoApi.challenge.domain;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 /**
  * 챌린지 상태를 나타내는 열거형

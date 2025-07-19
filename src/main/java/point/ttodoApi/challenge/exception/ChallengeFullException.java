@@ -1,7 +1,6 @@
 package point.ttodoApi.challenge.exception;
 
-import point.ttodoApi.common.error.BaseException;
-import point.ttodoApi.common.error.ErrorCode;
+import point.ttodoApi.common.error.*;
 
 public class ChallengeFullException extends BaseException {
     

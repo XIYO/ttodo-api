@@ -1,9 +1,7 @@
 package point.ttodoApi.category.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import point.ttodoApi.common.domain.BaseEntity;
 import point.ttodoApi.member.domain.Member;
 

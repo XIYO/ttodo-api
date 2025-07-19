@@ -1,9 +1,6 @@
 package point.ttodoApi.challenge.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import point.ttodoApi.challenge.domain.ChallengeLeader;
 
 import java.time.LocalDateTime;
