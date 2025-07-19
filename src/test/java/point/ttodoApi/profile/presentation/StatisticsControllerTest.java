@@ -41,7 +41,6 @@ import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 @ActiveProfiles("test")
 @Testcontainers
 @Import(TestSecurityConfig.class)
-@Sql("/test-data.sql")
 class StatisticsControllerTest {
 
     @Container
@@ -136,7 +135,7 @@ class StatisticsControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.completedTodos").value(4))
-                .andExpect(jsonPath("$.totalCategories").value(1));
+                .andExpect(jsonPath("$.totalCategories").value(2)); // TodoInitializer가 생성한 기본 카테고리 1개 + 테스트 카테고리 1개
     }
 
     @Test

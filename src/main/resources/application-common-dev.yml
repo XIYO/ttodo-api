@@ -31,7 +31,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -57,6 +57,6 @@ logging:
     point.zzicback: debug
     org.springframework.web: info
     org.springframework.security: info
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    org.hibernate.SQL: info
+    org.hibernate.type.descriptor.sql.BasicBinder: info
     com.zaxxer.hikari: info

@@ -36,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Testcontainers
 @Import(TestSecurityConfig.class)
-@Sql("/test-data.sql")
 public class ProfileControllerTest {
 
     @Container

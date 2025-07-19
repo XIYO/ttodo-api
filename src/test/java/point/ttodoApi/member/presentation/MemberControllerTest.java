@@ -41,7 +41,6 @@ import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 @ActiveProfiles("test")
 @Testcontainers
 @Import(TestSecurityConfig.class)
-@Sql("/test-data.sql")
 public class MemberControllerTest {
 
     @Container

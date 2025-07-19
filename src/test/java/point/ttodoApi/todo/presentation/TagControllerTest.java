@@ -38,7 +38,6 @@ import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 @Transactional
 @Testcontainers
 @Import(TestSecurityConfig.class)
-@Sql("/test-data.sql")
 @DisplayName("TagController 통합 테스트")
 public class TagControllerTest {
     

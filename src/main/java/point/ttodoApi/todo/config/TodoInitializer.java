@@ -4,30 +4,47 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.*;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.todo.domain.TodoOriginal;
 import point.ttodoApi.todo.infrastructure.persistence.TodoOriginalRepository;
 
 import java.time.LocalDate;
 import java.util.*;
 
+import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
+
 @Slf4j
 @Component
-@Profile("!test")
+@Order(3)
 @RequiredArgsConstructor
 public class TodoInitializer implements ApplicationRunner {
   private final TodoOriginalRepository todoOriginalRepository;
   private final CategoryRepository categoryRepository;
+  private final MemberRepository memberRepository;
 
   @Override
+  @Transactional
   public void run(ApplicationArguments args) {
-    log.info("Todo initialization ready!");
+    try {
+      // anon 유저를 위한 기본 할일과 카테고리 생성
+      var anonUser = memberRepository.findById(ANON_USER_ID).orElse(null);
+      if (anonUser != null) {
+        createDefaultTodosForMember(anonUser);
+      }
+      log.info("Todo initialization completed");
+    } catch (Exception e) {
+      log.error("Todo initialization failed", e);
+      throw e;
+    }
   }
 
-  public void createDefaultTodosForMember(Member member) {
+  private void createDefaultTodosForMember(Member member) {
     if (!"anon@ttodo.dev".equals(member.getEmail())) {
       log.debug("Member {} is not the target anon user, skipping initialization", member.getNickname());
       return;
@@ -949,13 +966,13 @@ public class TodoInitializer implements ApplicationRunner {
     log.info("Created {} default todos for member {}", defaultTodos.size(), member.getNickname());
   }
 
-  public void createDummyCategoriesForMember(Member member) {
-    var dummyCategories = List.of(
-        Category.builder().name("약속").color(null).description(null).owner(member).build(),
-        Category.builder().name("가족").color(null).description(null).owner(member).build(),
-        Category.builder().name("공부").color(null).description(null).owner(member).build(),
-        Category.builder().name("운동").color(null).description(null).owner(member).build()
-    );
-    categoryRepository.saveAll(dummyCategories);
+  private void createDummyCategoriesForMember(Member member) {
+    var defaultCategory = Category.builder()
+        .name("기본")
+        .color(null)
+        .description(null)
+        .owner(member)
+        .build();
+    categoryRepository.save(defaultCategory);
   }
 }

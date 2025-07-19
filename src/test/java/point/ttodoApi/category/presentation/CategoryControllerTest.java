@@ -45,7 +45,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @Testcontainers
 @Import(TestSecurityConfig.class)
-@Sql("/test-data.sql")
 public class CategoryControllerTest {
     
     @Container

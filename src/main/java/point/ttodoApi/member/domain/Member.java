@@ -17,8 +17,14 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)
 public class Member {
   @jakarta.persistence.Id
-  @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
+  
+  @PrePersist
+  public void generateId() {
+    if (id == null) {
+      id = UUID.randomUUID();
+    }
+  }
   @Column(unique = true, nullable = false)
   private String email;
   @Column(nullable = false)

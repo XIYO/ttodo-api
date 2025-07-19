@@ -41,7 +41,6 @@ import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 @Transactional
 @Testcontainers
 @Import(TestSecurityConfig.class)
-@Sql("/test-data.sql")
 public class TodoControllerTest {
     
     @Container
