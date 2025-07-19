@@ -3,6 +3,7 @@ package point.ttodoApi.level.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.*;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.level.domain.Level;
 import point.ttodoApi.level.infrastructure.LevelRepository;
@@ -11,12 +12,14 @@ import java.util.List;
 
 @Slf4j
 @Component
+@Order(2)
 @RequiredArgsConstructor
 public class LevelInitializer implements ApplicationRunner {
     private final LevelRepository levelRepository;
 
     @Override
     public void run(ApplicationArguments args) {
+        log.info("Starting level initialization...");
         if (levelRepository.count() > 0) {
             log.info("Levels already initialized");
             return;
@@ -44,6 +47,6 @@ public class LevelInitializer implements ApplicationRunner {
                 new Level(20, "찍찍 레전드", 10450)
         );
         levelRepository.saveAll(levels);
-        log.info("Initialized {} levels", levels.size());
+        log.info("Level initialization completed! Initialized {} levels", levels.size());
     }
 }
