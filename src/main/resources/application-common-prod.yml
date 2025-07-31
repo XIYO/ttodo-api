@@ -26,8 +26,7 @@ jwt:
       httpOnly: true
       sameSite: Lax
 
-# CORS 설정
-app:
+  # CORS 설정
   cors:
     allowed-origins:
       - https://ttodo.xiyo.dev
