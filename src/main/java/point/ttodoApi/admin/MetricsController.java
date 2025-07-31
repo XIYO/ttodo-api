@@ -16,7 +16,7 @@ import java.util.*;
  */
 @Tag(name = "Metrics", description = "시스템 메트릭 및 통계 조회 API")
 @RestController
-@RequestMapping("/api/admin/metrics")
+@RequestMapping("/admin/metrics")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class MetricsController {

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * 챌린지 리더 관리 컨트롤러
  */
 @RestController
-@RequestMapping("/api/challenges/{challengeId}/leaders")
+@RequestMapping("/challenges/{challengeId}/leaders")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "ChallengeLeader", description = "챌린지 리더 관리 API")
@@ -154,7 +154,7 @@ public class ChallengeLeaderController {
 }
 
 @RestController
-@RequestMapping("/api/members/{memberId}/leader-challenges")
+@RequestMapping("/members/{memberId}/leader-challenges")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "MemberLeaderChallenge", description = "멤버 리더 챌린지 관리 API")

@@ -263,13 +263,13 @@ docker-compose -f docker-compose.local.yml down -v
 ### 통합 검색 API (동적 쿼리 시스템)
 | HTTP Method | Endpoint | 설명 | 쿼리 파라미터 | 응답 Body | 상태 코드 |
 |-------------|----------|------|---------------|-----------|-----------|
-| **GET** | `/api/search/todos` | Todo 검색 | keyword, complete, categoryIds, priorityIds, startDate, endDate | `Page<Todo>` | `200`: 성공 |
-| **GET** | `/api/search/members` | 멤버 검색 (관리자) | emailKeyword, nicknameKeyword, role, lastLoginFrom, lastLoginTo | `Page<Member>` | `200`: 성공 |
-| **GET** | `/api/search/categories` | 카테고리 검색 | titleKeyword, colorCode, shareTypes, includeSubCategories | `Page<Category>` | `200`: 성공 |
-| **GET** | `/api/search/challenges` | 챌린지 검색 | titleKeyword, visibility, periodType, ongoingOnly, joinableOnly | `Page<Challenge>` | `200`: 성공 |
-| **GET** | `/api/search/todos/today-incomplete` | 오늘의 미완료 Todo | 없음 | `List<Todo>` | `200`: 성공 |
-| **GET** | `/api/search/members/inactive` | 비활성 회원 조회 | days (기본값: 90) | `Page<Member>` | `200`: 성공 |
-| **GET** | `/api/search/challenges/public-ongoing` | 공개 진행중 챌린지 | 없음 | `Page<Challenge>` | `200`: 성공 |
+| **GET** | `/search/todos` | Todo 검색 | keyword, complete, categoryIds, priorityIds, startDate, endDate | `Page<Todo>` | `200`: 성공 |
+| **GET** | `/search/members` | 멤버 검색 (관리자) | emailKeyword, nicknameKeyword, role, lastLoginFrom, lastLoginTo | `Page<Member>` | `200`: 성공 |
+| **GET** | `/search/categories` | 카테고리 검색 | titleKeyword, colorCode, shareTypes, includeSubCategories | `Page<Category>` | `200`: 성공 |
+| **GET** | `/search/challenges` | 챌린지 검색 | titleKeyword, visibility, periodType, ongoingOnly, joinableOnly | `Page<Challenge>` | `200`: 성공 |
+| **GET** | `/search/todos/today-incomplete` | 오늘의 미완료 Todo | 없음 | `List<Todo>` | `200`: 성공 |
+| **GET** | `/search/members/inactive` | 비활성 회원 조회 | days (기본값: 90) | `Page<Member>` | `200`: 성공 |
+| **GET** | `/search/challenges/public-ongoing` | 공개 진행중 챌린지 | 없음 | `Page<Challenge>` | `200`: 성공 |
 
 ## 인증 방식
 - **JWT 토큰**: HTTP-Only 쿠키로 관리

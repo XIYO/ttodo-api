@@ -28,7 +28,7 @@ import point.ttodoApi.todo.dto.request.TodoSearchRequest;
  */
 @Tag(name = "Search", description = "통합 검색 API")
 @RestController
-@RequestMapping("/api/search")
+@RequestMapping("/search")
 @RequiredArgsConstructor
 public class SearchController {
     

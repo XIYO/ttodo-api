@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * 카테고리 협업자 관리 컨트롤러
  */
 @RestController
-@RequestMapping("/api/categories/{categoryId}/collaborators")
+@RequestMapping("/categories/{categoryId}/collaborators")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "CategoryCollaborator", description = "카테고리 협업자 관리 API")
@@ -131,7 +131,7 @@ public class CategoryCollaboratorController {
 }
 
 @RestController
-@RequestMapping("/api/members/{memberId}/collaborations")
+@RequestMapping("/members/{memberId}/collaborations")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "MemberCollaboration", description = "멤버 협업 관리 API")
