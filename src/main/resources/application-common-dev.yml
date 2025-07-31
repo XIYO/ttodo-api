@@ -60,3 +60,18 @@ logging:
     org.hibernate.SQL: info
     org.hibernate.type.descriptor.sql.BasicBinder: info
     com.zaxxer.hikari: info
+
+# CORS 설정
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:8080
+      - http://localhost:4173
+      - http://localhost:6100
+      - http://localhost:6101
+    allowed-methods:
+      - "*"
+    allowed-headers:
+      - "*"
+    allow-credentials: true
+    max-age: 3600

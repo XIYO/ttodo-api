@@ -25,3 +25,16 @@ jwt:
       secure: true
       httpOnly: true
       sameSite: Lax
+
+# CORS 설정
+app:
+  cors:
+    allowed-origins:
+      - https://ttodo.xiyo.dev
+      - https://api.ttodo.xiyo.dev
+    allowed-methods:
+      - "*"
+    allowed-headers:
+      - "*"
+    allow-credentials: true
+    max-age: 3600

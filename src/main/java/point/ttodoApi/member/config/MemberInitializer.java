@@ -159,7 +159,7 @@ public class MemberInitializer implements ApplicationRunner {
     private void updateAnonUserProfile(Member member) {
         try {
             var profile = profileService.getProfile(member.getId());
-            profile.updateIntroduction("안녕하세요! 저는 전설의소혜리입니다. 🐭 매일 꾸준히 할 일을 완료하며 성장하고 있어요!");
+            profile.updateIntroduction("안녕하세요! 저는 전설의 홍길동입니다. 🐭 매일 꾸준히 할 일을 완료하며 성장하고 있어요!");
             profileService.saveProfile(profile);
         } catch (Exception e) {
             log.debug("Failed to update profile introduction: {}", e.getMessage());

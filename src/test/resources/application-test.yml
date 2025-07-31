@@ -46,3 +46,16 @@ jwt:
       secure: false
       httpOnly: true
       sameSite: Lax
+
+# CORS 테스트 설정
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:8080
+      - http://localhost:4173
+    allowed-methods:
+      - "*"
+    allowed-headers:
+      - "*"
+    allow-credentials: true
+    max-age: 3600
