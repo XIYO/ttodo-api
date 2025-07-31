@@ -51,7 +51,7 @@ jobs:
         context: .
         platforms: linux/arm64
         push: true
-        tags: ghcr.io/get-to-the-point/ttodo-api:latest
+        tags: ghcr.io/xiyo/ttodo-api:latest
 
     - name: Deploy to Server via SSH
       uses: appleboy/ssh-action@v1.2.1
