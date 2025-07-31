@@ -59,7 +59,7 @@ jobs:
           host: ${{ vars.HOST }}
           port: ${{ vars.PORT }}
           username: ${{ secrets.USER }}
-          password: ${{ secrets.PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/Projects
             ./ttodo-api.deploy.sh
