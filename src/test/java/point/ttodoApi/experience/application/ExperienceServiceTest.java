@@ -2,11 +2,15 @@ package point.ttodoApi.experience.application;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.*;
+import org.testcontainers.utility.DockerImageName;
 import point.ttodoApi.experience.domain.MemberExperience;
 import point.ttodoApi.experience.infrastructure.MemberExperienceRepository;
-import point.ttodoApi.level.application.LevelService;
 import point.ttodoApi.level.domain.Level;
 import point.ttodoApi.level.infrastructure.LevelRepository;
 
@@ -14,9 +18,17 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import({ExperienceService.class, LevelService.class})
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+@Testcontainers
 class ExperienceServiceTest {
+    
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgres:17-alpine")
+    );
 
     @Autowired
     private ExperienceService experienceService;

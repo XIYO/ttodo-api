@@ -48,7 +48,9 @@ public class ExperienceService {
         int experience = getExperience(memberId);
         Level level = levelService.getLevelByExperience(experience);
         return level != null ? level : createDefaultLevel();
-    }    @Transactional(readOnly = true)
+    }
+    
+    @Transactional(readOnly = true)
     public MemberLevelResult getMemberLevel(UUID memberId) {
         int experience = getExperience(memberId);
         Level currentLevel = getCurrentLevel(memberId);

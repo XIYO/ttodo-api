@@ -63,7 +63,7 @@ public class ChallengeService {
         
         // 정책 연결 (실제 구현 시)
         if (command.policyIds() != null && !command.policyIds().isEmpty()) {
-            // TODO: 정책 연결 로직
+            // 정책 연결 로직은 향후 정책 엔티티 구현 후 추가 예정
         }
         
         return saved.getId();
