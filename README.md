@@ -367,4 +367,4 @@ docker-compose -f docker-compose.local.yml up -d
 - **HTTP Status Code 통일성**: POST 생성 시 `201 Created`, PATCH/PUT/DELETE 무응답 시 `204 No Content`를 일관되게 사용하여 클라이언트 예측 가능성을 높이세요.
 - **리소스 계층 네스트 구조 개선**: Challenge Todo API가 최상위 엔드포인트로 분리되어 있지만, DDD 관점에서는 Challenge Aggregate의 서브 리소스로 간주할 수 있습니다. `GET /challenges/{challengeId}/todos` 형태로 계층적 리소스 구조를 검토하세요.
 - **필터 및 상태 파라미터 표준화**: 일부 API는 `done`(boolean), 일부는 별도 엔드포인트(`/uncompleted`, `/completed`)를 사용합니다. 쿼리 파라미터(`status=completed|uncompleted`)로 통합하여 API 수를 줄이고 일관성을 확보하세요.
-- **API 버전 관리 도입**: Breaking Change를 대비하여 URL 또는 Header 기반 API 버전 관리 전략(v1, v2 등)을 적용하는 것을 권장합니다.
+- **API 버전 관리 도입**: Breaking Change를 대비하여 URL 또는 Header 기반 API 버전 관리 전략(v1, v2 등)을 적용하는 것을 권장합니다.# GitHub Actions SSH Deploy Test
