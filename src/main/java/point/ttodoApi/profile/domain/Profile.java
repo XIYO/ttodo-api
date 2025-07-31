@@ -27,15 +27,18 @@ public class Profile {
     
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private Theme theme = Theme.PINKY;
     
     @Column(length = 500)
     private String introduction;
     
     @Column(nullable = false, length = 50)
+    @Builder.Default
     private String timeZone = "Asia/Seoul";
     
     @Column(nullable = false, length = 10)
+    @Builder.Default
     private String locale = "ko-KR";
     
     @Lob

@@ -5,7 +5,7 @@ TTODO의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통�
 ## 기술 스택
 
 ### Backend
-- **Java 24** - 최신 Java 기능 활용
+- **Java 21** - LTS 버전 Java 사용
 - **Spring Boot 3.5.0** - 백엔드 프레임워크
 - **Spring Security** - 인증/인가 처리
 - **Spring Data JPA** - ORM 및 데이터베이스 연동
@@ -44,7 +44,7 @@ TTODO의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통�
 
 ```
 src/
-├── main/java/point/zzicback/
+├── main/java/point/ttodoApi/
 │   ├── auth/                    # 인증/인가 관련
 │   │   ├── application/         # 토큰 서비스
 │   │   ├── config/              # 인증 설정
@@ -105,7 +105,7 @@ cd TTODO-api
 - Redis 컨테이너 시작 (docker-compose.yml에 정의된 경우)
 
 ### IDE에서 실행
-- **IntelliJ IDEA**: 프로젝트 열고 `ZzicBackApplication` 실행
+- **IntelliJ IDEA**: 프로젝트 열고 `TtodoApiApplication` 실행
 - **VS Code**: Terminal에서 `./gradlew bootRun`
 - **Eclipse**: Run As > Spring Boot App, Profile: `dev` 설정
 
@@ -351,8 +351,8 @@ docker-compose -f docker-compose.local.yml up -d
 
 ### 3. 개발 시 주의사항
 
-- 개발 환경에서는 H2 인메모리 데이터베이스 사용
-- 운영 환경에서는 PostgreSQL과 Redis 필요
+- 모든 환경에서 PostgreSQL과 Redis 사용 (Spring Boot Docker Compose 자동 실행)
+- 개발 환경에서는 Docker Compose로 자동 관리
 - 모든 API는 JWT 토큰 기반 인증 필요 (일부 조회 API 제외)
 - 토큰은 HTTP-Only 쿠키로 관리되어 XSS 공격 방지
 
@@ -367,4 +367,4 @@ docker-compose -f docker-compose.local.yml up -d
 - **HTTP Status Code 통일성**: POST 생성 시 `201 Created`, PATCH/PUT/DELETE 무응답 시 `204 No Content`를 일관되게 사용하여 클라이언트 예측 가능성을 높이세요.
 - **리소스 계층 네스트 구조 개선**: Challenge Todo API가 최상위 엔드포인트로 분리되어 있지만, DDD 관점에서는 Challenge Aggregate의 서브 리소스로 간주할 수 있습니다. `GET /challenges/{challengeId}/todos` 형태로 계층적 리소스 구조를 검토하세요.
 - **필터 및 상태 파라미터 표준화**: 일부 API는 `done`(boolean), 일부는 별도 엔드포인트(`/uncompleted`, `/completed`)를 사용합니다. 쿼리 파라미터(`status=completed|uncompleted`)로 통합하여 API 수를 줄이고 일관성을 확보하세요.
-- **API 버전 관리 도입**: Breaking Change를 대비하여 URL 또는 Header 기반 API 버전 관리 전략(v1, v2 등)을 적용하는 것을 권장합니다.# GitHub Actions SSH Deploy Test
+- **API 버전 관리 도입**: Breaking Change를 대비하여 URL 또는 Header 기반 API 버전 관리 전략(v1, v2 등)을 적용하는 것을 권장합니다.

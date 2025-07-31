@@ -217,7 +217,7 @@ public class SpecificationBuilder<T> {
      */
     public Specification<T> build() {
         if (criteriaList.isEmpty()) {
-            return Specification.where(null);
+            return (root, query, cb) -> cb.conjunction();
         }
         
         try {
