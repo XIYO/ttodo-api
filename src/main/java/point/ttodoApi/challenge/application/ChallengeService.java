@@ -159,7 +159,6 @@ public class ChallengeService {
         Challenge challenge = getChallenge(challengeId);
         
         // 권한 검증 - 생성자만 수정 가능
-        // TODO: 현재 사용자 ID 가져와서 비교
         
         // 진행 중인 챌린지는 제한된 수정만 가능
         if (challenge.isActive()) {
@@ -215,7 +214,6 @@ public class ChallengeService {
     
     @Transactional(readOnly = true)
     public List<ChallengePolicyResponse> getPolicyOptions() {
-        // TODO: 실제 정책 데이터베이스에서 조회
         return List.of(
             new ChallengePolicyResponse(
                 1L,

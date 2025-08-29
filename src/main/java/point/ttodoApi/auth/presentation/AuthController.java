@@ -138,21 +138,26 @@ public class AuthController {
   }
 
   private Member authenticateMember(String email, String password) {
+    Member member;
+    
     try {
-      Member member = memberService.findByEmailOrThrow(email);
-      
-      if (member.getPassword() == null || member.getPassword().isEmpty()) {
-        return member;
-      }
-      
-      if (password != null && passwordEncoder.matches(password, member.getPassword())) {
-        return member;
-      }
-      
-      throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
-    } catch (Exception e) {
+      member = memberService.findByEmailOrThrow(email);
+    } catch (BusinessException e) {
+      // 회원을 찾을 수 없는 경우 - 보안상 동일한 메시지 반환
       throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
     }
+    
+    // 소셜 로그인 사용자 (패스워드 없음)
+    if (member.getPassword() == null || member.getPassword().isEmpty()) {
+      return member;
+    }
+    
+    // 일반 로그인 사용자 - 패스워드 검증
+    if (password != null && passwordEncoder.matches(password, member.getPassword())) {
+      return member;
+    }
+    
+    throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
   }
 
   private void authenticateWithCookies(MemberPrincipal member, HttpServletResponse response) {

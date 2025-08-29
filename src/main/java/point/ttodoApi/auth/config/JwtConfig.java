@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.source.*;
 import com.nimbusds.jose.proc.SecurityContext;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
@@ -23,6 +24,7 @@ import java.security.interfaces.*;
 import java.security.spec.*;
 import java.util.*;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties(JwtProperties.class)
@@ -32,9 +34,30 @@ public class JwtConfig {
   private RSAPublicKey publicKey;
 
   @PostConstruct
-  public void init() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-    this.privateKey = loadPrivateKey();
-    this.publicKey = loadPublicKey();
+  public void init() {
+    try {
+      this.privateKey = loadPrivateKey();
+      this.publicKey = loadPublicKey();
+      log.info("JWT keys loaded successfully");
+    } catch (Exception e) {
+      log.error("Failed to load JWT keys. Using fallback keys.", e);
+      // 개발/테스트용 fallback 키 생성
+      generateFallbackKeys();
+    }
+  }
+  
+  private void generateFallbackKeys() {
+    try {
+      KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+      keyGen.initialize(2048);
+      KeyPair keyPair = keyGen.generateKeyPair();
+      this.privateKey = (RSAPrivateKey) keyPair.getPrivate();
+      this.publicKey = (RSAPublicKey) keyPair.getPublic();
+      log.warn("Using generated fallback RSA keys. This should only be used in development!");
+    } catch (NoSuchAlgorithmException e) {
+      log.error("Failed to generate fallback keys", e);
+      throw new IllegalStateException("Cannot initialize JWT configuration", e);
+    }
   }
 
   private String readKey(Resource resource) throws IOException {

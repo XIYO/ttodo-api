@@ -13,10 +13,13 @@ import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
 
+import jakarta.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @Service
@@ -37,9 +40,13 @@ public class TokenService {
   private final ProfileService profileService;
   private final TokenRepository tokenRepository;
   
-  // 동시 리프레시 요청을 위한 캐시 (10초간 유지)
+  // 동시 리프레시 요청을 위한 캐시 (10초간 유지, 최대 1000개)
   private final Map<String, TokenPair> recentRefreshCache = new ConcurrentHashMap<>();
   private final ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
+  
+  // deviceId별 lock 관리 (String.intern() 대체)
+  private final Map<String, Lock> deviceLocks = new ConcurrentHashMap<>();
+  private static final int MAX_LOCKS = 10000; // 최대 lock 개수 제한
 
   private String generateToken(String userId, Instant expiresAt, Map<String, Object> additionalClaims) {
     Instant now = Instant.now();
@@ -132,8 +139,10 @@ public class TokenService {
       return cached;
     }
     
-    // 동일 디바이스에 대한 동시 요청 방지
-    synchronized (deviceId.intern()) {
+    // 동일 디바이스에 대한 동시 요청 방지 (String.intern() 대신 안전한 lock 사용)
+    Lock lock = getOrCreateLock(deviceId);
+    lock.lock();
+    try {
       // Double-check: 다른 스레드가 방금 처리했을 수 있음
       cached = recentRefreshCache.get(cacheKey);
       if (cached != null) {
@@ -157,14 +166,20 @@ public class TokenService {
       
       TokenPair newTokens = new TokenPair(newAccessToken, newRefreshToken);
       
-      // 캐시에 저장하고 10초 후 자동 제거
-      recentRefreshCache.put(cacheKey, newTokens);
-      cleanupExecutor.schedule(() -> {
-        recentRefreshCache.remove(cacheKey);
-        log.debug("Removed cached token for key: {}", cacheKey);
-      }, 10, TimeUnit.SECONDS);
+      // 캐시에 저장하고 10초 후 자동 제거 (캐시 크기 제한 확인)
+      if (recentRefreshCache.size() < 1000) {
+        recentRefreshCache.put(cacheKey, newTokens);
+        cleanupExecutor.schedule(() -> {
+          recentRefreshCache.remove(cacheKey);
+          log.debug("Removed cached token for key: {}", cacheKey);
+        }, 10, TimeUnit.SECONDS);
+      }
       
       return newTokens;
+    } finally {
+      lock.unlock();
+      // Lock 개수가 너무 많아지면 오래된 것 정리
+      cleanupLocksIfNeeded();
     }
   }
 
@@ -194,7 +209,63 @@ public class TokenService {
     return new TokenResult(accessToken, refreshToken, deviceId);
   }
 
-
+  
+  /**
+   * deviceId에 대한 Lock을 가져오거나 생성
+   * String.intern() 대신 안전한 lock 관리 방식
+   */
+  private Lock getOrCreateLock(String deviceId) {
+    return deviceLocks.computeIfAbsent(deviceId, k -> new ReentrantLock());
+  }
+  
+  /**
+   * Lock 개수가 너무 많아지면 오래된 것 정리
+   * 메모리 누수 방지
+   */
+  private void cleanupLocksIfNeeded() {
+    if (deviceLocks.size() > MAX_LOCKS) {
+      // 비동기로 정리 작업 수행
+      cleanupExecutor.execute(() -> {
+        try {
+          // 사용되지 않는 lock 제거 (tryLock이 성공하는 것들)
+          deviceLocks.entrySet().removeIf(entry -> {
+            Lock lock = entry.getValue();
+            if (lock instanceof ReentrantLock reentrantLock) {
+              // Lock이 사용 중이지 않으면 제거
+              if (reentrantLock.tryLock()) {
+                try {
+                  return !reentrantLock.hasQueuedThreads();
+                } finally {
+                  reentrantLock.unlock();
+                }
+              }
+            }
+            return false;
+          });
+          log.info("Cleaned up device locks. Current size: {}", deviceLocks.size());
+        } catch (Exception e) {
+          log.error("Error during lock cleanup", e);
+        }
+      });
+    }
+  }
+  
+  /**
+   * 애플리케이션 종료 시 리소스 정리
+   */
+  @PreDestroy
+  public void cleanup() {
+    log.info("Shutting down TokenService executor");
+    cleanupExecutor.shutdown();
+    try {
+      if (!cleanupExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+        cleanupExecutor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      cleanupExecutor.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
+  }
 
   public record TokenResult(String accessToken, String refreshToken, String deviceId) {
   }
