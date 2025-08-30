@@ -56,4 +56,9 @@ public interface ChallengePresentationMapper {
         );
     }
     
+    /** Domain Entity -> Presentation 응답 변환 */
+    @Mapping(target = "participated", constant = "false")
+    @Mapping(target = "participantCount", expression = "java(challenge.getParticipations() != null ? challenge.getParticipations().size() : 0)")
+    ChallengeResponse toChallengeSummaryResponse(Challenge challenge);
+    
 }

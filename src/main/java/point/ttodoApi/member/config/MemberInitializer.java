@@ -18,6 +18,7 @@ import point.ttodoApi.profile.infrastructure.persistence.ProfileRepository;
 import java.util.UUID;
 
 import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
+import point.ttodoApi.common.config.properties.AppProperties;
 
 /**
  * 멤버 및 프로필 초기화 담당
@@ -29,6 +30,7 @@ import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
 @Order(2)
 @RequiredArgsConstructor
 public class MemberInitializer implements ApplicationRunner {
+    private final AppProperties appProperties;
     
     private final MemberRepository memberRepository;
     private final ProfileRepository profileRepository;
@@ -69,9 +71,10 @@ public class MemberInitializer implements ApplicationRunner {
         log.info("Initializing system users...");
         
         // 익명 사용자 생성
+        String domain = appProperties.getUserDomain();
         Member anonMember = createSystemUser(
             ANON_USER_ID,
-            ANON_USER_EMAIL,
+            "anon@" + domain,
             ANON_USER_PASSWORD,
             ANON_USER_NICKNAME,
             "시스템 익명 사용자"
@@ -80,53 +83,24 @@ public class MemberInitializer implements ApplicationRunner {
         // 루트 사용자 생성
         Member rootMember = createSystemUser(
             ROOT_USER_ID,
-            ROOT_USER_EMAIL,
+            "root@" + domain,
             ROOT_USER_PASSWORD,
             ROOT_USER_NICKNAME,
             "시스템 루트 관리자"
         );
         
-        log.info("System users created: {} and {}", ANON_USER_EMAIL, ROOT_USER_EMAIL);
+        log.info("System users created: {} and {}", "anon@" + domain, "root@" + domain);
     }
     
     /**
-     * 시드 멤버 초기화
-     * @return 생성된 시드 멤버 배열
+     * 시드 멤버 초기화: 익명 사용자만 유지
      */
     public Member[] initializeSeedMembers() {
-        log.info("Initializing seed members...");
-        
-        Member[] members = new Member[11];
-        
-        // 첫 번째 멤버 (anon@ttodo.dev는 이미 시스템 사용자로 생성됨)
+        log.info("Initializing seed members (anon only)...");
         Member anonMember = memberRepository.findById(ANON_USER_ID).orElseThrow();
-        members[0] = anonMember;
-        
-        // 프로필 업데이트
         updateAnonUserProfile(anonMember);
-        
-        // 나머지 시드 멤버들 생성
-        String[] nicknames = {
-            "일일챌린저", "월간도전자", "전략적참여자", "운동매니아", "독서광",
-            "습관왕", "아침형인간", "야행성참가자", "도전러", "챌린지러11"
-        };
-        
-        for (int i = 1; i < 11; i++) {
-            String email = "anon" + (i + 1) + "@ttodo.com";
-            String nickname = (i - 1 < nicknames.length) ? nicknames[i - 1] : "챌린지러" + (i + 1);
-            
-            CreateMemberCommand command = new CreateMemberCommand(
-                email,
-                passwordEncoder.encode(""),
-                nickname,
-                null
-            );
-            members[i] = memberService.createMember(command);
-            log.debug("Created seed member: {}", nickname);
-        }
-        
-        log.info("Initialized {} seed members", members.length);
-        return members;
+        log.info("Initialized 1 seed member (anon)");
+        return new Member[] { anonMember };
     }
     
     /**

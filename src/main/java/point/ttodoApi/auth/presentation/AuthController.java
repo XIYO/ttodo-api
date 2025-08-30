@@ -6,14 +6,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import point.ttodoApi.auth.application.TokenService;
 import point.ttodoApi.auth.domain.MemberPrincipal;
-import point.ttodoApi.auth.presentation.dto.request.*;
+import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
+import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
 import point.ttodoApi.common.error.BusinessException;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
@@ -31,12 +38,13 @@ import java.util.List;
 @Transactional
 public class AuthController {
   private static final String USER_ROLE = "ROLE_USER";
-  private static final String ANON_EMAIL = "anon@ttodo.dev";
+  private static final String ANON_EMAIL_FALLBACK = "anon@ttodo.dev";
   
   private final MemberService memberService;
   private final ProfileService profileService;
   private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
+  private final point.ttodoApi.common.config.properties.AppProperties appProperties;
   private final CookieService cookieService;
 
   @Operation(
@@ -46,8 +54,8 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "회원가입 성공 및 자동 로그인 완료")
   @ApiResponse(responseCode = "400", description = "입력값 검증 실패 (이메일 형식 오류, 필수값 누락 등)")
   @ApiResponse(responseCode = "409", description = "이미 사용중인 이메일 주소")
-  @PostMapping("/sign-up")
-  public void signUpAndIn(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+  @PostMapping(value = "/sign-up", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
+  public void signUpAndIn(@Valid SignUpRequest request, HttpServletResponse response) {
     CreateMemberCommand signUpCommand = new CreateMemberCommand(
             request.email(),
             passwordEncoder.encode(request.password()),
@@ -88,9 +96,9 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "로그인 성공")
   @ApiResponse(responseCode = "400", description = "입력값 검증 실패")
   @ApiResponse(responseCode = "401", description = "이메일 또는 패스워드가 일치하지 않음")
-  @PostMapping("/sign-in")
+  @PostMapping(value = "/sign-in", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   @Transactional(readOnly = true)
-  public void signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
+  public void signIn(@Valid SignInRequest request, HttpServletResponse response) {
     Member member = authenticateMember(request.email(), request.password());
     Profile profile = profileService.getProfile(member.getId());
     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
@@ -104,7 +112,7 @@ public class AuthController {
       description = "현재 사용자를 로그아웃 처리합니다. 서버에서 리프레시 토큰을 삭제하고, 클라이언트의 JWT 쿠키와 리프레시 토큰 쿠키를 만료시킵니다."
   )
   @ApiResponse(responseCode = "200", description = "로그아웃 성공")
-  @PostMapping("/sign-out")
+  @PostMapping(value = "/sign-out", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   public void signOut(@CookieValue(name = "refresh-token", required = false) String refreshToken, HttpServletResponse response) {
     cookieService.setExpiredJwtCookie(response);
     if (refreshToken != null) {
@@ -119,23 +127,10 @@ public class AuthController {
   )
   @ApiResponse(responseCode = "200", description = "토큰 갱신 성공, 새로운 액세스 토큰이 쿠키로 발급됨")
   @ApiResponse(responseCode = "401", description = "리프레시 토큰이 만료되었거나 유효하지 않음")
-  @GetMapping("/refresh")
+  @PostMapping(value = "/refresh", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
   public void refresh() {
   }
 
-  @Operation(
-      summary = "현재 로그인 사용자 정보 조회", 
-      description = "JWT 액세스 토큰을 기반으로 현재 로그인한 사용자의 정보를 조회합니다. 회원 ID, 이메일, 닉네임, 자기소개, 생성일시 등의 정보를 반환합니다."
-  )
-  @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공")
-  @ApiResponse(responseCode = "401", description = "인증되지 않은 요청 (토큰 없음 또는 만료)")
-  @GetMapping("/me")
-  @Transactional(readOnly = true)
-  public MemberResponse getCurrentUser(Authentication authentication) {
-    MemberPrincipal principal = (MemberPrincipal) authentication.getPrincipal();
-    Member member = memberService.findVerifiedMember(principal.id());
-    return MemberResponse.from(member);
-  }
 
   private Member authenticateMember(String email, String password) {
     Member member;
@@ -165,5 +160,34 @@ public class AuthController {
     
     cookieService.setJwtCookie(response, tokens.accessToken());
     cookieService.setRefreshCookie(response, tokens.refreshToken());
+  }
+  
+  @Operation(
+      summary = "개발 환경 테스트 토큰 생성", 
+      description = "개발 환경에서 Swagger 테스트용 영구 토큰을 생성합니다. 이 토큰은 만료 시간이 없습니다. **프로덕션 환경에서는 사용 불가**"
+  )
+  @ApiResponse(responseCode = "200", description = "테스트 토큰 생성 성공")
+  @GetMapping("/dev-token")
+  @org.springframework.context.annotation.Profile("!prod")
+  public java.util.Map<String, String> getDevToken() {
+    // 시스템 익명 사용자 정보 사용 (초기 데이터로 생성됨)
+    String domain = appProperties.getUserDomain() == null ? "ttodo.dev" : appProperties.getUserDomain();
+    String testUserId = point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_USER_ID.toString();
+    String testEmail = "anon@" + domain;
+    String testNickname = point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_USER_NICKNAME;
+    String testTimeZone = "Asia/Seoul";
+    String testLocale = "ko-KR";
+    
+    // 만료 없는 토큰 생성 (neverExpire = true)
+    String token = tokenService.generateAccessToken(testUserId, testEmail, testNickname, testTimeZone, testLocale, true);
+    
+    return java.util.Map.of(
+        "token", token,
+        "usage", "Swagger의 Authorize 버튼을 클릭하고 이 토큰을 붙여넣으세요 (Bearer 접두사 없이)",
+        "userId", testUserId,
+        "email", testEmail,
+        "nickname", testNickname,
+        "expiresIn", "NEVER (만료 없음)"
+    );
   }
 }

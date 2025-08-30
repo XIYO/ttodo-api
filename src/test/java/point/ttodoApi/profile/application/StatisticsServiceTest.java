@@ -4,7 +4,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.*;
@@ -27,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * StatisticsService 통계 기능 테스트
  */
 @SpringBootTest
-@ActiveProfiles("test")
 @Transactional
 @Testcontainers
 class StatisticsServiceTest {

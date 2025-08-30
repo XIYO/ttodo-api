@@ -59,21 +59,6 @@ public class TodoSearchService {
         return todoRepository.findAll(spec, pageable);
     }
     
-    /**
-     * 완료되지 않은 오늘의 Todo 조회
-     */
-    public List<Todo> getTodayIncompleteTodos(UUID memberId) {
-        SpecificationBuilder<Todo> builder = new SpecificationBuilder<>(todoSpecification);
-        
-        Specification<Todo> spec = builder
-                .with("member.id", memberId)
-                .with("active", true)
-                .with("complete", false)
-                .with("date", LocalDate.now())
-                .build();
-        
-        return todoRepository.findAll(spec);
-    }
     
     /**
      * 카테고리별 Todo 개수 조회

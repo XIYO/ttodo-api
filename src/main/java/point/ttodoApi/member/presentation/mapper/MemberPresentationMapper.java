@@ -41,4 +41,12 @@ public interface MemberPresentationMapper {
     @Mapping(target = "theme", constant = "LIGHT")
     @Mapping(target = "profileImageUrl", expression = "java(null)")
     MemberResponse toResponse(MemberResult dto);
+    
+    /** Domain Entity to Response mapping */
+    @Mapping(target = "introduction", constant = "")
+    @Mapping(target = "locale", constant = "ko-KR")
+    @Mapping(target = "timeZone", constant = "Asia/Seoul")
+    @Mapping(target = "theme", constant = "LIGHT")
+    @Mapping(target = "profileImageUrl", expression = "java(null)")
+    MemberResponse toResponse(Member member);
 }

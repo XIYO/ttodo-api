@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Mapper(config = MapStructConfig.class)
 public interface TodoApplicationMapper {
 
-    // 공통 매핑 설정 - TodoOriginal의 기본 필드들을 위한 추상 메서드 (직접 호출되지 않음)
+    // 공통 매핑 설정 - TodoTemplate의 기본 필드들을 위한 추상 메서드 (직접 호출되지 않음)
     @Mapping(target = "priorityName", source = "priorityId", qualifiedByName = "priorityName")
     @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
@@ -19,62 +19,60 @@ public interface TodoApplicationMapper {
     @Mapping(target = "description", source = "description")
     @Mapping(target = "priorityId", source = "priorityId")
     @Mapping(target = "tags", source = "tags")
-    TodoResult toBaseResult(TodoOriginal todoOriginal);
+    TodoResult toBaseResult(TodoTemplate todoTemplate);
 
-    // 원본 TodoOriginal -> TodoResult
+    // 원본 TodoTemplate -> TodoResult
     @InheritConfiguration(name = "toBaseResult")
-    @Mapping(target = "id", expression = "java(todoOriginal.getId() + \":0\")")
+    @Mapping(target = "id", expression = "java(todoTemplate.getId() + \":0\")")
     @Mapping(target = "complete", source = "completed")
     @Mapping(target = "isPinned", source = "isPinned")
     @Mapping(target = "displayOrder", source = "displayOrder")
     @Mapping(target = "date", source = "date")
     @Mapping(target = "time", source = "time")
+    @Mapping(target = "recurrenceRule", source = "recurrenceRule")
+    @Mapping(target = "anchorDate", source = "anchorDate")
     @Mapping(target = "originalTodoId", source = "id")
-    TodoResult toResult(TodoOriginal todoOriginal);
+    TodoResult toResult(TodoTemplate todoTemplate);
 
-    // 가상 TodoOriginal -> TodoResult
-    @Mapping(target = "priorityName", source = "todoOriginal.priorityId", qualifiedByName = "priorityName")
-    @Mapping(target = "categoryId", source = "todoOriginal.category.id")
-    @Mapping(target = "categoryName", source = "todoOriginal.category.name")
+    // 가상 TodoTemplate -> TodoResult
+    @Mapping(target = "priorityName", source = "todoTemplate.priorityId", qualifiedByName = "priorityName")
+    @Mapping(target = "categoryId", source = "todoTemplate.category.id")
+    @Mapping(target = "categoryName", source = "todoTemplate.category.name")
     @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "title", source = "todoOriginal.title")
-    @Mapping(target = "description", source = "todoOriginal.description")
-    @Mapping(target = "priorityId", source = "todoOriginal.priorityId")
-    @Mapping(target = "tags", source = "todoOriginal.tags")
+    @Mapping(target = "title", source = "todoTemplate.title")
+    @Mapping(target = "description", source = "todoTemplate.description")
+    @Mapping(target = "priorityId", source = "todoTemplate.priorityId")
+    @Mapping(target = "tags", source = "todoTemplate.tags")
     @Mapping(target = "id", source = "virtualId")
     @Mapping(target = "complete", constant = "false")
-    @Mapping(target = "isPinned", source = "todoOriginal.isPinned")
-    @Mapping(target = "displayOrder", source = "todoOriginal.displayOrder")
+    @Mapping(target = "isPinned", source = "todoTemplate.isPinned")
+    @Mapping(target = "displayOrder", source = "todoTemplate.displayOrder")
     @Mapping(target = "date", source = "virtualDate")
-    @Mapping(target = "time", source = "todoOriginal.time")
-    @Mapping(target = "repeatType", source = "todoOriginal.repeatType")
-    @Mapping(target = "repeatInterval", source = "todoOriginal.repeatInterval")
-    @Mapping(target = "repeatEndDate", source = "todoOriginal.repeatEndDate")
-    @Mapping(target = "daysOfWeek", source = "todoOriginal.daysOfWeek")
-    @Mapping(target = "originalTodoId", source = "todoOriginal.id")
-    TodoResult toVirtualResult(TodoOriginal todoOriginal, String virtualId, LocalDate virtualDate);
+    @Mapping(target = "time", source = "todoTemplate.time")
+    @Mapping(target = "recurrenceRule", source = "todoTemplate.recurrenceRule")
+    @Mapping(target = "anchorDate", source = "todoTemplate.anchorDate")
+    @Mapping(target = "originalTodoId", source = "todoTemplate.id")
+    TodoResult toVirtualResult(TodoTemplate todoTemplate, String virtualId, LocalDate virtualDate);
 
-    // 원본 날짜를 가진 TodoOriginal -> TodoResult
-    @Mapping(target = "priorityName", source = "todoOriginal.priorityId", qualifiedByName = "priorityName")
-    @Mapping(target = "categoryId", source = "todoOriginal.category.id")
-    @Mapping(target = "categoryName", source = "todoOriginal.category.name")
+    // 원본 날짜를 가진 TodoTemplate -> TodoResult
+    @Mapping(target = "priorityName", source = "todoTemplate.priorityId", qualifiedByName = "priorityName")
+    @Mapping(target = "categoryId", source = "todoTemplate.category.id")
+    @Mapping(target = "categoryName", source = "todoTemplate.category.name")
     @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "title", source = "todoOriginal.title")
-    @Mapping(target = "description", source = "todoOriginal.description")
-    @Mapping(target = "priorityId", source = "todoOriginal.priorityId")
-    @Mapping(target = "tags", source = "todoOriginal.tags")
+    @Mapping(target = "title", source = "todoTemplate.title")
+    @Mapping(target = "description", source = "todoTemplate.description")
+    @Mapping(target = "priorityId", source = "todoTemplate.priorityId")
+    @Mapping(target = "tags", source = "todoTemplate.tags")
     @Mapping(target = "id", source = "virtualId")
-    @Mapping(target = "complete", source = "todoOriginal.completed")
-    @Mapping(target = "isPinned", source = "todoOriginal.isPinned")
-    @Mapping(target = "displayOrder", source = "todoOriginal.displayOrder")
+    @Mapping(target = "complete", source = "todoTemplate.completed")
+    @Mapping(target = "isPinned", source = "todoTemplate.isPinned")
+    @Mapping(target = "displayOrder", source = "todoTemplate.displayOrder")
     @Mapping(target = "date", source = "originalDate")
-    @Mapping(target = "time", source = "todoOriginal.time")
-    @Mapping(target = "repeatType", source = "todoOriginal.repeatType")
-    @Mapping(target = "repeatInterval", source = "todoOriginal.repeatInterval")
-    @Mapping(target = "repeatEndDate", source = "todoOriginal.repeatEndDate")
-    @Mapping(target = "daysOfWeek", source = "todoOriginal.daysOfWeek")
-    @Mapping(target = "originalTodoId", source = "todoOriginal.id")
-    TodoResult toOriginalResult(TodoOriginal todoOriginal, String virtualId, LocalDate originalDate);
+    @Mapping(target = "time", source = "todoTemplate.time")
+    @Mapping(target = "recurrenceRule", source = "todoTemplate.recurrenceRule")
+    @Mapping(target = "anchorDate", source = "todoTemplate.anchorDate")
+    @Mapping(target = "originalTodoId", source = "todoTemplate.id")
+    TodoResult toOriginalResult(TodoTemplate todoTemplate, String virtualId, LocalDate originalDate);
 
     // Todo 엔티티 -> TodoResult
     @Mapping(target = "id", expression = "java(todo.getTodoId().getId() + \":\" + todo.getTodoId().getSeq())")
@@ -82,10 +80,8 @@ public interface TodoApplicationMapper {
     @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "originalTodoId", expression = "java(todo.getTodoId().getId())")
-    @Mapping(target = "repeatType", ignore = true)
-    @Mapping(target = "repeatInterval", ignore = true)
-    @Mapping(target = "repeatEndDate", ignore = true)
-    @Mapping(target = "daysOfWeek", ignore = true)
+    @Mapping(target = "recurrenceRule", ignore = true)
+    @Mapping(target = "anchorDate", ignore = true)
     TodoResult toResult(Todo todo);
 
     @Named("priorityName")

@@ -18,7 +18,8 @@ import point.ttodoApi.todo.application.dto.result.*;
 import point.ttodoApi.todo.application.mapper.TodoApplicationMapper;
 import point.ttodoApi.todo.domain.*;
 import point.ttodoApi.todo.infrastructure.persistence.*;
-import point.ttodoApi.todo.presentation.dto.response.CalendarTodoStatusResponse;
+import point.ttodoApi.todo.domain.recurrence.RecurrenceEngine;
+import point.ttodoApi.todo.domain.recurrence.RecurrenceRule;
 
 import java.time.*;
 import java.time.temporal.*;
@@ -27,9 +28,9 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class VirtualTodoService {
+public class TodoInstanceService {
     
-    private final TodoOriginalService todoOriginalService;
+    private final TodoTemplateService todoTemplateService;
     private final TodoRepository todoRepository;
     private final CategoryRepository categoryRepository;
     private final MemberService memberService;
@@ -73,27 +74,22 @@ public class VirtualTodoService {
         
         // Todo 테이블에 데이터가 없으면 가상 Todo 생성
         if (query.daysDifference() == 0) {
-            // 원본 TodoOriginal 조회 (82:0)
-            return todoOriginalService.getTodo(TodoQuery.of(query.memberId(), query.originalTodoId()));
+            // 원본 TodoTemplate 조회 (82:0)
+            return todoTemplateService.getTodo(TodoQuery.of(query.memberId(), query.originalTodoId()));
         } else {
             // 가상 Todo 생성해서 반환
-            TodoOriginal todoOriginal = todoOriginalService.getTodoOriginals(query.memberId())
+            TodoTemplate todoTemplate = todoTemplateService.getTodoTemplates(query.memberId())
                     .stream()
                     .filter(to -> to.getId().equals(query.originalTodoId()))
                     .findFirst()
-                    .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.originalTodoId()));
+                    .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", query.originalTodoId()));
             
-            LocalDate targetDate = null;
-            if (todoOriginal.getRepeatStartDate() != null) {
-                targetDate = todoOriginal.getRepeatStartDate().plusDays(query.daysDifference());
-            } else if (todoOriginal.getDate() != null) {
-                targetDate = todoOriginal.getDate().plusDays(query.daysDifference());
-            } else {
-                targetDate = LocalDate.now().plusDays(query.daysDifference());
-            }
+            LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() :
+                    (todoTemplate.getDate() != null ? todoTemplate.getDate() : LocalDate.now());
+            LocalDate targetDate = anchor.plusDays(query.daysDifference());
             
             String virtualId = query.originalTodoId() + ":" + query.daysDifference();
-            return todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, targetDate);
+            return todoApplicationMapper.toVirtualResult(todoTemplate, virtualId, targetDate);
         }
     }
 
@@ -110,29 +106,29 @@ public class VirtualTodoService {
             todoRepository.save(todo);
         } else {
             // Todo 테이블에 데이터가 없으면 새로 생성해서 complete=true, active=true로 설정
-            List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
-            TodoOriginal todoOriginal = todoOriginals.stream()
+            List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.memberId());
+            TodoTemplate todoTemplate = todoTemplates.stream()
                     .filter(to -> to.getId().equals(command.originalTodoId()))
                     .findFirst()
-                    .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
+                    .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", command.originalTodoId()));
             
             Member member = memberService.findByIdOrThrow(command.memberId());
             
-            LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
-                todoOriginal.getRepeatStartDate().plusDays(command.daysDifference()) :
-                (todoOriginal.getDate() != null ? todoOriginal.getDate() : LocalDate.now()).plusDays(command.daysDifference());
+            LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() :
+                (todoTemplate.getDate() != null ? todoTemplate.getDate() : LocalDate.now());
+            LocalDate targetDate = anchor.plusDays(command.daysDifference());
             
             Todo newTodo = Todo.builder()
                     .todoId(todoId)
-                    .title(todoOriginal.getTitle())
-                    .description(todoOriginal.getDescription())
+                    .title(todoTemplate.getTitle())
+                    .description(todoTemplate.getDescription())
                     .complete(true)  // 삭제 표시
                     .active(false)   // 비활성화
-                    .priorityId(todoOriginal.getPriorityId())
-                    .category(todoOriginal.getCategory())
+                    .priorityId(todoTemplate.getPriorityId())
+                    .category(todoTemplate.getCategory())
                     .date(targetDate)
-                    .time(todoOriginal.getTime())
-                    .tags(new HashSet<>(todoOriginal.getTags()))
+                    .time(todoTemplate.getTime())
+                    .tags(new HashSet<>(todoTemplate.getTags()))
                     .owner(member)
                     .build();
             
@@ -146,15 +142,15 @@ public class VirtualTodoService {
         Long originalTodoId = todoId.getId();
         Long daysDifference = todoId.getSeq();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(command.memberId());
-        TodoOriginal todoOriginal = todoOriginals.stream()
+        List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.memberId());
+        TodoTemplate todoTemplate = todoTemplates.stream()
                 .filter(to -> to.getId().equals(originalTodoId))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", originalTodoId));
+                .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", originalTodoId));
         
-        LocalDate targetDate = todoOriginal.getRepeatStartDate() != null ? 
-            todoOriginal.getRepeatStartDate().plusDays(daysDifference) :
-            (todoOriginal.getDate() != null ? todoOriginal.getDate() : LocalDate.now()).plusDays(daysDifference);
+            LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() :
+            (todoTemplate.getDate() != null ? todoTemplate.getDate() : LocalDate.now());
+            LocalDate targetDate = anchor.plusDays(daysDifference);
         
         // active 상태에 관계없이 기존 Todo 확인
         Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.memberId());
@@ -223,14 +219,14 @@ public class VirtualTodoService {
             // 새 Todo 생성
             Todo newTodo = Todo.builder()
                     .todoId(todoId)
-                    .title(command.title() != null && !command.title().trim().isEmpty() ? command.title() : todoOriginal.getTitle())
-                    .description(command.description() != null && !command.description().trim().isEmpty() ? command.description() : todoOriginal.getDescription())
+                    .title(command.title() != null && !command.title().trim().isEmpty() ? command.title() : todoTemplate.getTitle())
+                    .description(command.description() != null && !command.description().trim().isEmpty() ? command.description() : todoTemplate.getDescription())
                     .complete(command.complete() != null ? command.complete() : false)
-                    .priorityId(command.priorityId() != null ? command.priorityId() : todoOriginal.getPriorityId())
-                    .category(todoOriginal.getCategory())
+                    .priorityId(command.priorityId() != null ? command.priorityId() : todoTemplate.getPriorityId())
+                    .category(todoTemplate.getCategory())
                     .date(command.date() != null ? command.date() : targetDate)
-                    .time(command.time() != null ? command.time() : todoOriginal.getTime())
-                    .tags(command.tags() != null && !command.tags().isEmpty() ? command.tags() : new HashSet<>(todoOriginal.getTags()))
+                    .time(command.time() != null ? command.time() : todoTemplate.getTime())
+                    .tags(command.tags() != null && !command.tags().isEmpty() ? command.tags() : new HashSet<>(todoTemplate.getTags()))
                     .owner(member)
                     .build();
             
@@ -254,52 +250,6 @@ public class VirtualTodoService {
             
             return todoApplicationMapper.toResult(newTodo);
         }
-    }
-    
-    public List<CalendarTodoStatusResponse> getMonthlyTodoStatus(UUID memberId, int year, int month) {
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
-
-        Set<LocalDate> datesWithTodos = new HashSet<>();
-
-        // 실제 투두(active=true, complete=false만) 날짜
-        Specification<Todo> spec = TodoSpecification.createSpecification(
-                memberId, false, null, null, startDate, endDate
-        );
-        Page<Todo> realTodos = todoRepository.findAll(spec, Pageable.unpaged());
-        realTodos.getContent().stream()
-                .filter(todo -> Boolean.TRUE.equals(todo.getActive()))
-                .map(Todo::getDate)
-                .filter(Objects::nonNull)
-                .forEach(datesWithTodos::add);
-
-        // 원본/반복 투두에서 해당 월의 날짜 생성
-        List<TodoOriginal> originals = todoOriginalService.getTodoOriginals(memberId);
-        for (TodoOriginal original : originals) {
-            if (!Boolean.TRUE.equals(original.getActive())) continue;
-            if (original.getDate() != null && !original.getDate().isBefore(startDate) && !original.getDate().isAfter(endDate)) {
-                // 실제 투두가 없거나 삭제/비활성화가 아닌 경우만
-                TodoId todoId = new TodoId(original.getId(), 0L);
-                Optional<Todo> exist = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, memberId);
-                if (exist.isEmpty() || (Boolean.TRUE.equals(exist.get().getActive()) && !Boolean.TRUE.equals(exist.get().getComplete()))) {
-                    datesWithTodos.add(original.getDate());
-                }
-            }
-            // 반복 투두
-            List<LocalDate> repeatDates = generateVirtualDates(original, startDate, endDate);
-            for (LocalDate date : repeatDates) {
-                long daysDiff = ChronoUnit.DAYS.between(original.getRepeatStartDate(), date);
-                TodoId todoId = new TodoId(original.getId(), daysDiff);
-                Optional<Todo> exist = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, memberId);
-                if (exist.isEmpty() || (Boolean.TRUE.equals(exist.get().getActive()) && !Boolean.TRUE.equals(exist.get().getComplete()))) {
-                    datesWithTodos.add(date);
-                }
-            }
-        }
-
-        return startDate.datesUntil(endDate.plusDays(1))
-                .map(date -> new CalendarTodoStatusResponse(date, datesWithTodos.contains(date)))
-                .toList();
     }
     
     public TodoStatistics getTodoStatistics(UUID memberId, LocalDate targetDate) {
@@ -378,21 +328,17 @@ public class VirtualTodoService {
         List<TodoResult> virtualTodos = new ArrayList<>();
         LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
+        List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.memberId())
                 .stream()
-                .filter(to -> to.getRepeatStartDate() != null)
-                .filter(to -> to.getRepeatType() != null && to.getRepeatType() > 0)
-                .filter(to -> to.getRepeatEndDate() == null || 
-                        !to.getRepeatEndDate().isBefore(query.startDate()))
+                .filter(to -> to.getRecurrenceRule() != null && to.getAnchorDate() != null)
                 .filter(to -> matchesKeyword(to, query.keyword()))
                 .toList();
         
-        for (TodoOriginal todoOriginal : todoOriginals) {
-            List<LocalDate> virtualDates = generateVirtualDates(
-                    todoOriginal, query.startDate(), query.endDate());
+        for (TodoTemplate todoTemplate : todoTemplates) {
+            RecurrenceRule rule = todoTemplate.getRecurrenceRule();
+            List<LocalDate> virtualDates = RecurrenceEngine.generateBetween(rule, query.startDate(), query.endDate());
 
-            LocalDate originalDueDate = todoOriginal.getDate();
-            LocalDate repeatStartDate = todoOriginal.getRepeatStartDate();
+            LocalDate originalDueDate = todoTemplate.getDate();
 
             for (LocalDate virtualDate : virtualDates) {
                 // baseDate 이후의 가상 투두만 포함
@@ -404,9 +350,10 @@ public class VirtualTodoService {
                     continue;
                 }
 
+                LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() : todoTemplate.getDate();
+                long diff = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
                 Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
-                        new TodoId(todoOriginal.getId(),
-                                repeatStartDate != null ? ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0),
+                        new TodoId(todoTemplate.getId(), diff),
                         query.memberId());
 
                 boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
@@ -415,10 +362,9 @@ public class VirtualTodoService {
                 }
 
                 if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
-                    long daysDifference = repeatStartDate != null ?
-                            ChronoUnit.DAYS.between(repeatStartDate, virtualDate) : 0;
-                    String virtualId = todoOriginal.getId() + ":" + daysDifference;
-                    virtualTodos.add(todoApplicationMapper.toVirtualResult(todoOriginal, virtualId, virtualDate));
+                    long daysDifference = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
+                    String virtualId = todoTemplate.getId() + ":" + daysDifference;
+                    virtualTodos.add(todoApplicationMapper.toVirtualResult(todoTemplate, virtualId, virtualDate));
                 }
             }
         }
@@ -435,7 +381,7 @@ public class VirtualTodoService {
         List<TodoResult> originalTodos = new ArrayList<>();
         LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
         
-        List<TodoOriginal> todoOriginals = todoOriginalService.getTodoOriginals(query.memberId())
+        List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.memberId())
                 .stream()
                 .filter(to -> matchesKeyword(to, query.keyword()))
                 .filter(to -> matchesDateRange(to, query.startDate(), query.endDate()))
@@ -443,14 +389,14 @@ public class VirtualTodoService {
                 .filter(to -> matchesPriorityFilter(to, query.priorityIds()))
                 .toList();
         
-        for (TodoOriginal todoOriginal : todoOriginals) {
+        for (TodoTemplate todoTemplate : todoTemplates) {
             // baseDate 이후의 원본 투두만 포함
-            if (todoOriginal.getDate() != null && baseDate != null && todoOriginal.getDate().isBefore(baseDate)) {
+            if (todoTemplate.getDate() != null && baseDate != null && todoTemplate.getDate().isBefore(baseDate)) {
                 continue;
             }
 
             Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
-                    new TodoId(todoOriginal.getId(), 0L), query.memberId());
+                    new TodoId(todoTemplate.getId(), 0L), query.memberId());
 
             boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
             if (isDeleted) {
@@ -458,14 +404,14 @@ public class VirtualTodoService {
             }
 
             if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
-                if (todoOriginal.getRepeatStartDate() != null && todoOriginal.getDate() != null) {
+                if (todoTemplate.getAnchorDate() != null && todoTemplate.getDate() != null) {
                     long daysDifference = ChronoUnit.DAYS.between(
-                            todoOriginal.getRepeatStartDate(), todoOriginal.getDate());
-                    String virtualId = todoOriginal.getId() + ":" + daysDifference;
-                    originalTodos.add(todoApplicationMapper.toOriginalResult(todoOriginal, virtualId, todoOriginal.getDate()));
+                            todoTemplate.getAnchorDate(), todoTemplate.getDate());
+                    String virtualId = todoTemplate.getId() + ":" + daysDifference;
+                    originalTodos.add(todoApplicationMapper.toOriginalResult(todoTemplate, virtualId, todoTemplate.getDate()));
                 } else {
-                    String virtualId = todoOriginal.getId() + ":0";
-                    originalTodos.add(todoApplicationMapper.toOriginalResult(todoOriginal, virtualId, todoOriginal.getDate()));
+                    String virtualId = todoTemplate.getId() + ":0";
+                    originalTodos.add(todoApplicationMapper.toOriginalResult(todoTemplate, virtualId, todoTemplate.getDate()));
                 }
             }
         }
@@ -473,97 +419,27 @@ public class VirtualTodoService {
         return originalTodos;
     }
     
-    private List<LocalDate> generateVirtualDates(TodoOriginal todoOriginal, LocalDate startDate, LocalDate endDate) {
-        List<LocalDate> dates = new ArrayList<>();
-        
-        // repeat_start_date가 null이면 반복 일정을 생성하지 않음
-        LocalDate current = todoOriginal.getRepeatStartDate();
-        if (current == null) {
-            return dates;
-        }
-        
-        if (todoOriginal.getRepeatType() == RepeatTypeConstants.WEEKLY && 
-            todoOriginal.getDaysOfWeek() != null && !todoOriginal.getDaysOfWeek().isEmpty()) {
-            return generateWeeklyVirtualDates(todoOriginal, startDate, endDate);
-        }
-        
-        while (!current.isAfter(endDate) && 
-               (todoOriginal.getRepeatEndDate() == null || !current.isAfter(todoOriginal.getRepeatEndDate()))) {
-            if (!current.isBefore(startDate)) {
-                dates.add(current);
-            }
-            current = getNextDate(current, todoOriginal.getRepeatType(), todoOriginal.getRepeatInterval());
-        }
-        
-        return dates;
-    }
-    
-    private List<LocalDate> generateWeeklyVirtualDates(TodoOriginal todoOriginal, LocalDate startDate, LocalDate endDate) {
-        List<LocalDate> dates = new ArrayList<>();
-        
-        // repeat_start_date가 null이면 반복 일정을 생성하지 않음
-        LocalDate repeatStartDate = todoOriginal.getRepeatStartDate();
-        if (repeatStartDate == null) {
-            return dates;
-        }
-        
-        LocalDate currentWeek = repeatStartDate
-                .with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-        
-        while (!currentWeek.isAfter(endDate) && 
-               (todoOriginal.getRepeatEndDate() == null || !currentWeek.isAfter(todoOriginal.getRepeatEndDate()))) {
-            
-            for (Integer dayOfWeek : todoOriginal.getDaysOfWeek()) {
-                LocalDate dateForDay = currentWeek.plusDays(dayOfWeek);
-                
-                // due_date와 중복되지 않고, 조회 범위 안에 있으며, repeat_start_date 이후인 경우만 포함
-                if (!dateForDay.equals(todoOriginal.getDate()) && // 🆕 due_date와 다르고
-                    !dateForDay.isBefore(startDate) && !dateForDay.isAfter(endDate) &&
-                    !dateForDay.isBefore(repeatStartDate) &&
-                    (todoOriginal.getRepeatEndDate() == null || !dateForDay.isAfter(todoOriginal.getRepeatEndDate()))) {
-                    dates.add(dateForDay);
-                }
-            }
-            
-            currentWeek = currentWeek.plusWeeks(todoOriginal.getRepeatInterval());
-        }
-        
-        dates.sort(LocalDate::compareTo);
-        return dates;
-    }
-    
-    private LocalDate getNextDate(LocalDate date, Integer repeatType, Integer interval) {
-        // interval이 null이면 기본값 1 사용
-        int intervalValue = interval != null ? interval : 1;
-        
-        return switch (repeatType) {
-            case RepeatTypeConstants.DAILY -> date.plusDays(intervalValue);
-            case RepeatTypeConstants.WEEKLY -> date.plusWeeks(intervalValue);
-            case RepeatTypeConstants.MONTHLY -> date.plusMonths(intervalValue);
-            case RepeatTypeConstants.YEARLY -> date.plusYears(intervalValue);
-            default -> date.plusDays(1);
-        };
-    }
+    // (old repeat generation helpers removed; RRULE engine is the single source)
 
     
-    private boolean matchesKeyword(TodoOriginal todoOriginal, String keyword) {
+    private boolean matchesKeyword(TodoTemplate todoTemplate, String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return true;
         }
         
         String lowerKeyword = keyword.toLowerCase();
-        return (todoOriginal.getTitle() != null && todoOriginal.getTitle().toLowerCase().contains(lowerKeyword)) ||
-               (todoOriginal.getDescription() != null && todoOriginal.getDescription().toLowerCase().contains(lowerKeyword)) ||
-               (todoOriginal.getTags() != null && todoOriginal.getTags().stream()
+        return (todoTemplate.getTitle() != null && todoTemplate.getTitle().toLowerCase().contains(lowerKeyword)) ||
+               (todoTemplate.getDescription() != null && todoTemplate.getDescription().toLowerCase().contains(lowerKeyword)) ||
+               (todoTemplate.getTags() != null && todoTemplate.getTags().stream()
                        .anyMatch(tag -> tag.toLowerCase().contains(lowerKeyword)));
     }
     
-    private boolean matchesDateRange(TodoOriginal todoOriginal, LocalDate startDate, LocalDate endDate) {
+    private boolean matchesDateRange(TodoTemplate todoTemplate, LocalDate startDate, LocalDate endDate) {
         if (startDate == null && endDate == null) {
             return true;
         }
         
-        LocalDate dueDate = todoOriginal.getDate();
+        LocalDate dueDate = todoTemplate.getDate();
         if (dueDate == null) {
             return true; // null인 경우는 항상 포함
         }
@@ -579,24 +455,24 @@ public class VirtualTodoService {
         return true;
     }
     
-    private boolean matchesCategoryFilter(TodoOriginal todoOriginal, List<Long> categoryIds) {
+    private boolean matchesCategoryFilter(TodoTemplate todoTemplate, List<Long> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return true;
         }
         
-        if (todoOriginal.getCategory() == null) {
+        if (todoTemplate.getCategory() == null) {
             return categoryIds.contains(null);
         }
         
-        return categoryIds.contains(todoOriginal.getCategory().getId());
+        return categoryIds.contains(todoTemplate.getCategory().getId());
     }
     
-    private boolean matchesPriorityFilter(TodoOriginal todoOriginal, List<Integer> priorityIds) {
+    private boolean matchesPriorityFilter(TodoTemplate todoTemplate, List<Integer> priorityIds) {
         if (priorityIds == null || priorityIds.isEmpty()) {
             return true;
         }
         
-        return priorityIds.contains(todoOriginal.getPriorityId());
+        return priorityIds.contains(todoTemplate.getPriorityId());
     }
     
     private Comparator<TodoResult> getDefaultComparator() {

@@ -69,39 +69,14 @@ public class CreateTodoRequest {
         format = "time"
     )
     private LocalTime time;
-    @Schema(
-        description = "반복 유형 (0: NONE , 1: DAILY, 2: WEEKLY, 3: MONTHLY, 4: YEARLY)", 
-        example = "0", 
-        defaultValue = "0", 
-        allowableValues = {"0", "1", "2", "3", "4"}
-    )
-    private Integer repeatType;
+
+    @Schema(description = "RRULE 기반 반복 규칙 - JSON 문자열로 전송", example = "{\"frequency\":\"WEEKLY\",\"interval\":1,\"byWeekDays\":[\"MO\",\"WE\",\"FR\"]}")
+    private String recurrenceRuleJson;
+    // 과거 반복 필드 제거(미래지향 설계)
     
     @Schema(
-        description = "반복 간격 (일 단위)", 
-        example = "1"
-    )
-    private Integer repeatInterval;
-    
-    @Schema(
-        description = "매주 반복 시 선택된 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)"
-    )
-    private Set<Integer> daysOfWeek;
-    
-    @Schema(
-        description = "반복 시작일", 
-        example = "2025-06-01"
-    )
-    private LocalDate repeatStartDate;
-    
-    @Schema(
-        description = "반복 종료일", 
-        example = "2025-12-31"
-    )
-    private LocalDate repeatEndDate;
-    
-    @Schema(
-        description = "태그 목록"
+        description = "태그 목록",
+        example = "[\"업무\", \"긴급\"]"
     )
     private Set<String> tags;
 }

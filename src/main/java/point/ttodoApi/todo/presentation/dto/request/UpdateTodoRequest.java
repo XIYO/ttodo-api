@@ -65,41 +65,16 @@ public class UpdateTodoRequest {
         format = "time"
     )
     private LocalTime time;
+
+    @Schema(description = "RRULE 기반 반복 규칙 - JSON 문자열로 전송", example = "{\"frequency\":\"WEEKLY\",\"interval\":1,\"byWeekDays\":[\"MO\",\"WE\",\"FR\"]}")
+    private String recurrenceRuleJson;
     
-    @Schema(
-        description = "반복 유형 (0: 반복 안함, 1: 데일리, 2: 위클리, 3: 먼슬리, 4: 이얼리)", 
-        example = "0", 
-        allowableValues = {"0", "1", "2", "3", "4"}
-    )
-    private Integer repeatType;
-    
-    @Schema(
-        description = "반복 간격 (일 단위)", 
-        example = "1"
-    )
-    private Integer repeatInterval;
-    
-    @Schema(
-        description = "반복 시작일",
-        example = "2026-01-01",
-        format = "date"
-    )
-    private LocalDate repeatStartDate;
-    
-    @Schema(
-        description = "매주 반복 시 선택된 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)"
-    )
-    private Set<Integer> daysOfWeek;
-    
-    @Schema(
-        description = "반복 종료일", 
-        example = "2026-12-31"
-    )
-    private LocalDate repeatEndDate;
+    // 과거 반복 필드 제거(미래지향 설계)
     
     @Schema(
         description = "태그 목록",
-        type = "array"
+        type = "array",
+        example = "[\"공부\", \"영어\"]"
     )
     private Set<String> tags;
 }

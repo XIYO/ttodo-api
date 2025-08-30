@@ -2,6 +2,7 @@ package point.ttodoApi.todo.application.dto.result;
 
 import java.time.*;
 import java.util.*;
+import point.ttodoApi.todo.domain.recurrence.RecurrenceRule;
 
 public record TodoResult(
         String id, 
@@ -16,11 +17,9 @@ public record TodoResult(
         String categoryName,
         LocalDate date,
         LocalTime time,
-        Integer repeatType,
-        Integer repeatInterval,
-        LocalDate repeatEndDate,
-        Set<Integer> daysOfWeek,
-        Long originalTodoId,
-        Set<String> tags
+        RecurrenceRule recurrenceRule,
+        LocalDate anchorDate,
+        Set<String> tags,
+        Long originalTodoId
 ) {
 }

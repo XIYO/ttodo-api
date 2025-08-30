@@ -19,11 +19,7 @@ public class CompleteUpdateValidator implements ConstraintValidator<ValidComplet
             request.getCategoryId() != null ||
             request.getDate() != null ||
             request.getTime() != null ||
-            request.getRepeatType() != null ||
-            request.getRepeatInterval() != null ||
-            request.getRepeatStartDate() != null ||
-            request.getRepeatEndDate() != null ||
-            (request.getDaysOfWeek() != null && !request.getDaysOfWeek().isEmpty()) ||
+            request.getRecurrenceRuleJson() != null ||
             (request.getTags() != null && !request.getTags().isEmpty());
             
         return !hasOtherFields; // 다른 필드가 없으면 true (검증 통과)

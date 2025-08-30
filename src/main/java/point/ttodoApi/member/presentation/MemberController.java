@@ -1,23 +1,45 @@
 package point.ttodoApi.member.presentation;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
-import org.springframework.http.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import point.ttodoApi.member.application.MemberService;
+import point.ttodoApi.member.application.MemberSearchService;
+import point.ttodoApi.member.dto.request.MemberSearchRequest;
+import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.member.application.dto.command.UpdateMemberCommand;
 import point.ttodoApi.member.application.dto.result.MemberResult;
+import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.presentation.dto.request.UpdateMemberRequest;
 import point.ttodoApi.member.presentation.dto.response.MemberResponse;
 import point.ttodoApi.member.presentation.mapper.MemberPresentationMapper;
 import point.ttodoApi.profile.application.ProfileService;
+import point.ttodoApi.common.validation.ValidPageable;
+import point.ttodoApi.common.validation.SortFieldsProvider;
+import point.ttodoApi.common.dto.PageResponse;
 import point.ttodoApi.profile.domain.*;
 
 import java.io.IOException;
@@ -33,31 +55,63 @@ import java.util.UUID;
 public class MemberController {
 
     private final MemberService memberService;
+    private final MemberSearchService memberSearchService;
     private final ProfileService profileService;
     private final MemberPresentationMapper mapper;
 
     @Operation(
-        summary = "전체 회원 목록 조회", 
-        description = "시스템에 등록된 모든 회원 목록을 페이지네이션과 함께 조회합니다.\n\n" +
-                       "페이지네이션 파라미터:\n" +
+        summary = "회원 목록 조회/검색", 
+        description = "시스템에 등록된 회원을 조회하거나 검색합니다. (관리자 전용)\n\n" +
+                       "검색 파라미터:\n" +
+                       "- emailKeyword: 이메일 키워드\n" +
+                       "- nicknameKeyword: 닉네임 키워드\n" +
+                       "- role: 권한 (USER, ADMIN)\n" +
+                       "- active: 활성 상태\n" +
+                       "- emailVerified: 이메일 인증 여부\n" +
+                       "\n페이지네이션 파라미터:\n" +
                        "- page: 페이지 번호 (0부터 시작, 기본값: 0)\n" +
-                       "- size: 페이지 크기 (기본값: 10)\n" +
+                       "- size: 페이지 크기 (기본값: 20)\n" +
                        "- sort: 정렬 기준 (id, nickname, createdAt 등)"
     )
     @ApiResponse(responseCode = "200", description = "회원 목록 조회 성공")
     @GetMapping
-    public Page<MemberResponse> getMembers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id,desc") String sort) {
-        String[] sortParams = sort.split(",");
-        String sortBy = sortParams[0];
-        Sort.Direction direction = sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1])
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        return memberService.getMembers(pageable)
-                .map(mapper::toResponse);
+    @ValidPageable(sortFields = SortFieldsProvider.MEMBER)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageResponse<MemberResponse>> getMembers(
+            @Parameter(description = "검색 조건") @ModelAttribute MemberSearchRequest request,
+            @Parameter(description = "페이징 및 정렬 정보")
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        
+        request.validate();
+        
+        // 검색 조건이 있으면 검색 서비스 사용, 없으면 기존 서비스 사용
+        if (hasSearchCriteria(request)) {
+            Page<Member> result = memberSearchService.searchMembers(request, pageable);
+            return ResponseEntity.ok(PageResponse.of(result.map(mapper::toResponse)));
+        } else {
+            Page<MemberResult> result = memberService.getMembers(pageable);
+            return ResponseEntity.ok(PageResponse.of(result.map(mapper::toResponse)));
+        }
+    }
+    
+    private boolean hasSearchCriteria(MemberSearchRequest request) {
+        return request.hasSearchKeyword() || 
+               request.hasRoleFilter() || 
+               request.hasLoginDateFilter() ||
+               request.getActive() != null ||
+               request.getEmailVerified() != null ||
+               request.isRecentlyActiveOnly();
+    }
+
+    @Operation(
+        summary = "현재 로그인 사용자 정보 조회", 
+        description = "JWT 액세스 토큰을 기반으로 현재 로그인한 사용자의 정보를 조회합니다. 회원 ID, 이메일, 닉네임, 자기소개, 생성일시 등의 정보를 반환합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 요청 (토큰 없음 또는 만료)")
+    @GetMapping("/me")
+    public MemberResponse getCurrentUser(@AuthenticationPrincipal MemberPrincipal principal) {
+        return getMember(principal.id());
     }
 
     @Operation(
@@ -67,6 +121,7 @@ public class MemberController {
     @ApiResponse(responseCode = "200", description = "회원 상세 조회 성공")
     @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     @GetMapping("/{memberId}")
+    @PreAuthorize("#memberId == authentication.principal.id or hasRole('ADMIN')")
     public MemberResponse getMember(@PathVariable UUID memberId) {
         MemberResult dto = memberService.getMember(memberId);
         Profile profile = profileService.getProfile(memberId);
@@ -100,74 +155,23 @@ public class MemberController {
         memberService.updateMember(command);
     }
     
-    @Operation(
-        summary = "UI 테마 변경", 
-        description = "사용자의 UI 테마를 변경합니다. 라이트 모드와 다크 모드를 지원합니다.\n\n" +
-                       "사용 가능한 테마:\n" +
-                       "- LIGHT: 라이트 모드\n" +
-                       "- DARK: 다크 모드"
-    )
-    @ApiResponse(responseCode = "204", description = "테마 변경 성공")
-    @ApiResponse(responseCode = "400", description = "잘못된 테마 값")
-    @ApiResponse(responseCode = "403", description = "다른 사용자의 테마 변경 시도")
-    @PatchMapping("/{memberId}/theme")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("#memberId == authentication.principal.id")
-    public void updateTheme(
-            @PathVariable UUID memberId,
-            @RequestParam Theme theme) {
-        profileService.updateTheme(memberId, theme);
-    }
+    
+    
+    
     
     @Operation(
-        summary = "프로필 이미지 업로드", 
-        description = "회원의 프로필 이미지를 업로드합니다. 기존 이미지가 있을 경우 대체됩니다.\n\n" +
-                       "지원 형식:\n" +
-                       "- JPEG, PNG, GIF\n" +
-                       "- 최대 크기: 5MB\n" +
-                       "- 권장 크기: 200x200 픽셀 이상"
+        summary = "비활성 회원 조회", 
+        description = "오랜 기간 로그인하지 않은 비활성 회원 목록을 조회합니다. 기본값은 90일 이상 미접속 회원입니다. (관리자 전용)"
     )
-    @ApiResponse(responseCode = "204", description = "프로필 이미지 업로드 성공")
-    @ApiResponse(responseCode = "400", description = "잘못된 이미지 형식 또는 크기 초과")
-    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지 업로드 시도")
-    @PostMapping(value = "/{memberId}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("#memberId == authentication.principal.id")
-    public void uploadProfileImage(
-            @PathVariable UUID memberId,
-            @RequestParam("image") MultipartFile image) throws IOException {
-        profileService.updateProfileImage(memberId, image);
-    }
-    
-    @Operation(
-        summary = "프로필 이미지 조회", 
-        description = "회원의 프로필 이미지를 직접 조회합니다. 이미지는 1시간 동안 브라우저에 캐시됩니다."
-    )
-    @ApiResponse(responseCode = "200", description = "프로필 이미지 조회 성공", 
-                 content = @Content(mediaType = "image/*"))
-    @ApiResponse(responseCode = "404", description = "프로필 이미지가 없습니다.")
-    @GetMapping(value = "/{memberId}/profile-image", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public ResponseEntity<byte[]> getProfileImage(@PathVariable UUID memberId) {
-        Profile profile = profileService.getProfile(memberId);
-        if (profile.getProfileImage() == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok()
-                .contentType(MediaType.valueOf(profile.getProfileImageType()))
-                .header("Cache-Control", "public, max-age=3600") // 1시간 캐싱
-                .body(profile.getProfileImage());
-    }
-    
-    @Operation(
-        summary = "프로필 이미지 삭제", 
-        description = "회원의 프로필 이미지를 삭제합니다. 삭제 후에는 기본 프로필 이미지가 표시됩니다."
-    )
-    @ApiResponse(responseCode = "204", description = "프로필 이미지 삭제 성공")
-    @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지 삭제 시도")
-    @DeleteMapping("/{memberId}/profile-image")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("#memberId == authentication.principal.id")
-    public void deleteProfileImage(@PathVariable UUID memberId) {
-        profileService.removeProfileImage(memberId);
+    @ApiResponse(responseCode = "200", description = "비활성 회원 조회 성공")
+    @GetMapping("/inactive")
+    @ValidPageable(sortFields = SortFieldsProvider.MEMBER)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageResponse<MemberResponse>> getInactiveMembers(
+            @Parameter(description = "비활성 기준 일수") @RequestParam(defaultValue = "90") int days,
+            @PageableDefault(size = 20) Pageable pageable) {
+        
+        Page<Member> result = memberSearchService.getInactiveMembers(days, pageable);
+        return ResponseEntity.ok(PageResponse.of(result.map(mapper::toResponse)));
     }
 }

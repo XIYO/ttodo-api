@@ -4,44 +4,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.*;
-import org.testcontainers.utility.DockerImageName;
+import point.ttodoApi.test.BaseIntegrationTest;
 import point.ttodoApi.auth.presentation.dto.request.*;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.profile.infrastructure.persistence.ProfileRepository;
-import point.ttodoApi.test.config.TestSecurityConfig;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
 @DisplayName("AuthController Validation Test")
-@Import(TestSecurityConfig.class)
+@AutoConfigureMockMvc
 @Transactional
-@Testcontainers
-class AuthControllerValidationTest {
+class AuthControllerValidationTest extends BaseIntegrationTest {
     
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:17-alpine")
-    );
-
     @Autowired
     private MockMvc mockMvc;
 

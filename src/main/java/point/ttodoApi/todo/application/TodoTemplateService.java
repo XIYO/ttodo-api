@@ -24,9 +24,9 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class TodoOriginalService {
+public class TodoTemplateService {
     
-    private final TodoOriginalRepository todoOriginalRepository;
+    private final TodoTemplateRepository todoTemplateRepository;
     private final TodoRepository todoRepository;
     private final CategoryRepository categoryRepository;
     private final MemberService memberService;
@@ -34,14 +34,14 @@ public class TodoOriginalService {
     private final ApplicationEventPublisher eventPublisher;
     
     public TodoResult getTodo(TodoQuery query) {
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(query.todoId(), query.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.todoId()));
-        return todoApplicationMapper.toResult(todoOriginal);
+        TodoTemplate todoTemplate = todoTemplateRepository.findByIdAndOwnerId(query.todoId(), query.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", query.todoId()));
+        return todoApplicationMapper.toResult(todoTemplate);
     }
     
     @Transactional
     public void createTodo(CreateTodoCommand command) {
-        command.validateRepeatDates();
+        command.validateRule();
         
         Member member = memberService.findByIdOrThrow(command.memberId());
         
@@ -51,170 +51,155 @@ public class TodoOriginalService {
                     .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
         }
         
-        Integer repeatType = command.repeatType() != null ? command.repeatType() : 0;
-        
-        LocalDate repeatStartDate = command.repeatStartDate();
-        if (repeatStartDate == null && repeatType > 0) {
-            repeatStartDate = command.date();
-        }
-        
-        TodoOriginal todoOriginal = TodoOriginal.builder()
+        TodoTemplate todoTemplate = TodoTemplate.builder()
                 .title(command.title())
                 .description(command.description())
                 .priorityId(command.priorityId())
                 .date(command.date())
                 .time(command.time())
-                .repeatType(repeatType)
-                .repeatInterval(command.repeatInterval())
-                .repeatStartDate(repeatStartDate)
-                .repeatEndDate(command.repeatEndDate())
+                // 신규 규칙 저장(있으면 우선 사용)
                 .complete(command.complete())
-                .daysOfWeek(command.daysOfWeek())
                 .tags(command.tags())
                 .category(category)
                 .owner(member)
                 .build();
+
+        if (command.recurrenceRule() != null) {
+            todoTemplate.setRecurrenceRule(command.recurrenceRule());
+            // 앵커가 명시되지 않았다면 date를 기본으로 설정
+            LocalDate anchor = command.recurrenceRule().getAnchorDate();
+            if (anchor == null) anchor = command.date();
+            todoTemplate.setAnchorDate(anchor);
+        }
         
-        todoOriginalRepository.save(todoOriginal);
+        todoTemplateRepository.save(todoTemplate);
     }
     
     @Transactional
     public void updateTodo(UpdateTodoCommand command) {
-        command.validateRepeatDates();
+        command.validateRule();
         
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(command.todoId(), command.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
+        TodoTemplate todoTemplate = todoTemplateRepository.findByIdAndOwnerId(command.todoId(), command.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", command.todoId()));
         
-        boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
-        boolean wasComplete = Boolean.TRUE.equals(todoOriginal.getComplete());
+        boolean wasIncomplete = !Boolean.TRUE.equals(todoTemplate.getComplete());
+        boolean wasComplete = Boolean.TRUE.equals(todoTemplate.getComplete());
         
-        Integer repeatType = command.repeatType() != null ? command.repeatType() : 0;
+        todoTemplate.setTitle(command.title());
+        todoTemplate.setDescription(command.description());
+        todoTemplate.setPriorityId(command.priorityId());
+        todoTemplate.setDate(command.date());
+        todoTemplate.setTime(command.time());
+        todoTemplate.setTags(command.tags());
+        todoTemplate.setComplete(command.complete());
         
-        todoOriginal.setTitle(command.title());
-        todoOriginal.setDescription(command.description());
-        todoOriginal.setPriorityId(command.priorityId());
-        todoOriginal.setDate(command.date());
-        todoOriginal.setTime(command.time());
-        todoOriginal.setRepeatType(repeatType);
-        todoOriginal.setRepeatInterval(command.repeatInterval());
-        todoOriginal.setRepeatEndDate(command.repeatEndDate());
-        todoOriginal.setDaysOfWeek(command.daysOfWeek());
-        todoOriginal.setTags(command.tags());
-        todoOriginal.setComplete(command.complete());
-        
-        if (command.repeatStartDate() != null) {
-            todoOriginal.setRepeatStartDate(command.repeatStartDate());
-        } else if (repeatType > 0 && command.date() != null) {
-            todoOriginal.setRepeatStartDate(command.date());
+        if (command.recurrenceRule() != null) {
+            todoTemplate.setRecurrenceRule(command.recurrenceRule());
+            LocalDate anchor = command.recurrenceRule().getAnchorDate();
+            if (anchor == null) anchor = todoTemplate.getDate();
+            todoTemplate.setAnchorDate(anchor);
         }
         
         // 투두 완료 시 경험치 이벤트 발생
-        if (wasIncomplete && Boolean.TRUE.equals(todoOriginal.getComplete())) {
+        if (wasIncomplete && Boolean.TRUE.equals(todoTemplate.getComplete())) {
             eventPublisher.publishEvent(new TodoCompletedEvent(
                 command.memberId(),
                 command.todoId(),
-                todoOriginal.getTitle()
+                todoTemplate.getTitle()
             ));
         }
         
         // 투두 완료 취소 시 경험치 차감 이벤트 발생
-        if (wasComplete && Boolean.FALSE.equals(todoOriginal.getComplete())) {
+        if (wasComplete && Boolean.FALSE.equals(todoTemplate.getComplete())) {
             eventPublisher.publishEvent(new TodoUncompletedEvent(
                 command.memberId(),
                 command.todoId(),
-                todoOriginal.getTitle()
+                todoTemplate.getTitle()
             ));
         }
     }
     
     @Transactional
     public void partialUpdateTodo(UpdateTodoCommand command) {
-        command.validateRepeatDates();
+        command.validateRule();
         
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(command.todoId(), command.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.todoId()));
+        TodoTemplate todoTemplate = todoTemplateRepository.findByIdAndOwnerId(command.todoId(), command.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", command.todoId()));
         
-        boolean wasIncomplete = !Boolean.TRUE.equals(todoOriginal.getComplete());
-        boolean wasComplete = Boolean.TRUE.equals(todoOriginal.getComplete());
+        boolean wasIncomplete = !Boolean.TRUE.equals(todoTemplate.getComplete());
+        boolean wasComplete = Boolean.TRUE.equals(todoTemplate.getComplete());
         
         if (command.title() != null && !command.title().trim().isEmpty()) {
-            todoOriginal.setTitle(command.title());
+            todoTemplate.setTitle(command.title());
         }
         if (command.description() != null && !command.description().trim().isEmpty()) {
-            todoOriginal.setDescription(command.description());
+            todoTemplate.setDescription(command.description());
         }
         if (command.priorityId() != null) {
-            todoOriginal.setPriorityId(command.priorityId());
+            todoTemplate.setPriorityId(command.priorityId());
         }
         if (command.complete() != null) {
-            todoOriginal.setComplete(command.complete());
+            todoTemplate.setComplete(command.complete());
         }
         if (command.date() != null) {
-            todoOriginal.setDate(command.date());
+            todoTemplate.setDate(command.date());
         }
         if (command.time() != null) {
-            todoOriginal.setTime(command.time());
+            todoTemplate.setTime(command.time());
         }
-        if (command.repeatType() != null) {
-            todoOriginal.setRepeatType(command.repeatType());
-        }
-        if (command.repeatInterval() != null) {
-            todoOriginal.setRepeatInterval(command.repeatInterval());
-        }
-        if (command.repeatEndDate() != null) {
-            todoOriginal.setRepeatEndDate(command.repeatEndDate());
-        }
-        if (command.daysOfWeek() != null && !command.daysOfWeek().isEmpty()) {
-            todoOriginal.setDaysOfWeek(command.daysOfWeek());
+        // 반복 규칙 업데이트
+        if (command.recurrenceRule() != null) {
+            todoTemplate.setRecurrenceRule(command.recurrenceRule());
+            LocalDate anchor = command.recurrenceRule().getAnchorDate();
+            if (anchor == null) anchor = todoTemplate.getDate();
+            todoTemplate.setAnchorDate(anchor);
         }
         if (command.tags() != null && !command.tags().isEmpty()) {
-            todoOriginal.setTags(command.tags());
+            todoTemplate.setTags(command.tags());
         }
         
         // 카테고리 처리
         if (command.categoryId() != null) {
             Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
                     .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
-            todoOriginal.setCategory(category);
+            todoTemplate.setCategory(category);
         }
         
-        if (command.repeatStartDate() != null) {
-            todoOriginal.setRepeatStartDate(command.repeatStartDate());
-        }
+        
         
         // 투두 완료 시 경험치 이벤트 발생
-        if (wasIncomplete && Boolean.TRUE.equals(todoOriginal.getComplete())) {
+        if (wasIncomplete && Boolean.TRUE.equals(todoTemplate.getComplete())) {
             eventPublisher.publishEvent(new TodoCompletedEvent(
                 command.memberId(),
                 command.todoId(),
-                todoOriginal.getTitle()
+                todoTemplate.getTitle()
             ));
         }
         
         // 투두 완료 취소 시 경험치 차감 이벤트 발생
-        if (wasComplete && Boolean.FALSE.equals(todoOriginal.getComplete())) {
+        if (wasComplete && Boolean.FALSE.equals(todoTemplate.getComplete())) {
             eventPublisher.publishEvent(new TodoUncompletedEvent(
                 command.memberId(),
                 command.todoId(),
-                todoOriginal.getTitle()
+                todoTemplate.getTitle()
             ));
         }
     }
 
     @Transactional
     public void deactivateTodo(DeleteTodoCommand command) {
-        TodoOriginal todoOriginal = todoOriginalRepository.findByIdAndOwnerId(command.originalTodoId(), command.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", command.originalTodoId()));
+        TodoTemplate todoTemplate = todoTemplateRepository.findByIdAndOwnerId(command.originalTodoId(), command.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", command.originalTodoId()));
         
-        todoOriginal.setActive(false);
+        todoTemplate.setActive(false);
     }
     
-    public List<TodoOriginal> getTodoOriginals(UUID memberId) {
-        return todoOriginalRepository.findByOwnerId(memberId);
+    public List<TodoTemplate> getTodoTemplates(UUID memberId) {
+        return todoTemplateRepository.findByOwnerId(memberId);
     }
     
     public Page<String> getTags(UUID memberId, List<UUID> categoryIds, Pageable pageable) {
-        return todoOriginalRepository.findDistinctTagsByOwnerId(memberId, categoryIds, pageable);
+        return todoTemplateRepository.findDistinctTagsByOwnerId(memberId, categoryIds, pageable);
     }
     
     /**
@@ -228,15 +213,15 @@ public class TodoOriginalService {
     
     @Transactional
     public void togglePin(TodoQuery query) {
-        TodoOriginal todo = todoOriginalRepository.findByIdAndOwnerId(query.todoId(), query.memberId())
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", query.todoId()));
+        TodoTemplate todo = todoTemplateRepository.findByIdAndOwnerId(query.todoId(), query.memberId())
+                .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", query.todoId()));
         
         boolean wasPinned = todo.getIsPinned();
         todo.togglePin();
         
         if (!wasPinned && todo.getIsPinned()) {
             // 현재 투두를 제외한 기존 핀 고정 투두들을 조회
-            List<TodoOriginal> existingPinnedTodos = todoOriginalRepository
+            List<TodoTemplate> existingPinnedTodos = todoTemplateRepository
                     .findByOwnerIdAndIsPinnedTrueOrderByDisplayOrderAsc(query.memberId())
                     .stream()
                     .filter(t -> !t.getId().equals(todo.getId()))
@@ -249,14 +234,14 @@ public class TodoOriginalService {
     
     @Transactional
     public void changeOrder(UUID memberId, Long todoId, Integer newOrder) {
-        TodoOriginal target = todoOriginalRepository.findByIdAndOwnerId(todoId, memberId)
-                .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", todoId));
+        TodoTemplate target = todoTemplateRepository.findByIdAndOwnerId(todoId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", todoId));
         
         if (!target.getIsPinned()) {
             throw new IllegalArgumentException("Only pinned todos can be reordered");
         }
         
-        List<TodoOriginal> pinnedTodos = todoOriginalRepository
+        List<TodoTemplate> pinnedTodos = todoTemplateRepository
                 .findByOwnerIdAndIsPinnedTrueOrderByDisplayOrderAsc(memberId);
         
         if (newOrder < 0 || newOrder >= pinnedTodos.size()) {
@@ -273,15 +258,15 @@ public class TodoOriginalService {
     
     /**
      * Todo 소유자 여부 확인 (Spring Security @PreAuthorize용)
-     * 먼저 Todo 테이블을 확인하고, 없으면 TodoOriginal을 확인
+     * 먼저 Todo 테이블을 확인하고, 없으면 TodoTemplate을 확인
      */
     public boolean isOwner(Long todoId, UUID memberId) {
-        return todoOriginalRepository.findByIdAndOwnerId(todoId, memberId).isPresent();
+        return todoTemplateRepository.findByIdAndOwnerId(todoId, memberId).isPresent();
     }
     
     /**
      * Virtual Todo ID를 고려한 소유자 여부 확인 (Spring Security @PreAuthorize용)
-     * 먼저 Todo 테이블을 확인하고, 없으면 TodoOriginal을 확인
+     * 먼저 Todo 테이블을 확인하고, 없으면 TodoTemplate을 확인
      */
     public boolean isOwnerWithDaysDifference(Long originalTodoId, Long daysDifference, UUID memberId) {
         // 먼저 Virtual Todo 테이블 확인
@@ -292,8 +277,8 @@ public class TodoOriginalService {
             return true;
         }
         
-        // Todo 테이블에 없으면 TodoOriginal 확인
-        return todoOriginalRepository.findByIdAndOwnerId(originalTodoId, memberId).isPresent();
+        // Todo 테이블에 없으면 TodoTemplate 확인
+        return todoTemplateRepository.findByIdAndOwnerId(originalTodoId, memberId).isPresent();
     }
     
     /**
@@ -306,12 +291,12 @@ public class TodoOriginalService {
     }
     
     /**
-     * TodoOriginal 권한 검증을 위한 엔티티 조회 (Spring Security @PreAuthorize용)
+     * TodoTemplate 권한 검증을 위한 엔티티 조회 (Spring Security @PreAuthorize용)
      * @param todoId 투두 ID
-     * @return TodoOriginal 엔티티
+     * @return TodoTemplate 엔티티
      */
-    public TodoOriginal findTodoOriginalForAuth(Long todoId) {
-        return todoOriginalRepository.findById(todoId)
-            .orElseThrow(() -> new EntityNotFoundException("TodoOriginal", todoId));
+    public TodoTemplate findTodoTemplateForAuth(Long todoId) {
+        return todoTemplateRepository.findById(todoId)
+            .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", todoId));
     }
 }

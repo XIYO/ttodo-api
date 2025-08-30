@@ -68,12 +68,12 @@ public class ProfileController {
     @ApiResponse(responseCode = "400", description = "잘못된 타임존, 로케일, 테마 값")
     @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 수정 시도")
     @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
-    @PatchMapping
+    @PatchMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("#memberId == authentication.principal.id")
     public void updateProfile(
             @PathVariable UUID memberId,
-            @Valid @RequestBody UpdateProfileRequest request) {
+            @Valid UpdateProfileRequest request) {
         
         // 회원 기본 정보 업데이트 (닉네임만)
         if (request.nickname() != null) {

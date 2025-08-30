@@ -48,9 +48,43 @@ public class TokenService {
   private final Map<String, Lock> deviceLocks = new ConcurrentHashMap<>();
   private static final int MAX_LOCKS = 10000; // 최대 lock 개수 제한
 
+  /**
+   * JWT 토큰을 생성합니다.
+   * 
+   * @param userId 사용자 ID
+   * @param expiresAt 토큰 만료 시간
+   * @param additionalClaims 추가 클레임
+   * @return 생성된 JWT 토큰 문자열
+   */
   private String generateToken(String userId, Instant expiresAt, Map<String, Object> additionalClaims) {
     Instant now = Instant.now();
-    JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder().subject(userId).issuedAt(now).expiresAt(expiresAt);
+    JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
+            .subject(userId)
+            .issuedAt(now)
+            .expiresAt(expiresAt);
+    
+    additionalClaims.forEach(claimsBuilder::claim);
+    JwtClaimsSet claims = claimsBuilder.build();
+    JwtEncoderParameters parameters = JwtEncoderParameters
+            .from(JwsHeader.with(() -> "RS256").keyId(jwtProperties.keyId()).build(), claims);
+    return jwtEncoder.encode(parameters).getTokenValue();
+  }
+  
+  /**
+   * 만료 시간이 없는 JWT 토큰을 생성합니다.
+   * 개발 및 테스트 환경에서만 사용해야 합니다.
+   * 
+   * @param userId 사용자 ID
+   * @param additionalClaims 추가 클레임
+   * @return 만료되지 않는 JWT 토큰 문자열
+   */
+  private String generateToken(String userId, Map<String, Object> additionalClaims) {
+    Instant now = Instant.now();
+    JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
+            .subject(userId)
+            .issuedAt(now);
+    // expiresAt을 설정하지 않음 - 만료 없음
+    
     additionalClaims.forEach(claimsBuilder::claim);
     JwtClaimsSet claims = claimsBuilder.build();
     JwtEncoderParameters parameters = JwtEncoderParameters
@@ -58,8 +92,32 @@ public class TokenService {
     return jwtEncoder.encode(parameters).getTokenValue();
   }
 
+  /**
+   * 액세스 토큰을 생성합니다.
+   * 
+   * @param id 사용자 ID
+   * @param email 사용자 이메일
+   * @param nickname 사용자 닉네임
+   * @param timeZone 사용자 타임존
+   * @param locale 사용자 로케일
+   * @return 생성된 액세스 토큰
+   */
   public String generateAccessToken(String id, String email, String nickname, String timeZone, String locale) {
-    Instant expiresAt = Instant.now().plus(jwtProperties.accessToken().expiration(), ChronoUnit.SECONDS);
+    return generateAccessToken(id, email, nickname, timeZone, locale, false);
+  }
+  
+  /**
+   * 액세스 토큰을 생성합니다.
+   * 
+   * @param id 사용자 ID
+   * @param email 사용자 이메일
+   * @param nickname 사용자 닉네임
+   * @param timeZone 사용자 타임존
+   * @param locale 사용자 로케일
+   * @param neverExpire true인 경우 만료되지 않는 토큰 생성 (개발/테스트용)
+   * @return 생성된 액세스 토큰
+   */
+  public String generateAccessToken(String id, String email, String nickname, String timeZone, String locale, boolean neverExpire) {
     Map<String, Object> claims = Map.of(
       EMAIL_CLAIM, email,
       NICKNAME_CLAIM, nickname,
@@ -67,9 +125,25 @@ public class TokenService {
       LOCALE_CLAIM, locale,
       SCOPE_CLAIM, "ROLE_USER"
     );
-    return generateToken(id, expiresAt, claims);
+    
+    if (neverExpire) {
+      // 만료 없는 토큰 생성 (개발/테스트 환경용)
+      return generateToken(id, claims);
+    } else {
+      // 일반 토큰 생성 (만료시간 있음)
+      Instant expiresAt = Instant.now().plus(jwtProperties.accessToken().expiration(), ChronoUnit.SECONDS);
+      return generateToken(id, expiresAt, claims);
+    }
   }
+  
 
+  /**
+   * 리프레시 토큰을 생성합니다.
+   * 
+   * @param id 사용자 ID
+   * @param device 디바이스 ID
+   * @return 생성된 리프레시 토큰
+   */
   public String generateRefreshToken(String id, String device) {
     Instant expiresAt = Instant.now().plus(jwtProperties.refreshToken().expiration(), ChronoUnit.SECONDS);
     Map<String, Object> claims = Map.of(DEVICE_CLAIM, device);

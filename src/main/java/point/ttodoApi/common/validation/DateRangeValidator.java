@@ -12,14 +12,8 @@ public class DateRangeValidator implements ConstraintValidator<DateRangeConstrai
     
     @Override
     public boolean isValid(TodoSearchRequest request, ConstraintValidatorContext context) {
-        if (request == null) {
-            return true;
-        }
-        
-        // startDate와 endDate는 둘 다 있거나 둘 다 없어야 함
-        boolean hasStartDate = request.startDate() != null;
-        boolean hasEndDate = request.endDate() != null;
-        
-        return hasStartDate == hasEndDate;
+        // dates 파라미터는 별도 검증이 필요없음
+        // 1개, 2개, 3개 이상 모두 유효한 케이스
+        return true;
     }
 }

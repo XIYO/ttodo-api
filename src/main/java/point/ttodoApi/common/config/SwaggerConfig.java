@@ -11,6 +11,8 @@ import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
+  @org.springframework.beans.factory.annotation.Value("${app.user-domain:ttodo.dev}")
+  private String userDomain;
 
   private static final String SECURITY_SCHEME_NAME = "Bearer Authentication";
 
@@ -83,6 +85,13 @@ public class SwaggerConfig {
                             .type(SecurityScheme.Type.HTTP)
                             .scheme("bearer")
                             .bearerFormat("JWT")
-                            .description("JWT 토큰 입력 (Bearer 접두사 제외)"));
+                            .description("""
+                                JWT 토큰 입력 (Bearer 접두사 제외)
+                                
+                                개발 환경에서는 다음 엔드포인트로 만료 없는 테스트 토큰을 발급받아 사용하세요:
+                                - GET /auth/dev-token
+                                
+                                발급되는 토큰은 시스템 익명 사용자(anon@%s)의 권한으로 서명되며, 현재 서버 키로 서명되어 Swagger에서 바로 사용 가능합니다.
+                                """.formatted(userDomain)));
   }
 }

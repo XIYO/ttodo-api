@@ -4,25 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.*;
-import org.testcontainers.utility.DockerImageName;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
-import point.ttodoApi.test.config.TestSecurityConfig;
+import point.ttodoApi.test.BaseIntegrationTest;
 
 import java.util.*;
 
@@ -36,20 +30,10 @@ import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
  * CategoryController 통합 테스트
  * MockMvc를 사용하여 HTTP 레이어부터 DB까지 통합 테스트
  */
-@SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
 @Transactional
-@Testcontainers
-@Import(TestSecurityConfig.class)
-public class CategoryControllerTest {
+public class CategoryControllerTest extends BaseIntegrationTest {
     
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:17-alpine")
-    );
-
     @Autowired
     private MockMvc mockMvc;
 

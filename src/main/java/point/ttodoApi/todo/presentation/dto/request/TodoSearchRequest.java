@@ -2,15 +2,20 @@ package point.ttodoApi.todo.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.*;
 import org.springframework.format.annotation.DateTimeFormat;
-import point.ttodoApi.common.validation.DateRangeConstraint;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Schema(description = "Todo 검색 요청")
-@DateRangeConstraint
 public record TodoSearchRequest(
-        @Schema(description = "완료 상태 필터 (true: 완료, false: 진행중, null: 모든 상태)", example = "false")
+        @ArraySchema(
+            schema = @Schema(implementation = LocalDate.class, description = "날짜 필터 (1개: 단일 날짜, 2개: 범위, 3개+: 최소~최대 범위)"),
+            arraySchema = @Schema(example = "[\"2025-08-30\"] 또는 [\"2025-08-01\", \"2025-08-31\"]")
+        )
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        List<LocalDate> dates,
+        
+        @Schema(description = "완료 상태 필터 (null: 전체, true: 완료만, false: 미완료만)", example = "false")
         Boolean complete,
         
         @ArraySchema(
@@ -30,18 +35,6 @@ public record TodoSearchRequest(
             arraySchema = @Schema(example = "[\"영어\", \"학습\"]")
         )
         List<String> tags,
-        
-        @Schema(description = "검색 시작 날짜", example = "2025-06-01", type = "string", format = "date")
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-        LocalDate startDate,
-        
-        @Schema(description = "검색 종료 날짜", example = "2025-06-30", type = "string", format = "date")
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-        LocalDate endDate,
-        
-        @Schema(description = "기준 날짜 (이 날짜 이후의 가상 투두만 표시)", example = "2025-06-20", type = "string", format = "date")
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-        LocalDate date,
         
         @Schema(description = "검색 키워드 (제목, 설명, 태그에서 검색)", example = "영어")
         String keyword,

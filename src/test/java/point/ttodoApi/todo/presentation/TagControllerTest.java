@@ -4,23 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.*;
-import org.testcontainers.utility.DockerImageName;
+import point.ttodoApi.test.BaseIntegrationTest;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
-import point.ttodoApi.test.config.TestSecurityConfig;
-import point.ttodoApi.todo.domain.TodoOriginal;
-import point.ttodoApi.todo.infrastructure.persistence.TodoOriginalRepository;
+import point.ttodoApi.todo.domain.TodoTemplate;
+import point.ttodoApi.todo.infrastructure.persistence.TodoTemplateRepository;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -29,20 +23,11 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
 @Transactional
-@Testcontainers
-@Import(TestSecurityConfig.class)
 @DisplayName("TagController 통합 테스트")
-public class TagControllerTest {
+public class TagControllerTest extends BaseIntegrationTest {
     
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:17-alpine")
-    );
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,7 +39,7 @@ public class TagControllerTest {
     private MemberRepository memberRepository;
 
     @Autowired
-    private TodoOriginalRepository todoOriginalRepository;
+    private TodoTemplateRepository todoTemplateRepository;
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -360,9 +345,9 @@ public class TagControllerTest {
             createTodoWithTags("활성 할일", Set.of("활성태그1", "활성태그2"));
 
             // 비활성 Todo
-            TodoOriginal inactiveTodo = createTodoWithTags("비활성 할일", Set.of("비활성태그1", "비활성태그2"));
+            TodoTemplate inactiveTodo = createTodoWithTags("비활성 할일", Set.of("비활성태그1", "비활성태그2"));
             inactiveTodo.setActive(false);
-            todoOriginalRepository.save(inactiveTodo);
+            todoTemplateRepository.save(inactiveTodo);
 
             mockMvc.perform(get("/tags"))
                     .andExpect(status().isOk())
@@ -462,25 +447,24 @@ public class TagControllerTest {
     }
 
     // 헬퍼 메서드들
-    private TodoOriginal createTodoWithTags(String title, Set<String> tags) {
+    private TodoTemplate createTodoWithTags(String title, Set<String> tags) {
         return createTodoWithTagsAndCategory(title, tags, testCategory);
     }
 
-    private TodoOriginal createTodoWithTagsAndCategory(String title, Set<String> tags, Category category) {
-        TodoOriginal todo = TodoOriginal.builder()
+    private TodoTemplate createTodoWithTagsAndCategory(String title, Set<String> tags, Category category) {
+        TodoTemplate todo = TodoTemplate.builder()
                 .title(title)
                 .owner(testMember)
                 .category(category)
                 .tags(new HashSet<>(tags))  // 가변 Set으로 생성
                 .date(LocalDate.now())
                 .priorityId(1)
-                .repeatType(0)
                 .active(true)
                 .build();
-        return todoOriginalRepository.save(todo);
+        return todoTemplateRepository.save(todo);
     }
 
-    private TodoOriginal createTodoForAnotherMember(String title, Set<String> tags) {
+    private TodoTemplate createTodoForAnotherMember(String title, Set<String> tags) {
         Category anotherMemberCategory = Category.builder()
                 .name("다른사용자 카테고리")
                 .color("#0000FF")
@@ -488,16 +472,15 @@ public class TagControllerTest {
                 .build();
         anotherMemberCategory = categoryRepository.save(anotherMemberCategory);
 
-        TodoOriginal todo = TodoOriginal.builder()
+        TodoTemplate todo = TodoTemplate.builder()
                 .title(title)
                 .owner(anotherMember)
                 .category(anotherMemberCategory)
                 .tags(new HashSet<>(tags))  // 가변 Set으로 생성
                 .date(LocalDate.now())
                 .priorityId(1)
-                .repeatType(0)
                 .active(true)
                 .build();
-        return todoOriginalRepository.save(todo);
+        return todoTemplateRepository.save(todo);
     }
 }

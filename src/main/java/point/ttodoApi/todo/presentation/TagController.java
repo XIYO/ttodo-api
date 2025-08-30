@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.domain.MemberPrincipal;
-import point.ttodoApi.todo.application.TodoOriginalService;
+import point.ttodoApi.todo.application.TodoTemplateService;
 
 import java.util.*;
 
@@ -19,11 +19,11 @@ import java.util.*;
 @io.swagger.v3.oas.annotations.tags.Tag(name = "태그(Tag) 관리", description = "할 일에 사용되는 태그를 관리하는 API입니다. 태그는 할 일을 분류하고 검색하는 데 사용되며, 사용자별로 고유한 태그 목록을 관리합니다.")
 public class TagController {
 
-    private final TodoOriginalService todoOriginalService;
+    private final TodoTemplateService todoTemplateService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@todoOriginalService.canAccessTags(authentication.principal.id)")
+    @PreAuthorize("@todoTemplateService.canAccessTags(authentication.principal.id)")
     @Operation(
             summary = "사용자 태그 목록 조회",
             description = "사용자가 할 일에 사용한 모든 태그를 중복 없이 조회합니다. 카테고리별로 필터링이 가능하며, 페이지네이션과 정렬을 지원합니다. 태그는 알파벳 순으로 정렬됩니다.",
@@ -79,6 +79,6 @@ public class TagController {
             Sort.by("tag").descending() : Sort.by("tag").ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        return todoOriginalService.getTags(principal.id(), categoryIds, pageable);
+        return todoTemplateService.getTags(principal.id(), categoryIds, pageable);
     }
 }

@@ -2,6 +2,7 @@ package point.ttodoApi.category.presentation.mapper;
 
 import org.mapstruct.*;
 import point.ttodoApi.category.application.dto.result.CategoryResult;
+import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.presentation.dto.response.CategoryResponse;
 
 /**
@@ -20,4 +21,12 @@ public interface CategoryPresentationMapper {
      */
     @Mapping(source = "colorHex", target = "color")
     CategoryResponse toResponse(CategoryResult result);
+    
+    /**
+     * Domain Entity를 Presentation Layer의 Response로 변환
+     * 
+     * @param category Domain Entity
+     * @return Presentation Layer의 응답 DTO
+     */
+    CategoryResponse toResponse(Category category);
 }

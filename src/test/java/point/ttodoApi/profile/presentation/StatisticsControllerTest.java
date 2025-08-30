@@ -4,21 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.*;
-import org.testcontainers.utility.DockerImageName;
+import point.ttodoApi.test.BaseIntegrationTest;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
-import point.ttodoApi.test.config.TestSecurityConfig;
 import point.ttodoApi.todo.domain.*;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
@@ -32,19 +26,10 @@ import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_U
 /**
  * StatisticsController 통계 기능 테스트
  */
-@SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@ActiveProfiles("test")
-@Testcontainers
-@Import(TestSecurityConfig.class)
-class StatisticsControllerTest {
+class StatisticsControllerTest extends BaseIntegrationTest {
 
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:17-alpine")
-    );
 
     @Autowired
     private MockMvc mockMvc;

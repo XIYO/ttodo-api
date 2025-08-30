@@ -1,6 +1,7 @@
 package point.ttodoApi.challenge.presentation;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,10 +15,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.challenge.application.ChallengeService;
+import point.ttodoApi.challenge.application.ChallengeSearchService;
 import point.ttodoApi.challenge.application.dto.command.*;
 import point.ttodoApi.challenge.application.dto.result.*;
 import point.ttodoApi.challenge.domain.Challenge;
 import point.ttodoApi.challenge.presentation.dto.request.*;
+import point.ttodoApi.challenge.dto.request.ChallengeSearchRequest;
 import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.ttodoApi.common.validation.*;
@@ -34,6 +37,7 @@ import point.ttodoApi.member.domain.Member;
 public class ChallengeController {
     
     private final ChallengeService challengeService;
+    private final ChallengeSearchService challengeSearchService;
     private final MemberService memberService;
     private final ChallengePresentationMapper challengePresentationMapper;
 
@@ -72,9 +76,16 @@ public class ChallengeController {
     }
 
     @Operation(
-        summary = "챌린지 목록 조회", 
-        description = "공개된 챌린지 목록을 페이지네이션과 함께 조회합니다. 진행 중인 챌린지만 표시됩니다.\n\n" +
-                       "페이지네이션 파라미터:\n" +
+        summary = "챌린지 목록 조회/검색", 
+        description = "챌린지 목록을 페이지네이션과 함께 조회하거나 검색합니다. 다양한 필터를 통해 원하는 챌린지를 찾을 수 있습니다.\n\n" +
+                       "검색 파라미터:\n" +
+                       "- titleKeyword: 제목 키워드\n" +
+                       "- descriptionKeyword: 설명 키워드\n" +
+                       "- visibility: 공개 여부 (PUBLIC, PRIVATE, FRIENDS_ONLY)\n" +
+                       "- periodType: 기간 타입 (DAILY, WEEKLY, MONTHLY, CUSTOM)\n" +
+                       "- ongoingOnly: 진행 중인 챌린지만\n" +
+                       "- joinableOnly: 참여 가능한 챌린지만\n" +
+                       "\n페이지네이션 파라미터:\n" +
                        "- page: 페이지 번호 (0부터 시작, 기본값: 0)\n" +
                        "- size: 페이지 크기 (1-100, 기본값: 20)\n" +
                        "- sort: 정렬 기준 (id, title, createdAt, startDate, endDate, participantCount)"
@@ -83,10 +94,13 @@ public class ChallengeController {
     @GetMapping
     @ValidPageable(sortFields = SortFieldsProvider.CHALLENGE)
     public Page<ChallengeResponse> getChallenges(
-            @PageableDefault(page = 0, size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+            @Parameter(description = "검색 조건") @ModelAttribute ChallengeSearchRequest request,
+            @Parameter(description = "페이징 및 정렬 정보")
+            @PageableDefault(page = 0, size = 20, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable) {
         
-        Page<ChallengeListResult> challengePage = challengeService.searchChallengesWithFilter(null, null, null, null, pageable);
-        return challengePage.map(challengePresentationMapper::toResponse);
+        request.validate();
+        Page<Challenge> challengePage = challengeSearchService.searchChallenges(request, pageable);
+        return challengePage.map(challengePresentationMapper::toChallengeSummaryResponse);
     }
 
     @Operation(
@@ -156,4 +170,6 @@ public class ChallengeController {
             "https://ttodo.dev/challenges/invite/" + challenge.getInviteCode()
         );
     }
+    
+    
 }

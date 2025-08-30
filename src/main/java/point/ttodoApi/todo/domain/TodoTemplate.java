@@ -10,14 +10,16 @@ import point.ttodoApi.member.domain.Member;
 
 import java.time.*;
 import java.util.*;
+import point.ttodoApi.todo.domain.recurrence.RecurrenceRule;
+import point.ttodoApi.todo.infrastructure.persistence.converter.RecurrenceRuleJsonConverter;
 
 @Entity
-@Table(name = "todo_original")
+@Table(name = "todo_template")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
-public class TodoOriginal {
+public class TodoTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,17 +36,14 @@ public class TodoOriginal {
 
     private LocalTime time;
 
-    @Column(name = "repeat_type", nullable = false)
-    private Integer repeatType;
+    // 신규 RRULE 기반 반복 규칙(JSON 직렬화)
+    @Convert(converter = RecurrenceRuleJsonConverter.class)
+    @Column(name = "recurrence_rule", columnDefinition = "TEXT")
+    private RecurrenceRule recurrenceRule;
 
-    @Column(name = "repeat_interval")
-    private Integer repeatInterval;
-
-    @Column(name = "repeat_start_date")
-    private LocalDate repeatStartDate;
-
-    @Column(name = "repeat_end_date")
-    private LocalDate repeatEndDate;
+    // 시리즈 기준일(앵커)
+    @Column(name = "anchor_date")
+    private LocalDate anchorDate;
 
     @Column(name = "complete")
     private Boolean complete;
@@ -65,13 +64,10 @@ public class TodoOriginal {
     @LastModifiedDate
     private Instant updatedAt;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "todo_original_days_of_week", joinColumns = @JoinColumn(name = "todo_original_id"))
-    @Column(name = "day_of_week")
-    private Set<Integer> daysOfWeek = new HashSet<>();
+    // 구 반복 요일 컬렉션 제거(미래지향: RRULE 사용)
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "todo_original_tags", joinColumns = @JoinColumn(name = "todo_original_id"))
+    @CollectionTable(name = "todo_template_tags", joinColumns = @JoinColumn(name = "todo_template_id"))
     @Column(name = "tag")
     private Set<String> tags = new HashSet<>();
 
@@ -84,21 +80,16 @@ public class TodoOriginal {
     private Member owner;
 
     @Builder
-    public TodoOriginal(
+    public TodoTemplate(
             String title,
             String description,
             Integer priorityId,
             LocalDate date,
             LocalTime time,
-            Integer repeatType,
-            Integer repeatInterval,
-            LocalDate repeatStartDate,
-            LocalDate repeatEndDate,
             Boolean complete,
             Boolean active,
             Boolean isPinned,
             Integer displayOrder,
-            Set<Integer> daysOfWeek,
             Set<String> tags,
             Category category,
             Member owner
@@ -108,19 +99,15 @@ public class TodoOriginal {
         this.priorityId = priorityId;
         this.date = date;
         this.time = time;
-        this.repeatType = repeatType;
-        this.repeatInterval = repeatInterval;
-        this.repeatStartDate = repeatStartDate;
-        this.repeatEndDate = repeatEndDate;
         this.complete = complete;
         this.active = active != null ? active : true;
         this.isPinned = isPinned != null ? isPinned : false;
         this.displayOrder = displayOrder != null ? displayOrder : 0;
-        this.daysOfWeek = daysOfWeek != null ? daysOfWeek : new HashSet<>();
         this.tags = tags != null ? tags : new HashSet<>();
         this.category = category;
         this.owner = owner;
     }
+    
     
     public void togglePin() {
         this.isPinned = !this.isPinned;
