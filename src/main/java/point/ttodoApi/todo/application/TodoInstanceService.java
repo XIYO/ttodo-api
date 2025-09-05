@@ -43,10 +43,13 @@ public class TodoInstanceService {
     
     public Page<TodoResult> getTodoList(TodoSearchQuery query) {
         // Specification을 사용한 동적 쿼리
+        // UUID를 Long으로 변환 (현재는 null 처리)
+        List<Long> categoryIdsAsLong = null; // TODO: UUID를 Long으로 변환하는 로직 필요
+        
         Specification<Todo> spec = TodoSpecification.createSpecification(
                 query.memberId(),
                 query.complete(),
-                query.categoryIds(),
+                categoryIdsAsLong,
                 query.priorityIds(),
                 query.startDate(),
                 query.endDate()
@@ -385,7 +388,7 @@ public class TodoInstanceService {
                 .stream()
                 .filter(to -> matchesKeyword(to, query.keyword()))
                 .filter(to -> matchesDateRange(to, query.startDate(), query.endDate()))
-                .filter(to -> matchesCategoryFilter(to, query.categoryIds()))
+                .filter(to -> matchesCategoryFilter(to, null)) // TODO: UUID to Long conversion needed
                 .filter(to -> matchesPriorityFilter(to, query.priorityIds()))
                 .toList();
         

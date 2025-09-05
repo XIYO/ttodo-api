@@ -7,7 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.challenge.domain.Challenge;
-import point.ttodoApi.challenge.dto.request.ChallengeSearchRequest;
+import point.ttodoApi.challenge.presentation.dto.request.ChallengeSearchRequest;
 import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.shared.specification.*;
 

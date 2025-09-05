@@ -1,4 +1,4 @@
-package point.ttodoApi.challenge.dto;
+package point.ttodoApi.challenge.presentation.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

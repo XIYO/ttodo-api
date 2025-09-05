@@ -55,9 +55,18 @@ app:
       - http://localhost:8080
       - http://localhost:4173
     allowed-methods:
-      - "*"
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
     allowed-headers:
-      - "*"
+      - Content-Type
+      - Authorization
+      - X-Requested-With
+      - Accept
+      - Origin
     allow-credentials: true
     max-age: 3600
 
@@ -68,3 +77,5 @@ test:
     anon-token: eyJraWQiOiJ0ZXN0LXJzYS1rZXktaWQiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJmZmZmZmZmZi1mZmZmLWZmZmYtZmZmZi1mZmZmZmZmZmZmZmYiLCJzY29wZSI6IlJPTEVfVVNFUiIsIm5pY2tuYW1lIjoi7J2166qF7IKs7Jqp7J6QIiwidGltZVpvbmUiOiJBc2lhL1Nlb3VsIiwibG9jYWxlIjoia28tS1IiLCJpYXQiOjE3NTY1NTM1MTEsImVtYWlsIjoiYW5vbkB0dG9kby5kZXYifQ.uA8eZKxPMKZAWiAlKfMc8Myqw5yxxQxLPPHSQpuEV_TRzYQb-dPfl020XFB8ZfLUkSHpMN1HyN_hfWO8csZ8xMGM-2MQ-rqEI6d1LFMonC_oDABEWcYBobMQF7aj40hx_8kv_-8Mu5lTQNQnajsv5Mn94B1dItP4Js9nDqqzwcBUcq0xdWJa2BrwoHmmwY7quFsQ6_VTmO1_4i_D4gMn76wYjf6yRHj_z2x8prU0H5GokwKu_8G2WDK6THhYQ9QlxyDOcKGe09Dc8XTRcSsF3H_jcdb3jA9UFdTSRUZNze1IfZZdJRtlGQA8tmbMUW0IA5doau6tFBCRBG6SB1Unmg
     # 잘못된 서명의 테스트 토큰
     invalid-token: eyJhbGciOiJSUzI1NiIsImtpZCI6InJzYS1rZXktaWQiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmYWtlLXVzZXIiLCJpYXQiOjE3NTY0OTcyMDQsImV4cCI6NDkxMDA5NzIwNCwiZW1haWwiOiJmYWtlQHRlc3QuY29tIn0.invalid_signature
+    # 테스트용 토큰 만료 시간 설정 (초 단위)
+    token-expiration-seconds: 86400  # 1일 (테스트용)

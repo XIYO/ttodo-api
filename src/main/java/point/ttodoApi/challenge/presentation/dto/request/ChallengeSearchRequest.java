@@ -1,4 +1,4 @@
-package point.ttodoApi.challenge.dto.request;
+package point.ttodoApi.challenge.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -71,7 +71,7 @@ public class ChallengeSearchRequest extends BaseSearchRequest {
     private Boolean active = true;
     
     @Override
-    public String getDefaultSort() {
+    public String defaultSort() {
         return "startDate,desc";
     }
     

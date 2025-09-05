@@ -1,4 +1,4 @@
-package point.ttodoApi.todo.dto;
+package point.ttodoApi.todo.presentation.dto.response;
 
 import lombok.*;
 import point.ttodoApi.todo.domain.Todo;

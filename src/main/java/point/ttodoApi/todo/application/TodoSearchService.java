@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.shared.specification.*;
 import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.dto.request.TodoSearchRequest;
+import point.ttodoApi.todo.application.dto.query.TodoSearchQuery;
 import point.ttodoApi.todo.infrastructure.persistence.*;
 
 import java.time.LocalDate;
@@ -30,7 +30,7 @@ public class TodoSearchService {
     /**
      * 동적 검색 예제 - 다양한 조건으로 Todo 검색
      */
-    public Page<Todo> searchTodos(TodoSearchRequest request, Pageable pageable) {
+    public Page<Todo> searchTodos(TodoSearchQuery query, Pageable pageable) {
         // 정렬 필드 검증
         sortValidator.validateSort(pageable.getSort(), todoSpecification);
         
@@ -39,20 +39,18 @@ public class TodoSearchService {
         
         Specification<Todo> spec = builder
                 // 필수 조건
-                .with("member.id", request.getMemberId())
+                .with("member.id", query.memberId())
                 .with("active", true)
                 
                 // 선택적 조건들
-                .withIf(request.getComplete() != null, "complete", request.getComplete())
-                .withLike("title", request.getKeyword())
-                .withIn("category.id", request.getCategoryIds())
-                .withIn("priorityId", request.getPriorityIds())
-                .withDateRange("date", request.getStartDate(), request.getEndDate())
+                .withIf(query.complete() != null, "complete", query.complete())
+                .withLike("title", query.keyword())
+                .withIn("category.id", query.categoryIds())
+                .withIn("priorityId", query.priorityIds())
+                .withDateRange("date", query.startDate(), query.endDate())
                 
-                // 복잡한 조건 예제
-                .withIf(request.isUrgentOnly(), builder2 -> 
-                    builder2.with("priorityId", 1)
-                           .withBetween("date", LocalDate.now(), LocalDate.now().plusDays(3)))
+                // 복잡한 조건 예제 - urgentOnly 로직은 프레젠테이션 레이어에서 처리
+                // (urgentOnly가 true일 때 priorityIds에 1이 포함되도록 매퍼에서 처리)
                 
                 .build();
         

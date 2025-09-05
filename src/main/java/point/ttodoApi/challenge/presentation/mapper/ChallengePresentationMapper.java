@@ -43,6 +43,7 @@ public interface ChallengePresentationMapper {
     @Mapping(target = "id", source = "member.id")
     @Mapping(target = "email", source = "member.email")
     @Mapping(target = "nickname", source = "member.nickname")
+    @Mapping(target = "joinedAt", source = "joinedAt")
     ParticipantResult toParticipantResult(ChallengeParticipation participation);
 
     /** Application DTO -> Presentation 레이어 응답 DTO 변환 */

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.dto.request.CategorySearchRequest;
+import point.ttodoApi.category.presentation.dto.request.CategorySearchRequest;
 import point.ttodoApi.category.infrastructure.persistence.*;
 import point.ttodoApi.shared.specification.*;
 

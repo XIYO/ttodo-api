@@ -24,7 +24,7 @@ public interface TodoApplicationMapper {
     // 원본 TodoTemplate -> TodoResult
     @InheritConfiguration(name = "toBaseResult")
     @Mapping(target = "id", expression = "java(todoTemplate.getId() + \":0\")")
-    @Mapping(target = "complete", source = "completed")
+    @Mapping(target = "complete", source = "complete")
     @Mapping(target = "isPinned", source = "isPinned")
     @Mapping(target = "displayOrder", source = "displayOrder")
     @Mapping(target = "date", source = "date")
@@ -64,7 +64,7 @@ public interface TodoApplicationMapper {
     @Mapping(target = "priorityId", source = "todoTemplate.priorityId")
     @Mapping(target = "tags", source = "todoTemplate.tags")
     @Mapping(target = "id", source = "virtualId")
-    @Mapping(target = "complete", source = "todoTemplate.completed")
+    @Mapping(target = "complete", source = "todoTemplate.complete")
     @Mapping(target = "isPinned", source = "todoTemplate.isPinned")
     @Mapping(target = "displayOrder", source = "todoTemplate.displayOrder")
     @Mapping(target = "date", source = "originalDate")

@@ -38,13 +38,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     
     compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
     
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
     
     implementation 'org.mapstruct:mapstruct:1.6.3'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    
+    // Annotation processor 순서가 중요함 - Lombok이 먼저 처리되어야 함
+    annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     
     implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1'
     
@@ -71,4 +73,23 @@ tasks.named('test') {
     maxParallelForks = Runtime.runtime.availableProcessors()
     forkEvery = 20
     systemProperty 'junit.jupiter.execution.parallel.enabled', 'false'
+}
+
+// MapStruct가 Lombok의 fluent accessor를 인식하도록 설정
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+        '-Amapstruct.defaultComponentModel=spring',
+        '-Amapstruct.unmappedTargetPolicy=WARN',
+        '-Amapstruct.suppressGeneratorTimestamp=true', 
+        '-Amapstruct.suppressGeneratorVersionInfoComment=true',
+        '-Amapstruct.verbose=true'
+    ]
+}
+
+// Lombok과 MapStruct 통합 설정
+compileJava {
+    options.annotationProcessorPath = configurations.annotationProcessor
+    
+    // Lombok이 먼저 처리되도록 보장
+    options.compilerArgs << "-Xlint:unchecked"
 }

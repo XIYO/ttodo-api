@@ -1,4 +1,4 @@
-package point.ttodoApi.category.dto;
+package point.ttodoApi.category.presentation.dto.response;
 
 import lombok.*;
 import point.ttodoApi.category.domain.*;

@@ -24,12 +24,12 @@ public abstract class TodoPresentationMapper {
   private RecurrenceRuleMapper recurrenceRuleMapper;
 
   // Create 관련 매핑
-  @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.getRecurrenceRuleJson()))")
+  @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.recurrenceRuleJson()))")
   public abstract CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
 
   // Update 관련 매핑
   @Mapping(target = "todoId", source = "todoId")
-  @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.getRecurrenceRuleJson()))")
+  @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.recurrenceRuleJson()))")
   @Mapping(target = "originalTodoId", ignore = true)
   public abstract UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
 
@@ -38,10 +38,11 @@ public abstract class TodoPresentationMapper {
   public abstract UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID memberId, String virtualId);
 
   // Search 관련 매핑
-  @Mapping(target = "pageable", expression = "java(PageRequest.of(request.page() != null ? request.page() : 0, request.size() != null ? request.size() : 10))")
-  @Mapping(target = "date", expression = "java(processSingleDate(request.dates()))")
-  @Mapping(target = "startDate", expression = "java(processStartDate(request.dates()))")
-  @Mapping(target = "endDate", expression = "java(processEndDate(request.dates()))")
+  @Mapping(target = "pageable", expression = "java(PageRequest.of(request.getPage() != null ? request.getPage() : 0, request.getSize() != null ? request.getSize() : 10))")
+  @Mapping(target = "date", ignore = true)
+  @Mapping(target = "startDate", expression = "java(request.getStartDate())")
+  @Mapping(target = "endDate", expression = "java(request.getEndDate())")
+  @Mapping(target = "tags", ignore = true)
   public abstract TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
   
   // dates 처리 헬퍼 메서드들
@@ -85,14 +86,14 @@ public abstract class TodoPresentationMapper {
 
   // 헬퍼 메서드
   public boolean isOnlyCompleteFieldUpdate(UpdateTodoRequest request) {
-    return request.getComplete() != null &&
-           (request.getTitle() == null || request.getTitle().trim().isEmpty()) &&
-           (request.getDescription() == null || request.getDescription().trim().isEmpty()) &&
-           request.getPriorityId() == null &&
-           request.getCategoryId() == null &&
-           request.getDate() == null &&
-           request.getTime() == null &&
-           request.getRecurrenceRuleJson() == null &&
-           (request.getTags() == null || request.getTags().isEmpty());
+    return request.complete() != null &&
+           (request.title() == null || request.title().trim().isEmpty()) &&
+           (request.description() == null || request.description().trim().isEmpty()) &&
+           request.priorityId() == null &&
+           request.categoryId() == null &&
+           request.date() == null &&
+           request.time() == null &&
+           request.recurrenceRuleJson() == null &&
+           (request.tags() == null || request.tags().isEmpty());
   }
 }

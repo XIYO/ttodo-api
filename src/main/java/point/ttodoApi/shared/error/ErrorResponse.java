@@ -72,22 +72,81 @@ public class ErrorResponse {
                 .build();
     }
     
-    public static ErrorResponse of(HttpStatus httpStatus, String title, String detail) {
+    public static ErrorResponse ofValidation(Map<String, Object> fieldErrors) {
         return ErrorResponse.builder()
-                .type("/errors/generic")
-                .title(title)
-                .status(httpStatus.value())
+                .type("/errors/validation-failed")
+                .title("입력값 검증 실패")
+                .status(HttpStatus.BAD_REQUEST.value())
+                .detail("입력된 데이터가 유효하지 않습니다.")
+                .errorCode("VALIDATION_ERROR")
+                .timestamp(LocalDateTime.now())
+                .extensions(fieldErrors)
+                .build();
+    }
+    
+    public static ErrorResponse ofBadRequest(String detail) {
+        return ErrorResponse.builder()
+                .type("/errors/bad-request")
+                .title("잘못된 요청")
+                .status(HttpStatus.BAD_REQUEST.value())
                 .detail(detail)
+                .errorCode("BAD_REQUEST")
                 .timestamp(LocalDateTime.now())
                 .build();
     }
     
-    public static ErrorResponseBuilder from(ErrorCode errorCode) {
+    public static ErrorResponse ofUnauthorized() {
         return ErrorResponse.builder()
-                .type("/errors/" + errorCode.name().toLowerCase().replace("_", "-"))
-                .title(errorCode.getMessage())
-                .status(errorCode.getHttpStatus().value())
-                .errorCode(errorCode.getCode())
-                .timestamp(LocalDateTime.now());
+                .type("/errors/unauthorized")
+                .title("인증 필요")
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail("인증이 필요한 서비스입니다.")
+                .errorCode("UNAUTHORIZED")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+    
+    public static ErrorResponse ofForbidden() {
+        return ErrorResponse.builder()
+                .type("/errors/forbidden")
+                .title("접근 권한 없음")
+                .status(HttpStatus.FORBIDDEN.value())
+                .detail("해당 리소스에 접근할 권한이 없습니다.")
+                .errorCode("FORBIDDEN")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+    
+    public static ErrorResponse ofNotFound(String resourceType, String resourceId) {
+        return ErrorResponse.builder()
+                .type("/errors/not-found")
+                .title(resourceType + "을(를) 찾을 수 없음")
+                .status(HttpStatus.NOT_FOUND.value())
+                .detail(String.format("%s(ID: %s)을(를) 찾을 수 없습니다.", resourceType, resourceId))
+                .errorCode("NOT_FOUND")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+    
+    public static ErrorResponse ofConflict(String detail) {
+        return ErrorResponse.builder()
+                .type("/errors/conflict")
+                .title("리소스 충돌")
+                .status(HttpStatus.CONFLICT.value())
+                .detail(detail)
+                .errorCode("CONFLICT")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+    
+    public static ErrorResponse ofInternalServerError() {
+        return ErrorResponse.builder()
+                .type("/errors/internal-server-error")
+                .title("서버 내부 오류")
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .detail("서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+                .errorCode("INTERNAL_SERVER_ERROR")
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 }

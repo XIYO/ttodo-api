@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +41,7 @@ public class ProfileController {
     @ApiResponse(responseCode = "200", description = "프로필 정보 조회 성공")
     @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public ProfileResponse getProfile(@PathVariable UUID memberId) {
         MemberResult memberResult = memberService.getMember(memberId);
         Profile profile = profileService.getProfile(memberId);
@@ -122,15 +124,15 @@ public class ProfileController {
                  content = @Content(mediaType = "image/*"))
     @ApiResponse(responseCode = "404", description = "프로필 이미지가 없습니다.")
     @GetMapping(value = "/image", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
-    public ResponseEntity<byte[]> getProfileImage(@PathVariable UUID memberId) {
+    @ResponseStatus(HttpStatus.OK)
+    public byte[] getProfileImage(@PathVariable UUID memberId, HttpServletResponse response) {
         Profile profile = profileService.getProfile(memberId);
         if (profile.getProfileImage() == null) {
-            return ResponseEntity.notFound().build();
+            throw new point.ttodoApi.shared.error.NotFoundException("프로필 이미지가 없습니다.");
         }
-        return ResponseEntity.ok()
-                .contentType(MediaType.valueOf(profile.getProfileImageType()))
-                .header("Cache-Control", "public, max-age=3600") // 1시간 캐싱
-                .body(profile.getProfileImage());
+        response.setContentType(profile.getProfileImageType());
+        response.setHeader("Cache-Control", "public, max-age=3600"); // 1시간 캐싱
+        return profile.getProfileImage();
     }
 
     @Operation(
@@ -145,6 +147,7 @@ public class ProfileController {
     @ApiResponse(responseCode = "400", description = "잘못된 이미지 형식 또는 크기 초과")
     @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지 업로드 시도")
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("#memberId == authentication.principal.id")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)

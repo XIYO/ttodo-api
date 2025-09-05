@@ -14,7 +14,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +26,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.MemberSearchService;
-import point.ttodoApi.member.dto.request.MemberSearchRequest;
+import point.ttodoApi.member.presentation.dto.request.MemberSearchRequest;
 import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.member.application.dto.command.UpdateMemberCommand;
 import point.ttodoApi.member.application.dto.result.MemberResult;
@@ -38,7 +37,6 @@ import point.ttodoApi.member.presentation.mapper.MemberPresentationMapper;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.shared.validation.ValidPageable;
 import point.ttodoApi.shared.validation.SortFieldsProvider;
-import point.ttodoApi.shared.dto.PageResponse;
 import point.ttodoApi.profile.domain.*;
 
 import java.util.UUID;
@@ -73,9 +71,10 @@ public class MemberController {
     )
     @ApiResponse(responseCode = "200", description = "회원 목록 조회 성공")
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     @ValidPageable(sortFields = SortFieldsProvider.MEMBER)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PageResponse<MemberResponse>> getMembers(
+    public Page<MemberResponse> getMembers(
             @Parameter(description = "검색 조건") @ModelAttribute MemberSearchRequest request,
             @Parameter(description = "페이징 및 정렬 정보")
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -85,10 +84,10 @@ public class MemberController {
         // 검색 조건이 있으면 검색 서비스 사용, 없으면 기존 서비스 사용
         if (hasSearchCriteria(request)) {
             Page<Member> result = memberSearchService.searchMembers(request, pageable);
-            return ResponseEntity.ok(PageResponse.of(result.map(mapper::toResponse)));
+            return result.map(mapper::toResponse);
         } else {
             Page<MemberResult> result = memberService.getMembers(pageable);
-            return ResponseEntity.ok(PageResponse.of(result.map(mapper::toResponse)));
+            return result.map(mapper::toResponse);
         }
     }
     
@@ -108,6 +107,7 @@ public class MemberController {
     @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공")
     @ApiResponse(responseCode = "401", description = "인증되지 않은 요청 (토큰 없음 또는 만료)")
     @GetMapping("/me")
+    @ResponseStatus(HttpStatus.OK)
     public MemberResponse getCurrentUser(@AuthenticationPrincipal MemberPrincipal principal) {
         return getMember(principal.id());
     }
@@ -119,6 +119,7 @@ public class MemberController {
     @ApiResponse(responseCode = "200", description = "회원 상세 조회 성공")
     @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     @GetMapping("/{memberId}")
+    @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("#memberId == authentication.principal.id or hasRole('ADMIN')")
     public MemberResponse getMember(@PathVariable UUID memberId) {
         MemberResult dto = memberService.getMember(memberId);
@@ -163,13 +164,14 @@ public class MemberController {
     )
     @ApiResponse(responseCode = "200", description = "비활성 회원 조회 성공")
     @GetMapping("/inactive")
+    @ResponseStatus(HttpStatus.OK)
     @ValidPageable(sortFields = SortFieldsProvider.MEMBER)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PageResponse<MemberResponse>> getInactiveMembers(
+    public Page<MemberResponse> getInactiveMembers(
             @Parameter(description = "비활성 기준 일수") @RequestParam(defaultValue = "90") int days,
             @PageableDefault(size = 20) Pageable pageable) {
         
         Page<Member> result = memberSearchService.getInactiveMembers(days, pageable);
-        return ResponseEntity.ok(PageResponse.of(result.map(mapper::toResponse)));
+        return result.map(mapper::toResponse);
     }
 }

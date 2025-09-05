@@ -1,4 +1,4 @@
-package point.ttodoApi.member.dto.request;
+package point.ttodoApi.member.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
@@ -47,7 +47,7 @@ public class MemberSearchRequest extends BaseSearchRequest {
     private Boolean emailVerified;
     
     @Override
-    public String getDefaultSort() {
+    public String defaultSort() {
         return "createdAt,desc";
     }
     

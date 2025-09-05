@@ -9,7 +9,7 @@ import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.todo.domain.*;
-import point.ttodoApi.todo.dto.CollaborativeTodoResponse;
+import point.ttodoApi.todo.application.dto.result.CollaborativeTodoResult;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.util.*;
@@ -32,7 +32,7 @@ public class CollaborativeTodoService {
      * 멤버가 접근 가능한 모든 투두 조회 (본인 투두 + 협업 투두)
      */
     @Transactional(readOnly = true)
-    public List<CollaborativeTodoResponse> getAccessibleTodos(UUID memberId) {
+    public List<CollaborativeTodoResult> getAccessibleTodos(UUID memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
         
@@ -41,7 +41,7 @@ public class CollaborativeTodoService {
         return todos.stream()
             .map(todo -> {
                 boolean canEdit = todo.isEditableBy(member);
-                return CollaborativeTodoResponse.from(todo, canEdit);
+                return CollaborativeTodoResult.from(todo, canEdit);
             })
             .collect(Collectors.toList());
     }
@@ -50,7 +50,7 @@ public class CollaborativeTodoService {
      * 특정 카테고리의 협업 투두 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<CollaborativeTodoResponse> getCollaborativeTodosByCategory(UUID categoryId, UUID memberId) {
+    public List<CollaborativeTodoResult> getCollaborativeTodosByCategory(UUID categoryId, UUID memberId) {
         Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
         
@@ -67,7 +67,7 @@ public class CollaborativeTodoService {
         return todos.stream()
             .map(todo -> {
                 boolean canEdit = todo.isEditableBy(member);
-                return CollaborativeTodoResponse.from(todo, canEdit);
+                return CollaborativeTodoResult.from(todo, canEdit);
             })
             .collect(Collectors.toList());
     }
@@ -76,7 +76,7 @@ public class CollaborativeTodoService {
      * 멤버가 협업자로 참여하는 투두 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<CollaborativeTodoResponse> getCollaborativeTodosByMember(UUID memberId) {
+    public List<CollaborativeTodoResult> getCollaborativeTodosByMember(UUID memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
         
@@ -85,7 +85,7 @@ public class CollaborativeTodoService {
         return todos.stream()
             .map(todo -> {
                 boolean canEdit = todo.isEditableBy(member);
-                return CollaborativeTodoResponse.from(todo, canEdit);
+                return CollaborativeTodoResult.from(todo, canEdit);
             })
             .collect(Collectors.toList());
     }

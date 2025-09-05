@@ -1,52 +1,105 @@
 package point.ttodoApi.todo.presentation.dto.request;
 
-import io.swagger.v3.oas.annotations.media.*;
-import org.springframework.format.annotation.DateTimeFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+import point.ttodoApi.shared.dto.*;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
-@Schema(description = "Todo 검색 요청")
-public record TodoSearchRequest(
-        @ArraySchema(
-            schema = @Schema(implementation = LocalDate.class, description = "날짜 필터 (1개: 단일 날짜, 2개: 범위, 3개+: 최소~최대 범위)"),
-            arraySchema = @Schema(example = "[\"2025-08-30\"] 또는 [\"2025-08-01\", \"2025-08-31\"]")
-        )
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-        List<LocalDate> dates,
+/**
+ * Todo 검색 요청 DTO
+ */
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(description = "Todo 검색 조건")
+public class TodoSearchRequest extends BaseSearchRequest {
+    
+    @Schema(description = "회원 ID", hidden = true)
+    private UUID memberId;
+    
+    @Schema(description = "완료 여부", example = "false")
+    private Boolean complete;
+    
+    @Schema(description = "검색 키워드 (제목 검색)", example = "회의")
+    @Size(max = 100, message = "검색 키워드는 100자를 초과할 수 없습니다")
+    private String keyword;
+    
+    @Schema(description = "카테고리 ID 목록")
+    @Size(max = 50, message = "카테고리는 최대 50개까지 선택할 수 있습니다")
+    private List<UUID> categoryIds;
+    
+    @Schema(description = "우선순위 ID 목록", example = "[1, 2, 3]")
+    @Size(max = 10, message = "우선순위는 최대 10개까지 선택할 수 있습니다")
+    private List<Integer> priorityIds;
+    
+    @Schema(description = "시작 날짜", example = "2024-01-01")
+    private LocalDate startDate;
+    
+    @Schema(description = "종료 날짜", example = "2024-12-31")
+    private LocalDate endDate;
+    
+    @Schema(description = "긴급 Todo만 조회", example = "false")
+    private boolean urgentOnly;
+    
+    @Override
+    public String defaultSort() {
+        return "createdAt,desc";
+    }
+    
+    @Override
+    protected void validateBusinessRules() {
+        // 날짜 범위 검증
+        if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("종료 날짜는 시작 날짜 이후여야 합니다");
+        }
         
-        @Schema(description = "완료 상태 필터 (null: 전체, true: 완료만, false: 미완료만)", example = "false")
-        Boolean complete,
-        
-        @ArraySchema(
-            schema = @Schema(implementation = Long.class, description = "카테고리 ID 필터 목록"),
-            arraySchema = @Schema(example = "[1, 2, 3]")
-        )
-        List<Long> categoryIds,
-        
-        @ArraySchema(
-            schema = @Schema(implementation = Integer.class, description = "우선순위 필터 목록 (0: 낮음, 1: 보통, 2: 높음)"),
-            arraySchema = @Schema(example = "[1, 2]")
-        )
-        List<Integer> priorityIds,
-        
-        @ArraySchema(
-            schema = @Schema(implementation = String.class, description = "태그 필터"),
-            arraySchema = @Schema(example = "[\"영어\", \"학습\"]")
-        )
-        List<String> tags,
-        
-        @Schema(description = "검색 키워드 (제목, 설명, 태그에서 검색)", example = "영어")
-        String keyword,
-        
-        @Schema(description = "페이지 번호", example = "0", defaultValue = "0")
-        Integer page,
-        
-        @Schema(description = "페이지 크기", example = "10", defaultValue = "10")
-        Integer size
-) {
-    public TodoSearchRequest {
-        page = page != null ? page : 0;
-        size = size != null ? size : 10;
+        // 긴급 Todo 조회 시 우선순위 자동 설정
+        if (urgentOnly && (priorityIds == null || priorityIds.isEmpty())) {
+            priorityIds = List.of(1); // 우선순위 1 = 긴급
+        }
+    }
+    
+    /**
+     * 날짜 범위 객체 생성
+     */
+    public DateRangeRequest toDateRange() {
+        return DateRangeRequest.builder()
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+    }
+    
+    /**
+     * 키워드가 있는지 확인
+     */
+    public boolean hasKeyword() {
+        return keyword != null && !keyword.trim().isEmpty();
+    }
+    
+    /**
+     * 카테고리 필터가 있는지 확인
+     */
+    public boolean hasCategoryFilter() {
+        return categoryIds != null && !categoryIds.isEmpty();
+    }
+    
+    /**
+     * 우선순위 필터가 있는지 확인
+     */
+    public boolean hasPriorityFilter() {
+        return priorityIds != null && !priorityIds.isEmpty();
+    }
+    
+    /**
+     * 날짜 필터가 있는지 확인
+     */
+    public boolean hasDateFilter() {
+        return startDate != null || endDate != null;
     }
 }

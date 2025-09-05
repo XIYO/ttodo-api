@@ -1,4 +1,4 @@
-package point.ttodoApi.challenge.dto;
+package point.ttodoApi.challenge.presentation.dto.response;
 
 import lombok.*;
 import point.ttodoApi.challenge.domain.ChallengeLeader;

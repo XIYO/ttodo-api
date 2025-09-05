@@ -1,4 +1,4 @@
-package point.ttodoApi.category.dto;
+package point.ttodoApi.category.presentation.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.*;

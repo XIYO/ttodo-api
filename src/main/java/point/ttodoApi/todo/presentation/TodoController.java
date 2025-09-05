@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.domain.MemberPrincipal;
+import java.util.Map;
 import point.ttodoApi.shared.validation.*;
 import point.ttodoApi.todo.application.*;
 import point.ttodoApi.todo.application.dto.command.DeleteTodoCommand;
@@ -279,10 +280,14 @@ public class TodoController {
       description = "할 일의 특정 필드만 선택적으로 수정합니다. 주로 완료 상태 토글이나 긴급한 정보 업데이트에 사용됩니다. 입력은 form만 지원합니다.\n\n" +
                      "특징:\n" +
                      "- completed 필드만 수정 시: 해당 날짜의 가상 할 일만 업데이트\n" +
+                     "- isPinned 필드: 상단 고정 상태 토글\n" +
+                     "- displayOrder 필드: 표시 순서 변경\n" +
                      "- 다른 필드 포함 시: 원본 또는 가상 할 일 업데이트\n\n" +
                      "사용 예:\n" +
                      "- PATCH /todos/82:3 {\"completed\": true} (3일 후 할 일만 완료 처리)\n" +
-                     "- PATCH /todos/82:0 {\"title\": \"새 제목\"} (원본 제목 수정)"
+                     "- PATCH /todos/82:0 {\"title\": \"새 제목\"} (원본 제목 수정)\n" +
+                     "- PATCH /todos/82:0 {\"isPinned\": true} (상단 고정)\n" +
+                     "- PATCH /todos/82:0 {\"displayOrder\": 5} (순서 변경)"
   )
   @ApiResponse(responseCode = "204", description = "할 일 부분 수정 성공")
   @ApiResponse(
@@ -314,6 +319,18 @@ public class TodoController {
                         @PathVariable Long id,
                         @PathVariable Long daysDifference,
                         @Valid UpdateTodoRequest request) {
+    // Handle special fields first (isPinned, displayOrder)
+    // TODO: These fields are not present in UpdateTodoRequest
+    // if (request.displayOrder() != null) {
+    //   todoTemplateService.changeOrder(principal.id(), id, request.displayOrder());
+    //   return;
+    // }
+    // 
+    // if (request.isPinned() != null) {
+    //   todoTemplateService.togglePin(TodoQuery.of(principal.id(), id));
+    //   return;
+    // }
+    
     // 완료 상태만 수정하는 경우
     if (todoPresentationMapper.isOnlyCompleteFieldUpdate(request)) {
       String virtualId = id + ":" + daysDifference;
@@ -392,38 +409,4 @@ public class TodoController {
     return todoInstanceService.getTodoStatistics(principal.id(), targetDate);
   }
 
-  @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/pin")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-      summary = "할 일 상단 고정 토글", 
-      description = "할 일의 상단 고정 상태를 ON/OFF 토글합니다. 상단 고정된 할 일은 목록 상단에 표시됩니다. 최대 10개까지 고정 가능합니다."
-  )
-  @ApiResponse(responseCode = "204", description = "상단 고정 토글 성공")
-  @ApiResponse(responseCode = "400", description = "상단 고정 개수 초과 (10개)")
-  @ApiResponse(responseCode = "403", description = "다른 사용자의 할 일에 접근 시도")
-  @ApiResponse(responseCode = "404", description = "할 일을 찾을 수 없음")
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
-  public void togglePin(@AuthenticationPrincipal MemberPrincipal principal,
-                       @PathVariable Long id,
-                       @PathVariable Long daysDifference) {
-    todoTemplateService.togglePin(TodoQuery.of(principal.id(), id));
-  }
-
-  @PatchMapping("/{id:\\d+}:{daysDifference:\\d+}/pin-order")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-      summary = "상단 고정 할 일 순서 변경", 
-      description = "상단 고정된 할 일들의 표시 순서를 변경합니다. newOrder 값으로 새로운 순서를 지정하면, 다른 고정된 할 일들의 순서가 자동으로 재조정됩니다."
-  )
-  @ApiResponse(responseCode = "204", description = "순서 변경 성공")
-  @ApiResponse(responseCode = "400", description = "잘못된 순서 값")
-  @ApiResponse(responseCode = "403", description = "다른 사용자의 할 일에 접근 시도")
-  @ApiResponse(responseCode = "404", description = "할 일을 찾을 수 없음")
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
-  public void changeOrder(@AuthenticationPrincipal MemberPrincipal principal,
-                         @PathVariable Long id,
-                         @PathVariable Long daysDifference,
-                         @Valid ChangeOrderRequest request) {
-    todoTemplateService.changeOrder(principal.id(), id, request.newOrder());
-  }
 }

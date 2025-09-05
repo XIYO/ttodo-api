@@ -6,6 +6,7 @@ import org.springframework.http.*;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.*;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +15,16 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * RFC 7807 Problem Details를 사용하는 전역 예외 처리기
+ * Spring Boot 3의 ProblemDetail을 활용한 표준 에러 응답 처리
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -29,47 +36,41 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex, HttpServletRequest request) {
+    public ProblemDetail handleBaseException(BaseException ex, HttpServletRequest request) {
         log.warn("Business exception occurred - errorCode: {}, status: {}, message: {}", 
                 ex.getErrorCode(), ex.getHttpStatus(), ex.getMessage());
         
         metricsCollector.recordError(ex.getErrorCode(), ex.getHttpStatus().value(), ex.getClass().getSimpleName());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type(buildErrorType(ex.getErrorCode()))
-                .title(getErrorTitle(ex.getErrorCode()))
-                .status(ex.getHttpStatus().value())
-                .detail(ex.getMessage())
-                .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(ex.getHttpStatus(), ex.getMessage());
+        problemDetail.setType(URI.create(buildErrorType(ex.getErrorCode())));
+        problemDetail.setTitle(getErrorTitle(ex.getErrorCode()));
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ex.getErrorCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex, HttpServletRequest request) {
+    public ProblemDetail handleBusinessException(BusinessException ex, HttpServletRequest request) {
         log.warn("Business exception occurred - errorCode: {}, status: {}, message: {}", 
                 ex.getErrorCodeValue(), ex.getHttpStatus(), ex.getMessage());
         
         metricsCollector.recordError(ex.getErrorCodeValue(), ex.getHttpStatus().value(), ex.getClass().getSimpleName());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type(buildErrorType(ex.getErrorCode()))
-                .title(ex.getErrorCode().getMessage())
-                .status(ex.getHttpStatus().value())
-                .detail(ex.getMessage())
-                .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCodeValue())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(ex.getHttpStatus(), ex.getMessage());
+        problemDetail.setType(URI.create(buildErrorType(ex.getErrorCode())));
+        problemDetail.setTitle(ex.getErrorCode().getMessage());
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ex.getErrorCodeValue());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, String> fieldErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -81,286 +82,281 @@ public class GlobalExceptionHandler {
         
         fieldErrors.keySet().forEach(field -> metricsCollector.recordValidationError(field));
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/validation-error")
-                .title("입력값 검증 실패")
-                .status(HttpStatus.BAD_REQUEST.value())
-                .detail("요청 데이터가 유효하지 않습니다.")
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.VALIDATION_ERROR.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .extensions(Map.of("errors", fieldErrors))
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, 
+                "요청 데이터가 유효하지 않습니다."
+        );
+        problemDetail.setType(URI.create("/errors/validation-error"));
+        problemDetail.setTitle("입력값 검증 실패");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.VALIDATION_ERROR.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("errors", fieldErrors);
         
-        return ResponseEntity.badRequest().body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
+    public ProblemDetail handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/missing-parameter")
-                .title("필수 파라미터 누락")
-                .status(HttpStatus.BAD_REQUEST.value())
-                .detail(String.format("필수 파라미터 '%s'이(가) 누락되었습니다.", ex.getParameterName()))
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.MISSING_PARAMETER.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .extensions(Map.of(
-                        "parameterName", ex.getParameterName(),
-                        "parameterType", ex.getParameterType()
-                ))
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                String.format("필수 파라미터 '%s'이(가) 누락되었습니다.", ex.getParameterName())
+        );
+        problemDetail.setType(URI.create("/errors/missing-parameter"));
+        problemDetail.setTitle("필수 파라미터 누락");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.MISSING_PARAMETER.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("parameterName", ex.getParameterName());
+        problemDetail.setProperty("parameterType", ex.getParameterType());
         
-        return ResponseEntity.badRequest().body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<ErrorResponse> handleMissingServletRequestPart(
+    public ProblemDetail handleMissingServletRequestPart(
             MissingServletRequestPartException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/missing-file")
-                .title("필수 파일 누락")
-                .status(HttpStatus.BAD_REQUEST.value())
-                .detail(String.format("필수 파일 파라미터 '%s'이(가) 누락되었습니다.", ex.getRequestPartName()))
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.MISSING_FILE.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .extensions(Map.of("requestPartName", ex.getRequestPartName()))
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                String.format("필수 파일 파라미터 '%s'이(가) 누락되었습니다.", ex.getRequestPartName())
+        );
+        problemDetail.setType(URI.create("/errors/missing-file"));
+        problemDetail.setTitle("필수 파일 누락");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.MISSING_FILE.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("requestPartName", ex.getRequestPartName());
         
-        return ResponseEntity.badRequest().body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+    public ProblemDetail handleMethodArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         
         String detail = String.format("파라미터 '%s'의 값 '%s'은(는) %s 타입으로 변환할 수 없습니다.",
                 ex.getName(), ex.getValue(), ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "required");
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/invalid-argument")
-                .title("잘못된 파라미터 타입")
-                .status(HttpStatus.BAD_REQUEST.value())
-                .detail(detail)
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.INVALID_ARGUMENT.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+        problemDetail.setType(URI.create("/errors/invalid-argument"));
+        problemDetail.setTitle("잘못된 파라미터 타입");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.INVALID_ARGUMENT.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.badRequest().body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupported(
+    public ProblemDetail handleHttpRequestMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/method-not-allowed")
-                .title("허용되지 않은 메소드")
-                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
-                .detail(String.format("'%s' 메소드는 이 엔드포인트에서 지원되지 않습니다.", ex.getMethod()))
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.METHOD_NOT_ALLOWED.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .extensions(Map.of("supportedMethods", ex.getSupportedHttpMethods() != null ? ex.getSupportedHttpMethods() : Collections.emptySet()))
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.METHOD_NOT_ALLOWED,
+                String.format("'%s' 메소드는 이 엔드포인트에서 지원되지 않습니다.", ex.getMethod())
+        );
+        problemDetail.setType(URI.create("/errors/method-not-allowed"));
+        problemDetail.setTitle("허용되지 않은 메소드");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.METHOD_NOT_ALLOWED.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("supportedMethods", ex.getSupportedHttpMethods() != null ? ex.getSupportedHttpMethods() : Collections.emptySet());
         
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
+    public ProblemDetail handleNoHandlerFoundException(
             NoHandlerFoundException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/resource-not-found")
-                .title("엔드포인트를 찾을 수 없음")
-                .status(HttpStatus.NOT_FOUND.value())
-                .detail(String.format("요청한 URL '%s'에 해당하는 엔드포인트를 찾을 수 없습니다.", ex.getRequestURL()))
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.RESOURCE_NOT_FOUND.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                String.format("요청한 URL '%s'에 해당하는 엔드포인트를 찾을 수 없습니다.", ex.getRequestURL())
+        );
+        problemDetail.setType(URI.create("/errors/resource-not-found"));
+        problemDetail.setTitle("엔드포인트를 찾을 수 없음");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.RESOURCE_NOT_FOUND.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+    public ProblemDetail handleMaxUploadSizeExceeded(
             MaxUploadSizeExceededException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/file-size-exceeded")
-                .title("파일 크기 초과")
-                .status(HttpStatus.BAD_REQUEST.value())
-                .detail("업로드 파일 크기가 허용된 최대 크기를 초과했습니다.")
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.FILE_SIZE_EXCEEDED.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .extensions(Map.of("maxSize", ex.getMaxUploadSize()))
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "업로드 파일 크기가 허용된 최대 크기를 초과했습니다."
+        );
+        problemDetail.setType(URI.create("/errors/file-size-exceeded"));
+        problemDetail.setTitle("파일 크기 초과");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.FILE_SIZE_EXCEEDED.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("maxSize", ex.getMaxUploadSize());
         
-        return ResponseEntity.badRequest().body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+    public ProblemDetail handleAuthenticationException(
             AuthenticationException ex, HttpServletRequest request) {
         
         metricsCollector.recordAuthenticationFailure(ex.getClass().getSimpleName());
         
-        ErrorResponse errorResponse = ErrorResponse.of(
-                ErrorCode.AUTHENTICATION_FAILED,
-                "인증이 필요합니다. 유효한 인증 정보를 제공해주세요.",
-                request.getRequestURI()
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                "인증이 필요합니다. 유효한 인증 정보를 제공해주세요."
         );
+        problemDetail.setType(URI.create("/errors/authentication-required"));
+        problemDetail.setTitle("인증 필요");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.AUTHENTICATION_FAILED.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+    public ProblemDetail handleAccessDeniedException(
             AccessDeniedException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.of(
-                ErrorCode.ACCESS_DENIED,
-                "해당 리소스에 접근할 권한이 없습니다.",
-                request.getRequestURI()
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                "해당 리소스에 접근할 권한이 없습니다."
         );
+        problemDetail.setType(URI.create("/errors/access-denied"));
+        problemDetail.setTitle("접근 권한 없음");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.ACCESS_DENIED.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(
+    public ProblemDetail handleAuthorizationDeniedException(
             AuthorizationDeniedException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.of(
-                ErrorCode.ACCESS_DENIED,
-                "해당 리소스에 접근할 권한이 없습니다.",
-                request.getRequestURI()
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                "해당 리소스에 접근할 권한이 없습니다."
         );
+        problemDetail.setType(URI.create("/errors/authorization-denied"));
+        problemDetail.setTitle("권한 거부");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.ACCESS_DENIED.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+    public ProblemDetail handleIllegalArgument(
             IllegalArgumentException ex, HttpServletRequest request) {
         
-        ErrorResponse errorResponse = ErrorResponse.of(
-                ErrorCode.INVALID_ARGUMENT,
-                ex.getMessage(),
-                request.getRequestURI()
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
         );
+        problemDetail.setType(URI.create("/errors/invalid-argument"));
+        problemDetail.setTitle("잘못된 인자");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.INVALID_ARGUMENT.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.badRequest().body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
+    public ProblemDetail handleGeneric(Exception ex, HttpServletRequest request) {
         log.error("Unexpected error occurred", ex);
         
         metricsCollector.recordError(ErrorCode.INTERNAL_SERVER_ERROR.getCode(), 
                                    HttpStatus.INTERNAL_SERVER_ERROR.value(), 
                                    ex.getClass().getSimpleName());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type("/errors/internal-server-error")
-                .title("서버 내부 오류")
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .detail("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-                .instance(request.getRequestURI())
-                .errorCode(ErrorCode.INTERNAL_SERVER_ERROR.getCode())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+        );
+        problemDetail.setType(URI.create("/errors/internal-server-error"));
+        problemDetail.setTitle("서버 내부 오류");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.INTERNAL_SERVER_ERROR.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
         if (log.isDebugEnabled()) {
-            errorResponse = ErrorResponse.builder()
-                    .type("/errors/internal-server-error")
-                    .title("서버 내부 오류")
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                    .detail("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
-                    .instance(request.getRequestURI())
-                    .errorCode(ErrorCode.INTERNAL_SERVER_ERROR.getCode())
-                    .timestamp(java.time.LocalDateTime.now())
-                    .extensions(Map.of(
-                            "exceptionType", ex.getClass().getSimpleName(),
-                            "exceptionMessage", ex.getMessage() != null ? ex.getMessage() : "No message"
-                    ))
-                    .build();
+            problemDetail.setProperty("exceptionType", ex.getClass().getSimpleName());
+            problemDetail.setProperty("exceptionMessage", ex.getMessage() != null ? ex.getMessage() : "No message");
         }
         
-        return ResponseEntity.internalServerError().body(errorResponse);
+        return problemDetail;
     }
     
     // Legacy exception handlers for backward compatibility
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
+    public ProblemDetail handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
         log.warn("Entity not found - message: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.of(
-                ErrorCode.RESOURCE_NOT_FOUND,
-                ex.getMessage(),
-                request.getRequestURI()
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
         );
+        problemDetail.setType(URI.create("/errors/entity-not-found"));
+        problemDetail.setTitle("엔티티를 찾을 수 없음");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ErrorCode.RESOURCE_NOT_FOUND.getCode());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex, HttpServletRequest request) {
+    public ProblemDetail handleNotFoundException(NotFoundException ex, HttpServletRequest request) {
         log.warn("Resource not found - errorCode: {}, message: {}", ex.getErrorCodeValue(), ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type(buildErrorType(ex.getErrorCode()))
-                .title("리소스를 찾을 수 없음")
-                .status(ex.getHttpStatus().value())
-                .detail(ex.getMessage())
-                .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCodeValue())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(ex.getHttpStatus(), ex.getMessage());
+        problemDetail.setType(URI.create(buildErrorType(ex.getErrorCode())));
+        problemDetail.setTitle("리소스를 찾을 수 없음");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ex.getErrorCodeValue());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ErrorResponse> handleConflictException(ConflictException ex, HttpServletRequest request) {
+    public ProblemDetail handleConflictException(ConflictException ex, HttpServletRequest request) {
         log.warn("Resource conflict - errorCode: {}, message: {}", ex.getErrorCodeValue(), ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type(buildErrorType(ex.getErrorCode()))
-                .title("리소스 충돌")
-                .status(ex.getHttpStatus().value())
-                .detail(ex.getMessage())
-                .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCodeValue())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(ex.getHttpStatus(), ex.getMessage());
+        problemDetail.setType(URI.create(buildErrorType(ex.getErrorCode())));
+        problemDetail.setTitle("리소스 충돌");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ex.getErrorCodeValue());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
+        return problemDetail;
     }
     
     @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException ex, HttpServletRequest request) {
+    public ProblemDetail handleForbiddenException(ForbiddenException ex, HttpServletRequest request) {
         log.warn("Access forbidden - errorCode: {}, message: {}", ex.getErrorCodeValue(), ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .type(buildErrorType(ex.getErrorCode()))
-                .title("접근 권한 없음")
-                .status(ex.getHttpStatus().value())
-                .detail(ex.getMessage())
-                .instance(request.getRequestURI())
-                .errorCode(ex.getErrorCodeValue())
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(ex.getHttpStatus(), ex.getMessage());
+        problemDetail.setType(URI.create(buildErrorType(ex.getErrorCode())));
+        problemDetail.setTitle("접근 권한 없음");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("errorCode", ex.getErrorCodeValue());
+        problemDetail.setProperty("timestamp", Instant.now());
         
-        return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
+        return problemDetail;
     }
     
     private String buildErrorType(String errorCode) {

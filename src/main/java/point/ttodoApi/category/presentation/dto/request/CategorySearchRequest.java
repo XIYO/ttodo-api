@@ -1,4 +1,4 @@
-package point.ttodoApi.category.dto.request;
+package point.ttodoApi.category.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -49,7 +49,7 @@ public class CategorySearchRequest extends BaseSearchRequest {
     private UUID parentCategoryId;
     
     @Override
-    public String getDefaultSort() {
+    public String defaultSort() {
         return "orderIndex,asc";
     }
     

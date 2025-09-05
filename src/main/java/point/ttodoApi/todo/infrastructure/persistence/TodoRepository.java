@@ -13,6 +13,9 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
     
     @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.owner.id = :memberId AND t.active = true")
     Optional<Todo> findByTodoIdAndOwnerId(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);
+    
+    @Query("SELECT t FROM Todo t LEFT JOIN FETCH t.tags WHERE t.todoId = :todoId AND t.owner.id = :memberId AND t.active = true")
+    Optional<Todo> findByTodoIdAndOwnerIdWithTags(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);
 
     @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.owner.id = :memberId")
     Optional<Todo> findByTodoIdAndOwnerIdIgnoreActive(@Param("todoId") TodoId todoId, @Param("memberId") UUID memberId);

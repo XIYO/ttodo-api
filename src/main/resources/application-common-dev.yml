@@ -22,11 +22,6 @@ jwt:
       sameSite: Lax
 
 spring:
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/ttodo_dev
-    username: ttodo_user
-    password: ttodo_password
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -38,18 +33,6 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
-  docker:
-    compose:
-      enabled: true
-      lifecycle-management: start_and_stop
-      start:
-        command: up
-      stop:
-        command: down
-        timeout: 10s
-      skip:
-        in-tests: false
-      file: docker-compose.yml
 
 logging:
   level:
@@ -65,13 +48,21 @@ logging:
 app:
   cors:
     allowed-origins:
-      - http://localhost:8080
-      - http://localhost:4173
-      - http://localhost:6100
-      - http://localhost:6101
+      - http://localhost:5173  # Vite development server
+      - http://localhost:8080  # Backend API
+      - http://localhost:4173  # Vite preview
     allowed-methods:
-      - "*"
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
     allowed-headers:
-      - "*"
+      - Content-Type
+      - Authorization
+      - X-Requested-With
+      - Accept
+      - Origin
     allow-credentials: true
     max-age: 3600

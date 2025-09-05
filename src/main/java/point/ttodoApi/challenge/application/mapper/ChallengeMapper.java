@@ -25,5 +25,6 @@ public interface ChallengeMapper {
     @Mapping(target = "id", source = "member.id")
     @Mapping(target = "email", source = "member.email")
     @Mapping(target = "nickname", source = "member.nickname")
+    @Mapping(target = "joinedAt", source = "joinedAt")
     ParticipantResult toParticipantResult(ChallengeParticipation participation);
 }

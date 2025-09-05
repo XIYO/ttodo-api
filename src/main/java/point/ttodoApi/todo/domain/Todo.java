@@ -46,7 +46,7 @@ public class Todo {
   private LocalDate date;
   private LocalTime time;
 
-  @ElementCollection(fetch = FetchType.EAGER)
+  @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(name = "todo_tags", joinColumns = {
       @JoinColumn(name = "original_todo_id", referencedColumnName = "original_todo_id"),
       @JoinColumn(name = "days_difference", referencedColumnName = "days_difference")

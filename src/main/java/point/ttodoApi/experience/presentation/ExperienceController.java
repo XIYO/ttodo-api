@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.experience.application.ExperienceService;
 import point.ttodoApi.experience.presentation.dto.response.MemberLevelResponse;
@@ -36,6 +37,7 @@ public class ExperienceController {
     @ApiResponse(responseCode = "200", description = "레벨/경험치 조회 성공")
     @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
     @GetMapping("/{memberId}/experience")
+    @PreAuthorize("hasRole('USER')")
     public MemberLevelResponse getMemberLevel(@PathVariable UUID memberId) {
         var result = experienceService.getMemberLevel(memberId);
         return mapper.toResponse(result);

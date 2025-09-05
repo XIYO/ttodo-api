@@ -2,18 +2,13 @@ package point.ttodoApi.todo.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import lombok.*;
 import point.ttodoApi.shared.validation.annotations.*;
 
 import java.time.*;
 import java.util.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "Todo 생성 요청 DTO")
-public class CreateTodoRequest {
-    
+public record CreateTodoRequest(
     @NotBlank(message = "제목은 필수 입력값입니다")
     @Size(max = 255, message = "제목은 255자를 초과할 수 없습니다") 
     @Schema(
@@ -23,7 +18,7 @@ public class CreateTodoRequest {
         maxLength = 255
     )
     @NoSqlInjection
-    private String title;
+    String title,
     
     @Size(max = 1000, message = "설명은 1000자를 초과할 수 없습니다") 
     @Schema(
@@ -32,14 +27,14 @@ public class CreateTodoRequest {
         maxLength = 1000
     )
     @SanitizeHtml(mode = SanitizeHtml.SanitizeMode.STANDARD)
-    private String description;
+    String description,
     
     @Schema(
         description = "완료 여부", 
         example = "false", 
         defaultValue = "false"
     )
-    private Boolean complete;
+    Boolean complete,
     
     @Schema(
         description = "우선순위 (0: 낮음, 1: 보통, 2: 높음)", 
@@ -48,35 +43,34 @@ public class CreateTodoRequest {
         minimum = "0",
         maximum = "2"
     )
-    private Integer priorityId;
+    Integer priorityId,
     
     @Schema(
         description = "카테고리 ID", 
         example = "550e8400-e29b-41d4-a716-446655440000"
     )
-    private UUID categoryId;
+    UUID categoryId,
 
     @Schema(
         description = "마감 날짜",
         example = "2025-12-31",
         format = "date"
     )
-    private LocalDate date;
+    LocalDate date,
 
     @Schema(
         description = "마감 시간",
         example = "18:00",
         format = "time"
     )
-    private LocalTime time;
+    LocalTime time,
 
     @Schema(description = "RRULE 기반 반복 규칙 - JSON 문자열로 전송", example = "{\"frequency\":\"WEEKLY\",\"interval\":1,\"byWeekDays\":[\"MO\",\"WE\",\"FR\"]}")
-    private String recurrenceRuleJson;
-    // 과거 반복 필드 제거(미래지향 설계)
+    String recurrenceRuleJson,
     
     @Schema(
         description = "태그 목록",
         example = "[\"업무\", \"긴급\"]"
     )
-    private Set<String> tags;
-}
+    Set<String> tags
+) {}

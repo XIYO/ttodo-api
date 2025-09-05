@@ -1,6 +1,8 @@
 package point.ttodoApi.test.helper;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -12,31 +14,36 @@ import java.util.Base64;
 /**
  * JWT 토큰 테스트용 헬퍼 클래스
  * RSA 키를 사용한 JWT 토큰 생성 유틸리티
+ * 토큰 만료 시간은 설정 파일에서 관리
  */
+@Component
 public class JwtTokenTestHelper {
     
     private static final String ANON_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
     private static final String ANON_EMAIL = "anon@ttodo.dev";
     private static final String ANON_NICKNAME = "익명사용자";
     
+    @Value("${test.auth.token-expiration-seconds:86400}")
+    private long tokenExpirationSeconds;
+    
     /**
      * 테스트용 유효한 JWT 토큰 생성
      */
-    public static String generateValidToken() throws Exception {
+    public String generateValidToken() throws Exception {
         return generateToken(ANON_USER_ID, ANON_EMAIL, ANON_NICKNAME, false);
     }
     
     /**
      * 만료된 JWT 토큰 생성
      */
-    public static String generateExpiredToken() throws Exception {
+    public String generateExpiredToken() throws Exception {
         return generateToken(ANON_USER_ID, ANON_EMAIL, ANON_NICKNAME, true);
     }
     
     /**
      * 커스텀 JWT 토큰 생성
      */
-    public static String generateToken(String userId, String email, String nickname, boolean expired) throws Exception {
+    public String generateToken(String userId, String email, String nickname, boolean expired) throws Exception {
         ClassPathResource resource = new ClassPathResource("ttodo/jwt/test-private.pem");
         String privateKeyContent = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         
@@ -60,7 +67,7 @@ public class JwtTokenTestHelper {
             iat = iat - 86400; // 1일 전
             exp = iat + 3600; // 1시간 후 (이미 만료됨)
         } else {
-            exp = iat + (365L * 100 * 24 * 60 * 60); // 100년
+            exp = iat + tokenExpirationSeconds; // 설정 파일에서 정의한 만료 시간 사용
         }
         
         String payload = String.format(
@@ -80,9 +87,14 @@ public class JwtTokenTestHelper {
     }
     
     /**
-     * 하드코딩된 익명 사용자 토큰 (README에 있는 토큰)
+     * 개발/테스트용 익명 사용자 토큰
+     * 이 토큰은 개발 환경에서만 사용해야 하며, 프로덕션에서는 사용하지 마세요
+     * 토큰 만료 시간은 application.yml의 test.auth.token-expiration-seconds로 설정
+     * @deprecated 개발용 토큰은 generateValidToken()을 사용하세요
      */
-    public static String getHardcodedAnonToken() {
-        return "eyJhbGciOiJSUzI1NiIsImtpZCI6InJzYS1rZXktaWQiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmZmZmZmZmZi1mZmZmLWZmZmYtZmZmZi1mZmZmZmZmZmZmZmYiLCJpYXQiOjE3NTY0OTcyMDQsImV4cCI6NDkxMDA5NzIwNCwiZW1haWwiOiJhbm9uQHR0b2RvLmRldiIsIm5pY2tuYW1lIjoi7J2166qF7IKs7Jqp7J6QIiwidGltZVpvbmUiOiJBc2lhL1Nlb3VsIiwibG9jYWxlIjoia29fS1IiLCJzY29wZSI6IlJPTEVfVVNFUiJ9.0omjGk_61raPaG4yof4tLGInII276NkzdS1rjRhf9erzXRFjMvQsbl-FAFWdll5l6YPEbmoSVLoXzCqDJU4X_fXhC6bAEUXIs4_2_IrgsxxpoWGC_KaTv6tCd-35EPb12AfSTkLHpaXlUjbmEkNiAZypD54ICfUY_6f3ts0Ki75GFjLJ0wGUju7vX8ECHljxLhyNt6H1XVgKGUxta1Fx_R1wcaiJZR0j0I7LW0JV3ZRbO1hG_3in9Y3eL5k-hYRSYLXJr6H6GNzY2ztbKru2tXVRJQFuGVrsx-RPzNmm-L5xb-DBRFrt6KDa1bQoedL12WgFTWwQe96Uk-DhoOyPhw";
+    @Deprecated
+    public String getDevelopmentToken() throws Exception {
+        // 개발용 토큰은 동적으로 생성하여 환경 변수의 만료 시간을 따르도록 함
+        return generateValidToken();
     }
 }

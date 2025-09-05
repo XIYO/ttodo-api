@@ -72,13 +72,13 @@ public abstract class BaseSearchRequest {
      * 기본 정렬 조건 설정
      * 하위 클래스에서 도메인별 기본 정렬을 정의
      */
-    public abstract String getDefaultSort();
+    public abstract String defaultSort();
     
     /**
      * 최종 정렬 조건 반환
      * 사용자가 제공한 정렬이 없으면 기본 정렬 사용
      */
-    public String getFinalSort() {
-        return hasSort() ? sort : getDefaultSort();
+    public String finalSort() {
+        return hasSort() ? sort : defaultSort();
     }
 }

@@ -11,7 +11,10 @@ import org.mapstruct.*;
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
     nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
     unmappedTargetPolicy = ReportingPolicy.WARN,
-    unmappedSourcePolicy = ReportingPolicy.IGNORE
+    unmappedSourcePolicy = ReportingPolicy.IGNORE,
+    builder = @Builder(disableBuilder = false),
+    // 컬렉션 매핑 전략
+    collectionMappingStrategy = CollectionMappingStrategy.ADDER_PREFERRED
 )
 public interface MapStructConfig {
 }

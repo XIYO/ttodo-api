@@ -7,11 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.challenge.application.dto.command.*;
 import point.ttodoApi.challenge.application.dto.result.*;
+import point.ttodoApi.challenge.presentation.dto.response.InviteLinkResponse;
+import point.ttodoApi.challenge.presentation.dto.response.ChallengePolicyResponse;
 import point.ttodoApi.challenge.application.mapper.ChallengeMapper;
 import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.exception.ChallengeNotFoundException;
 import point.ttodoApi.challenge.infrastructure.*;
-import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.shared.error.*;
 import point.ttodoApi.member.domain.Member;
 

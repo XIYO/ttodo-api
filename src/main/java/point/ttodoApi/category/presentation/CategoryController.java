@@ -15,7 +15,7 @@ import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.category.application.CategoryService;
 import point.ttodoApi.category.application.CategorySearchService;
 import point.ttodoApi.category.application.command.*;
-import point.ttodoApi.category.dto.request.CategorySearchRequest;
+import point.ttodoApi.category.presentation.dto.request.CategorySearchRequest;
 import point.ttodoApi.category.presentation.dto.request.*;
 import point.ttodoApi.category.presentation.dto.response.CategoryResponse;
 import point.ttodoApi.category.presentation.mapper.CategoryPresentationMapper;

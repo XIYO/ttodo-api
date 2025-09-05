@@ -26,7 +26,7 @@ public class SearchRequestUtils {
         request.validate();
         
         // 정렬 조건 파싱
-        Sort sort = parseSort(request.getFinalSort());
+        Sort sort = parseSort(request.finalSort());
         
         // Pageable 생성
         return PageRequest.of(

@@ -32,8 +32,17 @@ jwt:
       - https://ttodo.xiyo.dev
       - https://api.ttodo.xiyo.dev
     allowed-methods:
-      - "*"
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
     allowed-headers:
-      - "*"
+      - Content-Type
+      - Authorization
+      - X-Requested-With
+      - Accept
+      - Origin
     allow-credentials: true
     max-age: 3600
