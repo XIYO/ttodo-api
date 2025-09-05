@@ -1,6 +1,6 @@
 package point.ttodoApi.member.exception;
 
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 
 public class InvalidPasswordException extends InvalidRequestException {
     

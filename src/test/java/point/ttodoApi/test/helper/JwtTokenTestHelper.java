@@ -1,48 +1,44 @@
 package point.ttodoApi.test.helper;
 
-import org.springframework.stereotype.Component;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.Signature;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
-import java.util.UUID;
 
 /**
- * 테스트용 인증 헬퍼 클래스
- * JWT 토큰 생성 및 인증 관련 유틸리티 제공
+ * JWT 토큰 테스트용 헬퍼 클래스
+ * RSA 키를 사용한 JWT 토큰 생성 유틸리티
  */
-@Component
-public class TestAuthHelper {
+public class JwtTokenTestHelper {
     
-    // 테스트용 익명 사용자 정보
-    public static final UUID ANON_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
-    public static final String ANON_USER_EMAIL = "anon@ttodo.dev";
-    public static final String ANON_USER_NICKNAME = "익명사용자";
+    private static final String ANON_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
+    private static final String ANON_EMAIL = "anon@ttodo.dev";
+    private static final String ANON_NICKNAME = "익명사용자";
     
     /**
      * 테스트용 유효한 JWT 토큰 생성
      */
     public static String generateValidToken() throws Exception {
-        return generateToken(ANON_USER_ID.toString(), ANON_USER_EMAIL, ANON_USER_NICKNAME, false);
+        return generateToken(ANON_USER_ID, ANON_EMAIL, ANON_NICKNAME, false);
     }
     
     /**
      * 만료된 JWT 토큰 생성
      */
     public static String generateExpiredToken() throws Exception {
-        return generateToken(ANON_USER_ID.toString(), ANON_USER_EMAIL, ANON_USER_NICKNAME, true);
+        return generateToken(ANON_USER_ID, ANON_EMAIL, ANON_NICKNAME, true);
     }
     
     /**
      * 커스텀 JWT 토큰 생성
      */
     public static String generateToken(String userId, String email, String nickname, boolean expired) throws Exception {
-        String privateKeyPath = "src/main/resources/ttodo/jwt/test-private.pem";
-        String privateKeyContent = new String(Files.readAllBytes(Paths.get(privateKeyPath)));
+        ClassPathResource resource = new ClassPathResource("ttodo/jwt/test-private.pem");
+        String privateKeyContent = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         
         privateKeyContent = privateKeyContent
                 .replace("-----BEGIN PRIVATE KEY-----", "")

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.dto.request.CategorySearchRequest;
 import point.ttodoApi.category.infrastructure.persistence.*;
-import point.ttodoApi.common.specification.*;
+import point.ttodoApi.shared.specification.*;
 
 import java.util.*;
 

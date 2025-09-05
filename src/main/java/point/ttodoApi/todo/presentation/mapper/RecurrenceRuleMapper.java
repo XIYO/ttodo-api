@@ -3,7 +3,7 @@ package point.ttodoApi.todo.presentation.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
-import point.ttodoApi.common.config.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.todo.domain.recurrence.EndCondition;
 import point.ttodoApi.todo.domain.recurrence.RecurrenceRule;
 import point.ttodoApi.todo.presentation.dto.request.EndConditionRequest;

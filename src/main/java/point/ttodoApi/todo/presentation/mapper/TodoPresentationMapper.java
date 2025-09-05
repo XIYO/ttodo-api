@@ -1,10 +1,9 @@
 package point.ttodoApi.todo.presentation.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mapstruct.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import point.ttodoApi.common.config.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.todo.application.dto.command.*;
 import point.ttodoApi.todo.application.dto.query.TodoSearchQuery;
 import point.ttodoApi.todo.application.dto.result.TodoResult;

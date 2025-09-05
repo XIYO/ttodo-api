@@ -1,6 +1,6 @@
 package point.ttodoApi.member.exception;
 
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 
 import java.util.UUID;
 

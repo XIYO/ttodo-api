@@ -23,7 +23,7 @@ import point.ttodoApi.challenge.presentation.dto.request.*;
 import point.ttodoApi.challenge.dto.request.ChallengeSearchRequest;
 import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
-import point.ttodoApi.common.validation.*;
+import point.ttodoApi.shared.validation.*;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 

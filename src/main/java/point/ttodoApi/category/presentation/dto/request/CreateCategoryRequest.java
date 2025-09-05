@@ -2,7 +2,7 @@ package point.ttodoApi.category.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import point.ttodoApi.common.validation.annotations.*;
+import point.ttodoApi.shared.validation.annotations.*;
 
 @Schema(description = "카테고리 생성 요청")
 public record CreateCategoryRequest(

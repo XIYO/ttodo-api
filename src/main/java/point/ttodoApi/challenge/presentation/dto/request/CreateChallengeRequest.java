@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import point.ttodoApi.challenge.domain.*;
-import point.ttodoApi.common.validation.annotations.*;
+import point.ttodoApi.shared.validation.annotations.*;
 
 import java.time.LocalDate;
 import java.util.List;

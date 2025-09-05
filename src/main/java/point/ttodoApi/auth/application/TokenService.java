@@ -7,7 +7,7 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import point.ttodoApi.auth.config.properties.JwtProperties;
 import point.ttodoApi.auth.domain.*;
-import point.ttodoApi.common.error.BusinessException;
+import point.ttodoApi.shared.error.BusinessException;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.profile.application.ProfileService;

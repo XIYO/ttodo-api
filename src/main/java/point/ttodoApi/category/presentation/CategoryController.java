@@ -1,7 +1,6 @@
 package point.ttodoApi.category.presentation;
 
 import io.swagger.v3.oas.annotations.*;
-import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,8 +19,8 @@ import point.ttodoApi.category.dto.request.CategorySearchRequest;
 import point.ttodoApi.category.presentation.dto.request.*;
 import point.ttodoApi.category.presentation.dto.response.CategoryResponse;
 import point.ttodoApi.category.presentation.mapper.CategoryPresentationMapper;
-import point.ttodoApi.common.validation.ValidPageable;
-import point.ttodoApi.common.validation.SortFieldsProvider;
+import point.ttodoApi.shared.validation.ValidPageable;
+import point.ttodoApi.shared.validation.SortFieldsProvider;
 
 import java.util.UUID;
 

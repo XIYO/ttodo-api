@@ -9,7 +9,7 @@ import point.ttodoApi.challenge.application.dto.result.ParticipantResult;
 import point.ttodoApi.challenge.application.mapper.ChallengeMapper;
 import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.infrastructure.*;
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 import point.ttodoApi.member.domain.Member;
 
 import java.time.LocalDateTime;

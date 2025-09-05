@@ -35,7 +35,7 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 초대된 멤버, 존재하지 않는 카테고리 또는 멤버)"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (카테고리 소유자가 아님)")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<CollaboratorResponse>> inviteCollaborator(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<CollaboratorResponse>> inviteCollaborator(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Valid CollaboratorInviteRequest request) {
         
@@ -46,7 +46,7 @@ public class CategoryCollaboratorController {
         );
         
         CollaboratorResponse response = CollaboratorResponse.from(collaborator);
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(response));
     }
     
     @PostMapping("/accept")
@@ -56,13 +56,13 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (대기 중인 초대가 없거나 이미 처리됨)"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<CollaboratorResponse>> acceptInvitation(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<CollaboratorResponse>> acceptInvitation(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
         
         CategoryCollaborator collaborator = collaboratorService.acceptInvitation(categoryId, principal.id());
         CollaboratorResponse response = CollaboratorResponse.from(collaborator);
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(response));
     }
     
     @PostMapping("/reject")
@@ -72,13 +72,13 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (대기 중인 초대가 없거나 이미 처리됨)"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<CollaboratorResponse>> rejectInvitation(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<CollaboratorResponse>> rejectInvitation(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
         
         CategoryCollaborator collaborator = collaboratorService.rejectInvitation(categoryId, principal.id());
         CollaboratorResponse response = CollaboratorResponse.from(collaborator);
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(response));
     }
     
     @DeleteMapping("/{memberId}")
@@ -88,13 +88,13 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (카테고리 소유자가 아님)")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<Void>> removeCollaborator(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<Void>> removeCollaborator(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @Parameter(description = "제거할 멤버 ID") @PathVariable UUID memberId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
         
         collaboratorService.removeCollaborator(categoryId, memberId, principal.id());
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(null));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(null));
     }
     
     @PostMapping("/leave")
@@ -104,12 +104,12 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (협업자가 아님)"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<Void>> leaveCollaboration(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<Void>> leaveCollaboration(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
         
         collaboratorService.leaveCollaboration(categoryId, principal.id());
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(null));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(null));
     }
     
     @GetMapping
@@ -118,7 +118,7 @@ public class CategoryCollaboratorController {
         @ApiResponse(responseCode = "200", description = "협업자 목록 조회 성공"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (카테고리 소유자 또는 협업자가 아님)")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<CollaboratorResponse>>> getCategoryCollaborators(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<List<CollaboratorResponse>>> getCategoryCollaborators(
             @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
         
@@ -127,7 +127,7 @@ public class CategoryCollaboratorController {
             .map(CollaboratorResponse::from)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(responses));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(responses));
     }
 }
 
@@ -147,7 +147,7 @@ class MemberCollaborationController {
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
     @org.springframework.security.access.prepost.PreAuthorize("#memberId == authentication.principal.id")
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<CollaboratorResponse>>> getPendingInvitations(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<List<CollaboratorResponse>>> getPendingInvitations(
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         List<CategoryCollaborator> invitations = collaboratorService.getPendingInvitations(memberId);
@@ -155,7 +155,7 @@ class MemberCollaborationController {
             .map(CollaboratorResponse::from)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(responses));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(responses));
     }
     
     @GetMapping("/categories")
@@ -165,7 +165,7 @@ class MemberCollaborationController {
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
     @org.springframework.security.access.prepost.PreAuthorize("#memberId == authentication.principal.id")
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<String>>> getCollaborativeCategories(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<List<String>>> getCollaborativeCategories(
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         // 이 엔드포인트는 나중에 CategoryResponse DTO를 만들어서 개선 필요
@@ -174,6 +174,6 @@ class MemberCollaborationController {
             .map(point.ttodoApi.category.domain.Category::getName)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(categoryNames));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(categoryNames));
     }
 }

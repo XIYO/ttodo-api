@@ -7,25 +7,22 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import point.ttodoApi.auth.application.TokenService;
 import point.ttodoApi.auth.domain.MemberPrincipal;
 import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
 import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
-import point.ttodoApi.common.error.BusinessException;
+import point.ttodoApi.shared.error.BusinessException;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.presentation.dto.response.MemberResponse;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
 
@@ -44,7 +41,7 @@ public class AuthController {
   private final ProfileService profileService;
   private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
-  private final point.ttodoApi.common.config.properties.AppProperties appProperties;
+  private final point.ttodoApi.shared.config.properties.AppProperties appProperties;
   private final CookieService cookieService;
 
   @Operation(
@@ -172,9 +169,9 @@ public class AuthController {
   public java.util.Map<String, String> getDevToken() {
     // 시스템 익명 사용자 정보 사용 (초기 데이터로 생성됨)
     String domain = appProperties.getUserDomain() == null ? "ttodo.dev" : appProperties.getUserDomain();
-    String testUserId = point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_USER_ID.toString();
+    String testUserId = point.ttodoApi.shared.constants.SystemConstants.SystemUsers.ANON_USER_ID.toString();
     String testEmail = "anon@" + domain;
-    String testNickname = point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_USER_NICKNAME;
+    String testNickname = point.ttodoApi.shared.constants.SystemConstants.SystemUsers.ANON_USER_NICKNAME;
     String testTimeZone = "Asia/Seoul";
     String testLocale = "ko-KR";
     

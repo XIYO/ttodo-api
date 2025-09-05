@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
-import point.ttodoApi.common.error.EntityNotFoundException;
+import point.ttodoApi.shared.error.EntityNotFoundException;
 import point.ttodoApi.experience.application.event.*;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;

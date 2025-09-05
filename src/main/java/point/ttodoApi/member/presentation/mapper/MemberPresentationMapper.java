@@ -1,7 +1,7 @@
 package point.ttodoApi.member.presentation.mapper;
 
 import org.mapstruct.*;
-import point.ttodoApi.common.config.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.member.application.dto.command.UpdateMemberCommand;
 import point.ttodoApi.member.application.dto.result.MemberResult;
 import point.ttodoApi.member.domain.Member;

@@ -2,7 +2,7 @@ package point.ttodoApi.category.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import point.ttodoApi.common.domain.BaseEntity;
+import point.ttodoApi.shared.domain.BaseEntity;
 import point.ttodoApi.member.domain.Member;
 
 import java.time.LocalDateTime;

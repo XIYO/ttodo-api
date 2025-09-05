@@ -17,7 +17,7 @@ import point.ttodoApi.todo.domain.recurrence.*;
 import java.time.LocalDate;
 import java.util.*;
 
-import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.ANON_USER_ID;
+import static point.ttodoApi.shared.constants.SystemConstants.SystemUsers.ANON_USER_ID;
 
 @Slf4j
 @Component

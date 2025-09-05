@@ -35,7 +35,7 @@ public class ChallengeLeaderController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 리더이거나 참여자가 아닌 경우, 최대 리더 수 초과)"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (챌린지 생성자가 아님)")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<ChallengeLeaderResponse>> appointLeader(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<ChallengeLeaderResponse>> appointLeader(
             @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
             @Valid LeaderAppointRequest request,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
@@ -47,7 +47,7 @@ public class ChallengeLeaderController {
         );
         
         ChallengeLeaderResponse response = ChallengeLeaderResponse.from(leader);
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(response));
     }
     
     @DeleteMapping("/{memberId}")
@@ -57,7 +57,7 @@ public class ChallengeLeaderController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (해당 멤버가 리더가 아님)"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (챌린지 생성자가 아님)")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<Void>> removeLeader(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<Void>> removeLeader(
             @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
             @Parameter(description = "해제할 멤버 ID") @PathVariable UUID memberId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal,
@@ -66,7 +66,7 @@ public class ChallengeLeaderController {
         String reason = request != null ? request.getReason() : null;
         leaderService.removeLeader(challengeId, memberId, principal.id(), reason);
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(null));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(null));
     }
     
     @PostMapping(value = "/resign", consumes = { org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE, org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -76,7 +76,7 @@ public class ChallengeLeaderController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (해당 멤버가 리더가 아님)"),
         @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<Void>> resignLeader(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<Void>> resignLeader(
             @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal,
             @Valid LeaderRemoveRequest request) {
@@ -84,7 +84,7 @@ public class ChallengeLeaderController {
         String reason = request != null ? request.getReason() : null;
         leaderService.resignLeader(challengeId, principal.id(), reason);
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(null));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(null));
     }
     
     @GetMapping
@@ -93,7 +93,7 @@ public class ChallengeLeaderController {
         @ApiResponse(responseCode = "200", description = "리더 목록 조회 성공"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (챌린지 참여자가 아님)")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<ChallengeLeaderResponse>>> getChallengeLeaders(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<List<ChallengeLeaderResponse>>> getChallengeLeaders(
             @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
         
@@ -102,7 +102,7 @@ public class ChallengeLeaderController {
             .map(ChallengeLeaderResponse::from)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(responses));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(responses));
     }
     
     @GetMapping("/statistics")
@@ -111,14 +111,14 @@ public class ChallengeLeaderController {
         @ApiResponse(responseCode = "200", description = "리더 통계 조회 성공"),
         @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<LeaderStatisticsResponse>> getLeaderStatistics(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<LeaderStatisticsResponse>> getLeaderStatistics(
             @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
         
         ChallengeLeaderService.LeaderStatistics statistics = 
             leaderService.getLeaderStatistics(challengeId);
         
         LeaderStatisticsResponse response = LeaderStatisticsResponse.from(statistics);
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(response));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(response));
     }
     
     @GetMapping("/history")
@@ -127,7 +127,7 @@ public class ChallengeLeaderController {
         @ApiResponse(responseCode = "200", description = "리더 기록 조회 성공"),
         @ApiResponse(responseCode = "403", description = "권한 없음 (챌린지 생성자가 아님)")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<ChallengeLeaderResponse>>> getChallengeLeaderHistory(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<List<ChallengeLeaderResponse>>> getChallengeLeaderHistory(
             @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
             @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
         
@@ -136,7 +136,7 @@ public class ChallengeLeaderController {
             .map(ChallengeLeaderResponse::from)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(responses));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(responses));
     }
     
     @GetMapping("/{memberId}/role")
@@ -145,12 +145,12 @@ public class ChallengeLeaderController {
         @ApiResponse(responseCode = "200", description = "역할 조회 성공"),
         @ApiResponse(responseCode = "404", description = "챌린지 또는 멤버를 찾을 수 없음")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<ChallengeRole>> getMemberRole(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<ChallengeRole>> getMemberRole(
             @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         ChallengeRole role = leaderService.getMemberRole(challengeId, memberId);
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(role));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(role));
     }
 }
 
@@ -170,7 +170,7 @@ class MemberLeaderChallengeController {
         @ApiResponse(responseCode = "200", description = "리더 챌린지 목록 조회 성공"),
         @ApiResponse(responseCode = "404", description = "멤버를 찾을 수 없음")
     })
-    public ResponseEntity<point.ttodoApi.common.dto.ApiResponse<List<String>>> getMemberLeaderChallenges(
+    public ResponseEntity<point.ttodoApi.shared.dto.ApiResponse<List<String>>> getMemberLeaderChallenges(
             @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
         
         // 나중에 ChallengeResponse DTO를 만들어서 개선 필요
@@ -179,6 +179,6 @@ class MemberLeaderChallengeController {
             .map(Challenge::getTitle)
             .collect(Collectors.toList());
         
-        return ResponseEntity.ok(point.ttodoApi.common.dto.ApiResponse.success(challengeTitles));
+        return ResponseEntity.ok(point.ttodoApi.shared.dto.ApiResponse.success(challengeTitles));
     }
 }

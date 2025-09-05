@@ -2,7 +2,7 @@ package point.ttodoApi.challenge.infrastructure;
 
 import org.springframework.stereotype.Component;
 import point.ttodoApi.challenge.domain.Challenge;
-import point.ttodoApi.common.specification.BaseSpecification;
+import point.ttodoApi.shared.specification.BaseSpecification;
 
 import java.util.Set;
 

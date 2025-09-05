@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.application.MemberSearchService;
 import point.ttodoApi.member.dto.request.MemberSearchRequest;
@@ -37,12 +36,11 @@ import point.ttodoApi.member.presentation.dto.request.UpdateMemberRequest;
 import point.ttodoApi.member.presentation.dto.response.MemberResponse;
 import point.ttodoApi.member.presentation.mapper.MemberPresentationMapper;
 import point.ttodoApi.profile.application.ProfileService;
-import point.ttodoApi.common.validation.ValidPageable;
-import point.ttodoApi.common.validation.SortFieldsProvider;
-import point.ttodoApi.common.dto.PageResponse;
+import point.ttodoApi.shared.validation.ValidPageable;
+import point.ttodoApi.shared.validation.SortFieldsProvider;
+import point.ttodoApi.shared.dto.PageResponse;
 import point.ttodoApi.profile.domain.*;
 
-import java.io.IOException;
 import java.util.UUID;
 
 /**

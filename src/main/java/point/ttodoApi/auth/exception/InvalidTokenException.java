@@ -1,6 +1,6 @@
 package point.ttodoApi.auth.exception;
 
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 
 public class InvalidTokenException extends UnauthorizedException {
     

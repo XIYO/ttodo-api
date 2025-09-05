@@ -9,7 +9,7 @@ import point.ttodoApi.challenge.application.dto.result.ChallengeTodoResult;
 import point.ttodoApi.challenge.application.mapper.ChallengeTodoMapper;
 import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.infrastructure.*;
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 import point.ttodoApi.experience.application.event.ChallengeTodoCompletedEvent;
 import point.ttodoApi.member.domain.Member;
 

@@ -6,7 +6,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.common.specification.*;
+import point.ttodoApi.shared.specification.*;
 import point.ttodoApi.member.domain.*;
 import point.ttodoApi.member.dto.request.MemberSearchRequest;
 import point.ttodoApi.member.infrastructure.MemberSpecification;

@@ -12,7 +12,7 @@ import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.exception.ChallengeNotFoundException;
 import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.challenge.presentation.dto.response.*;
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 import point.ttodoApi.member.domain.Member;
 
 import java.time.LocalDate;

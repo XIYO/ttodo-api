@@ -1,5 +1,6 @@
 package point.ttodoApi.test;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -14,11 +15,26 @@ import org.testcontainers.utility.DockerImageName;
 /**
  * 모든 통합 테스트의 기본 클래스
  * Testcontainers를 사용하여 PostgreSQL과 Redis를 자동으로 구성
+ * 테스트용 JWT 토큰을 properties에서 주입받아 사용
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @AutoConfigureMockMvc
 public abstract class BaseIntegrationTest {
+    
+    /**
+     * anon@ttodo.dev 계정의 유효한 JWT 토큰
+     * application.yml의 test.auth.anon-token에서 주입
+     */
+    @Value("${test.auth.anon-token}")
+    protected String validAnonToken;
+    
+    /**
+     * 잘못된 서명의 JWT 토큰 (테스트용)
+     * application.yml의 test.auth.invalid-token에서 주입
+     */
+    @Value("${test.auth.invalid-token}")
+    protected String invalidToken;
     
     @Container
     @ServiceConnection

@@ -8,7 +8,7 @@ import point.ttodoApi.category.application.command.*;
 import point.ttodoApi.category.application.dto.result.CategoryResult;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
-import point.ttodoApi.common.error.BusinessException;
+import point.ttodoApi.shared.error.BusinessException;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 

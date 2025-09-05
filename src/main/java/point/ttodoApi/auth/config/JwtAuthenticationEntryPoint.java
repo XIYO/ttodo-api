@@ -10,7 +10,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.auth.application.TokenService;
 import point.ttodoApi.auth.presentation.CookieService;
-import point.ttodoApi.common.error.BusinessException;
+import point.ttodoApi.shared.error.BusinessException;
 
 @Slf4j
 @Component

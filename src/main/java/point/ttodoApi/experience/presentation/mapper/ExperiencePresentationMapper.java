@@ -1,7 +1,7 @@
 package point.ttodoApi.experience.presentation.mapper;
 
 import org.mapstruct.Mapper;
-import point.ttodoApi.common.config.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.experience.application.dto.result.MemberLevelResult;
 import point.ttodoApi.experience.presentation.dto.response.MemberLevelResponse;
 

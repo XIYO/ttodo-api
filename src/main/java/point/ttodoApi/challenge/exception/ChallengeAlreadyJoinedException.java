@@ -1,6 +1,6 @@
 package point.ttodoApi.challenge.exception;
 
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 
 public class ChallengeAlreadyJoinedException extends BaseException {
     

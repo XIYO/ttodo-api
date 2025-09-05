@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import point.ttodoApi.common.dto.BaseSearchRequest;
+import point.ttodoApi.shared.dto.BaseSearchRequest;
 import point.ttodoApi.member.domain.Role;
 
 import java.time.LocalDateTime;

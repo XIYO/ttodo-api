@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.domain.MemberPrincipal;
-import point.ttodoApi.common.validation.*;
+import point.ttodoApi.shared.validation.*;
 import point.ttodoApi.todo.application.*;
 import point.ttodoApi.todo.application.dto.command.DeleteTodoCommand;
 import point.ttodoApi.todo.application.dto.query.*;
@@ -25,7 +25,6 @@ import point.ttodoApi.todo.presentation.mapper.TodoPresentationMapper;
 import point.ttodoApi.todo.application.TodoSearchService;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/todos")
@@ -70,7 +69,7 @@ public class TodoController {
       description = "요청 파라미터 오류",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   public Page<TodoResponse> getAll(
@@ -103,7 +102,7 @@ public class TodoController {
       description = "다른 사용자의 할 일에 접근 시도",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @ApiResponse(
@@ -111,7 +110,7 @@ public class TodoController {
       description = "할 일을 찾을 수 없음",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   public TodoResponse getTodo(@AuthenticationPrincipal MemberPrincipal principal, 
@@ -183,7 +182,7 @@ public class TodoController {
       description = "입력값 검증 실패",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @ApiResponse(
@@ -191,7 +190,7 @@ public class TodoController {
       description = "유효하지 않은 카테고리 ID",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   public void add(@AuthenticationPrincipal MemberPrincipal principal,
@@ -236,7 +235,7 @@ public class TodoController {
       description = "입력값 검증 실패",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @ApiResponse(
@@ -244,7 +243,7 @@ public class TodoController {
       description = "다른 사용자의 할 일에 접근 시도",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @ApiResponse(
@@ -252,7 +251,7 @@ public class TodoController {
       description = "할 일을 찾을 수 없음",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
@@ -291,7 +290,7 @@ public class TodoController {
       description = "입력값 검증 실패",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @ApiResponse(
@@ -299,7 +298,7 @@ public class TodoController {
       description = "다른 사용자의 할 일에 접근 시도",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @ApiResponse(
@@ -307,7 +306,7 @@ public class TodoController {
       description = "할 일을 찾을 수 없음",
       content = @io.swagger.v3.oas.annotations.media.Content(
           mediaType = MediaType.APPLICATION_JSON_VALUE,
-          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.common.error.ErrorResponse.class)
+          schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
       )
   )
   @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")

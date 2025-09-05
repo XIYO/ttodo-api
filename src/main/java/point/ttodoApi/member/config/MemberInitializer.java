@@ -8,7 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.application.dto.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.profile.application.ProfileService;
@@ -17,8 +16,8 @@ import point.ttodoApi.profile.infrastructure.persistence.ProfileRepository;
 
 import java.util.UUID;
 
-import static point.ttodoApi.common.constants.SystemConstants.SystemUsers.*;
-import point.ttodoApi.common.config.properties.AppProperties;
+import static point.ttodoApi.shared.constants.SystemConstants.SystemUsers.*;
+import point.ttodoApi.shared.config.properties.AppProperties;
 
 /**
  * 멤버 및 프로필 초기화 담당

@@ -2,8 +2,8 @@ package point.ttodoApi.auth.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import point.ttodoApi.common.validation.annotations.*;
-import point.ttodoApi.common.validation.fieldcompare.*;
+import point.ttodoApi.shared.validation.annotations.*;
+import point.ttodoApi.shared.validation.fieldcompare.*;
 import point.ttodoApi.member.domain.validation.UniqueEmail;
 
 @Schema(description = "사용자 사인-업에 필요한 데이터 DTO")

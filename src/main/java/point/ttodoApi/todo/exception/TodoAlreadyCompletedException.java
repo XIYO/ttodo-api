@@ -1,6 +1,6 @@
 package point.ttodoApi.todo.exception;
 
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 
 public class TodoAlreadyCompletedException extends BaseException {
     

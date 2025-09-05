@@ -3,7 +3,7 @@ package point.ttodoApi.challenge.application.mapper;
 import org.mapstruct.*;
 import point.ttodoApi.challenge.application.dto.result.*;
 import point.ttodoApi.challenge.domain.*;
-import point.ttodoApi.common.config.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 
 @Mapper(config = MapStructConfig.class)
 public interface ChallengeMapper {

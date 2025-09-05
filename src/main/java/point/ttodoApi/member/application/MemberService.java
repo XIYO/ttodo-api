@@ -5,7 +5,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.common.error.*;
+import point.ttodoApi.shared.error.*;
 import point.ttodoApi.member.application.dto.command.*;
 import point.ttodoApi.member.application.dto.result.MemberResult;
 import point.ttodoApi.member.application.event.MemberCreatedEvent;

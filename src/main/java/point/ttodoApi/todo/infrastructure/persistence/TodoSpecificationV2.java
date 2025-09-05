@@ -1,7 +1,7 @@
 package point.ttodoApi.todo.infrastructure.persistence;
 
 import org.springframework.stereotype.Component;
-import point.ttodoApi.common.specification.BaseSpecification;
+import point.ttodoApi.shared.specification.BaseSpecification;
 import point.ttodoApi.todo.domain.Todo;
 
 import java.util.Set;
