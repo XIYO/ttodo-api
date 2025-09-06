@@ -4,7 +4,7 @@ import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
-import point.ttodoApi.auth.config.properties.JwtProperties;
+import point.ttodoApi.shared.config.auth.properties.JwtProperties;
 import point.ttodoApi.test.BaseIntegrationTest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
