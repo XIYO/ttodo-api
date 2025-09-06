@@ -59,9 +59,9 @@ public class CookieService {
     log.info("Available cookies: {}", Arrays.stream(cookies).map(Cookie::getName).toArray());
 
     Optional<String> token = Arrays.stream(cookies)
-        .filter(cookie -> jwtProperties.refreshToken().cookie().name().equals(cookie.getName()))
-        .findFirst()
-        .map(Cookie::getValue);
+            .filter(cookie -> jwtProperties.refreshToken().cookie().name().equals(cookie.getName()))
+            .findFirst()
+            .map(Cookie::getValue);
 
     if (token.isPresent()) {
       log.info("Refresh token found in cookies");
@@ -74,24 +74,24 @@ public class CookieService {
 
   private ResponseCookie createResponseCookie(JwtProperties.CookieProperties props, String value, int maxAge) {
     log.info("Creating cookie with name: {}, path: {}, maxAge: {}s, secure: {}, httpOnly: {}, sameSite: {}, domain: {}",
-        props.name(), props.path(), maxAge, props.secure(), props.httpOnly(),
-        props.sameSite() != null ? props.sameSite() : "null",
-        props.domain() != null ? props.domain() : "null");
+            props.name(), props.path(), maxAge, props.secure(), props.httpOnly(),
+            props.sameSite() != null ? props.sameSite() : "null",
+            props.domain() != null ? props.domain() : "null");
 
     ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(props.name(), value)
-        .path(props.path())
-        .maxAge(Duration.ofSeconds(maxAge))
-        .secure(props.secure())
-        .httpOnly(props.httpOnly());
-    
+            .path(props.path())
+            .maxAge(Duration.ofSeconds(maxAge))
+            .secure(props.secure())
+            .httpOnly(props.httpOnly());
+
     if (props.domain() != null && !props.domain().isEmpty()) {
       builder.domain(props.domain());
     }
-    
+
     if (props.sameSite() != null && !props.sameSite().isEmpty()) {
       builder.sameSite(props.sameSite());
     }
-    
+
     return builder.build();
   }
 

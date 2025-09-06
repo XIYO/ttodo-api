@@ -1,12 +1,5 @@
 package point.ttodoApi.test.helper;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
@@ -14,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 
 /**
  * 테스트용 JWT 토큰 생성 유틸리티
@@ -22,21 +14,21 @@ import java.util.Map;
  */
 @Component
 public class JwtTestTokenGenerator {
-    
-    @Autowired
-    private JwtEncoder jwtEncoder;
-    
-    /**
-     * anon@ttodo.dev 사용자용 영구 토큰 생성
-     * 100년 후 만료되는 사실상 영구 토큰입니다.
-     */
-    public String generateAnonUserToken() {
-        Instant now = Instant.now();
-        
-        // 100년 후 만료 (사실상 영구)
-        Instant expiresAt = now.plus(36500, ChronoUnit.DAYS);
-        
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+
+  @Autowired
+  private JwtEncoder jwtEncoder;
+
+  /**
+   * anon@ttodo.dev 사용자용 영구 토큰 생성
+   * 100년 후 만료되는 사실상 영구 토큰입니다.
+   */
+  public String generateAnonUserToken() {
+    Instant now = Instant.now();
+
+    // 100년 후 만료 (사실상 영구)
+    Instant expiresAt = now.plus(36500, ChronoUnit.DAYS);
+
+    JwtClaimsSet claims = JwtClaimsSet.builder()
             .subject("ffffffff-ffff-ffff-ffff-ffffffffffff")  // anon user ID
             .issuedAt(now)
             .expiresAt(expiresAt)
@@ -46,23 +38,23 @@ public class JwtTestTokenGenerator {
             .claim("locale", "ko-KR")
             .claim("scope", "ROLE_USER")
             .build();
-            
-        JwtEncoderParameters parameters = JwtEncoderParameters.from(
+
+    JwtEncoderParameters parameters = JwtEncoderParameters.from(
             JwsHeader.with(SignatureAlgorithm.RS256).keyId("rsa-key-id").build(),
             claims
-        );
-        
-        return jwtEncoder.encode(parameters).getTokenValue();
-    }
-    
-    /**
-     * 특정 사용자용 토큰 생성
-     */
-    public String generateTokenForUser(String userId, String email, String nickname) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plus(36500, ChronoUnit.DAYS);
-        
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+    );
+
+    return jwtEncoder.encode(parameters).getTokenValue();
+  }
+
+  /**
+   * 특정 사용자용 토큰 생성
+   */
+  public String generateTokenForUser(String userId, String email, String nickname) {
+    Instant now = Instant.now();
+    Instant expiresAt = now.plus(36500, ChronoUnit.DAYS);
+
+    JwtClaimsSet claims = JwtClaimsSet.builder()
             .subject(userId)
             .issuedAt(now)
             .expiresAt(expiresAt)
@@ -72,25 +64,25 @@ public class JwtTestTokenGenerator {
             .claim("locale", "ko-KR")
             .claim("scope", "ROLE_USER")
             .build();
-            
-        JwtEncoderParameters parameters = JwtEncoderParameters.from(
+
+    JwtEncoderParameters parameters = JwtEncoderParameters.from(
             JwsHeader.with(SignatureAlgorithm.RS256).keyId("rsa-key-id").build(),
             claims
-        );
-        
-        return jwtEncoder.encode(parameters).getTokenValue();
-    }
-    
-    /**
-     * 만료된 토큰 생성 (테스트용)
-     */
-    public String generateExpiredToken() {
-        Instant now = Instant.now();
-        
-        // 1시간 전에 만료
-        Instant expiresAt = now.minus(1, ChronoUnit.HOURS);
-        
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+    );
+
+    return jwtEncoder.encode(parameters).getTokenValue();
+  }
+
+  /**
+   * 만료된 토큰 생성 (테스트용)
+   */
+  public String generateExpiredToken() {
+    Instant now = Instant.now();
+
+    // 1시간 전에 만료
+    Instant expiresAt = now.minus(1, ChronoUnit.HOURS);
+
+    JwtClaimsSet claims = JwtClaimsSet.builder()
             .subject("ffffffff-ffff-ffff-ffff-ffffffffffff")
             .issuedAt(now.minus(2, ChronoUnit.HOURS))
             .expiresAt(expiresAt)
@@ -100,12 +92,12 @@ public class JwtTestTokenGenerator {
             .claim("locale", "ko-KR")
             .claim("scope", "ROLE_USER")
             .build();
-            
-        JwtEncoderParameters parameters = JwtEncoderParameters.from(
+
+    JwtEncoderParameters parameters = JwtEncoderParameters.from(
             JwsHeader.with(SignatureAlgorithm.RS256).keyId("rsa-key-id").build(),
             claims
-        );
-        
-        return jwtEncoder.encode(parameters).getTokenValue();
-    }
+    );
+
+    return jwtEncoder.encode(parameters).getTokenValue();
+  }
 }

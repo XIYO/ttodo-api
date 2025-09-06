@@ -1,0 +1,170 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: point.ttodoApi.BoardHoleStructureAlignment
+displayName: Align with Board-hole DDD Structure
+description: Restructure packages to match board-hole architecture pattern
+recipeList:
+  # Phase 1: Application Layer DTO 재구조화
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.todo.application.dto.command
+      newPackageName: point.ttodoApi.todo.application.command
+      recursive: true
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.todo.application.dto.query  
+      newPackageName: point.ttodoApi.todo.application.query
+      recursive: true
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.todo.application.dto.result
+      newPackageName: point.ttodoApi.todo.application.result
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.member.application.dto.command
+      newPackageName: point.ttodoApi.member.application.command
+      recursive: true
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.member.application.dto.result
+      newPackageName: point.ttodoApi.member.application.result
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.challenge.application.dto.command
+      newPackageName: point.ttodoApi.challenge.application.command
+      recursive: true
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.challenge.application.dto.result
+      newPackageName: point.ttodoApi.challenge.application.result
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.experience.application.dto.result
+      newPackageName: point.ttodoApi.experience.application.result
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.category.application.dto.result
+      newPackageName: point.ttodoApi.category.application.result
+      recursive: true
+
+  # Phase 2: Presentation Layer 평탄화 - request 패키지
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.auth.presentation.dto.request
+      newPackageName: point.ttodoApi.auth.presentation.dto
+      recursive: false
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.todo.presentation.dto.request
+      newPackageName: point.ttodoApi.todo.presentation.dto
+      recursive: false
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.member.presentation.dto.request
+      newPackageName: point.ttodoApi.member.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.category.presentation.dto.request
+      newPackageName: point.ttodoApi.category.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.challenge.presentation.dto.request
+      newPackageName: point.ttodoApi.challenge.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.profile.presentation.dto.request
+      newPackageName: point.ttodoApi.profile.presentation.dto
+      recursive: false
+
+  # Phase 3: Presentation Layer 평탄화 - response 패키지
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.todo.presentation.dto.response
+      newPackageName: point.ttodoApi.todo.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.category.presentation.dto.response
+      newPackageName: point.ttodoApi.category.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.challenge.presentation.dto.response
+      newPackageName: point.ttodoApi.challenge.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.experience.presentation.dto.response
+      newPackageName: point.ttodoApi.experience.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.member.presentation.dto.response
+      newPackageName: point.ttodoApi.member.presentation.dto
+      recursive: false
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.profile.presentation.dto.response
+      newPackageName: point.ttodoApi.profile.presentation.dto
+      recursive: false
+
+  # Phase 4: Exception 중앙화
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.todo.exception
+      newPackageName: point.ttodoApi.shared.exception.todo
+      recursive: true
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.member.exception
+      newPackageName: point.ttodoApi.shared.exception.member
+      recursive: true
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.auth.exception
+      newPackageName: point.ttodoApi.shared.exception.auth
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.category.exception
+      newPackageName: point.ttodoApi.shared.exception.category
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.challenge.exception
+      newPackageName: point.ttodoApi.shared.exception.challenge
+      recursive: true
+
+  # Phase 5: Config 중앙화
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.auth.config
+      newPackageName: point.ttodoApi.shared.config.auth
+      recursive: true
+      
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.auth.security
+      newPackageName: point.ttodoApi.shared.security
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.member.config
+      newPackageName: point.ttodoApi.shared.config.member
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.challenge.config
+      newPackageName: point.ttodoApi.shared.config.challenge
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.todo.config
+      newPackageName: point.ttodoApi.shared.config.todo
+      recursive: true
+
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: point.ttodoApi.level.config
+      newPackageName: point.ttodoApi.shared.config.level
+      recursive: true

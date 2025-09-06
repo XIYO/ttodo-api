@@ -45,7 +45,7 @@ public class JwtConfig {
       generateFallbackKeys();
     }
   }
-  
+
   private void generateFallbackKeys() {
     try {
       KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");

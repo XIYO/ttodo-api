@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TTODO-API is a Spring Boot 3.5 backend API for personal TODO management with challenge and gamification features, following Domain-Driven Design (DDD) architecture.
+TTODO-API is a Spring Boot 3.5 backend API for personal TODO management with challenge and gamification features,
+following Domain-Driven Design (DDD) architecture.
 
 **Tech Stack**: Java 21, Spring Boot 3.5, PostgreSQL, Redis, JWT authentication, Testcontainers
 
@@ -100,35 +101,35 @@ point.ttodoApi.[domain]/
 
 ### Core Technical Patterns
 
-1. **JWT Authentication**: 
-   - RSA key pair for signing/verification
-   - HTTP-Only cookies for tokens (access-token, refresh-token)
-   - Redis for token blacklisting and refresh token storage
-   - MultiBearerTokenResolver for both Cookie and Bearer header support
+1. **JWT Authentication**:
+    - RSA key pair for signing/verification
+    - HTTP-Only cookies for tokens (access-token, refresh-token)
+    - Redis for token blacklisting and refresh token storage
+    - MultiBearerTokenResolver for both Cookie and Bearer header support
 
-2. **Dynamic Queries**: 
-   - JPA Criteria API for type-safe queries
-   - Specification pattern for search filters
-   - Dedicated search endpoints with dynamic parameters
+2. **Dynamic Queries**:
+    - JPA Criteria API for type-safe queries
+    - Specification pattern for search filters
+    - Dedicated search endpoints with dynamic parameters
 
 3. **Event-Driven Updates**:
-   - Spring Events for cross-domain communication
-   - Example: TodoCompletedEvent → ExperienceEventHandler → XP update
+    - Spring Events for cross-domain communication
+    - Example: TodoCompletedEvent → ExperienceEventHandler → XP update
 
 4. **Validation System**:
-   - Custom validators (e.g., `@UniqueEmail`, `@SafeHtml`)
-   - OWASP HTML Sanitizer for XSS prevention
-   - Bean Validation for request DTOs
+    - Custom validators (e.g., `@UniqueEmail`, `@SafeHtml`)
+    - OWASP HTML Sanitizer for XSS prevention
+    - Bean Validation for request DTOs
 
 5. **Error Handling**:
-   - GlobalExceptionHandler with RFC 7807 problem details
-   - Consistent error response format
-   - Domain-specific exceptions
+    - GlobalExceptionHandler with RFC 7807 problem details
+    - Consistent error response format
+    - Domain-specific exceptions
 
 6. **Testing Strategy**:
-   - BaseIntegrationTest with Testcontainers (PostgreSQL + Redis)
-   - Test security annotations: `@WithMockMemberPrincipal`, `@WithAnonUser`
-   - Pre-configured test JWT tokens in application-test.yml
+    - BaseIntegrationTest with Testcontainers (PostgreSQL + Redis)
+    - Test security annotations: `@WithMockMemberPrincipal`, `@WithAnonUser`
+    - Pre-configured test JWT tokens in application-test.yml
 
 ## Development Workflow
 
@@ -167,30 +168,35 @@ echo $SPRING_PROFILES_ACTIVE  # Should be 'dev' for local development
 ## Code Conventions
 
 ### Service Layer
+
 - `@Transactional` on write operations
 - Return domain objects or result DTOs
 - Throw domain exceptions (handled by GlobalExceptionHandler)
 - Use application commands/queries for complex operations
 
 ### Repository Layer
+
 - Extend `JpaRepository<Entity, UUID>` for basic CRUD
 - Create Specification classes for dynamic queries
 - Use `@Query` with JPQL for complex queries
 - Repository methods return domain entities
 
 ### Controller Layer
+
 - `@RestController` + `@RequestMapping`
 - HTTP status codes: 201 (created), 204 (no content), 200 (success)
 - Use `@Valid` for request validation
 - Map exceptions to appropriate HTTP responses
 
 ### DTO & Mapping Strategy
+
 - **Request DTOs**: `presentation/dto/request/` - API input validation
 - **Response DTOs**: `presentation/dto/response/` - API output formatting
 - **Commands/Queries**: `application/command/` and `application/query/` - Business operations
 - **MapStruct**: For DTO ↔ Domain mapping (see `*PresentationMapper` classes)
 
 ### Testing Patterns
+
 - Extend `BaseIntegrationTest` for integration tests (provides PostgreSQL/Redis containers)
 - Use `@WithMockMemberPrincipal` for authenticated endpoint tests
 - Test data uses UUIDs: `ffffffff-ffff-ffff-ffff-ffffffffffff` for anonymous user
@@ -199,6 +205,7 @@ echo $SPRING_PROFILES_ACTIVE  # Should be 'dev' for local development
 ## Current Improvement Areas
 
 From README.md DDD improvements section:
+
 - **DTO separation**: Move from using application commands directly to presentation-specific DTOs
 - **API versioning**: Implement consistent `/api/v1/` prefix
 - **RESTful design**: Convert RPC-style endpoints (`/join`, `/leave`) to resource-based
@@ -208,6 +215,7 @@ From README.md DDD improvements section:
 ## Environment Configuration
 
 ### Development (auto-configured)
+
 ```yaml
 # PostgreSQL (Docker Compose auto-starts)
 POSTGRES_HOST: localhost
@@ -222,6 +230,7 @@ REDIS_PORT: 6379
 ```
 
 ### Production (.env.prod)
+
 ```bash
 GITHUB_REPOSITORY=your-repo/ttodo-api
 POSTGRES_PASSWORD=secure_password

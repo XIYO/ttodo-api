@@ -1,25 +1,24 @@
 package point.ttodoApi.auth.application;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import point.ttodoApi.auth.config.properties.JwtProperties;
 import point.ttodoApi.auth.domain.*;
-import point.ttodoApi.shared.error.BusinessException;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
+import point.ttodoApi.shared.error.BusinessException;
 
-import jakarta.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.*;
 
 @Slf4j
 @Service
@@ -32,27 +31,24 @@ public class TokenService {
   public static final String LOCALE_CLAIM = "locale";
   public static final String SCOPE_CLAIM = "scope";
   public static final String SUB_CLAIM = "sub";
-  
+  private static final int MAX_LOCKS = 10000; // 최대 lock 개수 제한
   private final JwtProperties jwtProperties;
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
   private final MemberService memberService;
   private final ProfileService profileService;
   private final TokenRepository tokenRepository;
-  
   // 동시 리프레시 요청을 위한 캐시 (10초간 유지, 최대 1000개)
   private final Map<String, TokenPair> recentRefreshCache = new ConcurrentHashMap<>();
   private final ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
-  
   // deviceId별 lock 관리 (String.intern() 대체)
   private final Map<String, Lock> deviceLocks = new ConcurrentHashMap<>();
-  private static final int MAX_LOCKS = 10000; // 최대 lock 개수 제한
 
   /**
    * JWT 토큰을 생성합니다.
-   * 
-   * @param userId 사용자 ID
-   * @param expiresAt 토큰 만료 시간
+   *
+   * @param userId           사용자 ID
+   * @param expiresAt        토큰 만료 시간
    * @param additionalClaims 추가 클레임
    * @return 생성된 JWT 토큰 문자열
    */
@@ -62,19 +58,19 @@ public class TokenService {
             .subject(userId)
             .issuedAt(now)
             .expiresAt(expiresAt);
-    
+
     additionalClaims.forEach(claimsBuilder::claim);
     JwtClaimsSet claims = claimsBuilder.build();
     JwtEncoderParameters parameters = JwtEncoderParameters
             .from(JwsHeader.with(() -> "RS256").keyId(jwtProperties.keyId()).build(), claims);
     return jwtEncoder.encode(parameters).getTokenValue();
   }
-  
+
   /**
    * 만료 시간이 없는 JWT 토큰을 생성합니다.
    * 개발 및 테스트 환경에서만 사용해야 합니다.
-   * 
-   * @param userId 사용자 ID
+   *
+   * @param userId           사용자 ID
    * @param additionalClaims 추가 클레임
    * @return 만료되지 않는 JWT 토큰 문자열
    */
@@ -84,7 +80,7 @@ public class TokenService {
             .subject(userId)
             .issuedAt(now);
     // expiresAt을 설정하지 않음 - 만료 없음
-    
+
     additionalClaims.forEach(claimsBuilder::claim);
     JwtClaimsSet claims = claimsBuilder.build();
     JwtEncoderParameters parameters = JwtEncoderParameters
@@ -94,38 +90,38 @@ public class TokenService {
 
   /**
    * 액세스 토큰을 생성합니다.
-   * 
-   * @param id 사용자 ID
-   * @param email 사용자 이메일
+   *
+   * @param id       사용자 ID
+   * @param email    사용자 이메일
    * @param nickname 사용자 닉네임
    * @param timeZone 사용자 타임존
-   * @param locale 사용자 로케일
+   * @param locale   사용자 로케일
    * @return 생성된 액세스 토큰
    */
   public String generateAccessToken(String id, String email, String nickname, String timeZone, String locale) {
     return generateAccessToken(id, email, nickname, timeZone, locale, false);
   }
-  
+
   /**
    * 액세스 토큰을 생성합니다.
-   * 
-   * @param id 사용자 ID
-   * @param email 사용자 이메일
-   * @param nickname 사용자 닉네임
-   * @param timeZone 사용자 타임존
-   * @param locale 사용자 로케일
+   *
+   * @param id          사용자 ID
+   * @param email       사용자 이메일
+   * @param nickname    사용자 닉네임
+   * @param timeZone    사용자 타임존
+   * @param locale      사용자 로케일
    * @param neverExpire true인 경우 만료되지 않는 토큰 생성 (개발/테스트용)
    * @return 생성된 액세스 토큰
    */
   public String generateAccessToken(String id, String email, String nickname, String timeZone, String locale, boolean neverExpire) {
     Map<String, Object> claims = Map.of(
-      EMAIL_CLAIM, email,
-      NICKNAME_CLAIM, nickname,
-      TIME_ZONE_CLAIM, timeZone,
-      LOCALE_CLAIM, locale,
-      SCOPE_CLAIM, "ROLE_USER"
+            EMAIL_CLAIM, email,
+            NICKNAME_CLAIM, nickname,
+            TIME_ZONE_CLAIM, timeZone,
+            LOCALE_CLAIM, locale,
+            SCOPE_CLAIM, "ROLE_USER"
     );
-    
+
     if (neverExpire) {
       // 만료 없는 토큰 생성 (개발/테스트 환경용)
       return generateToken(id, claims);
@@ -135,12 +131,12 @@ public class TokenService {
       return generateToken(id, expiresAt, claims);
     }
   }
-  
+
 
   /**
    * 리프레시 토큰을 생성합니다.
-   * 
-   * @param id 사용자 ID
+   *
+   * @param id     사용자 ID
    * @param device 디바이스 ID
    * @return 생성된 리프레시 토큰
    */
@@ -212,7 +208,7 @@ public class TokenService {
       log.info("Returning cached token for concurrent refresh request: deviceId={}", deviceId);
       return cached;
     }
-    
+
     // 동일 디바이스에 대한 동시 요청 방지 (String.intern() 대신 안전한 lock 사용)
     Lock lock = getOrCreateLock(deviceId);
     lock.lock();
@@ -222,13 +218,13 @@ public class TokenService {
       if (cached != null) {
         return cached;
       }
-      
+
       validateAndDeleteInvalidToken(deviceId, oldRefreshToken);
-      
+
       UUID memberId = UUID.fromString(extractClaim(oldRefreshToken, SUB_CLAIM));
       Member member = memberService.findVerifiedMember(memberId);
       Profile profile = profileService.getProfile(memberId);
-      
+
       String newAccessToken = generateAccessToken(
               memberId.toString(),
               member.getEmail(),
@@ -237,9 +233,9 @@ public class TokenService {
               profile.getLocale());
       String newRefreshToken = generateRefreshToken(memberId.toString(), deviceId);
       save(deviceId, newRefreshToken);
-      
+
       TokenPair newTokens = new TokenPair(newAccessToken, newRefreshToken);
-      
+
       // 캐시에 저장하고 10초 후 자동 제거 (캐시 크기 제한 확인)
       if (recentRefreshCache.size() < 1000) {
         recentRefreshCache.put(cacheKey, newTokens);
@@ -248,7 +244,7 @@ public class TokenService {
           log.debug("Removed cached token for key: {}", cacheKey);
         }, 10, TimeUnit.SECONDS);
       }
-      
+
       return newTokens;
     } finally {
       lock.unlock();
@@ -262,11 +258,6 @@ public class TokenService {
       tokenRepository.delete(deviceId);
       throw new BusinessException("Invalid refresh token");
     }
-  }
-
-  public record TokenPair(
-          @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String accessToken,
-          @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String refreshToken) {
   }
 
   public TokenResult generateTokens(MemberPrincipal member) {
@@ -283,7 +274,6 @@ public class TokenService {
     return new TokenResult(accessToken, refreshToken, deviceId);
   }
 
-  
   /**
    * deviceId에 대한 Lock을 가져오거나 생성
    * String.intern() 대신 안전한 lock 관리 방식
@@ -291,7 +281,7 @@ public class TokenService {
   private Lock getOrCreateLock(String deviceId) {
     return deviceLocks.computeIfAbsent(deviceId, k -> new ReentrantLock());
   }
-  
+
   /**
    * Lock 개수가 너무 많아지면 오래된 것 정리
    * 메모리 누수 방지
@@ -323,7 +313,7 @@ public class TokenService {
       });
     }
   }
-  
+
   /**
    * 애플리케이션 종료 시 리소스 정리
    */
@@ -339,6 +329,11 @@ public class TokenService {
       cleanupExecutor.shutdownNow();
       Thread.currentThread().interrupt();
     }
+  }
+
+  public record TokenPair(
+          @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String accessToken,
+          @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String refreshToken) {
   }
 
   public record TokenResult(String accessToken, String refreshToken, String deviceId) {

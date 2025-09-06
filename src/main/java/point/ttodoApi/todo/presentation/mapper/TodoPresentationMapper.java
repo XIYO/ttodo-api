@@ -1,22 +1,22 @@
 package point.ttodoApi.todo.presentation.mapper;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mapstruct.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.shared.config.MapStructConfig;
-import point.ttodoApi.todo.application.dto.command.*;
-import point.ttodoApi.todo.application.dto.query.TodoSearchQuery;
-import point.ttodoApi.todo.application.dto.result.TodoResult;
+import point.ttodoApi.todo.application.command.*;
+import point.ttodoApi.todo.application.query.TodoSearchQuery;
+import point.ttodoApi.todo.application.result.TodoResult;
 import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.presentation.dto.request.*;
-import point.ttodoApi.todo.presentation.dto.response.TodoResponse;
+import point.ttodoApi.todo.presentation.dto.*;
 
 import java.util.UUID;
 
 @Mapper(config = MapStructConfig.class, imports = {PageRequest.class}, componentModel = "spring", uses = {RecurrenceRuleMapper.class})
 @Component
 public abstract class TodoPresentationMapper {
-  
+
   @org.springframework.beans.factory.annotation.Autowired
   private ObjectMapper objectMapper;
 
@@ -44,20 +44,20 @@ public abstract class TodoPresentationMapper {
   @Mapping(target = "endDate", expression = "java(request.getEndDate())")
   @Mapping(target = "tags", ignore = true)
   public abstract TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
-  
+
   // dates 처리 헬퍼 메서드들
   protected java.time.LocalDate processSingleDate(java.util.List<java.time.LocalDate> dates) {
     if (dates == null || dates.isEmpty()) return null;
     return dates.size() == 1 ? dates.get(0) : null;
   }
-  
+
   protected java.time.LocalDate processStartDate(java.util.List<java.time.LocalDate> dates) {
     if (dates == null || dates.isEmpty()) return null;
     if (dates.size() == 1) return dates.get(0);  // 단일 날짜일 때도 startDate로 설정
     if (dates.size() == 2) return dates.get(0);
     return java.util.Collections.min(dates);
   }
-  
+
   protected java.time.LocalDate processEndDate(java.util.List<java.time.LocalDate> dates) {
     if (dates == null || dates.isEmpty()) return null;
     if (dates.size() == 1) return dates.get(0);  // 단일 날짜일 때도 endDate로 설정
@@ -67,7 +67,7 @@ public abstract class TodoPresentationMapper {
 
   // Response 매핑
   public abstract TodoResponse toResponse(TodoResult todoResult);
-  
+
   // Domain Entity to Response 매핑
   public abstract TodoResponse toResponse(Todo todo);
 
@@ -87,13 +87,13 @@ public abstract class TodoPresentationMapper {
   // 헬퍼 메서드
   public boolean isOnlyCompleteFieldUpdate(UpdateTodoRequest request) {
     return request.complete() != null &&
-           (request.title() == null || request.title().trim().isEmpty()) &&
-           (request.description() == null || request.description().trim().isEmpty()) &&
-           request.priorityId() == null &&
-           request.categoryId() == null &&
-           request.date() == null &&
-           request.time() == null &&
-           request.recurrenceRuleJson() == null &&
-           (request.tags() == null || request.tags().isEmpty());
+            (request.title() == null || request.title().trim().isEmpty()) &&
+            (request.description() == null || request.description().trim().isEmpty()) &&
+            request.priorityId() == null &&
+            request.categoryId() == null &&
+            request.date() == null &&
+            request.time() == null &&
+            request.recurrenceRuleJson() == null &&
+            (request.tags() == null || request.tags().isEmpty());
   }
 }

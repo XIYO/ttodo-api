@@ -11,30 +11,30 @@ import point.ttodoApi.member.application.event.MemberCreatedEvent;
 @Component
 @RequiredArgsConstructor
 public class ExperienceEventHandler {
-    private final MemberExperienceRepository repository;
-    private final ExperienceService experienceService;
+  private final MemberExperienceRepository repository;
+  private final ExperienceService experienceService;
 
-    @EventListener
-    public void handleMemberCreated(MemberCreatedEvent event) {
-        repository.findByOwnerId(event.memberId())
-                .orElseGet(() -> repository.save(MemberExperience.builder()
-                        .ownerId(event.memberId())
-                        .experience(0)
-                        .build()));
-    }
+  @EventListener
+  public void handleMemberCreated(MemberCreatedEvent event) {
+    repository.findByOwnerId(event.memberId())
+            .orElseGet(() -> repository.save(MemberExperience.builder()
+                    .ownerId(event.memberId())
+                    .experience(0)
+                    .build()));
+  }
 
-    @EventListener
-    public void handleTodoCompleted(TodoCompletedEvent event) {
-        experienceService.addExperience(event.memberId(), 10);
-    }
+  @EventListener
+  public void handleTodoCompleted(TodoCompletedEvent event) {
+    experienceService.addExperience(event.memberId(), 10);
+  }
 
-    @EventListener
-    public void handleTodoUncompleted(TodoUncompletedEvent event) {
-        experienceService.subtractExperience(event.memberId(), 10);
-    }
+  @EventListener
+  public void handleTodoUncompleted(TodoUncompletedEvent event) {
+    experienceService.subtractExperience(event.memberId(), 10);
+  }
 
-    @EventListener
-    public void handleChallengeTodoCompleted(ChallengeTodoCompletedEvent event) {
-        experienceService.addExperience(event.memberId(), 20);
-    }
+  @EventListener
+  public void handleChallengeTodoCompleted(ChallengeTodoCompletedEvent event) {
+    experienceService.addExperience(event.memberId(), 20);
+  }
 }

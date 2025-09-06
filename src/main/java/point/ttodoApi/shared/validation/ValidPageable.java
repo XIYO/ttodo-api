@@ -10,16 +10,16 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ValidPageable {
-    
-    /**
-     * 허용할 정렬 필드 제공자
-     * 기본값은 COMMON (id, createdAt, updatedAt만 허용)
-     */
-    SortFieldsProvider sortFields() default SortFieldsProvider.COMMON;
-    
-    /**
-     * 최대 페이지 크기 (기본값: 100)
-     * PageableConfig의 전역 설정을 오버라이드할 때 사용
-     */
-    int maxPageSize() default 100;
+
+  /**
+   * 허용할 정렬 필드 제공자
+   * 기본값은 COMMON (id, createdAt, updatedAt만 허용)
+   */
+  SortFieldsProvider sortFields() default SortFieldsProvider.COMMON;
+
+  /**
+   * 최대 페이지 크기 (기본값: 100)
+   * PageableConfig의 전역 설정을 오버라이드할 때 사용
+   */
+  int maxPageSize() default 100;
 }

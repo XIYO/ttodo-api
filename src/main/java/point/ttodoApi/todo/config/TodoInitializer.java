@@ -11,8 +11,8 @@ import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.todo.domain.TodoTemplate;
-import point.ttodoApi.todo.infrastructure.persistence.TodoTemplateRepository;
 import point.ttodoApi.todo.domain.recurrence.*;
+import point.ttodoApi.todo.infrastructure.persistence.TodoTemplateRepository;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -49,14 +49,14 @@ public class TodoInitializer implements ApplicationRunner {
       log.debug("Member {} is not the target anon user, skipping initialization", member.getNickname());
       return;
     }
-    
+
     if (!todoTemplateRepository.findByOwnerId(member.getId()).isEmpty()) {
       log.debug("Member {} already has todos, skipping initialization", member.getNickname());
       return;
     }
 
     createDummyCategoriesForMember(member);
-    
+
     List<Category> categories = categoryRepository.findByOwnerIdOrderByNameAsc(member.getId());
     Map<String, Category> categoryMap = new HashMap<>();
     for (Category c : categories) categoryMap.put(c.getName(), c);
@@ -71,7 +71,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("시작", "튜토리얼"))
-            
+
             .owner(member)
             .build());
 
@@ -102,7 +102,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("일기", "성찰", "습관"))
-            
+
             .owner(member)
             .build());
 
@@ -133,7 +133,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("독서", "성장", "지식"))
-            
+
             .owner(member)
             .build());
 
@@ -144,7 +144,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("취미", "영화", "여가"))
-            
+
             .owner(member)
             .build());
 
@@ -155,7 +155,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("미용", "예약", "관리"))
-            
+
             .owner(member)
             .build());
 
@@ -166,7 +166,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("청소", "정리", "집"))
-            
+
             .owner(member)
             .build());
 
@@ -177,7 +177,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("건강", "쇼핑", "영양제"))
-            
+
             .owner(member)
             .build());
 
@@ -188,7 +188,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("쇼핑", "패션", "신발"))
-            
+
             .owner(member)
             .build());
 
@@ -199,7 +199,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("커피", "쇼핑", "취미"))
-            
+
             .owner(member)
             .build());
 
@@ -210,7 +210,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("블로그", "글쓰기", "취미"))
-            
+
             .owner(member)
             .build());
 
@@ -221,7 +221,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("식물", "가꾸기", "집"))
-            
+
             .owner(member)
             .build());
 
@@ -232,7 +232,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("독서", "모임", "발표"))
-            
+
             .owner(member)
             .build());
 
@@ -243,7 +243,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("디자인", "명함", "피드백"))
-            
+
             .owner(member)
             .build());
 
@@ -254,7 +254,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("개인", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("여행", "계획", "휴가"))
-            
+
             .owner(member)
             .build());
 
@@ -266,7 +266,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("회의", "업무", "중요"))
-            
+
             .owner(member)
             .build());
 
@@ -277,7 +277,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("보고서", "업무", "마감"))
-            
+
             .owner(member)
             .build());
 
@@ -288,7 +288,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("프로젝트", "일정", "관리"))
-            
+
             .owner(member)
             .build());
 
@@ -299,7 +299,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("미팅", "팀워크", "협업"))
-            
+
             .owner(member)
             .build());
 
@@ -310,7 +310,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("이메일", "정리", "커뮤니케이션"))
-            
+
             .owner(member)
             .build());
 
@@ -321,7 +321,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("교육", "인사", "매뉴얼"))
-            
+
             .owner(member)
             .build());
 
@@ -332,7 +332,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("거래처", "계약", "미팅"))
-            
+
             .owner(member)
             .build());
 
@@ -343,7 +343,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("분석", "실적", "보고서"))
-            
+
             .owner(member)
             .build());
 
@@ -354,7 +354,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("경비", "정산", "출장"))
-            
+
             .owner(member)
             .build());
 
@@ -365,7 +365,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("고객", "피드백", "개선"))
-            
+
             .owner(member)
             .build());
 
@@ -376,7 +376,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("웹사이트", "UI", "기획"))
-            
+
             .owner(member)
             .build());
 
@@ -387,7 +387,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("매뉴얼", "프로세스", "문서"))
-            
+
             .owner(member)
             .build());
 
@@ -398,7 +398,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("마케팅", "전략", "회의"))
-            
+
             .owner(member)
             .build());
 
@@ -409,7 +409,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("인사", "평가", "관리"))
-            
+
             .owner(member)
             .build());
 
@@ -420,7 +420,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("개발", "API", "문서"))
-            
+
             .owner(member)
             .build());
 
@@ -431,7 +431,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("업무", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("리스크", "관리", "프로젝트"))
-            
+
             .owner(member)
             .build());
 
@@ -443,7 +443,7 @@ public class TodoInitializer implements ApplicationRunner {
             .date(LocalDate.now().plusDays(7))
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .tags(Set.of("영어", "학습", "반복"))
-            
+
             .owner(member)
             .build());
 
@@ -454,7 +454,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("알고리즘", "코딩", "문제해결"))
-            
+
             .owner(member)
             .build());
 
@@ -465,7 +465,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("개발", "스프링", "강의"))
-            
+
             .owner(member)
             .build());
 
@@ -476,7 +476,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("데이터", "분석", "과제"))
-            
+
             .owner(member)
             .build());
 
@@ -487,7 +487,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("일본어", "문법", "복습"))
-            
+
             .owner(member)
             .build());
 
@@ -498,7 +498,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("개발", "디자인패턴", "스터디"))
-            
+
             .owner(member)
             .build());
 
@@ -509,7 +509,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("통계", "수학", "복습"))
-            
+
             .owner(member)
             .build());
 
@@ -520,7 +520,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("AWS", "클라우드", "IT"))
-            
+
             .owner(member)
             .build());
 
@@ -531,7 +531,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("마케팅", "독서", "전략"))
-            
+
             .owner(member)
             .build());
 
@@ -542,7 +542,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("재테크", "투자", "강의"))
-            
+
             .owner(member)
             .build());
 
@@ -553,7 +553,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("디자인", "포토샵", "실습"))
-            
+
             .owner(member)
             .build());
 
@@ -564,7 +564,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("데이터베이스", "SQL", "개발"))
-            
+
             .owner(member)
             .build());
 
@@ -575,7 +575,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("스페인어", "회화", "언어"))
-            
+
             .owner(member)
             .build());
 
@@ -586,7 +586,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("심리학", "논문", "연구"))
-            
+
             .owner(member)
             .build());
 
@@ -597,7 +597,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("공부", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("기획", "문서", "프로젝트"))
-            
+
             .owner(member)
             .build());
 
@@ -609,7 +609,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("가족", "식사", "저녁"))
-            
+
             .owner(member)
             .build());
 
@@ -620,7 +620,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("선물", "부모님", "효도"))
-            
+
             .owner(member)
             .build());
 
@@ -631,7 +631,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("여행", "가족", "계획"))
-            
+
             .owner(member)
             .build());
 
@@ -642,7 +642,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("병원", "아이", "건강"))
-            
+
             .owner(member)
             .build());
 
@@ -653,7 +653,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("모임", "친척", "준비"))
-            
+
             .owner(member)
             .build());
 
@@ -664,7 +664,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("상담", "학교", "교육"))
-            
+
             .owner(member)
             .build());
 
@@ -675,7 +675,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("사진", "추억", "정리"))
-            
+
             .owner(member)
             .build());
 
@@ -686,7 +686,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("교육", "학원", "아이"))
-            
+
             .owner(member)
             .build());
 
@@ -697,7 +697,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("명절", "준비", "계획"))
-            
+
             .owner(member)
             .build());
 
@@ -708,7 +708,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("가족", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("식단", "계획", "가족"))
-            
+
             .owner(member)
             .build());
 
@@ -720,7 +720,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("친구", "점심", "사교"))
-            
+
             .owner(member)
             .build());
 
@@ -731,7 +731,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("동창회", "친구", "모임"))
-            
+
             .owner(member)
             .build());
 
@@ -742,7 +742,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("업무", "미팅", "네트워킹"))
-            
+
             .owner(member)
             .build());
 
@@ -753,7 +753,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("멘토링", "경력", "성장"))
-            
+
             .owner(member)
             .build());
 
@@ -764,7 +764,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("생일", "축하", "친구"))
-            
+
             .owner(member)
             .build());
 
@@ -775,7 +775,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("스터디", "개발", "학습"))
-            
+
             .owner(member)
             .build());
 
@@ -786,7 +786,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("취미", "사진", "모임"))
-            
+
             .owner(member)
             .build());
 
@@ -797,7 +797,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("병원", "건강", "검진"))
-            
+
             .owner(member)
             .build());
 
@@ -808,7 +808,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("부동산", "상담", "주택"))
-            
+
             .owner(member)
             .build());
 
@@ -819,7 +819,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("약속", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("컨퍼런스", "개발", "온라인"))
-            
+
             .owner(member)
             .build());
 
@@ -831,7 +831,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("운동", "건강", "복근"))
-            
+
             .owner(member)
             .build());
 
@@ -842,7 +842,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("PT", "헬스", "예약"))
-            
+
             .owner(member)
             .build());
 
@@ -853,7 +853,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("쇼핑", "운동용품", "러닝"))
-            
+
             .owner(member)
             .build());
 
@@ -864,7 +864,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("필라테스", "코어", "건강"))
-            
+
             .owner(member)
             .build());
 
@@ -875,7 +875,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(2))
             .tags(Set.of("홈트", "HIIT", "스쿼트"))
-            
+
             .owner(member)
             .build());
 
@@ -886,7 +886,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("등산", "아웃도어", "취미"))
-            
+
             .owner(member)
             .build());
 
@@ -897,7 +897,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("수영", "강습", "기술"))
-            
+
             .owner(member)
             .build());
 
@@ -908,7 +908,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("요가", "명상", "스트레칭"))
-            
+
             .owner(member)
             .build());
 
@@ -919,7 +919,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(3))
             .tags(Set.of("식단", "영양", "건강"))
-            
+
             .owner(member)
             .build());
 
@@ -930,7 +930,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(2))
             .tags(Set.of("테니스", "레슨", "기술"))
-            
+
             .owner(member)
             .build());
 
@@ -941,7 +941,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(3))
             .tags(Set.of("축구", "동호회", "사교"))
-            
+
             .owner(member)
             .build());
 
@@ -952,7 +952,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().minusDays(1))
             .tags(Set.of("인바디", "측정", "목표"))
-            
+
             .owner(member)
             .build());
 
@@ -963,7 +963,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now())
             .tags(Set.of("사이클링", "자전거", "한강"))
-            
+
             .owner(member)
             .build());
 
@@ -974,7 +974,7 @@ public class TodoInitializer implements ApplicationRunner {
             .category(categoryMap.getOrDefault("운동", categories.isEmpty() ? null : categories.getFirst()))
             .date(LocalDate.now().plusDays(1))
             .tags(Set.of("스트레칭", "유연성", "몸관리"))
-            
+
             .owner(member)
             .build());
 
@@ -984,11 +984,11 @@ public class TodoInitializer implements ApplicationRunner {
 
   private void createDummyCategoriesForMember(Member member) {
     var defaultCategory = Category.builder()
-        .name("기본")
-        .color(null)
-        .description(null)
-        .owner(member)
-        .build();
+            .name("기본")
+            .color(null)
+            .description(null)
+            .owner(member)
+            .build();
     categoryRepository.save(defaultCategory);
   }
 }

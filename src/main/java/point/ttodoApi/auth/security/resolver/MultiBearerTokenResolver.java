@@ -37,8 +37,8 @@ public class MultiBearerTokenResolver implements BearerTokenResolver {
 
       // 모든 쿠키 이름 로깅
       String cookieNames = Arrays.stream(request.getCookies())
-          .map(Cookie::getName)
-          .collect(Collectors.joining(", "));
+              .map(Cookie::getName)
+              .collect(Collectors.joining(", "));
       log.info("Available cookies: {}", cookieNames);
 
       // JWT 쿠키 설정 이름 로깅

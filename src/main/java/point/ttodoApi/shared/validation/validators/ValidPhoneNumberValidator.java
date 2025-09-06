@@ -10,24 +10,24 @@ import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
 @RequiredArgsConstructor
 public class ValidPhoneNumberValidator implements ConstraintValidator<ValidPhoneNumber, String> {
 
-    private final ValidationUtils validationUtils;
-    private String region;
+  private final ValidationUtils validationUtils;
+  private String region;
 
-    @Override
-    public void initialize(ValidPhoneNumber constraintAnnotation) {
-        this.region = constraintAnnotation.region();
+  @Override
+  public void initialize(ValidPhoneNumber constraintAnnotation) {
+    this.region = constraintAnnotation.region();
+  }
+
+  @Override
+  public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null || value.isEmpty()) {
+      return true;
     }
 
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isEmpty()) {
-            return true;
-        }
-
-        if (!"KR".equals(region)) {
-            return true;
-        }
-
-        return validationUtils.isValidPhoneNumber(value);
+    if (!"KR".equals(region)) {
+      return true;
     }
+
+    return validationUtils.isValidPhoneNumber(value);
+  }
 }

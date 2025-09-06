@@ -10,14 +10,14 @@ import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
 @RequiredArgsConstructor
 public class NoSqlInjectionValidator implements ConstraintValidator<NoSqlInjection, String> {
 
-    private final ValidationUtils validationUtils;
+  private final ValidationUtils validationUtils;
 
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isEmpty()) {
-            return true;
-        }
-
-        return !validationUtils.containsSqlInjectionPattern(value);
+  @Override
+  public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null || value.isEmpty()) {
+      return true;
     }
+
+    return !validationUtils.containsSqlInjectionPattern(value);
+  }
 }

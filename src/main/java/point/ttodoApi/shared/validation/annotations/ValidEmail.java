@@ -9,11 +9,11 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = {point.ttodoApi.shared.validation.validators.ValidEmailValidator.class})
 @Documented
 public @interface ValidEmail {
-    String message() default "Invalid email address or email domain is not allowed";
-    
-    Class<?>[] groups() default {};
-    
-    Class<? extends Payload>[] payload() default {};
-    
-    boolean allowDisposable() default false;
+  String message() default "Invalid email address or email domain is not allowed";
+
+  Class<?>[] groups() default {};
+
+  Class<? extends Payload>[] payload() default {};
+
+  boolean allowDisposable() default false;
 }

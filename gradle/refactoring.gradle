@@ -1,0 +1,518 @@
+// Board-hole 스타일 리팩토링 자동화 태스크
+
+// 디렉토리 구조 생성 태스크
+task createBoardHoleStructure {
+    group = 'refactoring'
+    description = 'Create board-hole style directory structure'
+    
+    doLast {
+        def domains = ['todo', 'member', 'auth', 'category', 'challenge', 'experience', 'profile', 'level']
+        def srcBase = file('src/main/java/point/ttodoApi')
+        
+        println "🏗️  Creating board-hole directory structure..."
+        
+        domains.each { domain ->
+            def domainPath = "${srcBase}/${domain}"
+            
+            // Domain validation 디렉토리 생성
+            file("${domainPath}/domain/validation/required").mkdirs()
+            file("${domainPath}/domain/validation/optional").mkdirs()
+            
+            // Application 서브디렉토리 생성/확인
+            file("${domainPath}/application/command").mkdirs()
+            file("${domainPath}/application/query").mkdirs()
+            file("${domainPath}/application/event").mkdirs()
+            file("${domainPath}/application/result").mkdirs()
+            file("${domainPath}/application/mapper").mkdirs()
+            
+            // Presentation 기본 구조 확인
+            file("${domainPath}/presentation/dto").mkdirs()
+            file("${domainPath}/presentation/mapper").mkdirs()
+            
+            println "✅ Created structure for domain: ${domain}"
+        }
+        
+        // Shared 구조 생성
+        file("${srcBase}/shared/exception").mkdirs()
+        file("${srcBase}/shared/config").mkdirs()
+        file("${srcBase}/shared/security").mkdirs()
+        
+        domains.each { domain ->
+            file("${srcBase}/shared/exception/${domain}").mkdirs()
+            file("${srcBase}/shared/config/${domain}").mkdirs()
+        }
+        
+        println "✅ Created shared structure with domain-specific subdirectories"
+        println "🎯 Board-hole directory structure creation completed!"
+    }
+}
+
+// 파일 물리적 이동 태스크
+task moveFilesToBoardHoleStructure {
+    group = 'refactoring'
+    description = 'Move files to match board-hole structure'
+    dependsOn createBoardHoleStructure
+    
+    doLast {
+        def srcBase = file('src/main/java/point/ttodoApi')
+        def moveCount = 0
+        
+        println "📁 Moving files to board-hole structure..."
+        
+        // Application layer DTOs 이동
+        println "📦 Moving application layer files..."
+        
+        // Command files
+        fileTree(srcBase) {
+            include '**/application/dto/command/*.java'
+        }.each { file ->
+            def targetDir = file.parentFile.parentFile.parentFile
+            def commandDir = new File(targetDir, 'command')
+            if (!commandDir.exists()) commandDir.mkdirs()
+            
+            def targetFile = new File(commandDir, file.name)
+            if (file.renameTo(targetFile)) {
+                println "  Moved: ${file.name} → command/"
+                moveCount++
+            }
+        }
+        
+        // Query files
+        fileTree(srcBase) {
+            include '**/application/dto/query/*.java'
+        }.each { file ->
+            def targetDir = file.parentFile.parentFile.parentFile
+            def queryDir = new File(targetDir, 'query')
+            if (!queryDir.exists()) queryDir.mkdirs()
+            
+            def targetFile = new File(queryDir, file.name)
+            if (file.renameTo(targetFile)) {
+                println "  Moved: ${file.name} → query/"
+                moveCount++
+            }
+        }
+        
+        // Result files
+        fileTree(srcBase) {
+            include '**/application/dto/result/*.java'
+        }.each { file ->
+            def targetDir = file.parentFile.parentFile.parentFile
+            def resultDir = new File(targetDir, 'result')
+            if (!resultDir.exists()) resultDir.mkdirs()
+            
+            def targetFile = new File(resultDir, file.name)
+            if (file.renameTo(targetFile)) {
+                println "  Moved: ${file.name} → result/"
+                moveCount++
+            }
+        }
+        
+        // Presentation DTOs 평탄화
+        println "🎨 Flattening presentation layer files..."
+        
+        // Request files
+        fileTree(srcBase) {
+            include '**/presentation/dto/request/*.java'
+        }.each { file ->
+            def dtoDir = file.parentFile.parentFile
+            def targetFile = new File(dtoDir, file.name)
+            if (file.renameTo(targetFile)) {
+                println "  Flattened: ${file.name} (request → dto)"
+                moveCount++
+            }
+        }
+        
+        // Response files
+        fileTree(srcBase) {
+            include '**/presentation/dto/response/*.java'
+        }.each { file ->
+            def dtoDir = file.parentFile.parentFile
+            def targetFile = new File(dtoDir, file.name)
+            if (file.renameTo(targetFile)) {
+                println "  Flattened: ${file.name} (response → dto)"
+                moveCount++
+            }
+        }
+        
+        // Exception files 이동
+        println "⚠️  Moving exception files to shared..."
+        
+        def domains = ['todo', 'member', 'auth', 'category', 'challenge', 'experience']
+        domains.each { domain ->
+            def exceptionDir = new File(srcBase, "${domain}/exception")
+            if (exceptionDir.exists()) {
+                def sharedExceptionDir = new File(srcBase, "shared/exception/${domain}")
+                if (!sharedExceptionDir.exists()) sharedExceptionDir.mkdirs()
+                
+                exceptionDir.listFiles()?.each { file ->
+                    if (file.isFile() && file.name.endsWith('.java')) {
+                        def targetFile = new File(sharedExceptionDir, file.name)
+                        if (file.renameTo(targetFile)) {
+                            println "  Moved exception: ${file.name} → shared/exception/${domain}/"
+                            moveCount++
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Config files 이동
+        println "⚙️  Moving config files to shared..."
+        
+        domains.each { domain ->
+            def configDir = new File(srcBase, "${domain}/config")
+            if (configDir.exists()) {
+                def sharedConfigDir = new File(srcBase, "shared/config/${domain}")
+                if (!sharedConfigDir.exists()) sharedConfigDir.mkdirs()
+                
+                configDir.listFiles()?.each { file ->
+                    if (file.isFile() && file.name.endsWith('.java')) {
+                        def targetFile = new File(sharedConfigDir, file.name)
+                        if (file.renameTo(targetFile)) {
+                            println "  Moved config: ${file.name} → shared/config/${domain}/"
+                            moveCount++
+                        }
+                    } else if (file.isDirectory()) {
+                        // 서브디렉토리도 처리
+                        def targetSubDir = new File(sharedConfigDir, file.name)
+                        if (!targetSubDir.exists()) targetSubDir.mkdirs()
+                        
+                        file.listFiles()?.each { subFile ->
+                            if (subFile.isFile() && subFile.name.endsWith('.java')) {
+                                def targetFile = new File(targetSubDir, subFile.name)
+                                if (subFile.renameTo(targetFile)) {
+                                    println "  Moved config: ${subFile.name} → shared/config/${domain}/${file.name}/"
+                                    moveCount++
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Security files 이동 (auth domain specific)
+        def securityDir = new File(srcBase, "auth/security")
+        if (securityDir.exists()) {
+            def sharedSecurityDir = new File(srcBase, "shared/security")
+            if (!sharedSecurityDir.exists()) sharedSecurityDir.mkdirs()
+            
+            securityDir.listFiles()?.each { file ->
+                if (file.isFile() && file.name.endsWith('.java')) {
+                    def targetFile = new File(sharedSecurityDir, file.name)
+                    if (file.renameTo(targetFile)) {
+                        println "  Moved security: ${file.name} → shared/security/"
+                        moveCount++
+                    }
+                } else if (file.isDirectory()) {
+                    def targetSubDir = new File(sharedSecurityDir, file.name)
+                    if (!targetSubDir.exists()) targetSubDir.mkdirs()
+                    
+                    file.listFiles()?.each { subFile ->
+                        if (subFile.isFile() && subFile.name.endsWith('.java')) {
+                            def targetFile = new File(targetSubDir, subFile.name)
+                            if (subFile.renameTo(targetFile)) {
+                                println "  Moved security: ${subFile.name} → shared/security/${file.name}/"
+                                moveCount++
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        println "🎯 File movement completed! Total files moved: ${moveCount}"
+    }
+}
+
+// 패키지 선언 업데이트 태스크
+task updatePackageDeclarations {
+    group = 'refactoring'
+    description = 'Update package declarations after moving files'
+    
+    doLast {
+        println "📝 Updating package declarations..."
+        
+        def updateCount = 0
+        
+        // Application layer 패키지 선언 업데이트
+        fileTree('src/main/java') {
+            include '**/*.java'
+        }.each { file ->
+            def content = file.text
+            def originalContent = content
+            
+            // application.dto.command → application.command
+            content = content.replaceAll(
+                /package (.*?)\.application\.dto\.command;/,
+                'package $1.application.command;'
+            )
+            
+            // application.dto.query → application.query
+            content = content.replaceAll(
+                /package (.*?)\.application\.dto\.query;/,
+                'package $1.application.query;'
+            )
+            
+            // application.dto.result → application.result
+            content = content.replaceAll(
+                /package (.*?)\.application\.dto\.result;/,
+                'package $1.application.result;'
+            )
+            
+            // presentation.dto.request → presentation.dto
+            content = content.replaceAll(
+                /package (.*?)\.presentation\.dto\.request;/,
+                'package $1.presentation.dto;'
+            )
+            
+            // presentation.dto.response → presentation.dto
+            content = content.replaceAll(
+                /package (.*?)\.presentation\.dto\.response;/,
+                'package $1.presentation.dto;'
+            )
+            
+            // domain.exception → shared.exception.domain
+            content = content.replaceAll(
+                /package point\.ttodoApi\.(.*?)\.exception;/,
+                'package point.ttodoApi.shared.exception.$1;'
+            )
+            
+            // domain.config → shared.config.domain
+            content = content.replaceAll(
+                /package point\.ttodoApi\.(.*?)\.config(\..*?)?;/,
+                'package point.ttodoApi.shared.config.$1$2;'
+            )
+            
+            // auth.security → shared.security
+            content = content.replaceAll(
+                /package point\.ttodoApi\.auth\.security(\..*?)?;/,
+                'package point.ttodoApi.shared.security$1;'
+            )
+            
+            if (content != originalContent) {
+                file.text = content
+                updateCount++
+                println "  Updated package declaration in: ${file.name}"
+            }
+        }
+        
+        println "✅ Package declarations updated in ${updateCount} files"
+    }
+}
+
+// Import 문 업데이트 태스크
+task updateImports {
+    group = 'refactoring'
+    description = 'Update import statements'
+    
+    doLast {
+        println "📚 Updating import statements..."
+        
+        def updateCount = 0
+        
+        fileTree('src/main/java') {
+            include '**/*.java'
+        }.each { file ->
+            def content = file.text
+            def originalContent = content
+            
+            // application.dto.command imports
+            content = content.replaceAll(
+                /import (.*?)\.application\.dto\.command\.(.*?);/,
+                'import $1.application.command.$2;'
+            )
+            
+            // application.dto.query imports
+            content = content.replaceAll(
+                /import (.*?)\.application\.dto\.query\.(.*?);/,
+                'import $1.application.query.$2;'
+            )
+            
+            // application.dto.result imports
+            content = content.replaceAll(
+                /import (.*?)\.application\.dto\.result\.(.*?);/,
+                'import $1.application.result.$2;'
+            )
+            
+            // presentation.dto.request imports
+            content = content.replaceAll(
+                /import (.*?)\.presentation\.dto\.request\.(.*?);/,
+                'import $1.presentation.dto.$2;'
+            )
+            
+            // presentation.dto.response imports
+            content = content.replaceAll(
+                /import (.*?)\.presentation\.dto\.response\.(.*?);/,
+                'import $1.presentation.dto.$2;'
+            )
+            
+            // exception imports
+            content = content.replaceAll(
+                /import point\.ttodoApi\.(.*?)\.exception\.(.*?);/,
+                'import point.ttodoApi.shared.exception.$1.$2;'
+            )
+            
+            // config imports
+            content = content.replaceAll(
+                /import point\.ttodoApi\.(.*?)\.config\.(.*?);/,
+                'import point.ttodoApi.shared.config.$1.$2;'
+            )
+            
+            // security imports
+            content = content.replaceAll(
+                /import point\.ttodoApi\.auth\.security\.(.*?);/,
+                'import point.ttodoApi.shared.security.$1;'
+            )
+            
+            if (content != originalContent) {
+                file.text = content
+                updateCount++
+                println "  Updated imports in: ${file.name}"
+            }
+        }
+        
+        println "✅ Import statements updated in ${updateCount} files"
+    }
+}
+
+// 빈 디렉토리 정리 태스크
+task cleanEmptyDirectories {
+    group = 'refactoring'
+    description = 'Remove empty directories after refactoring'
+    
+    doLast {
+        println "🧹 Cleaning empty directories..."
+        
+        def removeEmptyDirs
+        removeEmptyDirs = { dir ->
+            if (dir.isDirectory()) {
+                dir.listFiles()?.each { removeEmptyDirs(it) }
+                if (dir.listFiles()?.length == 0) {
+                    if (dir.delete()) {
+                        println "  Removed empty directory: ${dir.name}"
+                    }
+                }
+            }
+        }
+        
+        removeEmptyDirs(file('src/main/java'))
+        
+        println "✅ Empty directories cleaned"
+    }
+}
+
+// 구조 검증 태스크
+task validateBoardHoleStructure {
+    group = 'verification'
+    description = 'Validate board-hole structure compliance'
+    
+    doLast {
+        println "🔍 Validating board-hole structure compliance..."
+        
+        def violations = []
+        def warnings = []
+        
+        // Application layer에 dto 디렉토리가 있는지 확인
+        fileTree('src/main/java') {
+            include '**/application/dto/**'
+        }.each { file ->
+            violations.add("❌ DTO found in application layer: ${file.path}")
+        }
+        
+        // Presentation layer에 request/response 서브디렉토리가 있는지 확인
+        fileTree('src/main/java') {
+            include '**/presentation/dto/request/**'
+            include '**/presentation/dto/response/**'
+        }.each { file ->
+            violations.add("❌ Presentation DTOs not flattened: ${file.path}")
+        }
+        
+        // 개별 도메인에 exception 디렉토리가 있는지 확인
+        def domains = ['todo', 'member', 'auth', 'category', 'challenge', 'experience']
+        domains.each { domain ->
+            def exceptionDir = file("src/main/java/point/ttodoApi/${domain}/exception")
+            if (exceptionDir.exists() && exceptionDir.listFiles()?.length > 0) {
+                violations.add("❌ Exception not moved to shared: ${domain}")
+            }
+        }
+        
+        // 개별 도메인에 config 디렉토리가 있는지 확인
+        domains.each { domain ->
+            def configDir = file("src/main/java/point/ttodoApi/${domain}/config")
+            if (configDir.exists() && configDir.listFiles()?.length > 0) {
+                violations.add("❌ Config not moved to shared: ${domain}")
+            }
+        }
+        
+        // 필요한 디렉토리들이 존재하는지 확인
+        def requiredDirs = [
+            'shared/exception',
+            'shared/config', 
+            'shared/security'
+        ]
+        
+        requiredDirs.each { dir ->
+            if (!file("src/main/java/point/ttodoApi/${dir}").exists()) {
+                warnings.add("⚠️  Missing directory: ${dir}")
+            }
+        }
+        
+        // 결과 출력
+        if (violations.empty && warnings.empty) {
+            println "✅ Structure validation passed! Board-hole compliance achieved."
+        } else {
+            if (!violations.empty) {
+                println "\n❌ VIOLATIONS FOUND:"
+                violations.each { println "  ${it}" }
+            }
+            if (!warnings.empty) {
+                println "\n⚠️  WARNINGS:"
+                warnings.each { println "  ${it}" }
+            }
+            
+            if (!violations.empty) {
+                throw new GradleException("Structure validation failed! Please fix violations above.")
+            }
+        }
+    }
+}
+
+// 전체 리팩토링 실행 태스크
+task refactorToBoardHoleStructure {
+    group = 'refactoring'
+    description = 'Complete refactoring to board-hole structure'
+    
+    dependsOn createBoardHoleStructure
+    dependsOn moveFilesToBoardHoleStructure
+    dependsOn updatePackageDeclarations
+    dependsOn updateImports
+    dependsOn cleanEmptyDirectories
+    
+    // 태스크 순서 보장
+    createBoardHoleStructure.finalizedBy moveFilesToBoardHoleStructure
+    moveFilesToBoardHoleStructure.finalizedBy updatePackageDeclarations
+    updatePackageDeclarations.finalizedBy updateImports
+    updateImports.finalizedBy cleanEmptyDirectories
+    
+    doLast {
+        println """
+        ========================================
+        🎉 Board-hole 구조 리팩토링 완료!
+        ========================================
+        ✅ 1. 디렉토리 구조 생성
+        ✅ 2. 파일 이동 (application/presentation 정리)
+        ✅ 3. 패키지 선언 업데이트
+        ✅ 4. Import 문 업데이트
+        ✅ 5. 빈 디렉토리 정리
+        
+        📋 다음 단계:
+        1. ./gradlew rewriteRun (OpenRewrite로 추가 정리)
+        2. ./gradlew validateBoardHoleStructure (구조 검증)
+        3. ./gradlew clean build (빌드 검증)
+        
+        🎯 이제 ttodo-api가 board-hole과 동일한 구조를 가집니다!
+        ========================================
+        """
+    }
+}

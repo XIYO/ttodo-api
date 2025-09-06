@@ -7,5 +7,6 @@ import java.util.*;
 
 public interface MemberRepository extends JpaRepository<Member, UUID>, JpaSpecificationExecutor<Member> {
   Optional<Member> findByEmail(String email);
+
   boolean existsByEmail(String email);
 }

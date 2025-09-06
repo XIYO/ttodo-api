@@ -10,9 +10,9 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "app.cors")
 public class CorsProperties {
-    private List<String> allowedOrigins;
-    private List<String> allowedMethods = List.of("*");
-    private List<String> allowedHeaders = List.of("*");
-    private boolean allowCredentials = true;
-    private long maxAge = 3600;
+  private List<String> allowedOrigins;
+  private List<String> allowedMethods = List.of("*");
+  private List<String> allowedHeaders = List.of("*");
+  private boolean allowCredentials = true;
+  private long maxAge = 3600;
 }

@@ -10,14 +10,14 @@ import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
 @RequiredArgsConstructor
 public class SecurePasswordValidator implements ConstraintValidator<SecurePassword, String> {
 
-    private final ValidationUtils validationUtils;
+  private final ValidationUtils validationUtils;
 
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null) {
-            return false;
-        }
-
-        return validationUtils.isValidPassword(value);
+  @Override
+  public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null) {
+      return false;
     }
+
+    return validationUtils.isValidPassword(value);
+  }
 }

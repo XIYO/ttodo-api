@@ -10,27 +10,27 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "member_experiences")
 public class MemberExperience {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, unique = true)
-    private UUID ownerId;
+  @Column(nullable = false, unique = true)
+  private UUID ownerId;
 
-    @Column(nullable = false)
-    private int experience;
+  @Column(nullable = false)
+  private int experience;
 
-    @Builder
-    public MemberExperience(UUID ownerId, int experience) {
-        this.ownerId = ownerId;
-        this.experience = experience;
-    }
+  @Builder
+  public MemberExperience(UUID ownerId, int experience) {
+    this.ownerId = ownerId;
+    this.experience = experience;
+  }
 
-    public void addExperience(int amount) {
-        this.experience += amount;
-    }
+  public void addExperience(int amount) {
+    experience += amount;
+  }
 
-    public void subtractExperience(int amount) {
-        this.experience = Math.max(0, this.experience - amount);
-    }
+  public void subtractExperience(int amount) {
+    experience = Math.max(0, experience - amount);
+  }
 }

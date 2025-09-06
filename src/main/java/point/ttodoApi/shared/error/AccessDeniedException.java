@@ -5,20 +5,20 @@ package point.ttodoApi.shared.error;
  * 403 Forbidden 상태 코드를 반환
  */
 public class AccessDeniedException extends BaseException {
-    
-    public AccessDeniedException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-    
-    public AccessDeniedException(ErrorCode errorCode, String message) {
-        super(errorCode, message);
-    }
-    
-    public AccessDeniedException(String message) {
-        super(ErrorCode.ACCESS_DENIED, message);
-    }
-    
-    public AccessDeniedException() {
-        super(ErrorCode.ACCESS_DENIED);
-    }
+
+  public AccessDeniedException(ErrorCode errorCode) {
+    super(errorCode);
+  }
+
+  public AccessDeniedException(ErrorCode errorCode, String message) {
+    super(errorCode, message);
+  }
+
+  public AccessDeniedException(String message) {
+    super(ErrorCode.ACCESS_DENIED, message);
+  }
+
+  public AccessDeniedException() {
+    super(ErrorCode.ACCESS_DENIED);
+  }
 }

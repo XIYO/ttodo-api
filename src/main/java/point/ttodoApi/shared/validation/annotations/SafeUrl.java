@@ -9,11 +9,11 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = {point.ttodoApi.shared.validation.validators.SafeUrlValidator.class})
 @Documented
 public @interface SafeUrl {
-    String message() default "URL is not in a valid format";
-    
-    Class<?>[] groups() default {};
-    
-    Class<? extends Payload>[] payload() default {};
-    
-    boolean allowHttp() default false;
+  String message() default "URL is not in a valid format";
+
+  Class<?>[] groups() default {};
+
+  Class<? extends Payload>[] payload() default {};
+
+  boolean allowHttp() default false;
 }

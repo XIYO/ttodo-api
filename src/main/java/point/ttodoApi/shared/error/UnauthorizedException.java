@@ -5,20 +5,20 @@ package point.ttodoApi.shared.error;
  * 401 Unauthorized 상태 코드를 반환
  */
 public class UnauthorizedException extends BaseException {
-    
-    public UnauthorizedException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-    
-    public UnauthorizedException(ErrorCode errorCode, String message) {
-        super(errorCode, message);
-    }
-    
-    public UnauthorizedException(String message) {
-        super(ErrorCode.AUTHENTICATION_FAILED, message);
-    }
-    
-    public UnauthorizedException() {
-        super(ErrorCode.AUTHENTICATION_FAILED);
-    }
+
+  public UnauthorizedException(ErrorCode errorCode) {
+    super(errorCode);
+  }
+
+  public UnauthorizedException(ErrorCode errorCode, String message) {
+    super(errorCode, message);
+  }
+
+  public UnauthorizedException(String message) {
+    super(ErrorCode.AUTHENTICATION_FAILED, message);
+  }
+
+  public UnauthorizedException() {
+    super(ErrorCode.AUTHENTICATION_FAILED);
+  }
 }

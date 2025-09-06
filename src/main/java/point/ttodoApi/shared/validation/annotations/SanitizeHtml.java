@@ -9,17 +9,17 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = {point.ttodoApi.shared.validation.validators.SanitizeHtmlValidator.class})
 @Documented
 public @interface SanitizeHtml {
-    String message() default "HTML content contains potentially unsafe elements";
-    
-    Class<?>[] groups() default {};
-    
-    Class<? extends Payload>[] payload() default {};
-    
-    SanitizeMode mode() default SanitizeMode.STANDARD;
-    
-    enum SanitizeMode {
-        STANDARD,
-        STRICT,
-        NONE
-    }
+  String message() default "HTML content contains potentially unsafe elements";
+
+  Class<?>[] groups() default {};
+
+  Class<? extends Payload>[] payload() default {};
+
+  SanitizeMode mode() default SanitizeMode.STANDARD;
+
+  enum SanitizeMode {
+    STANDARD,
+    STRICT,
+    NONE
+  }
 }

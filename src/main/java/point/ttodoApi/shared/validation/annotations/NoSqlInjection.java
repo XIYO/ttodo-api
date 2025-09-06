@@ -9,9 +9,9 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = {point.ttodoApi.shared.validation.validators.NoSqlInjectionValidator.class})
 @Documented
 public @interface NoSqlInjection {
-    String message() default "Input contains potentially unsafe SQL patterns";
-    
-    Class<?>[] groups() default {};
-    
-    Class<? extends Payload>[] payload() default {};
+  String message() default "Input contains potentially unsafe SQL patterns";
+
+  Class<?>[] groups() default {};
+
+  Class<? extends Payload>[] payload() default {};
 }

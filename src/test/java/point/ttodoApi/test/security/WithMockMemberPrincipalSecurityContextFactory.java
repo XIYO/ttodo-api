@@ -13,34 +13,34 @@ import java.util.stream.Collectors;
 /**
  * WithMockMemberPrincipal 애너테이션을 처리하는 팩토리
  */
-public class WithMockMemberPrincipalSecurityContextFactory 
+public class WithMockMemberPrincipalSecurityContextFactory
         implements WithSecurityContextFactory<WithMockMemberPrincipal> {
-    
-    @Override
-    public SecurityContext createSecurityContext(WithMockMemberPrincipal annotation) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        
-        UUID memberId = UUID.fromString(annotation.memberId());
-        List<SimpleGrantedAuthority> authorities = Arrays.stream(annotation.roles())
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .collect(Collectors.toList());
-        
-        MemberPrincipal principal = MemberPrincipal.from(
-                memberId,
-                annotation.email(),
-                annotation.nickname(),
-                "Asia/Seoul",
-                "ko_KR",
-                authorities
-        );
-        
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                principal, 
-                null, 
-                authorities
-        );
-        
-        context.setAuthentication(auth);
-        return context;
-    }
+
+  @Override
+  public SecurityContext createSecurityContext(WithMockMemberPrincipal annotation) {
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+
+    UUID memberId = UUID.fromString(annotation.memberId());
+    List<SimpleGrantedAuthority> authorities = Arrays.stream(annotation.roles())
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+            .collect(Collectors.toList());
+
+    MemberPrincipal principal = MemberPrincipal.from(
+            memberId,
+            annotation.email(),
+            annotation.nickname(),
+            "Asia/Seoul",
+            "ko_KR",
+            authorities
+    );
+
+    Authentication auth = new UsernamePasswordAuthenticationToken(
+            principal,
+            null,
+            authorities
+    );
+
+    context.setAuthentication(auth);
+    return context;
+  }
 }

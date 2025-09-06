@@ -9,7 +9,9 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = DateRangeValidator.class)
 @Documented
 public @interface DateRangeConstraint {
-    String message() default "startDate와 endDate는 함께 제공되어야 합니다";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+  String message() default "startDate와 endDate는 함께 제공되어야 합니다";
+
+  Class<?>[] groups() default {};
+
+  Class<? extends Payload>[] payload() default {};
 }

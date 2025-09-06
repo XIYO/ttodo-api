@@ -15,30 +15,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @SpringBootTest
 class GenerateTestTokenTest extends BaseIntegrationTest {
-    
-    @Autowired
-    private TokenService tokenService;
-    
-    @Test
-    void generateAndPrintAnonToken() {
-        // TokenService의 generateAccessToken 메서드에 neverExpire 옵션 사용
-        String token = tokenService.generateAccessToken(
+
+  @Autowired
+  private TokenService tokenService;
+
+  @Test
+  void generateAndPrintAnonToken() {
+    // TokenService의 generateAccessToken 메서드에 neverExpire 옵션 사용
+    String token = tokenService.generateAccessToken(
             "ffffffff-ffff-ffff-ffff-ffffffffffff",
             "anon@ttodo.dev",
             "익명사용자",
             "Asia/Seoul",
             "ko-KR",
             true  // neverExpire = true
-        );
-        
-        log.info("\n================================================================================");
-        log.info("=== ANON USER TEST TOKEN (Copy this for hardcoding in tests) ===");
-        log.info("================================================================================");
-        log.info("Generated Token: {}", token);
-        log.info("================================================================================\n");
-        
-        // 토큰이 생성되었는지 확인
-        assertThat(token).isNotNull();
-        assertThat(token).startsWith("eyJ");  // JWT는 항상 eyJ로 시작
-    }
+    );
+
+    log.info("\n================================================================================");
+    log.info("=== ANON USER TEST TOKEN (Copy this for hardcoding in tests) ===");
+    log.info("================================================================================");
+    log.info("Generated Token: {}", token);
+    log.info("================================================================================\n");
+
+    // 토큰이 생성되었는지 확인
+    assertThat(token).isNotNull();
+    assertThat(token).startsWith("eyJ");  // JWT는 항상 eyJ로 시작
+  }
 }

@@ -10,16 +10,16 @@ import point.ttodoApi.level.infrastructure.LevelRepository;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class LevelService {
-    private final LevelRepository levelRepository;
+  private final LevelRepository levelRepository;
 
-    public Level getLevelByExperience(int experience) {
-        return levelRepository.findAll().stream()
-                .filter(l -> experience >= l.getRequiredExp())
-                .max(java.util.Comparator.comparingInt(Level::getRequiredExp))
-                .orElse(null);
-    }
+  public Level getLevelByExperience(int experience) {
+    return levelRepository.findAll().stream()
+            .filter(l -> experience >= l.getRequiredExp())
+            .max(java.util.Comparator.comparingInt(Level::getRequiredExp))
+            .orElse(null);
+  }
 
-    public Level getNextLevel(int currentLevel) {
-        return levelRepository.findById(currentLevel + 1).orElse(null);
-    }
+  public Level getNextLevel(int currentLevel) {
+    return levelRepository.findById(currentLevel + 1).orElse(null);
+  }
 }

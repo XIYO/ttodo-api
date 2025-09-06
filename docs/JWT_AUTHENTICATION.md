@@ -2,7 +2,8 @@
 
 ## Overview
 
-TTODO-API uses a **stateless JWT-based authentication system** with HTTP-only cookies for secure token storage. The system implements RSA-256 signing with public/private key pairs, ensuring high security and scalability.
+TTODO-API uses a **stateless JWT-based authentication system** with HTTP-only cookies for secure token storage. The
+system implements RSA-256 signing with public/private key pairs, ensuring high security and scalability.
 
 ## Architecture
 
@@ -23,6 +24,7 @@ TTODO-API uses a **stateless JWT-based authentication system** with HTTP-only co
 ### Authentication Flow
 
 #### 1. Login/Signup Flow
+
 ```mermaid
 sequenceDiagram
     Client->>AuthController: POST /auth/sign-in
@@ -36,6 +38,7 @@ sequenceDiagram
 ```
 
 #### 2. Request Authentication Flow
+
 ```mermaid
 sequenceDiagram
     Client->>MultiBearerTokenResolver: Request with Cookie/Header
@@ -103,6 +106,7 @@ public class SecurityConfig {
 ## Token Structure
 
 ### Access Token Claims
+
 ```json
 {
   "sub": "user-uuid",
@@ -146,17 +150,18 @@ public String resolve(HttpServletRequest request) {
 
 ### Authentication Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/auth/sign-up` | Register and auto-login | No |
-| POST | `/auth/sign-in` | Login with credentials | No |
-| POST | `/auth/sign-out` | Logout and clear tokens | No |
-| POST | `/auth/refresh` | Refresh access token | Refresh Token |
-| GET | `/auth/dev-token` | Get dev/test token | No (Dev only) |
+| Method | Endpoint          | Description             | Auth Required |
+|--------|-------------------|-------------------------|---------------|
+| POST   | `/auth/sign-up`   | Register and auto-login | No            |
+| POST   | `/auth/sign-in`   | Login with credentials  | No            |
+| POST   | `/auth/sign-out`  | Logout and clear tokens | No            |
+| POST   | `/auth/refresh`   | Refresh access token    | Refresh Token |
+| GET    | `/auth/dev-token` | Get dev/test token      | No (Dev only) |
 
 ### Request/Response Examples
 
 #### Sign Up
+
 ```http
 POST /auth/sign-up
 Content-Type: application/x-www-form-urlencoded
@@ -170,6 +175,7 @@ Set-Cookie: refresh-token=eyJ...; Path=/; HttpOnly
 ```
 
 #### Sign In
+
 ```http
 POST /auth/sign-in
 Content-Type: application/x-www-form-urlencoded
@@ -228,6 +234,7 @@ public class JwtAuthenticationTest extends BaseIntegrationTest {
 ## Security Considerations
 
 ### Token Security
+
 - **RSA-256 Signing**: Asymmetric cryptography for token signing
 - **HTTP-Only Cookies**: Prevents XSS attacks
 - **SameSite Attribute**: CSRF protection
@@ -235,6 +242,7 @@ public class JwtAuthenticationTest extends BaseIntegrationTest {
 - **Short Expiration**: Access tokens expire in 60 seconds
 
 ### Best Practices
+
 1. Never log tokens or sensitive information
 2. Use environment-specific key pairs
 3. Rotate keys periodically
@@ -244,12 +252,15 @@ public class JwtAuthenticationTest extends BaseIntegrationTest {
 ## Common Issues and Solutions
 
 ### Issue: Token Not Found in Request
+
 **Solution**: Check token resolution order and cookie configuration
 
 ### Issue: Token Expired
+
 **Solution**: Implement automatic refresh using refresh token
 
 ### Issue: Invalid Signature
+
 **Solution**: Verify key pair configuration and encoding
 
 ## Migration from Session-Based Auth
@@ -257,9 +268,9 @@ public class JwtAuthenticationTest extends BaseIntegrationTest {
 If migrating from session-based authentication:
 
 1. **Current JWT Approach** (Recommended):
-   - Stateless, scalable
-   - No session storage required
-   - Works well with microservices
+    - Stateless, scalable
+    - No session storage required
+    - Works well with microservices
 
 2. **Traditional Spring Security** (Not suitable for JWT):
    ```java

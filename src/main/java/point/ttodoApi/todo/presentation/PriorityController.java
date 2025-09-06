@@ -14,45 +14,45 @@ import java.util.*;
 @RequestMapping("/priorities")
 public class PriorityController {
 
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    @Operation(
-        summary = "우선순위 참조 데이터 조회", 
-        description = "할 일에 설정할 수 있는 우선순위 목록을 조회합니다. 이 데이터는 할 일 생성/수정 시 우선순위 선택을 위한 고정된 참조 데이터입니다.",
-        responses = @ApiResponse(
-            responseCode = "200",
-            description = "우선순위 목록 조회 성공",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(
-                    name = "우선순위 목록",
-                    value = """
-                        {
-                          "content": [
-                            {
-                              "id": 0,
-                              "name": "낮음"
-                            },
-                            {
-                              "id": 1,
-                              "name": "보통"
-                            },
-                            {
-                              "id": 2,
-                              "name": "높음"
-                            }
-                          ]
-                        }
-                        """
-                )
-            )
-        )
-    )
-    public Map<String, Object> getPriorities() {
-        return Map.of("content", List.of(
+  @GetMapping
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+          summary = "우선순위 참조 데이터 조회",
+          description = "할 일에 설정할 수 있는 우선순위 목록을 조회합니다. 이 데이터는 할 일 생성/수정 시 우선순위 선택을 위한 고정된 참조 데이터입니다.",
+          responses = @ApiResponse(
+                  responseCode = "200",
+                  description = "우선순위 목록 조회 성공",
+                  content = @Content(
+                          mediaType = "application/json",
+                          examples = @ExampleObject(
+                                  name = "우선순위 목록",
+                                  value = """
+                                          {
+                                            "content": [
+                                              {
+                                                "id": 0,
+                                                "name": "낮음"
+                                              },
+                                              {
+                                                "id": 1,
+                                                "name": "보통"
+                                              },
+                                              {
+                                                "id": 2,
+                                                "name": "높음"
+                                              }
+                                            ]
+                                          }
+                                          """
+                          )
+                  )
+          )
+  )
+  public Map<String, Object> getPriorities() {
+    return Map.of("content", List.of(
             Map.of("id", 0, "name", "낮음"),
             Map.of("id", 1, "name", "보통"),
             Map.of("id", 2, "name", "높음")
-        ));
-    }
+    ));
+  }
 }

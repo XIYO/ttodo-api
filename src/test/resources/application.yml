@@ -33,7 +33,7 @@ jwt:
     expiration: 60
     cookie:
       name: access-token
-      domain: 
+      domain:
       path: /
       secure: false
       httpOnly: false
@@ -42,7 +42,7 @@ jwt:
     expiration: 31536000
     cookie:
       name: test-refresh-token
-      domain: 
+      domain:
       path: /
       secure: false
       httpOnly: true

@@ -55,7 +55,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
   private boolean refreshTokensIfNeeded(HttpServletRequest request, HttpServletResponse response) {
     String refreshToken = cookieService.getRefreshToken(request.getCookies())
             .orElse(null);
-    
+
     if (refreshToken == null) {
       log.info("No refresh token found in cookies");
       return false;

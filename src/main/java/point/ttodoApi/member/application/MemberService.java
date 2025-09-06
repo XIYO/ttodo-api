@@ -5,14 +5,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.shared.error.*;
-import point.ttodoApi.member.application.dto.command.*;
-import point.ttodoApi.member.application.dto.result.MemberResult;
+import point.ttodoApi.member.application.command.*;
 import point.ttodoApi.member.application.event.MemberCreatedEvent;
+import point.ttodoApi.member.application.result.MemberResult;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
+import point.ttodoApi.shared.error.*;
 
 import java.util.*;
 
@@ -27,25 +27,25 @@ public class MemberService {
 
   public Member createMember(CreateMemberCommand command) {
     Member member = Member.builder()
-        .email(command.email())
-        .password(command.password())
-        .nickname(command.nickname())
-        .build();
+            .email(command.email())
+            .password(command.password())
+            .nickname(command.nickname())
+            .build();
     Member savedMember = memberRepository.save(member);
-    
+
     // Create profile for the new member with introduction if provided
     Profile profile = profileService.createProfile(savedMember.getId());
     if (command.introduction() != null && !command.introduction().isEmpty()) {
       profile.updateIntroduction(command.introduction());
       profileService.saveProfile(profile);
     }
-    
+
     eventPublisher.publishEvent(new MemberCreatedEvent(
-        savedMember.getId(), 
-        savedMember.getEmail(), 
-        savedMember.getNickname()
+            savedMember.getId(),
+            savedMember.getEmail(),
+            savedMember.getNickname()
     ));
-    
+
     return savedMember;
   }
 
@@ -57,7 +57,7 @@ public class MemberService {
   @Transactional(readOnly = true)
   public Member findByEmailOrThrow(String email) {
     return memberRepository.findByEmail(email)
-        .orElseThrow(() -> new BusinessException("회원 정보 없음"));
+            .orElseThrow(() -> new BusinessException("회원 정보 없음"));
   }
 
   @Transactional(readOnly = true)
@@ -68,19 +68,19 @@ public class MemberService {
   @Transactional(readOnly = true)
   public Member findByIdOrThrow(UUID memberId) {
     return memberRepository.findById(memberId)
-        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
+            .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
   }
 
   @Transactional(readOnly = true)
   public Member findVerifiedMember(UUID memberId) {
     return memberRepository.findById(memberId)
-        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
+            .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
   }
 
   public void updateMember(UpdateMemberCommand command) {
     Member member = memberRepository.findById(command.memberId())
-        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, command.memberId()));
-    
+            .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, command.memberId()));
+
     if (command.hasNickname()) {
       member.setNickname(command.nickname());
     }
@@ -104,15 +104,16 @@ public class MemberService {
             member.getEmail(),
             member.getNickname());
   }
-  
+
   /**
    * Member 권한 검증을 위한 엔티티 조회 (Spring Security @PreAuthorize용)
+   *
    * @param memberId 멤버 ID
    * @return Member 엔티티
    */
   @Transactional(readOnly = true)
   public Member findMemberForAuth(UUID memberId) {
     return memberRepository.findById(memberId)
-        .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
+            .orElseThrow(() -> new EntityNotFoundException(MEMBER_ENTITY, memberId));
   }
 }

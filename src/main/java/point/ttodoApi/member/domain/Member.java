@@ -18,30 +18,29 @@ import java.util.UUID;
 public class Member {
   @jakarta.persistence.Id
   private UUID id;
-  
-  @PrePersist
-  public void generateId() {
-    if (id == null) {
-      id = UUID.randomUUID();
-    }
-  }
   @Column(unique = true, nullable = false)
   private String email;
   @Column(nullable = false)
   private String nickname;
   @Column(nullable = false)
   private String password;
-  
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
-  
   @LastModifiedDate
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
-  
+
+  @PrePersist
+  public void generateId() {
+    if (id == null) {
+      id = UUID.randomUUID();
+    }
+  }
+
   /**
    * 소유권 확인 메서드 (본인 확인)
+   *
    * @param memberId 확인할 멤버 ID
    * @return 본인인지 여부
    */

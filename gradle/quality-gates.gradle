@@ -1,0 +1,161 @@
+/**
+ * 품질 게이트 통합 설정
+ * IntelliJ IDEA Ultimate 내장 검사 도구 우선 사용
+ * 외부 라이브러리 도구들은 주석 처리 (board-hole 스타일 적용)
+ */
+
+// ===== 외부 품질 도구 비활성화 =====
+// IntelliJ IDEA Ultimate의 내장 검사 기능을 사용하므로 외부 도구 비활성화
+
+/*
+// ===== Checkstyle 설정 =====
+checkstyle {
+    toolVersion = '10.12.5'
+    // 프로파일별 설정 선택
+    if (project.hasProperty('useGoogleStyle')) {
+        configFile = file("${rootDir}/config/checkstyle/google-checks-custom.xml")
+        println "Using Google Style with custom rules"
+    } else {
+        configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+        println "Using project default checkstyle rules"
+    }
+    maxWarnings = 0
+    maxErrors = 0
+}
+
+// ===== PMD 설정 =====
+pmd {
+    toolVersion = '6.55.0'
+    consoleOutput = true
+    ruleSetFiles = files("${rootDir}/config/pmd/ruleset.xml")
+    rulesMinimumPriority = 1  // Priority 1 이상만 검사
+}
+
+// ===== SpotBugs 설정 =====
+spotbugs {
+    toolVersion = '4.8.7'
+    effort = 'max'
+    reportLevel = 'low'
+    excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
+}
+*/
+
+// ===== SonarQube 설정 =====
+sonar {
+    properties {
+        // 기본 설정
+        property 'sonar.projectKey', project.name
+        property 'sonar.projectName', 'Board Hole Application'
+        property 'sonar.projectVersion', project.version
+
+        // 소스 설정
+        property 'sonar.sources', 'src/main/java'
+        property 'sonar.tests', 'src/test/java'
+        property 'sonar.java.binaries', 'build/classes/java/main'
+        property 'sonar.java.test.binaries', 'build/classes/java/test'
+        property 'sonar.java.libraries', 'build/libs/*.jar'
+
+        // Lombok 지원
+        property 'sonar.java.lombok.addLombokGeneratedAnnotation', 'true'
+
+        // 커버리지
+        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
+        property 'sonar.junit.reportPaths', 'build/test-results/test'
+
+        // 제외 패턴
+        property 'sonar.exclusions', '''
+            **/test/**,
+            **/*Test.java,
+            **/*Tests.java,
+            **/*Config.java,
+            **/*Configuration.java,
+            **/package-info.java,
+            **/*Application.java,
+            **/dto/**,
+            **/result/**
+        '''
+
+        // 중복 코드 제외
+        property 'sonar.cpd.exclusions', '''
+            **/*Test.java,
+            **/*Entity.java,
+            **/*DTO.java
+        '''
+
+        // 커스텀 품질 프로파일 (옵션)
+        // property 'sonar.qualityProfile', 'Board Hole Quality Profile'
+
+        // Import Checkstyle 결과
+        property 'sonar.java.checkstyle.reportPaths', 'build/reports/checkstyle/main.xml'
+
+        // Import PMD 결과
+        property 'sonar.java.pmd.reportPaths', 'build/reports/pmd/main.xml'
+
+        // Import SpotBugs 결과
+        property 'sonar.java.spotbugs.reportPaths', 'build/reports/spotbugs/main.xml'
+    }
+}
+
+// ===== 품질 체크 통합 태스크 (IntelliJ 기반) =====
+task qualityGate {
+    group = 'verification'
+    description = 'Run quality checks (Tests, Coverage) - Use IntelliJ inspections for code analysis'
+
+    dependsOn 'test'
+    dependsOn 'jacocoTestReport'
+
+    doLast {
+        println """
+        ========================================
+        품질 검사 완료! (IntelliJ 기반)
+        ========================================
+        ✅ 테스트: PASSED
+        ✅ 커버리지: build/reports/jacoco/test/html/
+        
+        📋 IntelliJ IDEA에서 추가 검사:
+        - Code Inspection (Analyze → Inspect Code)
+        - All Inspections Profile 활성화됨
+        - Save Actions 플러그인 활성화됨
+        
+        SonarCloud 분석 실행:
+        ./gradlew sonar -Dsonar.token=YOUR_TOKEN
+        ========================================
+        """
+    }
+}
+
+// Google 스타일로 전환
+task switchToGoogleStyle {
+    group = 'verification'
+    description = 'Switch to Google Java Style'
+    doLast {
+        println "Switched to Google Java Style. Run with: ./gradlew build -PuseGoogleStyle"
+    }
+}
+
+// 엄격한 품질 검사 (CI/CD용)
+task strictQualityCheck {
+    group = 'verification'
+    description = 'Strict quality check for CI/CD'
+
+    dependsOn qualityGate
+
+    doLast {
+        // 커버리지 체크
+        def coverageReport = file("build/reports/jacoco/test/jacocoTestReport.xml")
+        if (coverageReport.exists()) {
+            println "Coverage report generated"
+        } else {
+            throw new GradleException("Coverage report not found!")
+        }
+    }
+}
+
+// SonarCloud와 로컬 검사 모두 실행
+task fullQualityAnalysis {
+    group = 'verification'
+    description = 'Run local quality checks and SonarCloud analysis'
+
+    dependsOn qualityGate
+    finalizedBy 'sonar'
+}

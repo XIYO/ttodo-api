@@ -21,40 +21,42 @@ import java.util.List;
 @Order(1)
 @RequiredArgsConstructor
 public class LevelInitializer implements ApplicationRunner {
-    
-    private final LevelRepository levelRepository;
-    
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) {
-        initialize();
+
+  private final LevelRepository levelRepository;
+
+  @Override
+  @Transactional
+  public void run(ApplicationArguments args) {
+    initialize();
+  }
+
+  /**
+   * 레벨 시스템 초기화
+   *
+   * @return 초기화 성공 여부
+   */
+  private boolean initialize() {
+    log.info("Initializing levels...");
+
+    if (levelRepository.count() > 0) {
+      log.info("Levels already exist, skipping level initialization");
+      return false;
     }
-    
-    /**
-     * 레벨 시스템 초기화
-     * @return 초기화 성공 여부
-     */
-    private boolean initialize() {
-        log.info("Initializing levels...");
-        
-        if (levelRepository.count() > 0) {
-            log.info("Levels already exist, skipping level initialization");
-            return false;
-        }
-        
-        List<Level> levels = createDefaultLevels();
-        levelRepository.saveAll(levels);
-        
-        log.info("Initialized {} levels", levels.size());
-        return true;
-    }
-    
-    /**
-     * 기본 레벨 목록 생성
-     * @return 레벨 목록
-     */
-    private List<Level> createDefaultLevels() {
-        return List.of(
+
+    List<Level> levels = createDefaultLevels();
+    levelRepository.saveAll(levels);
+
+    log.info("Initialized {} levels", levels.size());
+    return true;
+  }
+
+  /**
+   * 기본 레벨 목록 생성
+   *
+   * @return 레벨 목록
+   */
+  private List<Level> createDefaultLevels() {
+    return List.of(
             new Level(1, "떠오르는 새싹", 0),
             new Level(2, "작은 불꽃", 100),
             new Level(3, "흔들리는 나무", 250),
@@ -75,6 +77,6 @@ public class LevelInitializer implements ApplicationRunner {
             new Level(18, "차원의 여행자", 8500),
             new Level(19, "영원의 불꽃", 9450),
             new Level(20, "시공의 초월자", 10450)
-        );
-    }
+    );
+  }
 }

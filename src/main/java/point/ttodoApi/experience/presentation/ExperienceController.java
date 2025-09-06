@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.experience.application.ExperienceService;
-import point.ttodoApi.experience.presentation.dto.response.MemberLevelResponse;
+import point.ttodoApi.experience.presentation.dto.MemberLevelResponse;
 import point.ttodoApi.experience.presentation.mapper.ExperiencePresentationMapper;
 
 import java.util.UUID;
@@ -18,28 +18,28 @@ import java.util.UUID;
 @RequestMapping("/members")
 public class ExperienceController {
 
-    private final ExperienceService experienceService;
-    private final ExperiencePresentationMapper mapper;
+  private final ExperienceService experienceService;
+  private final ExperiencePresentationMapper mapper;
 
-    @Operation(
-        summary = "회원 레벨/경험치 조회", 
-        description = "특정 회원의 현재 레벨, 보유 경험치, 다음 레벨까지 필요한 경험치 등의 정보를 조회합니다.\n\n" +
-                       "레벨 시스템:\n" +
-                       "- 레벨 1: 0 XP\n" +
-                       "- 레벨 2: 100 XP\n" +
-                       "- 레벨 3: 300 XP\n" +
-                       "- ... (레벨이 오를수록 필요 경험치 증가)\n\n" +
-                       "경험치 획득 방법:\n" +
-                       "- 할 일 완료: +10 XP\n" +
-                       "- 챌린지 할 일 완료: +15 XP\n" +
-                       "- 일일 목표 달성: +20 XP"
-    )
-    @ApiResponse(responseCode = "200", description = "레벨/경험치 조회 성공")
-    @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
-    @GetMapping("/{memberId}/experience")
-    @PreAuthorize("hasRole('USER')")
-    public MemberLevelResponse getMemberLevel(@PathVariable UUID memberId) {
-        var result = experienceService.getMemberLevel(memberId);
-        return mapper.toResponse(result);
-    }
+  @Operation(
+          summary = "회원 레벨/경험치 조회",
+          description = "특정 회원의 현재 레벨, 보유 경험치, 다음 레벨까지 필요한 경험치 등의 정보를 조회합니다.\n\n" +
+                  "레벨 시스템:\n" +
+                  "- 레벨 1: 0 XP\n" +
+                  "- 레벨 2: 100 XP\n" +
+                  "- 레벨 3: 300 XP\n" +
+                  "- ... (레벨이 오를수록 필요 경험치 증가)\n\n" +
+                  "경험치 획득 방법:\n" +
+                  "- 할 일 완료: +10 XP\n" +
+                  "- 챌린지 할 일 완료: +15 XP\n" +
+                  "- 일일 목표 달성: +20 XP"
+  )
+  @ApiResponse(responseCode = "200", description = "레벨/경험치 조회 성공")
+  @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
+  @GetMapping("/{memberId}/experience")
+  @PreAuthorize("hasRole('USER')")
+  public MemberLevelResponse getMemberLevel(@PathVariable UUID memberId) {
+    var result = experienceService.getMemberLevel(memberId);
+    return mapper.toResponse(result);
+  }
 }

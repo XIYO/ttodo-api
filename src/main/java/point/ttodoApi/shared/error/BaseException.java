@@ -9,42 +9,42 @@ import org.springframework.http.HttpStatus;
  */
 @Getter
 public class BaseException extends RuntimeException {
-    private final String errorCode;
-    private final HttpStatus httpStatus;
-    
-    public BaseException(String errorCode, String message, HttpStatus httpStatus) {
-        super(message);
-        this.errorCode = errorCode;
-        this.httpStatus = httpStatus;
-    }
-    
-    public BaseException(String errorCode, String message, HttpStatus httpStatus, Throwable cause) {
-        super(message, cause);
-        this.errorCode = errorCode;
-        this.httpStatus = httpStatus;
-    }
-    
-    public BaseException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode.getCode();
-        this.httpStatus = errorCode.getHttpStatus();
-    }
-    
-    public BaseException(ErrorCode errorCode, String message) {
-        super(message);
-        this.errorCode = errorCode.getCode();
-        this.httpStatus = errorCode.getHttpStatus();
-    }
-    
-    public BaseException(ErrorCode errorCode, Throwable cause) {
-        super(errorCode.getMessage(), cause);
-        this.errorCode = errorCode.getCode();
-        this.httpStatus = errorCode.getHttpStatus();
-    }
-    
-    public BaseException(ErrorCode errorCode, String message, Throwable cause) {
-        super(message, cause);
-        this.errorCode = errorCode.getCode();
-        this.httpStatus = errorCode.getHttpStatus();
-    }
+  private final String errorCode;
+  private final HttpStatus httpStatus;
+
+  public BaseException(String errorCode, String message, HttpStatus httpStatus) {
+    super(message);
+    this.errorCode = errorCode;
+    this.httpStatus = httpStatus;
+  }
+
+  public BaseException(String errorCode, String message, HttpStatus httpStatus, Throwable cause) {
+    super(message, cause);
+    this.errorCode = errorCode;
+    this.httpStatus = httpStatus;
+  }
+
+  public BaseException(ErrorCode errorCode) {
+    super(errorCode.getMessage());
+    this.errorCode = errorCode.getCode();
+    this.httpStatus = errorCode.getHttpStatus();
+  }
+
+  public BaseException(ErrorCode errorCode, String message) {
+    super(message);
+    this.errorCode = errorCode.getCode();
+    this.httpStatus = errorCode.getHttpStatus();
+  }
+
+  public BaseException(ErrorCode errorCode, Throwable cause) {
+    super(errorCode.getMessage(), cause);
+    this.errorCode = errorCode.getCode();
+    this.httpStatus = errorCode.getHttpStatus();
+  }
+
+  public BaseException(ErrorCode errorCode, String message, Throwable cause) {
+    super(message, cause);
+    this.errorCode = errorCode.getCode();
+    this.httpStatus = errorCode.getHttpStatus();
+  }
 }
