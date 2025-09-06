@@ -1,7 +1,7 @@
 package point.ttodoApi.todo.presentation.mapper;
 
 import org.mapstruct.*;
-import point.ttodoApi.shared.config.MapStructConfig;
+import point.ttodoApi.shared.config.shared.MapStructConfig;
 import point.ttodoApi.todo.domain.recurrence.*;
 import point.ttodoApi.todo.presentation.dto.*;
 

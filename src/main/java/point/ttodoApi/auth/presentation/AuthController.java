@@ -19,6 +19,7 @@ import point.ttodoApi.member.application.command.CreateMemberCommand;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
+import point.ttodoApi.shared.config.properties.AppProperties;
 import point.ttodoApi.shared.error.BusinessException;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class AuthController {
   private final ProfileService profileService;
   private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
-  private final point.ttodoApi.shared.config.properties.AppProperties appProperties;
+  private final AppProperties appProperties;
   private final CookieService cookieService;
 
   @Operation(

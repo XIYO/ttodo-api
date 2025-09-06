@@ -3,7 +3,7 @@ package point.ttodoApi.category.presentation.mapper;
 import org.mapstruct.*;
 import point.ttodoApi.category.domain.CategoryCollaborator;
 import point.ttodoApi.category.presentation.dto.CollaboratorResponse;
-import point.ttodoApi.shared.config.MapStructConfig;
+import point.ttodoApi.shared.config.shared.MapStructConfig;
 
 /**
  * Category Collaborator Presentation Mapper

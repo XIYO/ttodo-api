@@ -9,7 +9,7 @@ import point.ttodoApi.challenge.application.command.*;
 import point.ttodoApi.challenge.application.mapper.ChallengeMapper;
 import point.ttodoApi.challenge.application.result.*;
 import point.ttodoApi.challenge.domain.*;
-import point.ttodoApi.challenge.exception.ChallengeNotFoundException;
+import point.ttodoApi.shared.exception.challenge.ChallengeNotFoundException;
 import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.challenge.presentation.dto.*;
 import point.ttodoApi.member.domain.Member;

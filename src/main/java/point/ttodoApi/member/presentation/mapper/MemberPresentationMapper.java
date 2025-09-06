@@ -6,7 +6,7 @@ import point.ttodoApi.member.application.result.MemberResult;
 import point.ttodoApi.member.domain.Member;
 import point.ttodoApi.member.presentation.dto.*;
 import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.shared.config.MapStructConfig;
+import point.ttodoApi.shared.config.shared.MapStructConfig;
 
 import java.util.UUID;
 

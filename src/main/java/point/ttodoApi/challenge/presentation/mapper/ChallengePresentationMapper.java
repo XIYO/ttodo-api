@@ -5,7 +5,7 @@ import point.ttodoApi.challenge.application.command.*;
 import point.ttodoApi.challenge.application.result.*;
 import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.presentation.dto.*;
-import point.ttodoApi.shared.config.MapStructConfig;
+import point.ttodoApi.shared.config.shared.MapStructConfig;
 
 import java.util.UUID;
 

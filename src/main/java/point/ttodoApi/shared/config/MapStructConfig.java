@@ -1,4 +1,4 @@
-package point.ttodoApi.shared.config;
+package point.ttodoApi.shared.config.shared;
 
 import org.mapstruct.*;
 

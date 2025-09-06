@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
-import point.ttodoApi.auth.config.properties.JwtProperties;
+import point.ttodoApi.shared.config.auth.properties.JwtProperties;
 
 import java.time.Duration;
 import java.util.*;

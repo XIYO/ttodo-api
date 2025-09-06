@@ -1,4 +1,4 @@
-package point.ttodoApi.shared.exception;
+package point.ttodoApi.shared.exception.shared;
 
 public class RedisConnectionException extends RuntimeException {
   public RedisConnectionException(String message) {

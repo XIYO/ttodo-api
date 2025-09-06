@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
-import point.ttodoApi.auth.config.properties.JwtProperties;
+import point.ttodoApi.shared.config.auth.properties.JwtProperties;
 import point.ttodoApi.auth.domain.*;
 import point.ttodoApi.member.application.MemberService;
 import point.ttodoApi.member.domain.Member;

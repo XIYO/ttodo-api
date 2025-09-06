@@ -1,7 +1,7 @@
 package point.ttodoApi.todo.application.mapper;
 
 import org.mapstruct.*;
-import point.ttodoApi.shared.config.MapStructConfig;
+import point.ttodoApi.shared.config.shared.MapStructConfig;
 import point.ttodoApi.todo.application.result.TodoResult;
 import point.ttodoApi.todo.domain.*;
 

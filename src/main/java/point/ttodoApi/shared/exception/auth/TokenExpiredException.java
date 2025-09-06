@@ -1,0 +1,14 @@
+package point.ttodoApi.shared.exception.auth;
+
+import point.ttodoApi.shared.error.*;
+
+public class TokenExpiredException extends UnauthorizedException {
+
+  public TokenExpiredException() {
+    super(ErrorCode.TOKEN_EXPIRED, "토큰이 만료되었습니다.");
+  }
+
+  public TokenExpiredException(String message) {
+    super(ErrorCode.TOKEN_EXPIRED, message);
+  }
+}

@@ -1,0 +1,16 @@
+package point.ttodoApi.shared.exception.challenge;
+
+import point.ttodoApi.shared.error.*;
+
+public class ChallengeFullException extends BaseException {
+
+  public ChallengeFullException(String challengeTitle, int maxParticipants) {
+    super(ErrorCode.CHALLENGE_FULL,
+            String.format("챌린지 '%s'의 참여 인원이 가득찼습니다. (최대 %d명)",
+                    challengeTitle, maxParticipants));
+  }
+
+  public ChallengeFullException() {
+    super(ErrorCode.CHALLENGE_FULL);
+  }
+}
