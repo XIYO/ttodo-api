@@ -27,43 +27,20 @@ services:
     ports:
       - "6379"
 
-  powersync:
-    image: journeyapps/powersync-service:latest
-    container_name: ttodo-powersync
+  electric:
+    image: electricsql/electric:latest
+    container_name: ttodo-electric
     environment:
-      # PostgreSQL connection
-      POWERSYNC_DATABASE_URL: postgresql://ttodo_user:ttodo_password@postgres:5432/ttodo?sslmode=disable
-      POWERSYNC_DATABASE_HOSTNAME: postgres
-      POWERSYNC_DATABASE_PORT: 5432
-      POWERSYNC_DATABASE_NAME: ttodo
-      POWERSYNC_DATABASE_USER: ttodo_user
-      POWERSYNC_DATABASE_PASSWORD: ttodo_password
-      # PowerSync configuration
-      POWERSYNC_PORT: 8080
-      POWERSYNC_ADMIN_PORT: 8081
-      POWERSYNC_DEV_MODE: "true"
-      POWERSYNC_LOG_LEVEL: debug
-      # Sync rules - sync all data from simple_todo table
-      POWERSYNC_SYNC_RULES: |
-        bucket_definitions:
-          global:
-            data:
-              - SELECT * FROM simple_todo
+      # Database connection
+      DATABASE_URL: postgresql://ttodo_user:ttodo_password@postgres:5432/ttodo?sslmode=disable
+      # Development mode - insecure
+      ELECTRIC_INSECURE: "true"
     ports:
-      - "8090:8080"  # Main API port (changed to 8090 to avoid conflict)
-      - "8091:8081"  # Admin port (changed to 8091)
-    volumes:
-      - powersync_data:/var/lib/powersync/data
-      - ./powersync.yaml:/app/powersync.yaml:ro
+      - "3000:3000"  # Electric HTTP API
     depends_on:
       postgres:
         condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
   postgres_data:
-  powersync_data:
+  electric_data:
