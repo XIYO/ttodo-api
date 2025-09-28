@@ -3,7 +3,7 @@ package point.ttodoApi.todo.application.command;
 import java.util.UUID;
 
 public record CompleteVirtualTodoCommand(
-        UUID memberId,
+        UUID userId,
         Long originalTodoId,
         Long daysDifference
 ) {

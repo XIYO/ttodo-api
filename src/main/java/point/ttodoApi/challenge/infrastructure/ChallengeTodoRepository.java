@@ -4,7 +4,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import point.ttodoApi.challenge.domain.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.domain.User;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -29,24 +29,24 @@ public interface ChallengeTodoRepository extends JpaRepository<ChallengeTodo, Lo
   );
 
   // 참여자와 챌린지로 투두 수 조회
-  long countByChallengeParticipation_Challenge_IdAndChallengeParticipation_Member_Id(Long challengeId, UUID memberId);
+  long countByChallengeParticipation_Challenge_IdAndChallengeParticipation_user_id(Long challengeId, UUID userId);
 
   // 사용자의 모든 챌린지 투두 조회
   @Query("SELECT ct FROM ChallengeTodo ct " +
           "JOIN FETCH ct.challengeParticipation cp " +
           "JOIN FETCH cp.challenge " +
-          "WHERE cp.member = :member " +
+          "WHERE cp.user = :user " +
           "AND cp.joinOut IS NULL")
-  Page<ChallengeTodo> findAllByMember(@Param("member") Member member, Pageable pageable);
+  Page<ChallengeTodo> findAllByUser(@Param("user") User user, Pageable pageable);
 
   // 특정 챌린지와 날짜로 투두 조회
   @Query("SELECT ct FROM ChallengeTodo ct " +
           "WHERE ct.challengeParticipation.challenge.id = :challengeId " +
-          "AND ct.challengeParticipation.member = :member " +
+          "AND ct.challengeParticipation.user = :user " +
           "AND ct.targetDate = :date")
-  Optional<ChallengeTodo> findByChallengeMemberAndDate(
+  Optional<ChallengeTodo> findByChallengeUserAndDate(
           @Param("challengeId") Long challengeId,
-          @Param("member") Member member,
+          @Param("user") User user,
           @Param("date") LocalDate date
   );
 }

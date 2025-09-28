@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
+import point.ttodoApi.profile.application.ProfileService;
+import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.todo.application.result.CollaborativeTodoResult;
 import point.ttodoApi.todo.domain.*;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
@@ -26,22 +28,24 @@ public class CollaborativeTodoService {
 
   private final TodoRepository todoRepository;
   private final CategoryRepository categoryRepository;
-  private final MemberRepository memberRepository;
+  private final UserRepository UserRepository;
+  private final ProfileService profileService;
 
   /**
    * 멤버가 접근 가능한 모든 투두 조회 (본인 투두 + 협업 투두)
    */
   @Transactional(readOnly = true)
-  public List<CollaborativeTodoResult> getAccessibleTodos(UUID memberId) {
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public List<CollaborativeTodoResult> getAccessibleTodos(UUID userId) {
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    List<Todo> todos = todoRepository.findAccessibleTodosByMemberId(memberId);
+    List<Todo> todos = todoRepository.findAccessibleTodosByuserId(userId);
 
     return todos.stream()
             .map(todo -> {
-              boolean canEdit = todo.isEditableBy(member);
-              return CollaborativeTodoResult.from(todo, canEdit);
+              boolean canEdit = todo.isEditableBy(user);
+              Profile ownerProfile = profileService.getProfile(todo.getOwner().getId());
+              return CollaborativeTodoResult.from(todo, ownerProfile.getNickname(), canEdit);
             })
             .collect(Collectors.toList());
   }
@@ -50,15 +54,15 @@ public class CollaborativeTodoService {
    * 특정 카테고리의 협업 투두 목록 조회
    */
   @Transactional(readOnly = true)
-  public List<CollaborativeTodoResult> getCollaborativeTodosByCategory(UUID categoryId, UUID memberId) {
+  public List<CollaborativeTodoResult> getCollaborativeTodosByCategory(UUID categoryId, UUID userId) {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
     // 카테고리 접근 권한 확인
-    if (!category.canManage(member)) {
+    if (!category.canManage(user)) {
       throw new IllegalArgumentException("No permission to access category");
     }
 
@@ -66,8 +70,9 @@ public class CollaborativeTodoService {
 
     return todos.stream()
             .map(todo -> {
-              boolean canEdit = todo.isEditableBy(member);
-              return CollaborativeTodoResult.from(todo, canEdit);
+              boolean canEdit = todo.isEditableBy(user);
+              Profile ownerProfile = profileService.getProfile(todo.getOwner().getId());
+              return CollaborativeTodoResult.from(todo, ownerProfile.getNickname(), canEdit);
             })
             .collect(Collectors.toList());
   }
@@ -76,16 +81,17 @@ public class CollaborativeTodoService {
    * 멤버가 협업자로 참여하는 투두 목록 조회
    */
   @Transactional(readOnly = true)
-  public List<CollaborativeTodoResult> getCollaborativeTodosByMember(UUID memberId) {
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public List<CollaborativeTodoResult> getCollaborativeTodosByUser(UUID userId) {
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    List<Todo> todos = todoRepository.findCollaborativeTodosByMemberId(memberId);
+    List<Todo> todos = todoRepository.findCollaborativeTodosByuserId(userId);
 
     return todos.stream()
             .map(todo -> {
-              boolean canEdit = todo.isEditableBy(member);
-              return CollaborativeTodoResult.from(todo, canEdit);
+              boolean canEdit = todo.isEditableBy(user);
+              Profile ownerProfile = profileService.getProfile(todo.getOwner().getId());
+              return CollaborativeTodoResult.from(todo, ownerProfile.getNickname(), canEdit);
             })
             .collect(Collectors.toList());
   }
@@ -93,58 +99,58 @@ public class CollaborativeTodoService {
   /**
    * 투두를 협업 투두로 전환
    */
-  public void enableTodoCollaboration(TodoId todoId, UUID memberId) {
-    Todo todo = findAccessibleTodo(todoId, memberId);
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public void enableTodoCollaboration(TodoId todoId, UUID userId) {
+    Todo todo = findAccessibleTodo(todoId, userId);
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
     // owner만 협업 전환 가능
-    if (!todo.getOwner().equals(member)) {
+    if (!todo.getOwner().equals(user)) {
       throw new IllegalArgumentException("Only todo owner can enable collaboration");
     }
 
     todo.enableCollaboration();
     todoRepository.save(todo);
 
-    log.info("Todo {} enabled collaboration by member {}", todoId, memberId);
+    log.info("Todo {} enabled collaboration by user {}", todoId, userId);
   }
 
   /**
    * 협업 투두를 개인 투두로 전환
    */
-  public void disableTodoCollaboration(TodoId todoId, UUID memberId) {
-    Todo todo = findAccessibleTodo(todoId, memberId);
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public void disableTodoCollaboration(TodoId todoId, UUID userId) {
+    Todo todo = findAccessibleTodo(todoId, userId);
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
     // owner만 협업 해제 가능
-    if (!todo.getOwner().equals(member)) {
+    if (!todo.getOwner().equals(user)) {
       throw new IllegalArgumentException("Only todo owner can disable collaboration");
     }
 
     todo.disableCollaboration();
     todoRepository.save(todo);
 
-    log.info("Todo {} disabled collaboration by member {}", todoId, memberId);
+    log.info("Todo {} disabled collaboration by user {}", todoId, userId);
   }
 
   /**
    * 협업 투두 완료 처리
    * 협업자도 완료할 수 있지만 수정은 카테고리 관리자만 가능
    */
-  public void completeCollaborativeTodo(TodoId todoId, UUID memberId) {
-    Todo todo = findAccessibleTodo(todoId, memberId);
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public void completeCollaborativeTodo(TodoId todoId, UUID userId) {
+    Todo todo = findAccessibleTodo(todoId, userId);
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
     // 접근 권한 확인
-    if (!todo.isAccessibleBy(member)) {
+    if (!todo.isAccessibleBy(user)) {
       throw new IllegalArgumentException("No permission to access this todo");
     }
 
     // 협업 투두가 아니면 일반 완료 처리 (owner만)
     if (!todo.isCollaborativeTodo()) {
-      if (!todo.getOwner().equals(member)) {
+      if (!todo.getOwner().equals(user)) {
         throw new IllegalArgumentException("Only todo owner can complete non-collaborative todo");
       }
     }
@@ -152,20 +158,20 @@ public class CollaborativeTodoService {
     todo.setComplete(true);
     todoRepository.save(todo);
 
-    log.info("Todo {} completed by member {}", todoId, memberId);
+    log.info("Todo {} completed by user {}", todoId, userId);
   }
 
   /**
    * 협업 투두 수정
    * 카테고리 관리 권한이 있는 사용자만 가능
    */
-  public void updateCollaborativeTodo(TodoId todoId, UUID memberId, String title, String description) {
-    Todo todo = findAccessibleTodo(todoId, memberId);
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public void updateCollaborativeTodo(TodoId todoId, UUID userId, String title, String description) {
+    Todo todo = findAccessibleTodo(todoId, userId);
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
     // 수정 권한 확인
-    if (!todo.isEditableBy(member)) {
+    if (!todo.isEditableBy(user)) {
       throw new IllegalArgumentException("No permission to edit this todo");
     }
 
@@ -178,34 +184,34 @@ public class CollaborativeTodoService {
 
     todoRepository.save(todo);
 
-    log.info("Todo {} updated by member {}", todoId, memberId);
+    log.info("Todo {} updated by user {}", todoId, userId);
   }
 
   /**
    * 협업 투두 삭제 (비활성화)
    * 카테고리 관리 권한이 있는 사용자만 가능
    */
-  public void deleteCollaborativeTodo(TodoId todoId, UUID memberId) {
-    Todo todo = findAccessibleTodo(todoId, memberId);
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public void deleteCollaborativeTodo(TodoId todoId, UUID userId) {
+    Todo todo = findAccessibleTodo(todoId, userId);
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
     // 삭제 권한 확인
-    if (!todo.isEditableBy(member)) {
+    if (!todo.isEditableBy(user)) {
       throw new IllegalArgumentException("No permission to delete this todo");
     }
 
     todo.setActive(false);
     todoRepository.save(todo);
 
-    log.info("Todo {} deleted by member {}", todoId, memberId);
+    log.info("Todo {} deleted by user {}", todoId, userId);
   }
 
   /**
    * 멤버가 접근 가능한 투두 조회 헬퍼 메서드
    */
-  private Todo findAccessibleTodo(TodoId todoId, UUID memberId) {
-    return todoRepository.findAccessibleTodoByTodoIdAndMemberId(todoId, memberId)
+  private Todo findAccessibleTodo(TodoId todoId, UUID userId) {
+    return todoRepository.findAccessibleTodoByTodoIdAndUserId(todoId, userId)
             .orElseThrow(() -> new IllegalArgumentException("Todo not found or no access permission"));
   }
 
@@ -213,9 +219,9 @@ public class CollaborativeTodoService {
    * 투두 접근 권한 확인 (Spring Security @PreAuthorize용)
    */
   @Transactional(readOnly = true)
-  public boolean canAccessTodo(TodoId todoId, UUID memberId) {
+  public boolean canAccessTodo(TodoId todoId, UUID userId) {
     try {
-      findAccessibleTodo(todoId, memberId);
+      findAccessibleTodo(todoId, userId);
       return true;
     } catch (IllegalArgumentException e) {
       return false;
@@ -226,12 +232,12 @@ public class CollaborativeTodoService {
    * 투두 수정 권한 확인 (Spring Security @PreAuthorize용)
    */
   @Transactional(readOnly = true)
-  public boolean canEditTodo(TodoId todoId, UUID memberId) {
+  public boolean canEditTodo(TodoId todoId, UUID userId) {
     try {
-      Todo todo = findAccessibleTodo(todoId, memberId);
-      Member member = memberRepository.findById(memberId)
-              .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
-      return todo.isEditableBy(member);
+      Todo todo = findAccessibleTodo(todoId, userId);
+      User user = UserRepository.findById(userId)
+              .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+      return todo.isEditableBy(user);
     } catch (IllegalArgumentException e) {
       return false;
     }
@@ -241,8 +247,8 @@ public class CollaborativeTodoService {
    * 협업 투두 통계 조회
    */
   @Transactional(readOnly = true)
-  public long countCollaborativeTodosByMember(UUID memberId) {
-    return todoRepository.countCollaborativeTodosByMemberId(memberId);
+  public long countCollaborativeTodosByUser(UUID userId) {
+    return todoRepository.countCollaborativeTodosByuserId(userId);
   }
 
   /**

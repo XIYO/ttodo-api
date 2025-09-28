@@ -1,55 +1,53 @@
 package point.ttodoApi.test.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.*;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import org.springframework.stereotype.Component;
-import point.ttodoApi.auth.domain.MemberPrincipal;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
+import point.ttodoApi.shared.security.UserPrincipal;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
- * WithAnonUser 애너테이션을 처리하는 팩토리
- * anon@ttodo.dev 사용자의 실제 정보를 사용하여 SecurityContext를 생성
+ * Security context factory for WithAnonUser annotation
  */
-@Component
-public class WithAnonUserSecurityContextFactory
-        implements WithSecurityContextFactory<WithAnonUser> {
+public class WithAnonUserSecurityContextFactory implements WithSecurityContextFactory<WithAnonUser> {
 
-  @Autowired
-  private MemberRepository memberRepository;
+    /**
+     * Anonymous user UUID (consistent across tests)
+     */
+    private static final String ANON_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
-  @Override
-  public SecurityContext createSecurityContext(WithAnonUser annotation) {
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    /**
+     * Anonymous user email
+     */
+    private static final String ANON_USER_EMAIL = "anon@ttodo.dev";
 
-    // anon@ttodo.dev 사용자 조회
-    Member anonMember = memberRepository.findByEmail("anon@ttodo.dev")
-            .orElseThrow(() -> new IllegalStateException("anon@ttodo.dev user not found in test"));
+    @Override
+    public SecurityContext createSecurityContext(WithAnonUser annotation) {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // Create UserPrincipal for anonymous user
+        UserPrincipal userPrincipal = new UserPrincipal(
+            UUID.fromString(ANON_USER_ID),
+            ANON_USER_EMAIL,
+            annotation.nickname(),
+            annotation.timeZone(),
+            annotation.locale(),
+            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
 
-    MemberPrincipal principal = MemberPrincipal.from(
-            anonMember.getId(),
-            anonMember.getEmail(),
-            anonMember.getNickname(),
-            "Asia/Seoul",
-            "ko_KR",
-            authorities
-    );
-
-    Authentication auth = new UsernamePasswordAuthenticationToken(
-            principal,
+        // Create Authentication
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+            userPrincipal,
             null,
-            authorities
-    );
+            userPrincipal.getAuthorities()
+        );
 
-    context.setAuthentication(auth);
-    return context;
-  }
+        context.setAuthentication(authentication);
+        return context;
+    }
 }

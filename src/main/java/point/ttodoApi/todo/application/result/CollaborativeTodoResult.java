@@ -30,7 +30,7 @@ public record CollaborativeTodoResult(
         Boolean canEdit
 ) {
 
-  public static CollaborativeTodoResult from(Todo todo, boolean canEdit) {
+  public static CollaborativeTodoResult from(Todo todo, String ownerNickname, boolean canEdit) {
     return new CollaborativeTodoResult(
             todo.getTodoId().getId(),
             todo.getTodoId().getDaysDifference().intValue(),
@@ -44,7 +44,7 @@ public record CollaborativeTodoResult(
             todo.getCategory() != null ? todo.getCategory().getId() : null,
             todo.getCategory() != null ? todo.getCategory().getName() : null,
             todo.getOwner().getId(),
-            todo.getOwner().getNickname(),
+            ownerNickname,  // Profile에서 가져온 nickname을 매개변수로 받음
             todo.getDate(),
             todo.getTime(),
             todo.getTags(),

@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import point.ttodoApi.category.domain.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.domain.User;
 
 import java.util.*;
 
@@ -18,22 +18,22 @@ public interface CategoryCollaboratorRepository extends JpaRepository<CategoryCo
    * 특정 카테고리와 멤버로 협업자 조회
    */
   @Query("SELECT cc FROM CategoryCollaborator cc " +
-          "WHERE cc.category = :category AND cc.member = :member " +
+          "WHERE cc.category = :category AND cc.user = :user " +
           "AND cc.deletedAt IS NULL")
-  Optional<CategoryCollaborator> findByCategoryAndMember(
+  Optional<CategoryCollaborator> findByCategoryAndUser(
           @Param("category") Category category,
-          @Param("member") Member member
+          @Param("user") User user
   );
 
   /**
    * 멤버와 상태로 협업자 목록 조회
    */
   @Query("SELECT cc FROM CategoryCollaborator cc " +
-          "WHERE cc.member = :member AND cc.status = :status " +
+          "WHERE cc.user = :user AND cc.status = :status " +
           "AND cc.deletedAt IS NULL " +
           "ORDER BY cc.invitedAt DESC")
-  List<CategoryCollaborator> findByMemberAndStatus(
-          @Param("member") Member member,
+  List<CategoryCollaborator> findByUserAndStatus(
+          @Param("user") User user,
           @Param("status") CollaboratorStatus status
   );
 
@@ -41,9 +41,9 @@ public interface CategoryCollaboratorRepository extends JpaRepository<CategoryCo
    * 멤버의 모든 협업 관계 조회 (상태 무관)
    */
   @Query("SELECT cc FROM CategoryCollaborator cc " +
-          "WHERE cc.member = :member AND cc.deletedAt IS NULL " +
+          "WHERE cc.user = :user AND cc.deletedAt IS NULL " +
           "ORDER BY cc.invitedAt DESC")
-  List<CategoryCollaborator> findByMember(@Param("member") Member member);
+  List<CategoryCollaborator> findByUser(@Param("user") User user);
 
   /**
    * 카테고리의 모든 협업자 조회
@@ -74,11 +74,11 @@ public interface CategoryCollaboratorRepository extends JpaRepository<CategoryCo
    * 특정 멤버와 카테고리, 상태로 존재 여부 확인
    */
   @Query("SELECT COUNT(cc) > 0 FROM CategoryCollaborator cc " +
-          "WHERE cc.category = :category AND cc.member = :member " +
+          "WHERE cc.category = :category AND cc.user = :user " +
           "AND cc.status = :status AND cc.deletedAt IS NULL")
-  boolean existsByCategoryAndMemberAndStatus(
+  boolean existsByCategoryAndUserAndStatus(
           @Param("category") Category category,
-          @Param("member") Member member,
+          @Param("user") User user,
           @Param("status") CollaboratorStatus status
   );
 
@@ -86,18 +86,18 @@ public interface CategoryCollaboratorRepository extends JpaRepository<CategoryCo
    * 멤버가 협업자인 카테고리 ID 목록 조회
    */
   @Query("SELECT cc.category.id FROM CategoryCollaborator cc " +
-          "WHERE cc.member = :member AND cc.status = 'ACCEPTED' " +
+          "WHERE cc.user = :user AND cc.status = 'ACCEPTED' " +
           "AND cc.deletedAt IS NULL")
-  List<UUID> findCollaborativeCategoryIdsByMember(@Param("member") Member member);
+  List<UUID> findCollaborativeCategoryIdsByUser(@Param("user") User user);
 
   /**
    * 멤버가 협업자인 카테고리 목록 조회
    */
   @Query("SELECT cc.category FROM CategoryCollaborator cc " +
-          "WHERE cc.member = :member AND cc.status = 'ACCEPTED' " +
+          "WHERE cc.user = :user AND cc.status = 'ACCEPTED' " +
           "AND cc.deletedAt IS NULL " +
           "ORDER BY cc.acceptedAt DESC")
-  List<Category> findCollaborativeCategoriesByMember(@Param("member") Member member);
+  List<Category> findCollaborativeCategoriesByUser(@Param("user") User user);
 
   /**
    * 특정 카테고리의 대기 중인 초대 목록 조회
@@ -112,10 +112,10 @@ public interface CategoryCollaboratorRepository extends JpaRepository<CategoryCo
    * 멤버의 대기 중인 초대 목록 조회
    */
   @Query("SELECT cc FROM CategoryCollaborator cc " +
-          "WHERE cc.member = :member AND cc.status = 'PENDING' " +
+          "WHERE cc.user = :user AND cc.status = 'PENDING' " +
           "AND cc.deletedAt IS NULL " +
           "ORDER BY cc.invitedAt DESC")
-  List<CategoryCollaborator> findPendingInvitationsByMember(@Param("member") Member member);
+  List<CategoryCollaborator> findPendingInvitationsByUser(@Param("user") User user);
 
   /**
    * 특정 owner가 소유한 카테고리들의 모든 협업자 조회
@@ -124,17 +124,17 @@ public interface CategoryCollaboratorRepository extends JpaRepository<CategoryCo
           "JOIN cc.category c " +
           "WHERE c.owner = :owner AND cc.deletedAt IS NULL " +
           "ORDER BY c.name, cc.acceptedAt DESC, cc.invitedAt DESC")
-  List<CategoryCollaborator> findByCategoryOwner(@Param("owner") Member owner);
+  List<CategoryCollaborator> findByCategoryOwner(@Param("owner") User owner);
 
   /**
    * 중복 초대 방지를 위한 존재 여부 확인
    */
   @Query("SELECT COUNT(cc) > 0 FROM CategoryCollaborator cc " +
-          "WHERE cc.category = :category AND cc.member = :member " +
+          "WHERE cc.category = :category AND cc.user = :user " +
           "AND cc.status IN ('PENDING', 'ACCEPTED') " +
           "AND cc.deletedAt IS NULL")
   boolean existsActiveInvitation(
           @Param("category") Category category,
-          @Param("member") Member member
+          @Param("user") User user
   );
 }

@@ -1,11 +1,15 @@
 package point.ttodoApi.category.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.category.domain.validation.ValidInvitationMessage;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.domain.BaseEntity;
 
 import java.time.LocalDateTime;
+
+import static point.ttodoApi.category.domain.CategoryConstants.*;
 
 /**
  * 카테고리 협업자 엔티티
@@ -15,12 +19,12 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "category_collaborators",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"category_id", "member_id"})
+                @UniqueConstraint(columnNames = {"category_id", "user_id"})
         },
         indexes = {
-                @Index(name = "idx_category_collaborator_member", columnList = "member_id"),
+                @Index(name = "idx_category_collaborator_user", columnList = "user_id"),
                 @Index(name = "idx_category_collaborator_status", columnList = "status"),
-                @Index(name = "idx_category_collaborator_member_status", columnList = "member_id, status")
+                @Index(name = "idx_category_collaborator_user_status", columnList = "user_id, status")
         }
 )
 @Getter
@@ -34,13 +38,16 @@ public class CategoryCollaborator extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id", nullable = false)
+  @NotNull(message = CATEGORY_REQUIRED_MESSAGE)
   private Category category;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id", nullable = false)
-  private Member member;
+  @JoinColumn(name = "user_id", nullable = false)
+  @NotNull(message = USER_REQUIRED_MESSAGE)
+  private User user;
 
   @Column(name = "invited_at", nullable = false)
+  @NotNull(message = INVITED_AT_REQUIRED_MESSAGE)
   private LocalDateTime invitedAt;
 
   @Column(name = "accepted_at")
@@ -48,25 +55,28 @@ public class CategoryCollaborator extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 20)
+  @NotNull(message = STATUS_REQUIRED_MESSAGE)
   private CollaboratorStatus status = CollaboratorStatus.PENDING;
 
-  @Column(name = "invitation_message", columnDefinition = "TEXT")
+  @Lob
+  @Column(name = "invitation_message", length = INVITATION_MESSAGE_MAX_LENGTH)
+  @ValidInvitationMessage
   private String invitationMessage;
 
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
   // 생성자
-  public CategoryCollaborator(Category category, Member member) {
+  public CategoryCollaborator(Category category, User user) {
     this.category = category;
-    this.member = member;
+    this.user = user;
     this.invitedAt = LocalDateTime.now();
     this.status = CollaboratorStatus.PENDING;
   }
 
   // 초대 메시지와 함께 생성
-  public CategoryCollaborator(Category category, Member member, String invitationMessage) {
-    this(category, member);
+  public CategoryCollaborator(Category category, User user, String invitationMessage) {
+    this(category, user);
     this.invitationMessage = invitationMessage;
   }
 

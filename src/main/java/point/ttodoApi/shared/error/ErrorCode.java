@@ -23,7 +23,7 @@ public enum ErrorCode {
   ACCESS_DENIED("AUTH_004", "접근 권한 없음", HttpStatus.FORBIDDEN),
   INVALID_CREDENTIALS("AUTH_005", "잘못된 인증 정보", HttpStatus.UNAUTHORIZED),
 
-  // Member Errors
+  // User Errors
   MEMBER_NOT_FOUND("MEMBER_001", "회원 정보를 찾을 수 없음", HttpStatus.NOT_FOUND),
   DUPLICATE_EMAIL("MEMBER_002", "이미 사용중인 이메일", HttpStatus.CONFLICT),
   INVALID_PASSWORD("MEMBER_003", "잘못된 비밀번호", HttpStatus.BAD_REQUEST),

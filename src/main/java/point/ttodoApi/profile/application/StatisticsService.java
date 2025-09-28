@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.application.CategoryService;
-import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.category.application.CategoryQueryService;
+import point.ttodoApi.user.application.UserService;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.profile.domain.Statistics;
 import point.ttodoApi.profile.infrastructure.persistence.StatisticsRepository;
 import point.ttodoApi.todo.application.TodoTemplateService;
@@ -19,34 +20,36 @@ public class StatisticsService {
 
   private final StatisticsRepository statisticsRepository;
   private final TodoTemplateService todoTemplateService;
-  private final CategoryService categoryService;
-  private final MemberService memberService;
+  private final CategoryService categoryService; // 기존 호환성 유지
+  private final CategoryQueryService categoryQueryService; // TTODO: Query 처리
+  private final UserService UserService;
 
   /**
    * 사용자 통계 조회
    */
   @Transactional
-  public Statistics getStatistics(UUID memberId) {
+  public Statistics getStatistics(UUID userId) {
     // 실시간으로 완료한 할일 수와 카테고리 수를 계산
-    long completedTodos = todoTemplateService.countCompletedTodos(memberId);
-    long totalCategories = categoryService.countByOwnerId(memberId);
+    long completedTodos = todoTemplateService.countCompletedTodos(userId);
+    // TTODO 아키텍처 패턴: Query 서비스 사용
+    long totalCategories = categoryQueryService.countByOwnerId(userId);
 
     // Statistics 엔티티에 저장/업데이트
-    updateStatisticsEntity(memberId, (int) completedTodos, (int) totalCategories);
+    updateStatisticsEntity(userId, (int) completedTodos, (int) totalCategories);
 
-    return statisticsRepository.findByOwnerId(memberId)
+    return statisticsRepository.findByOwnerId(userId)
             .orElseThrow(() -> new IllegalStateException("Statistics not found"));
   }
 
   /**
    * Statistics 엔티티 업데이트
    */
-  private void updateStatisticsEntity(UUID memberId, int completedTodos, int totalCategories) {
-    Statistics statistics = statisticsRepository.findByOwnerId(memberId)
+  private void updateStatisticsEntity(UUID userId, int completedTodos, int totalCategories) {
+    Statistics statistics = statisticsRepository.findByOwnerId(userId)
             .orElseGet(() -> {
-              Member member = memberService.findByIdOrThrow(memberId);
+              User user = UserService.findByIdOrThrow(userId);
               return Statistics.builder()
-                      .owner(member)
+                      .owner(user)
                       .succeededTodosCount(completedTodos)
                       .categoryCount(totalCategories)
                       .build();

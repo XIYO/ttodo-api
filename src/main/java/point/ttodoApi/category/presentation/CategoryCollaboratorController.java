@@ -11,7 +11,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.category.application.CategoryCollaboratorService;
 import point.ttodoApi.category.domain.CategoryCollaborator;
-import point.ttodoApi.category.presentation.dto.*;
+import point.ttodoApi.category.presentation.dto.request.*;
+import point.ttodoApi.category.presentation.dto.response.*;
 import point.ttodoApi.category.presentation.mapper.CategoryCollaboratorPresentationMapper;
 
 import java.util.*;
@@ -44,7 +45,7 @@ public class CategoryCollaboratorController {
 
     CategoryCollaborator collaborator = collaboratorService.inviteCollaborator(
             categoryId,
-            request.getMemberId(),
+            request.getUserId(),
             request.getInvitationMessage()
     );
 
@@ -61,7 +62,7 @@ public class CategoryCollaboratorController {
   })
   public CollaboratorResponse acceptInvitation(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     CategoryCollaborator collaborator = collaboratorService.acceptInvitation(categoryId, principal.id());
     return collaboratorMapper.toResponse(collaborator);
@@ -77,13 +78,13 @@ public class CategoryCollaboratorController {
   })
   public CollaboratorResponse rejectInvitation(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     CategoryCollaborator collaborator = collaboratorService.rejectInvitation(categoryId, principal.id());
     return collaboratorMapper.toResponse(collaborator);
   }
 
-  @DeleteMapping("/{memberId}")
+  @DeleteMapping("/{userId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "협업자 제거", description = "카테고리에서 협업자를 제거합니다. 카테고리 소유자만 협업자를 제거할 수 있습니다.")
   @ApiResponses({
@@ -93,10 +94,10 @@ public class CategoryCollaboratorController {
   })
   public void removeCollaborator(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @Parameter(description = "제거할 멤버 ID") @PathVariable UUID memberId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @Parameter(description = "제거할 멤버 ID") @PathVariable UUID userId,
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
-    collaboratorService.removeCollaborator(categoryId, memberId, principal.id());
+    collaboratorService.removeCollaborator(categoryId, userId, principal.id());
   }
 
   @DeleteMapping
@@ -109,7 +110,7 @@ public class CategoryCollaboratorController {
   })
   public void leaveCollaboration(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     collaboratorService.leaveCollaboration(categoryId, principal.id());
   }
@@ -123,7 +124,7 @@ public class CategoryCollaboratorController {
   })
   public List<CollaboratorResponse> getCategoryCollaborators(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     List<CategoryCollaborator> collaborators = collaboratorService.getCategoryCollaborators(categoryId, principal.id());
     return collaborators.stream()
@@ -133,11 +134,11 @@ public class CategoryCollaboratorController {
 }
 
 @RestController
-@RequestMapping("/members/{memberId}/collaborations")
+@RequestMapping("/user/{userId}/collaborations")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "멤버별 협업 관리", description = "특정 멤버의 협업 초대 현황과 참여 중인 협업 카테고리를 관리합니다.")
-class MemberCollaborationController {
+class UserCollaborationController {
 
   private final CategoryCollaboratorService collaboratorService;
   private final CategoryCollaboratorPresentationMapper collaboratorMapper;
@@ -149,11 +150,11 @@ class MemberCollaborationController {
           @ApiResponse(responseCode = "200", description = "초대 목록 조회 성공"),
           @ApiResponse(responseCode = "403", description = "권한 없음")
   })
-  @org.springframework.security.access.prepost.PreAuthorize("#memberId == authentication.principal.id")
+  @org.springframework.security.access.prepost.PreAuthorize("#userId == authentication.principal.id")
   public List<CollaboratorResponse> getPendingInvitations(
-          @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
+          @Parameter(description = "멤버 ID") @PathVariable UUID userId) {
 
-    List<CategoryCollaborator> invitations = collaboratorService.getPendingInvitations(memberId);
+    List<CategoryCollaborator> invitations = collaboratorService.getPendingInvitations(userId);
     return invitations.stream()
             .map(collaboratorMapper::toResponse)
             .collect(Collectors.toList());
@@ -166,12 +167,12 @@ class MemberCollaborationController {
           @ApiResponse(responseCode = "200", description = "협업 카테고리 목록 조회 성공"),
           @ApiResponse(responseCode = "403", description = "권한 없음")
   })
-  @org.springframework.security.access.prepost.PreAuthorize("#memberId == authentication.principal.id")
+  @org.springframework.security.access.prepost.PreAuthorize("#userId == authentication.principal.id")
   public List<String> getCollaborativeCategories(
-          @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
+          @Parameter(description = "멤버 ID") @PathVariable UUID userId) {
 
     // 이 엔드포인트는 나중에 CategoryResponse DTO를 만들어서 개선 필요
-    List<point.ttodoApi.category.domain.Category> categories = collaboratorService.getCollaborativeCategories(memberId);
+    List<point.ttodoApi.category.domain.Category> categories = collaboratorService.getCollaborativeCategories(userId);
     return categories.stream()
             .map(point.ttodoApi.category.domain.Category::getName)
             .collect(Collectors.toList());

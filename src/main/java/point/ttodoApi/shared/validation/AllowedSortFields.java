@@ -17,6 +17,7 @@ public final class AllowedSortFields {
   );
   /**
    * Todo 엔티티 정렬 필드
+   * user.nickname 제거됨 - Profile로 이동
    */
   public static final Set<String> TODO_FIELDS = Set.of(
           "id",
@@ -27,11 +28,12 @@ public final class AllowedSortFields {
           "date",
           "priorityId",
           "orderIndex",
-          "member.nickname",
+          // "user.nickname" 제거됨 - Profile로 이동
           "category.title"
   );
   /**
    * Category 엔티티 정렬 필드
+   * owner.nickname 제거됨 - Profile로 이동
    */
   public static final Set<String> CATEGORY_FIELDS = Set.of(
           "id",
@@ -39,18 +41,19 @@ public final class AllowedSortFields {
           "updatedAt",
           "title",
           "colorCode",
-          "orderIndex",
-          "owner.nickname"
+          "orderIndex"
+          // "owner.nickname" 제거됨 - Profile로 이동
   );
   /**
-   * Member 엔티티 정렬 필드
+   * User 엔티티 정렬 필드
+   * nickname 제거됨 - Profile로 이동
    */
   public static final Set<String> MEMBER_FIELDS = Set.of(
           "id",
           "createdAt",
           "updatedAt",
           "email",
-          "nickname",
+          // "nickname" 제거됨 - Profile로 이동
           "role",
           "lastLoginAt"
   );

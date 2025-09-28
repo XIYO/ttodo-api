@@ -1,11 +1,15 @@
 package point.ttodoApi.challenge.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.challenge.domain.validation.*;
+import point.ttodoApi.user.domain.User;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static point.ttodoApi.challenge.domain.ChallengeConstants.*;
 
 /**
  * 챌린지 리더(그룹장) 엔티티
@@ -14,11 +18,11 @@ import java.util.UUID;
 @Table(name = "challenge_leaders",
         indexes = {
                 @Index(name = "idx_challenge_leader_challenge", columnList = "challenge_id"),
-                @Index(name = "idx_challenge_leader_member", columnList = "member_id"),
+                @Index(name = "idx_challenge_leader_user", columnList = "user_id"),
                 @Index(name = "idx_challenge_leader_status", columnList = "challenge_id, status")
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_challenge_leader", columnNames = {"challenge_id", "member_id"})
+                @UniqueConstraint(name = "uk_challenge_leader", columnNames = {"challenge_id", "user_id"})
         }
 )
 @Getter
@@ -31,21 +35,25 @@ public class ChallengeLeader {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "challenge_id", nullable = false)
+  @NotNull(message = CHALLENGE_REQUIRED_MESSAGE)
   private Challenge challenge;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id", nullable = false)
-  private Member member;
+  @JoinColumn(name = "user_id", nullable = false)
+  @NotNull(message = USER_REQUIRED_MESSAGE)
+  private User user;
 
   @Column(name = "appointed_at", nullable = false)
   private LocalDateTime appointedAt;
 
   @Column(name = "appointed_by", nullable = false)
+  @NotNull(message = APPOINTED_BY_REQUIRED_MESSAGE)
   private UUID appointedBy; // 리더를 지정한 사람 (일반적으로 챌린지 생성자)
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private LeaderStatus status = LeaderStatus.ACTIVE;
+  @NotNull(message = STATUS_REQUIRED_MESSAGE)
+  private LeaderStatus status = DEFAULT_LEADER_STATUS;
 
   @Column(name = "removed_at")
   private LocalDateTime removedAt;
@@ -53,15 +61,16 @@ public class ChallengeLeader {
   @Column(name = "removed_by")
   private UUID removedBy;
 
-  @Column(name = "removal_reason", length = 500)
+  @Column(name = "removal_reason", length = REMOVAL_REASON_MAX_LENGTH)
+  @ValidRemovalReason
   private String removalReason;
 
   /**
    * 새 리더 임명 생성자
    */
-  public ChallengeLeader(Challenge challenge, Member member, UUID appointedBy) {
+  public ChallengeLeader(Challenge challenge, User user, UUID appointedBy) {
     this.challenge = challenge;
-    this.member = member;
+    this.user = user;
     this.appointedBy = appointedBy;
     this.appointedAt = LocalDateTime.now();
     this.status = LeaderStatus.ACTIVE;

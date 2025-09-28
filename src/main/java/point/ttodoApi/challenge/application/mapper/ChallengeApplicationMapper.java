@@ -1,0 +1,76 @@
+package point.ttodoApi.challenge.application.mapper;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import point.ttodoApi.challenge.application.command.CreateChallengeCommand;
+import point.ttodoApi.challenge.application.command.UpdateChallengeCommand;
+import point.ttodoApi.challenge.application.result.ChallengeResult;
+import point.ttodoApi.challenge.domain.Challenge;
+import point.ttodoApi.challenge.domain.ChallengeVisibility;
+
+/**
+ * Challenge Application Mapper
+ * TTODO 아키텍처 패턴: Application Layer 매퍼
+ * Domain ↔ Application DTO 변환
+ */
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@SuppressWarnings("NullableProblems")
+public interface ChallengeApplicationMapper {
+
+    /**
+     * CreateChallengeCommand에서 Challenge 생성 정보 추출
+     * 실제 엔티티 생성은 서비스에서 팩토리 메서드 사용
+     */
+    default Challenge createChallenge(CreateChallengeCommand command) {
+        if (command.visibility() == ChallengeVisibility.INVITE_ONLY) {
+            return Challenge.createInviteOnlyChallenge(
+                command.title(),
+                command.description(),
+                command.periodType(),
+                command.startDate(),
+                command.endDate(),
+                command.creatorId(),
+                command.maxParticipants()
+            );
+        } else {
+            return Challenge.createPublicChallenge(
+                command.title(),
+                command.description(),
+                command.periodType(),
+                command.startDate(),
+                command.endDate(),
+                command.creatorId(),
+                command.maxParticipants()
+            );
+        }
+    }
+
+    /**
+     * Challenge 엔티티 → ChallengeResult 변환
+     */
+    @Mapping(target = "participationStatus", ignore = true) // 서비스에서 설정
+    @Mapping(target = "activeParticipantCount", expression = "java((int) challenge.getActiveParticipantCount())")
+    @Mapping(target = "successRate", ignore = true) // 서비스에서 계산
+    ChallengeResult toResult(Challenge challenge);
+    
+    /**
+     * Challenge 엔티티 → ChallengeResult 변환 (참여 상태 포함)
+     */
+    default ChallengeResult toChallengeResult(Challenge challenge, Boolean participationStatus, Double successRate) {
+        ChallengeResult result = toResult(challenge);
+        return new ChallengeResult(
+            result.id(),
+            result.title(),
+            result.description(),
+            result.startDate(),
+            result.endDate(),
+            result.periodType(),
+            participationStatus,
+            result.activeParticipantCount(),
+            successRate,
+            result.visibility(),
+            result.creatorId()
+        );
+    }
+}

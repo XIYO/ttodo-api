@@ -1,11 +1,14 @@
 package point.ttodoApi.challenge.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.domain.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static point.ttodoApi.challenge.domain.ChallengeConstants.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -16,9 +19,11 @@ public class ChallengeParticipation {
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  private Member member;
+  @NotNull(message = USER_REQUIRED_MESSAGE)
+  private User user;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @NotNull(message = CHALLENGE_REQUIRED_MESSAGE)
   private Challenge challenge;
 
   private LocalDateTime joinedAt;
@@ -29,8 +34,8 @@ public class ChallengeParticipation {
   private List<ChallengeTodo> challengeTodos = new ArrayList<>();
 
   @Builder
-  public ChallengeParticipation(Member member, Challenge challenge, LocalDateTime joinedAt) {
-    this.member = member;
+  public ChallengeParticipation(User user, Challenge challenge, LocalDateTime joinedAt) {
+    this.user = user;
     this.challenge = challenge;
     this.joinedAt = joinedAt != null ? joinedAt : LocalDateTime.now();
   }

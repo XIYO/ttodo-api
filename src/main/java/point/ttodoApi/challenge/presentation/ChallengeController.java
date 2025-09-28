@@ -12,15 +12,16 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import point.ttodoApi.auth.domain.MemberPrincipal;
+import point.ttodoApi.shared.security.UserPrincipal;
 import point.ttodoApi.challenge.application.*;
 import point.ttodoApi.challenge.application.command.*;
 import point.ttodoApi.challenge.application.result.ChallengeResult;
 import point.ttodoApi.challenge.domain.Challenge;
-import point.ttodoApi.challenge.presentation.dto.*;
+import point.ttodoApi.challenge.presentation.dto.request.*;
+import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
-import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.application.UserService;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.validation.*;
 
 /**
@@ -34,7 +35,7 @@ public class ChallengeController {
 
   private final ChallengeService challengeService;
   private final ChallengeSearchService challengeSearchService;
-  private final MemberService memberService;
+  private final UserService UserService;
   private final ChallengePresentationMapper challengePresentationMapper;
 
   @Operation(
@@ -62,10 +63,10 @@ public class ChallengeController {
   @ResponseStatus(HttpStatus.CREATED)
   public ChallengeResponse createChallenge(
           @Valid CreateChallengeRequest request,
-          @AuthenticationPrincipal MemberPrincipal principal) {
+          @AuthenticationPrincipal UserPrincipal principal) {
 
-    Member member = memberService.findVerifiedMember(principal.id());
-    CreateChallengeCommand command = challengePresentationMapper.toCommand(request, member.getId());
+    User user = UserService.findVerifiedUser(principal.id());
+    CreateChallengeCommand command = challengePresentationMapper.toCommand(request, user.getId());
     Long challengeId = challengeService.createChallenge(command);
     ChallengeResult result = challengeService.getChallengeDetailForPublic(challengeId);
     return challengePresentationMapper.toChallengeResponse(result);
@@ -131,7 +132,7 @@ public class ChallengeController {
   public void updateChallenge(
           @PathVariable Long challengeId,
           @Valid UpdateChallengeRequest request,
-          @AuthenticationPrincipal MemberPrincipal principal) {
+          @AuthenticationPrincipal UserPrincipal principal) {
     UpdateChallengeCommand command = challengePresentationMapper.toCommand(request);
     challengeService.partialUpdateChallenge(challengeId, command);
   }

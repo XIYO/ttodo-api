@@ -12,14 +12,15 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import point.ttodoApi.auth.domain.MemberPrincipal;
+import point.ttodoApi.shared.security.UserPrincipal;
 import point.ttodoApi.shared.validation.*;
 import point.ttodoApi.todo.application.*;
 import point.ttodoApi.todo.application.command.DeleteTodoCommand;
 import point.ttodoApi.todo.application.query.*;
 import point.ttodoApi.todo.application.result.TodoStatistics;
 import point.ttodoApi.todo.domain.TodoId;
-import point.ttodoApi.todo.presentation.dto.*;
+import point.ttodoApi.todo.presentation.dto.request.*;
+import point.ttodoApi.todo.presentation.dto.response.*;
 import point.ttodoApi.todo.presentation.mapper.TodoPresentationMapper;
 
 import java.time.LocalDate;
@@ -28,7 +29,7 @@ import java.time.LocalDate;
 @RequestMapping("/todos")
 @RequiredArgsConstructor
 @Tag(name = "할 일(Todo) 핵심 기능", description = "ttodo 서비스의 핵심 기능인 할 일 관리 API를 제공합니다. 할 일 생성/조회/수정/삭제는 물론, 반복 스케줄링, 완료 처리, 상단 고정, 캘린더 통합, 통계 조회 등 다양한 기능을 지원합니다.\n\n" +
-        "할 일 ID 형식: `{id}:{daysDifference}` \n" +
+        "할 일 ID 형식: {id}:{daysDifference} \n" +
         "- id: 원본 할 일 ID\n" +
         "- daysDifference: 기준일로부터의 일수 차이 (0 = 원본, 1 = 1일 후, -1 = 1일 전)")
 public class TodoController {
@@ -71,7 +72,7 @@ public class TodoController {
           )
   )
   public Page<TodoResponse> getAll(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @ParameterObject @Valid TodoSearchRequest req) {
     TodoSearchQuery query = todoPresentationMapper.toQuery(req, principal.id());
     return todoInstanceService.getTodoList(query).map(todoPresentationMapper::toResponse);
@@ -111,7 +112,7 @@ public class TodoController {
                   schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
           )
   )
-  public TodoResponse getTodo(@AuthenticationPrincipal MemberPrincipal principal,
+  public TodoResponse getTodo(@AuthenticationPrincipal UserPrincipal principal,
                               @PathVariable Long id,
                               @PathVariable Long daysDifference) {
     if (daysDifference == 0) {
@@ -191,7 +192,7 @@ public class TodoController {
                   schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
           )
   )
-  public void add(@AuthenticationPrincipal MemberPrincipal principal,
+  public void add(@AuthenticationPrincipal UserPrincipal principal,
                   @Valid CreateTodoRequest request) {
     todoTemplateService.createTodo(todoPresentationMapper.toCommand(request, principal.id()));
   }
@@ -253,13 +254,13 @@ public class TodoController {
           )
   )
   @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
-  public void modify(@AuthenticationPrincipal MemberPrincipal principal,
+  public void modify(@AuthenticationPrincipal UserPrincipal principal,
                      @PathVariable Long id,
                      @PathVariable Long daysDifference,
                      @Valid UpdateTodoRequest request) {
     if (daysDifference == 0) {
       // 원본 TodoTemplate 수정
-      todoTemplateService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+      todoTemplateService.updateTodo(todoPresentationMapper.toCommand(request, principal.id(), id, 0L));
     } else {
       // 가상 Todo 수정/생성
       String virtualId = id + ":" + daysDifference;
@@ -312,7 +313,7 @@ public class TodoController {
           )
   )
   @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
-  public void patchTodo(@AuthenticationPrincipal MemberPrincipal principal,
+  public void patchTodo(@AuthenticationPrincipal UserPrincipal principal,
                         @PathVariable Long id,
                         @PathVariable Long daysDifference,
                         @Valid UpdateTodoRequest request) {
@@ -341,7 +342,7 @@ public class TodoController {
         todoInstanceService.updateOrCreateVirtualTodo(todoPresentationMapper.toVirtualCommand(request, principal.id(), virtualId));
       } else {
         // Todo 테이블에 데이터가 없으면 원본 TodoTemplate 수정
-        todoTemplateService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id));
+        todoTemplateService.partialUpdateTodo(todoPresentationMapper.toCommand(request, principal.id(), id, 0L));
       }
     }
   }
@@ -362,7 +363,7 @@ public class TodoController {
   @ApiResponse(responseCode = "403", description = "다른 사용자의 할 일에 접근 시도")
   @ApiResponse(responseCode = "404", description = "할 일을 찾을 수 없음")
   @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
-  public void remove(@AuthenticationPrincipal MemberPrincipal principal,
+  public void remove(@AuthenticationPrincipal UserPrincipal principal,
                      @PathVariable Long id,
                      @PathVariable Long daysDifference,
                      @Valid DeleteTodoRequest request) {
@@ -400,7 +401,7 @@ public class TodoController {
   )
   @ApiResponse(responseCode = "200", description = "통계 조회 성공")
   public TodoStatistics getTodoStatistics(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @RequestParam(required = false) @Schema(description = "조회할 날짜 (YYYY-MM-DD)", example = "2025-07-02") LocalDate date) {
     LocalDate targetDate = date != null ? date : LocalDate.now();
     return todoInstanceService.getTodoStatistics(principal.id(), targetDate);

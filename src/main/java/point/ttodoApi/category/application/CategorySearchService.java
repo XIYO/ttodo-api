@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.*;
-import point.ttodoApi.category.presentation.dto.CategorySearchRequest;
+import point.ttodoApi.category.presentation.dto.request.CategorySearchRequest;
 import point.ttodoApi.shared.specification.*;
 
 import java.util.*;
@@ -38,7 +38,7 @@ public class CategorySearchService {
 
     Specification<Category> spec = builder
             // 필수 조건
-            .with("member.id", request.getMemberId())
+            .with("user.id", request.getUserId())
             .with("active", true)
 
             // 선택적 조건들
@@ -76,11 +76,11 @@ public class CategorySearchService {
   /**
    * 특정 색상의 카테고리 조회
    */
-  public List<Category> getCategoriesByColor(String colorCode, UUID memberId) {
+  public List<Category> getCategoriesByColor(String colorCode, UUID userId) {
     SpecificationBuilder<Category> builder = new SpecificationBuilder<>(categorySpecification);
 
     Specification<Category> spec = builder
-            .with("member.id", memberId)
+            .with("user.id", userId)
             .with("active", true)
             .with("colorCode", colorCode)
             .build();

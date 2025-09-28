@@ -14,7 +14,7 @@ import java.util.Map;
 @Schema(description = "RFC 7807 Problem Details 표준을 따르는 에러 응답")
 public class ErrorResponse {
 
-  @Schema(description = "에러 유형을 나타내는 URI", example = "/errors/member-not-found")
+  @Schema(description = "에러 유형을 나타내는 URI", example = "/errors/user-not-found")
   private final String type;
 
   @Schema(description = "에러 제목", example = "회원 정보를 찾을 수 없음")
@@ -26,7 +26,7 @@ public class ErrorResponse {
   @Schema(description = "에러 상세 설명", example = "ID가 123인 회원을 찾을 수 없습니다.")
   private final String detail;
 
-  @Schema(description = "에러가 발생한 인스턴스 URI", example = "/api/members/123")
+  @Schema(description = "에러가 발생한 인스턴스 URI", example = "/api/user/123")
   private final String instance;
 
   @Schema(description = "애플리케이션 에러 코드", example = "MEMBER_001")

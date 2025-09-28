@@ -1,0 +1,26 @@
+# PowerSync configuration for PostgreSQL to SQLite sync
+replication:
+  connections:
+    - type: postgresql
+      uri: postgres://ttodo_user:ttodo_password@postgres:5432/ttodo
+      sslmode: disable
+
+storage:
+  type: postgresql
+  uri: postgres://ttodo_user:ttodo_password@postgres:5432/ttodo
+  sslmode: disable
+
+# Development mode - no JWT required
+auth:
+  mode: development
+
+api:
+  port: 8080
+
+# Sync Rules - what data to sync to which users  
+sync_rules:
+  bucket_definitions:
+    # Global bucket - all users get all todos
+    global:
+      data:
+        - SELECT * FROM simple_todo

@@ -1,55 +1,101 @@
 package point.ttodoApi.test;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.*;
-import org.testcontainers.containers.*;
-import org.testcontainers.junit.jupiter.*;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import point.ttodoApi.config.TestContainersConfig;
 
 /**
- * 모든 통합 테스트의 기본 클래스
- * Testcontainers를 사용하여 PostgreSQL과 Redis를 자동으로 구성
- * 테스트용 JWT 토큰을 properties에서 주입받아 사용
+ * Base integration test class
+ *
+ * Provides:
+ * - Testcontainers setup for PostgreSQL and Redis
+ * - Spring Boot test configuration
+ * - Test profile activation
+ * - Common test utilities
+ *
+ * Extend this class for integration tests that need:
+ * - Database access
+ * - Redis access
+ * - Full Spring context
+ * - Transactional test methods
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Testcontainers
-@AutoConfigureMockMvc
+@Import(TestContainersConfig.class)
+@ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional
 public abstract class BaseIntegrationTest {
 
-  @Container
-  @ServiceConnection
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-          DockerImageName.parse("postgres:17-alpine")
-  );
-  @Container
-  private static GenericContainer<?> redis = new GenericContainer<>(
-          DockerImageName.parse("redis:7-alpine")
-  ).withExposedPorts(6379);
-  /**
-   * anon@ttodo.dev 계정의 유효한 JWT 토큰
-   * application.yml의 test.auth.anon-token에서 주입
-   */
-  @Value("${test.auth.anon-token}")
-  protected String validAnonToken;
-  /**
-   * 잘못된 서명의 JWT 토큰 (테스트용)
-   * application.yml의 test.auth.invalid-token에서 주입
-   */
-  @Value("${test.auth.invalid-token}")
-  protected String invalidToken;
+    @Container
+    private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
+        new PostgreSQLContainer<>(DockerImageName.parse("postgres:17-alpine"))
+            .withDatabaseName("ttodo_test")
+            .withUsername("test_user")
+            .withPassword("test_password")
+            .withReuse(true);
 
-  @DynamicPropertySource
-  static void properties(DynamicPropertyRegistry registry) {
-    // Redis 연결 정보 동적 설정
-    registry.add("spring.data.redis.host", redis::getHost);
-    registry.add("spring.data.redis.port", redis::getFirstMappedPort);
+    @Container
+    protected static final GenericContainer<?> REDIS_CONTAINER =
+        new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
+            .withExposedPorts(6379)
+            .withReuse(true);
 
-    // JWT 토큰 설정 (테스트용)
-    registry.add("jwt.access-token.expiration", () -> "3600");
-    registry.add("jwt.refresh-token.expiration", () -> "86400");
-  }
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        // PostgreSQL configuration
+        registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
+        registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
+
+        // Redis configuration
+        registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+
+        // Test profile
+        registry.add("spring.profiles.active", () -> "test");
+
+        // JWT test keys
+        registry.add("jwt.private-key", () -> "classpath:ttodo/jwt/test-private.pem");
+        registry.add("jwt.public-key", () -> "classpath:ttodo/jwt/public.pem");
+        registry.add("jwt.key-id", () -> "test-rsa-key-id");
+    }
+
+    /**
+     * Test utility: Get PostgreSQL JDBC URL
+     */
+    protected static String getPostgresJdbcUrl() {
+        return POSTGRES_CONTAINER.getJdbcUrl();
+    }
+
+    /**
+     * Test utility: Get Redis host
+     */
+    protected static String getRedisHost() {
+        return REDIS_CONTAINER.getHost();
+    }
+
+    /**
+     * Test utility: Get Redis port
+     */
+    protected static Integer getRedisPort() {
+        return REDIS_CONTAINER.getMappedPort(6379);
+    }
+
+    /**
+     * Test utility: Check if containers are running
+     */
+    protected static boolean areContainersRunning() {
+        return POSTGRES_CONTAINER.isRunning() && REDIS_CONTAINER.isRunning();
+    }
 }

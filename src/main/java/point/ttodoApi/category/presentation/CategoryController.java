@@ -11,10 +11,13 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import point.ttodoApi.auth.domain.MemberPrincipal;
+import point.ttodoApi.shared.security.UserPrincipal;
 import point.ttodoApi.category.application.*;
+import point.ttodoApi.category.application.query.*;
+import point.ttodoApi.category.application.result.CategoryResult;
 import point.ttodoApi.category.application.command.*;
-import point.ttodoApi.category.presentation.dto.*;
+import point.ttodoApi.category.presentation.dto.request.*;
+import point.ttodoApi.category.presentation.dto.response.*;
 import point.ttodoApi.category.presentation.mapper.CategoryPresentationMapper;
 import point.ttodoApi.shared.validation.*;
 
@@ -25,7 +28,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "할일 카테고리 관리", description = "할일을 분류하기 위한 카테고리 생성, 조회, 수정, 삭제 및 색상/이름 관리 API")
 public class CategoryController {
-  private final CategoryService categoryService;
+  private final CategoryService categoryService; // 기존 서비스 (호환성 유지)
+  private final CategoryCommandService categoryCommandService; // TTODO: Command 처리
+  private final CategoryQueryService categoryQueryService; // TTODO: Query 처리
   private final CategorySearchService categorySearchService;
   private final CategoryPresentationMapper mapper;
 
@@ -44,12 +49,12 @@ public class CategoryController {
   @ApiResponse(responseCode = "200", description = "카테고리 목록 조회 성공")
   @ValidPageable(sortFields = SortFieldsProvider.CATEGORY)
   public Page<CategoryResponse> getCategories(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @Parameter(description = "검색 조건") @ModelAttribute CategorySearchRequest request,
           @Parameter(description = "페이징 및 정렬 정보")
           @PageableDefault(size = 20, sort = "orderIndex", direction = Sort.Direction.ASC) Pageable pageable) {
 
-    request.setMemberId(principal.id());
+    request.setUserId(principal.id());
     request.validate();
 
     // 검색 조건이 있으면 검색 서비스 사용, 없으면 기존 서비스 사용
@@ -57,7 +62,8 @@ public class CategoryController {
       return categorySearchService.searchCategories(request, pageable)
               .map(mapper::toResponse);
     } else {
-      return categoryService.getCategories(principal.id(), pageable)
+      // TTODO 아키텍처 패턴: Query 서비스 사용
+      return categoryQueryService.getCategories(new CategoryPageQuery(principal.id(), pageable))
               .map(mapper::toResponse);
     }
   }
@@ -76,11 +82,13 @@ public class CategoryController {
   @ApiResponse(responseCode = "200", description = "카테고리 조회 성공")
   @ApiResponse(responseCode = "403", description = "접근 권한 없음")
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
-  @PreAuthorize("@categoryService.isMember(#categoryId, authentication.principal.id)")
+  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
   public CategoryResponse getCategory(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
-    return mapper.toResponse(categoryService.getCategory(principal.id(), categoryId));
+    // TTODO 아키텍처 패턴: Query 서비스 사용
+    CategoryResult result = categoryQueryService.getCategory(new CategoryQuery(categoryId, principal.id()));
+    return mapper.toResponse(result);
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -91,14 +99,16 @@ public class CategoryController {
   @ApiResponse(responseCode = "201", description = "카테고리 생성 성공")
   @ResponseStatus(HttpStatus.CREATED)
   public CategoryResponse createCategory(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @Valid CreateCategoryRequest request) {
     CreateCategoryCommand command = new CreateCategoryCommand(
             principal.id(),
             request.name(),
             request.color(),
             request.description());
-    return mapper.toResponse(categoryService.createCategory(command));
+    // TTODO 아키텍처 패턴: Command 서비스 사용
+    CategoryResult result = categoryCommandService.createCategory(command);
+    return mapper.toResponse(result);
   }
 
   @PutMapping(value = "/{categoryId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -109,9 +119,9 @@ public class CategoryController {
   @ApiResponse(responseCode = "200", description = "카테고리 수정 성공")
   @ApiResponse(responseCode = "403", description = "접근 권한 없음")
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
-  @PreAuthorize("@categoryService.isMember(#categoryId, authentication.principal.id)")
+  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
   public CategoryResponse updateCategory(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
           @Valid UpdateCategoryRequest request) {
     UpdateCategoryCommand command = new UpdateCategoryCommand(
@@ -119,8 +129,11 @@ public class CategoryController {
             categoryId,
             request.name(),
             request.color(),
-            request.description());
-    return mapper.toResponse(categoryService.updateCategory(command));
+            request.description(),
+            request.orderIndex());
+    // TTODO 아키텍처 패턴: Command 서비스 사용
+    CategoryResult result = categoryCommandService.updateCategory(command);
+    return mapper.toResponse(result);
   }
 
   @DeleteMapping("/{categoryId}")
@@ -129,12 +142,13 @@ public class CategoryController {
   @ApiResponse(responseCode = "403", description = "접근 권한 없음")
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@categoryService.isMember(#categoryId, authentication.principal.id)")
+  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
   public void deleteCategory(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
     DeleteCategoryCommand command = new DeleteCategoryCommand(principal.id(), categoryId);
-    categoryService.deleteCategory(command);
+    // TTODO 아키텍처 패턴: Command 서비스 사용
+    categoryCommandService.deleteCategory(command);
   }
 
   private Pageable createPageable(int page, int size, String sort) {

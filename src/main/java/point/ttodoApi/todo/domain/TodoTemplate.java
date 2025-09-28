@@ -6,12 +6,15 @@ import lombok.*;
 import org.springframework.data.annotation.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.todo.domain.recurrence.RecurrenceRule;
+import point.ttodoApi.todo.domain.validation.*;
 import point.ttodoApi.todo.infrastructure.persistence.converter.RecurrenceRuleJsonConverter;
 
 import java.time.*;
 import java.util.*;
+
+import static point.ttodoApi.todo.domain.TodoConstants.*;
 
 @Entity
 @Table(name = "todo_template")
@@ -24,38 +27,46 @@ public class TodoTemplate {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = TITLE_MAX_LENGTH)
+  @ValidTitle
   private String title;
 
+  @Column(length = DESCRIPTION_MAX_LENGTH)
+  @ValidDescription
   private String description;
 
   @Column(name = "priority")
+  @ValidTodoPriority
   private Integer priorityId;
 
+  @ValidTodoDate(allowPast = true)
   private LocalDate date;
 
   private LocalTime time;
 
   // 신규 RRULE 기반 반복 규칙(JSON 직렬화)
   @Convert(converter = RecurrenceRuleJsonConverter.class)
-  @Column(name = "recurrence_rule", columnDefinition = "TEXT")
+  @Lob
+  @Column(name = "recurrence_rule")
   private RecurrenceRule recurrenceRule;
 
   // 시리즈 기준일(앵커)
   @Column(name = "anchor_date")
+  @ValidTodoDate(allowPast = true)
   private LocalDate anchorDate;
 
   @Column(name = "complete")
   private Boolean complete;
 
   @Column(name = "active", nullable = false)
-  private Boolean active = true;
+  private Boolean active = DEFAULT_ACTIVE;
 
   @Column(name = "is_pinned", nullable = false)
-  private Boolean isPinned = false;
+  private Boolean isPinned = DEFAULT_IS_PINNED;
 
   @Column(name = "display_order", nullable = false)
-  private Integer displayOrder = 0;
+  @ValidDisplayOrder
+  private Integer displayOrder = DEFAULT_DISPLAY_ORDER;
 
   @CreatedDate
   @Column(updatable = false)
@@ -69,6 +80,7 @@ public class TodoTemplate {
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "todo_template_tags", joinColumns = @JoinColumn(name = "todo_template_id"))
   @Column(name = "tag")
+  @ValidTags
   private Set<String> tags = new HashSet<>();
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -76,8 +88,9 @@ public class TodoTemplate {
   private Category category;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id", nullable = false)
-  private Member owner;
+  @JoinColumn(name = "user_id", nullable = false)
+  @ValidOwner
+  private User owner;
 
   @Builder
   public TodoTemplate(
@@ -92,7 +105,7 @@ public class TodoTemplate {
           Integer displayOrder,
           Set<String> tags,
           Category category,
-          Member owner
+          User owner
   ) {
     this.title = title;
     this.description = description;
@@ -100,9 +113,9 @@ public class TodoTemplate {
     this.date = date;
     this.time = time;
     this.complete = complete;
-    this.active = active != null ? active : true;
-    this.isPinned = isPinned != null ? isPinned : false;
-    this.displayOrder = displayOrder != null ? displayOrder : 0;
+    this.active = active != null ? active : DEFAULT_ACTIVE;
+    this.isPinned = isPinned != null ? isPinned : DEFAULT_IS_PINNED;
+    this.displayOrder = displayOrder != null ? displayOrder : DEFAULT_DISPLAY_ORDER;
     this.tags = tags != null ? tags : new HashSet<>();
     this.category = category;
     this.owner = owner;
@@ -120,11 +133,11 @@ public class TodoTemplate {
   /**
    * 소유권 확인 메서드 (Spring Security @PreAuthorize용)
    *
-   * @param memberId 확인할 멤버 ID
+   * @param userId 확인할 멤버 ID
    * @return 소유자인지 여부
    */
-  public boolean isOwn(UUID memberId) {
-    if (memberId == null || this.owner == null) return false;
-    return this.owner.getId().equals(memberId);
+  public boolean isOwn(UUID userId) {
+    if (userId == null || this.owner == null) return false;
+    return this.owner.getId().equals(userId);
   }
 }

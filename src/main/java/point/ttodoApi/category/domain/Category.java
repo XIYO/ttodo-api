@@ -1,10 +1,15 @@
 package point.ttodoApi.category.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.category.domain.validation.*;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.shared.domain.BaseEntity;
 
 import java.util.*;
+
+import static point.ttodoApi.category.domain.CategoryConstants.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -12,54 +17,64 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "categories",
         indexes = {
-                @Index(name = "idx_category_member", columnList = "member_id")
+                @Index(name = "idx_category_user", columnList = "user_id")
         }
 )
-public class Category {
+public class Category extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = NAME_MAX_LENGTH)
+  @ValidCategoryName
   private String name;
 
-  @Column(length = 7)
+  @Column(length = COLOR_LENGTH)
+  @ValidColor
   private String color;
 
-  @Column(length = 255)
+  @Column(length = DESCRIPTION_MAX_LENGTH)
+  @ValidDescription
   private String description;
 
+  @Column(name = "order_index")
+  private Integer orderIndex = 0;
+
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id", nullable = false)
-  private Member owner;
+  @JoinColumn(name = "user_id", nullable = false)
+  @NotNull(message = OWNER_REQUIRED_MESSAGE)
+  private User owner;
 
   @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<CategoryCollaborator> collaborators = new HashSet<>();
+  private final Set<CategoryCollaborator> collaborators = new HashSet<>();
 
   @Builder
-  public Category(String name, String color, String description, Member owner) {
+  public Category(String name, String color, String description, User owner, Integer orderIndex) {
     this.name = name;
     this.color = color;
     this.description = description;
     this.owner = owner;
+    this.orderIndex = orderIndex != null ? orderIndex : 0;
   }
 
-  public void update(String name, String color, String description) {
+  public void update(String name, String color, String description, Integer orderIndex) {
     this.name = name;
     this.color = color;
     this.description = description;
+    if (orderIndex != null) {
+      this.orderIndex = orderIndex;
+    }
   }
 
   /**
    * 협업자 확인 메서드
    * owner이거나 수락된 협업자인 경우 true 반환
    */
-  public boolean isCollaborator(Member member) {
-    if (member == null) return false;
-    if (this.owner.equals(member)) return true;
+  public boolean isCollaborator(User user) {
+    if (owner.equals(user)) return true;
 
     return collaborators.stream()
-            .anyMatch(c -> c.getMember().equals(member)
+            .anyMatch(c -> c.getUser().equals(user)
                     && c.getStatus() == CollaboratorStatus.ACCEPTED
                     && !c.isDeleted());
   }
@@ -68,32 +83,28 @@ public class Category {
    * 관리 권한 확인 메서드
    * owner이거나 협업자인 경우 관리 권한 보유
    */
-  public boolean canManage(Member member) {
-    return isCollaborator(member);
+  public boolean canManage(User user) {
+    return isCollaborator(user);
   }
 
   /**
    * 협업자 추가
    * owner는 협업자로 추가할 수 없음
    */
-  public CategoryCollaborator addCollaborator(Member member) {
-    if (this.owner.equals(member)) {
-      throw new IllegalArgumentException("Owner cannot be a collaborator");
-    }
+  public CategoryCollaborator addCollaborator(User user) {
+    if (owner.equals(user)) throw new IllegalArgumentException("Owner cannot be a collaborator");
 
     // 이미 협업자인지 확인
     boolean alreadyExists = collaborators.stream()
-            .anyMatch(c -> c.getMember().equals(member)
+            .anyMatch(c -> c.getUser().equals(user)
                     && !c.isDeleted()
                     && (c.getStatus() == CollaboratorStatus.PENDING
                     || c.getStatus() == CollaboratorStatus.ACCEPTED));
 
-    if (alreadyExists) {
-      throw new IllegalArgumentException("Member is already invited or is a collaborator");
-    }
+    if (alreadyExists) throw new IllegalArgumentException("User is already invited or is a collaborator");
 
-    CategoryCollaborator collaborator = new CategoryCollaborator(this, member);
-    this.collaborators.add(collaborator);
+    CategoryCollaborator collaborator = new CategoryCollaborator(this, user);
+    collaborators.add(collaborator);
 
     return collaborator;
   }
@@ -101,24 +112,20 @@ public class Category {
   /**
    * 초대 메시지와 함께 협업자 추가
    */
-  public CategoryCollaborator addCollaborator(Member member, String invitationMessage) {
-    if (this.owner.equals(member)) {
-      throw new IllegalArgumentException("Owner cannot be a collaborator");
-    }
+  public CategoryCollaborator addCollaborator(User user, String invitationMessage) {
+    if (owner.equals(user)) throw new IllegalArgumentException("Owner cannot be a collaborator");
 
     // 이미 협업자인지 확인
     boolean alreadyExists = collaborators.stream()
-            .anyMatch(c -> c.getMember().equals(member)
+            .anyMatch(c -> c.getUser().equals(user)
                     && !c.isDeleted()
                     && (c.getStatus() == CollaboratorStatus.PENDING
                     || c.getStatus() == CollaboratorStatus.ACCEPTED));
 
-    if (alreadyExists) {
-      throw new IllegalArgumentException("Member is already invited or is a collaborator");
-    }
+    if (alreadyExists) throw new IllegalArgumentException("User is already invited or is a collaborator");
 
-    CategoryCollaborator collaborator = new CategoryCollaborator(this, member, invitationMessage);
-    this.collaborators.add(collaborator);
+    CategoryCollaborator collaborator = new CategoryCollaborator(this, user, invitationMessage);
+    collaborators.add(collaborator);
 
     return collaborator;
   }
@@ -126,9 +133,9 @@ public class Category {
   /**
    * 협업자 제거 (소프트 삭제)
    */
-  public void removeCollaborator(Member member) {
+  public void removeCollaborator(User user) {
     collaborators.stream()
-            .filter(c -> c.getMember().equals(member) && !c.isDeleted())
+            .filter(c -> c.getUser().equals(user) && !c.isDeleted())
             .findFirst()
             .ifPresent(CategoryCollaborator::softDelete);
   }
@@ -136,17 +143,17 @@ public class Category {
   /**
    * 수락된 협업자 목록 조회
    */
-  public Set<Member> getAcceptedCollaborators() {
+  public Set<User> getAcceptedCollaborators() {
     return collaborators.stream()
             .filter(c -> c.getStatus() == CollaboratorStatus.ACCEPTED && !c.isDeleted())
-            .map(CategoryCollaborator::getMember)
+            .map(CategoryCollaborator::getUser)
             .collect(Collectors.toSet());
   }
 
   /**
    * 활성 협업자 수 조회 (owner 제외)
    */
-  public long getActiveCollaboratorCount() {
+  private long getActiveCollaboratorCount() {
     return collaborators.stream()
             .filter(c -> c.getStatus() == CollaboratorStatus.ACCEPTED && !c.isDeleted())
             .count();
@@ -171,37 +178,37 @@ public class Category {
   /**
    * 특정 멤버가 이 카테고리의 owner인지 확인
    */
-  public boolean isOwner(Member member) {
-    return member != null && this.owner.equals(member);
+  public boolean isOwner(User user) {
+    return user != null && owner.equals(user);
   }
 
   /**
    * 소유권 확인 메서드 (Spring Security @PreAuthorize용)
    *
-   * @param memberId 확인할 멤버 ID
+   * @param userId 확인할 멤버 ID
    * @return 소유자인지 여부
    */
-  public boolean isOwn(UUID memberId) {
-    if (memberId == null || this.owner == null) return false;
-    return this.owner.getId().equals(memberId);
+  private boolean isOwn(UUID userId) {
+    if (userId == null || owner == null) return false;
+    return owner.getId().equals(userId);
   }
 
   /**
    * 관리 권한 확인 메서드 (Spring Security @PreAuthorize용)
    * owner이거나 협업자인 경우 관리 권한 보유
    *
-   * @param memberId 확인할 멤버 ID
+   * @param userId 확인할 멤버 ID
    * @return 관리 권한 보유 여부
    */
-  public boolean canManage(UUID memberId) {
-    if (memberId == null) return false;
+  public boolean canManage(UUID userId) {
+    if (userId == null) return false;
 
     // owner인 경우
-    if (isOwn(memberId)) return true;
+    if (isOwn(userId)) return true;
 
     // 협업자인 경우
     return collaborators.stream()
-            .anyMatch(c -> c.getMember().getId().equals(memberId)
+            .anyMatch(c -> c.getUser().getId().equals(userId)
                     && c.getStatus() == CollaboratorStatus.ACCEPTED
                     && !c.isDeleted());
   }

@@ -4,12 +4,14 @@ import org.mapstruct.*;
 import point.ttodoApi.challenge.application.command.*;
 import point.ttodoApi.challenge.application.result.*;
 import point.ttodoApi.challenge.domain.*;
-import point.ttodoApi.challenge.presentation.dto.*;
+import point.ttodoApi.challenge.presentation.dto.request.*;
+import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.shared.config.shared.MapStructConfig;
 
 import java.util.UUID;
 
 @Mapper(config = MapStructConfig.class, imports = {UUID.class})
+@SuppressWarnings("NullableProblems")
 public interface ChallengePresentationMapper {
 
   /**
@@ -49,9 +51,9 @@ public interface ChallengePresentationMapper {
   ChallengeDetailResponse toResponse(ChallengeResult dto);
 
 
-  @Mapping(target = "id", source = "member.id")
-  @Mapping(target = "email", source = "member.email")
-  @Mapping(target = "nickname", source = "member.nickname")
+  @Mapping(target = "id", source = "user.id")
+  @Mapping(target = "email", source = "user.email")
+  @Mapping(target = "nickname", ignore = true) // Profile에서 별도로 가져와야 함
   @Mapping(target = "joinedAt", source = "joinedAt")
   ParticipantResult toParticipantResult(ChallengeParticipation participation);
 

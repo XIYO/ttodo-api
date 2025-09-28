@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 import point.ttodoApi.todo.domain.TodoTemplate;
 import point.ttodoApi.todo.domain.recurrence.Frequency;
 import point.ttodoApi.todo.domain.recurrence.RecurrenceRule;
@@ -29,22 +29,22 @@ public class TodoDataBootstrap {
 
     private final TodoTemplateRepository todoTemplateRepository;
     private final CategoryRepository categoryRepository;
-    private final MemberRepository memberRepository;
+    private final UserRepository UserRepository;
 
     public void initialize() {
-        var anonUser = memberRepository.findById(ANON_USER_ID).orElse(null);
+        var anonUser = UserRepository.findById(ANON_USER_ID).orElse(null);
         if (anonUser == null) {
             log.debug("Anonymous user not found, skipping todo initialization");
             return;
         }
 
         if (!"anon@ttodo.dev".equals(anonUser.getEmail())) {
-            log.debug("Member {} is not the target anon user, skipping initialization", anonUser.getNickname());
+            log.debug("User {} is not the target anon user, skipping initialization", anonUser.getEmail());
             return;
         }
 
         if (!todoTemplateRepository.findByOwnerId(anonUser.getId()).isEmpty()) {
-            log.info("Member {} already has todos, skipping initialization", anonUser.getNickname());
+            log.info("User {} already has todos, skipping initialization", anonUser.getEmail());
             return;
         }
 
@@ -58,13 +58,13 @@ public class TodoDataBootstrap {
         List<TodoTemplate> sampleTodos = createSampleTodos(anonUser, categoryMap);
         todoTemplateRepository.saveAll(sampleTodos);
 
-        log.info("Created {} sample todos for member {}", sampleTodos.size(), anonUser.getNickname());
+        log.info("Created {} sample todos for user {}", sampleTodos.size(), anonUser.getEmail());
     }
 
     /**
      * 기본 카테고리 생성
      */
-    private void createDefaultCategories(Member owner) {
+    private void createDefaultCategories(User owner) {
         List<Category> categories = List.of(
                 Category.builder()
                         .name("개인")
@@ -121,7 +121,7 @@ public class TodoDataBootstrap {
     /**
      * 샘플 할일 템플릿 생성 (기존 970줄 → 간소화)
      */
-    private List<TodoTemplate> createSampleTodos(Member owner, Map<String, Category> categoryMap) {
+    private List<TodoTemplate> createSampleTodos(User owner, Map<String, Category> categoryMap) {
         List<TodoTemplate> todos = new ArrayList<>();
         LocalDate now = LocalDate.now();
 
@@ -154,7 +154,7 @@ public class TodoDataBootstrap {
     /**
      * 개인 카테고리 할일 생성
      */
-    private List<TodoTemplate> createPersonalTodos(Member owner, Category category, LocalDate now) {
+    private List<TodoTemplate> createPersonalTodos(User owner, Category category, LocalDate now) {
         List<TodoTemplate> todos = new ArrayList<>();
 
         // 반복 할일 - 매일 명상
@@ -231,7 +231,7 @@ public class TodoDataBootstrap {
     /**
      * 업무 카테고리 할일 생성
      */
-    private List<TodoTemplate> createWorkTodos(Member owner, Category category, LocalDate now) {
+    private List<TodoTemplate> createWorkTodos(User owner, Category category, LocalDate now) {
         return List.of(
                 TodoTemplate.builder()
                         .title("업무 회의 준비")
@@ -266,7 +266,7 @@ public class TodoDataBootstrap {
     /**
      * 공부 카테고리 할일 생성
      */
-    private List<TodoTemplate> createStudyTodos(Member owner, Category category, LocalDate now) {
+    private List<TodoTemplate> createStudyTodos(User owner, Category category, LocalDate now) {
         return List.of(
                 TodoTemplate.builder()
                         .title("영어 단어 암기")
@@ -301,7 +301,7 @@ public class TodoDataBootstrap {
     /**
      * 기타 카테고리 할일들 생성 (간소화)
      */
-    private List<TodoTemplate> createOtherTodos(Member owner, Map<String, Category> categoryMap, LocalDate now) {
+    private List<TodoTemplate> createOtherTodos(User owner, Map<String, Category> categoryMap, LocalDate now) {
         List<TodoTemplate> todos = new ArrayList<>();
 
         // 가족 카테고리

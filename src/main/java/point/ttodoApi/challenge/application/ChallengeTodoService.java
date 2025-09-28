@@ -10,7 +10,7 @@ import point.ttodoApi.challenge.application.result.ChallengeTodoResult;
 import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.challenge.infrastructure.*;
 import point.ttodoApi.experience.application.event.ChallengeTodoCompletedEvent;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.error.*;
 
 import java.time.LocalDate;
@@ -26,14 +26,14 @@ public class ChallengeTodoService {
   private final ChallengeTodoMapper challengeTodoMapper;
   private final ApplicationEventPublisher eventPublisher;
 
-  public void completeChallenge(Long challengeId, Member member, LocalDate targetDate) {
+  public void completeChallenge(Long challengeId, User user, LocalDate targetDate) {
     // 챌린지 확인
     Challenge challenge = challengeRepository.findById(challengeId)
             .orElseThrow(() -> new NotFoundException("챌린지를 찾을 수 없습니다"));
 
     // 참여 상태 확인
     ChallengeParticipation participation = participationRepository
-            .findByMemberAndChallenge_IdAndJoinOutIsNull(member, challengeId)
+            .findByUserAndChallenge_IdAndJoinOutIsNull(user, challengeId)
             .orElseThrow(() -> new ForbiddenException("참여하지 않은 챌린지입니다"));
 
     // 챌린지 활성 상태 확인
@@ -60,18 +60,18 @@ public class ChallengeTodoService {
 
     // 챌린지 투두 완료 이벤트 발생
     eventPublisher.publishEvent(new ChallengeTodoCompletedEvent(
-            member.getId(),
+            user.getId(),
             challenge.getId(),
             challenge.getTitle()
     ));
   }
 
-  public void cancelCompleteChallenge(Long todoId, Member member) {
+  public void cancelCompleteChallenge(Long todoId, User user) {
     ChallengeTodo todo = challengeTodoRepository.findById(todoId)
             .orElseThrow(() -> new NotFoundException("챌린지 투두를 찾을 수 없습니다"));
 
     // 권한 확인
-    if (!todo.getChallengeParticipation().getMember().getId().equals(member.getId()))
+    if (!todo.getChallengeParticipation().getUser().getId().equals(user.getId()))
       throw new ForbiddenException("다른 사용자의 챌린지 투두를 취소할 수 없습니다");
 
     todo.cancel();
@@ -79,15 +79,15 @@ public class ChallengeTodoService {
   }
 
   @Transactional(readOnly = true)
-  public Page<ChallengeTodoResult> getAllChallengeTodos(Member member, Pageable pageable) {
-    return challengeTodoRepository.findAllByMember(member, pageable)
+  public Page<ChallengeTodoResult> getAllChallengeTodos(User user, Pageable pageable) {
+    return challengeTodoRepository.findAllByUser(user, pageable)
             .map(challengeTodoMapper::toResult);
   }
 
   @Transactional(readOnly = true)
-  public ChallengeTodoResult getChallengeTodoByChallenge(Long challengeId, Member member, LocalDate date) {
+  public ChallengeTodoResult getChallengeTodoByChallenge(Long challengeId, User user, LocalDate date) {
     ChallengeTodo todo = challengeTodoRepository
-            .findByChallengeMemberAndDate(challengeId, member, date)
+            .findByChallengeUserAndDate(challengeId, user, date)
             .orElseThrow(() -> new NotFoundException("챌린지 투두를 찾을 수 없습니다"));
 
     return challengeTodoMapper.toResult(todo);

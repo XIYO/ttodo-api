@@ -2,12 +2,15 @@ package point.ttodoApi.todo.application.mapper;
 
 import org.mapstruct.*;
 import point.ttodoApi.shared.config.shared.MapStructConfig;
+import point.ttodoApi.todo.application.command.CreateTodoCommand;
+import point.ttodoApi.todo.application.command.UpdateTodoCommand;
 import point.ttodoApi.todo.application.result.TodoResult;
 import point.ttodoApi.todo.domain.*;
 
 import java.time.LocalDate;
 
 @Mapper(config = MapStructConfig.class)
+@SuppressWarnings("NullableProblems")
 public interface TodoApplicationMapper {
 
   // 공통 매핑 설정 - TodoTemplate의 기본 필드들을 위한 추상 메서드 (직접 호출되지 않음)
@@ -83,6 +86,22 @@ public interface TodoApplicationMapper {
   @Mapping(target = "recurrenceRule", ignore = true)
   @Mapping(target = "anchorDate", ignore = true)
   TodoResult toResult(Todo todo);
+
+  // CreateTodoCommand로 Todo 엔티티 생성
+  @Mapping(target = "todoId", expression = "java(new point.ttodoApi.todo.domain.TodoId(1L, 0L))") // 임시 ID, 실제로는 생성 로직에서 처리
+  @Mapping(target = "owner", ignore = true) // 서비스에서 설정
+  @Mapping(target = "category", ignore = true) // 서비스에서 설정
+  @Mapping(target = "active", constant = "true")
+  @Mapping(target = "isCollaborative", constant = "false")
+  Todo toEntity(CreateTodoCommand command);
+
+  // UpdateTodoCommand로 Todo 엔티티 업데이트
+  @Mapping(target = "todoId", ignore = true)
+  @Mapping(target = "owner", ignore = true)
+  @Mapping(target = "category", ignore = true)
+  @Mapping(target = "active", ignore = true)
+  @Mapping(target = "isCollaborative", ignore = true)
+  void updateEntity(@MappingTarget Todo todo, UpdateTodoCommand command);
 
   @Named("priorityName")
   default String getPriorityName(Integer priorityId) {

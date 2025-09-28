@@ -11,7 +11,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.challenge.application.ChallengeLeaderService;
 import point.ttodoApi.challenge.domain.*;
-import point.ttodoApi.challenge.presentation.dto.*;
+import point.ttodoApi.challenge.presentation.dto.request.*;
+import point.ttodoApi.challenge.presentation.dto.response.*;
+import point.ttodoApi.profile.application.ProfileService;
+import point.ttodoApi.profile.domain.Profile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 public class ChallengeLeaderController {
 
   private final ChallengeLeaderService leaderService;
+  private final ProfileService profileService;
 
   @PostMapping(consumes = {org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE, org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.CREATED)
@@ -39,18 +43,19 @@ public class ChallengeLeaderController {
   public ChallengeLeaderResponse addLeader(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
           @Valid LeaderAppointRequest request,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     ChallengeLeader leader = leaderService.appointLeader(
             challengeId,
-            request.getMemberId(),
+            request.getUserId(),
             principal.id()
     );
 
-    return ChallengeLeaderResponse.from(leader);
+    Profile userProfile = profileService.getProfile(leader.getUser().getId());
+    return ChallengeLeaderResponse.from(leader, userProfile.getNickname());
   }
 
-  @DeleteMapping("/{memberId}")
+  @DeleteMapping("/{userId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "리더 해제", description = "리더 권한을 해제합니다. 챌린지 생성자만 이 작업을 수행할 수 있습니다.")
   @ApiResponses({
@@ -60,12 +65,12 @@ public class ChallengeLeaderController {
   })
   public void removeLeader(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @Parameter(description = "해제할 멤버 ID") @PathVariable UUID memberId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal,
+          @Parameter(description = "해제할 멤버 ID") @PathVariable UUID userId,
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal,
           @Valid LeaderRemoveRequest request) {
 
     String reason = request != null ? request.getReason() : null;
-    leaderService.removeLeader(challengeId, memberId, principal.id(), reason);
+    leaderService.removeLeader(challengeId, userId, principal.id(), reason);
   }
 
   @DeleteMapping
@@ -78,7 +83,7 @@ public class ChallengeLeaderController {
   })
   public void resignLeader(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     leaderService.resignLeader(challengeId, principal.id(), null);
   }
@@ -92,11 +97,14 @@ public class ChallengeLeaderController {
   })
   public List<ChallengeLeaderResponse> getChallengeLeaders(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     List<ChallengeLeader> leaders = leaderService.getChallengeLeaders(challengeId, principal.id());
     return leaders.stream()
-            .map(ChallengeLeaderResponse::from)
+            .map(leader -> {
+              Profile userProfile = profileService.getProfile(leader.getUser().getId());
+              return ChallengeLeaderResponse.from(leader, userProfile.getNickname());
+            })
             .collect(Collectors.toList());
   }
 
@@ -125,51 +133,54 @@ public class ChallengeLeaderController {
   })
   public List<ChallengeLeaderResponse> getChallengeLeaderHistory(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @AuthenticationPrincipal point.ttodoApi.auth.domain.MemberPrincipal principal) {
+          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
 
     List<ChallengeLeader> leaders = leaderService.getChallengeLeaderHistory(challengeId, principal.id());
     return leaders.stream()
-            .map(ChallengeLeaderResponse::from)
+            .map(leader -> {
+              Profile userProfile = profileService.getProfile(leader.getUser().getId());
+              return ChallengeLeaderResponse.from(leader, userProfile.getNickname());
+            })
             .collect(Collectors.toList());
   }
 
-  @GetMapping("/{memberId}/role")
+  @GetMapping("/{userId}/role")
   @ResponseStatus(HttpStatus.OK)
   @Operation(summary = "멤버 역할 조회", description = "특정 멤버의 챌린지 내 역할을 조회합니다. 일반 참가자, 리더, 생성자 등의 역할 정보를 반환합니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "200", description = "역할 조회 성공"),
           @ApiResponse(responseCode = "404", description = "챌린지 또는 멤버를 찾을 수 없음")
   })
-  public ChallengeRole getMemberRole(
+  public ChallengeRole getUserRole(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
+          @Parameter(description = "멤버 ID") @PathVariable UUID userId) {
 
-    return leaderService.getMemberRole(challengeId, memberId);
+    return leaderService.getUserRole(challengeId, userId);
   }
 }
 
 @RestController
-@RequestMapping("/members/{memberId}/leader-challenges")
+@RequestMapping("/user/{userId}/leader-challenges")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "멤버별 리더 챌린지 조회", description = "특정 멤버가 리더로 활동 중인 챌린지 목록과 관련 정보를 조회합니다.")
-class MemberLeaderChallengeController {
+class UserLeaderChallengeController {
 
   private final ChallengeLeaderService leaderService;
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @org.springframework.security.access.prepost.PreAuthorize("#memberId == authentication.principal.id")
+  @org.springframework.security.access.prepost.PreAuthorize("#userId == authentication.principal.id")
   @Operation(summary = "리더로 활동 중인 챌린지 목록 조회", description = "특정 멤버가 리더 역할을 맡고 있는 모든 챌린지 목록을 조회합니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "200", description = "리더 챌린지 목록 조회 성공"),
           @ApiResponse(responseCode = "404", description = "멤버를 찾을 수 없음")
   })
-  public List<String> getMemberLeaderChallenges(
-          @Parameter(description = "멤버 ID") @PathVariable UUID memberId) {
+  public List<String> getUserLeaderChallenges(
+          @Parameter(description = "멤버 ID") @PathVariable UUID userId) {
 
     // 나중에 ChallengeResponse DTO를 만들어서 개선 필요
-    List<Challenge> challenges = leaderService.getMemberLeaderChallenges(memberId);
+    List<Challenge> challenges = leaderService.getUserLeaderChallenges(userId);
     return challenges.stream()
             .map(Challenge::getTitle)
             .collect(Collectors.toList());

@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import point.ttodoApi.challenge.domain.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.domain.User;
 
 import java.util.*;
 
@@ -26,37 +26,37 @@ public interface ChallengeLeaderRepository extends JpaRepository<ChallengeLeader
    * 특정 챌린지와 멤버로 리더 조회 (상태 무관)
    */
   @Query("SELECT cl FROM ChallengeLeader cl " +
-          "WHERE cl.challenge = :challenge AND cl.member = :member")
-  Optional<ChallengeLeader> findByChallengeAndMember(
+          "WHERE cl.challenge = :challenge AND cl.user = :user")
+  Optional<ChallengeLeader> findByChallengeAndUser(
           @Param("challenge") Challenge challenge,
-          @Param("member") Member member
+          @Param("user") User user
   );
 
   /**
    * 특정 챌린지와 멤버로 활성 리더 조회
    */
   @Query("SELECT cl FROM ChallengeLeader cl " +
-          "WHERE cl.challenge = :challenge AND cl.member = :member " +
+          "WHERE cl.challenge = :challenge AND cl.user = :user " +
           "AND cl.status = 'ACTIVE'")
-  Optional<ChallengeLeader> findActiveLeaderByChallengeAndMember(
+  Optional<ChallengeLeader> findActiveLeaderByChallengeAndUser(
           @Param("challenge") Challenge challenge,
-          @Param("member") Member member
+          @Param("user") User user
   );
 
   /**
    * 멤버가 리더인 모든 챌린지 조회
    */
   @Query("SELECT cl FROM ChallengeLeader cl " +
-          "WHERE cl.member = :member AND cl.status = 'ACTIVE' " +
+          "WHERE cl.user = :user AND cl.status = 'ACTIVE' " +
           "ORDER BY cl.appointedAt DESC")
-  List<ChallengeLeader> findActiveChallengesByMember(@Param("member") Member member);
+  List<ChallengeLeader> findActiveChallengesByUser(@Param("user") User user);
 
   /**
    * 멤버가 리더인 챌린지 수 조회
    */
   @Query("SELECT COUNT(cl) FROM ChallengeLeader cl " +
-          "WHERE cl.member = :member AND cl.status = 'ACTIVE'")
-  long countActiveChallengesByMember(@Param("member") Member member);
+          "WHERE cl.user = :user AND cl.status = 'ACTIVE'")
+  long countActiveChallengesByUser(@Param("user") User user);
 
   /**
    * 챌린지의 활성 리더 수 조회
@@ -69,11 +69,11 @@ public interface ChallengeLeaderRepository extends JpaRepository<ChallengeLeader
    * 특정 멤버가 특정 챌린지의 활성 리더인지 확인
    */
   @Query("SELECT COUNT(cl) > 0 FROM ChallengeLeader cl " +
-          "WHERE cl.challenge = :challenge AND cl.member = :member " +
+          "WHERE cl.challenge = :challenge AND cl.user = :user " +
           "AND cl.status = 'ACTIVE'")
-  boolean existsActiveLeaderByChallengeAndMember(
+  boolean existsActiveLeaderByChallengeAndUser(
           @Param("challenge") Challenge challenge,
-          @Param("member") Member member
+          @Param("user") User user
   );
 
   /**
@@ -88,9 +88,9 @@ public interface ChallengeLeaderRepository extends JpaRepository<ChallengeLeader
    * 멤버 ID로 리더인 챌린지 목록 조회
    */
   @Query("SELECT cl.challenge FROM ChallengeLeader cl " +
-          "WHERE cl.member.id = :memberId AND cl.status = 'ACTIVE' " +
+          "WHERE cl.user.id = :userId AND cl.status = 'ACTIVE' " +
           "ORDER BY cl.appointedAt DESC")
-  List<Challenge> findActiveChallengesByMemberId(@Param("memberId") UUID memberId);
+  List<Challenge> findActiveChallengesByuserId(@Param("userId") UUID userId);
 
   /**
    * 특정 챌린지의 모든 리더 기록 조회 (제거된 리더 포함)
@@ -134,6 +134,6 @@ public interface ChallengeLeaderRepository extends JpaRepository<ChallengeLeader
    * 멤버가 활성 리더인 챌린지 ID 목록 조회
    */
   @Query("SELECT cl.challenge.id FROM ChallengeLeader cl " +
-          "WHERE cl.member.id = :memberId AND cl.status = 'ACTIVE'")
-  List<Long> findChallengeIdsByActiveLeaderMemberId(@Param("memberId") UUID memberId);
+          "WHERE cl.user.id = :userId AND cl.status = 'ACTIVE'")
+  List<Long> findChallengeIdsByActiveLeaderuserId(@Param("userId") UUID userId);
 }

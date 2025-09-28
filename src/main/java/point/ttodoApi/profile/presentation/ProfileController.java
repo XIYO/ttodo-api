@@ -11,12 +11,14 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.application.command.UpdateMemberCommand;
-import point.ttodoApi.member.application.result.MemberResult;
+import point.ttodoApi.user.application.UserService;
+import point.ttodoApi.user.application.command.UpdateUserCommand;
+import point.ttodoApi.user.application.result.UserResult;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.profile.presentation.dto.*;
+import point.ttodoApi.profile.presentation.dto.request.UpdateProfileRequest;
+import point.ttodoApi.profile.presentation.dto.response.ProfileImageUploadResponse;
+import point.ttodoApi.profile.presentation.dto.response.ProfileResponse;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -27,10 +29,10 @@ import java.util.UUID;
 @Tag(name = "프로필(Profile) 설정", description = "사용자 프로필 정보를 관리하는 API입니다. 닉네임, 자기소개, 프로필 이미지, 타임존, 로케일, 테마 등 개인화 설정을 포함합니다. 타임존과 로케일 설정은 할 일 표시 시간과 언어에 영향을 줍니다.")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/members/{memberId}/profile")
+@RequestMapping("/user/{userId}/profile")
 public class ProfileController {
 
-  private final MemberService memberService;
+  private final UserService UserService;
   private final ProfileService profileService;
 
   @Operation(
@@ -41,12 +43,12 @@ public class ProfileController {
   @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  public ProfileResponse getProfile(@PathVariable UUID memberId) {
-    MemberResult memberResult = memberService.getMember(memberId);
-    Profile profile = profileService.getProfile(memberId);
+  public ProfileResponse getProfile(@PathVariable UUID userId) {
+    UserResult UserResult = UserService.getUser(userId);
+    Profile profile = profileService.getProfile(userId);
 
     return new ProfileResponse(
-            memberResult.nickname(),
+            UserResult.nickname(),
             profile.getIntroduction(),
             profile.getTimeZone(),
             profile.getLocale(),
@@ -71,42 +73,42 @@ public class ProfileController {
   @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
   @PatchMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("#memberId == authentication.principal.id")
+  @PreAuthorize("#userId == authentication.principal.id")
   public void updateProfile(
-          @PathVariable UUID memberId,
+          @PathVariable UUID userId,
           @Valid UpdateProfileRequest request) {
 
     // 회원 기본 정보 업데이트 (닉네임만)
     if (request.nickname() != null) {
-      UpdateMemberCommand command = new UpdateMemberCommand(
-              memberId,
+      UpdateUserCommand command = new UpdateUserCommand(
+              userId,
               request.nickname(),
-              null // introduction은 더 이상 Member에서 관리하지 않음
+              null // introduction은 더 이상 User에서 관리하지 않음
       );
-      memberService.updateMember(command);
+      UserService.updateUser(command);
     }
 
     // 프로필 정보 업데이트
-    Profile profile = profileService.getProfile(memberId);
+    Profile profile = profileService.getProfile(userId);
     boolean profileUpdated = false;
 
     if (request.introduction() != null) {
-      profile.updateIntroduction(request.introduction());
+      profile.setIntroduction(request.introduction());
       profileUpdated = true;
     }
 
     if (request.timeZone() != null) {
-      profile.updateTimeZone(request.timeZone());
+      profile.setTimeZone(request.timeZone());
       profileUpdated = true;
     }
 
     if (request.locale() != null) {
-      profile.updateLocale(request.locale());
+      profile.setLocale(request.locale());
       profileUpdated = true;
     }
 
     if (request.theme() != null) {
-      profile.updateTheme(request.theme());
+      profile.setTheme(request.theme());
       profileUpdated = true;
     }
 
@@ -124,8 +126,8 @@ public class ProfileController {
   @ApiResponse(responseCode = "404", description = "프로필 이미지가 없습니다.")
   @GetMapping(value = "/image", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
   @ResponseStatus(HttpStatus.OK)
-  public byte[] getProfileImage(@PathVariable UUID memberId, HttpServletResponse response) {
-    Profile profile = profileService.getProfile(memberId);
+  public byte[] getProfileImage(@PathVariable UUID userId, HttpServletResponse response) {
+    Profile profile = profileService.getProfile(userId);
     if (profile.getProfileImage() == null) {
       throw new point.ttodoApi.shared.error.NotFoundException("프로필 이미지가 없습니다.");
     }
@@ -147,14 +149,14 @@ public class ProfileController {
   @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지 업로드 시도")
   @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("#memberId == authentication.principal.id")
+  @PreAuthorize("#userId == authentication.principal.id")
   @io.swagger.v3.oas.annotations.parameters.RequestBody(
           content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
   )
   public ProfileImageUploadResponse uploadProfileImage(
-          @PathVariable UUID memberId,
+          @PathVariable UUID userId,
           @RequestParam("image") MultipartFile image) throws IOException {
-    Profile updatedProfile = profileService.updateProfileImage(memberId, image);
+    Profile updatedProfile = profileService.updateProfileImage(userId, image);
     return new ProfileImageUploadResponse(updatedProfile.getImageUrl());
   }
 
@@ -166,8 +168,8 @@ public class ProfileController {
   @ApiResponse(responseCode = "403", description = "다른 사용자의 프로필 이미지 삭제 시도")
   @DeleteMapping("/image")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("#memberId == authentication.principal.id")
-  public void deleteProfileImage(@PathVariable UUID memberId) {
-    profileService.removeProfileImage(memberId);
+  @PreAuthorize("#userId == authentication.principal.id")
+  public void deleteProfileImage(@PathVariable UUID userId) {
+    profileService.removeProfileImage(userId);
   }
 }

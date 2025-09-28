@@ -8,6 +8,7 @@ import point.ttodoApi.challenge.domain.ChallengeTodo;
  * MapStruct mapper for converting ChallengeTodo domain entities to application layer DTOs.
  */
 @Mapper(componentModel = "spring")
+@SuppressWarnings("NullableProblems")
 public interface ChallengeTodoMapper {
   /**
    * Convert ChallengeTodo to ChallengeTodoResult.

@@ -38,7 +38,7 @@ public class TodoSearchService {
 
     Specification<Todo> spec = builder
             // 필수 조건
-            .with("member.id", query.memberId())
+            .with("user.id", query.userId())
             .with("active", true)
 
             // 선택적 조건들
@@ -60,11 +60,11 @@ public class TodoSearchService {
   /**
    * 카테고리별 Todo 개수 조회
    */
-  public long countTodosByCategory(UUID memberId, UUID categoryId) {
+  public long countTodosByCategory(UUID userId, UUID categoryId) {
     SpecificationBuilder<Todo> builder = new SpecificationBuilder<>(todoSpecification);
 
     Specification<Todo> spec = builder
-            .with("member.id", memberId)
+            .with("user.id", userId)
             .with("active", true)
             .with("category.id", categoryId)
             .build();

@@ -15,7 +15,7 @@ public enum SortFieldsProvider {
   CATEGORY,
 
   /**
-   * Member 엔티티 정렬 필드
+   * User 엔티티 정렬 필드
    */
   MEMBER,
 

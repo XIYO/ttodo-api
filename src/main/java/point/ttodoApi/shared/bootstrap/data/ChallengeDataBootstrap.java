@@ -10,8 +10,8 @@ import point.ttodoApi.challenge.application.command.CreateChallengeCommand;
 import point.ttodoApi.challenge.domain.ChallengeVisibility;
 import point.ttodoApi.challenge.domain.PeriodType;
 import point.ttodoApi.challenge.infrastructure.ChallengeRepository;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -29,7 +29,7 @@ public class ChallengeDataBootstrap {
     private final ChallengeParticipationService participationService;
     private final ChallengeTodoService challengeTodoService;
     private final ChallengeRepository challengeRepository;
-    private final MemberRepository memberRepository;
+    private final UserRepository UserRepository;
 
     private final Random random = new Random();
 
@@ -41,10 +41,10 @@ public class ChallengeDataBootstrap {
 
         try {
             Long[] challengeIds = createBasicChallenges();
-            Member[] members = getMembersForParticipation();
+            User[] user = getuserForParticipation();
             
-            if (members.length > 0) {
-                initializeChallengeParticipations(members, challengeIds);
+            if (user.length > 0) {
+                initializeChallengeParticipations(user, challengeIds);
             }
             
             log.info("Challenge initialization completed successfully");
@@ -88,20 +88,20 @@ public class ChallengeDataBootstrap {
     /**
      * 참여할 멤버 목록 조회
      */
-    private Member[] getMembersForParticipation() {
-        List<Member> members = memberRepository.findAll();
-        return members.toArray(new Member[0]);
+    private User[] getuserForParticipation() {
+        List<User> user = UserRepository.findAll();
+        return user.toArray(new User[0]);
     }
 
     /**
      * 챌린지 참여 초기화
      */
-    private void initializeChallengeParticipations(Member[] members, Long[] challengeIds) {
+    private void initializeChallengeParticipations(User[] user, Long[] challengeIds) {
         log.info("Initializing challenge participations...");
 
         int totalParticipations = 0;
 
-        for (Member member : members) {
+        for (User currentUser : user) {
             int participationCount = 3 + random.nextInt(4); // 3~6개 참여
             Set<Integer> joinedChallenges = new HashSet<>();
 
@@ -109,14 +109,14 @@ public class ChallengeDataBootstrap {
                 int challengeIndex = random.nextInt(challengeIds.length);
                 if (joinedChallenges.add(challengeIndex)) {
                     try {
-                        participationService.joinChallenge(challengeIds[challengeIndex], member);
+                        participationService.joinChallenge(challengeIds[challengeIndex], currentUser);
                         totalParticipations++;
 
                         // 50% 확률로 완료 처리
                         if (random.nextBoolean()) {
                             challengeTodoService.completeChallenge(
                                 challengeIds[challengeIndex], 
-                                member, 
+                                currentUser, 
                                 LocalDate.now()
                             );
                         }

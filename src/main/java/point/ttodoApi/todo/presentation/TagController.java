@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import point.ttodoApi.auth.domain.MemberPrincipal;
+import point.ttodoApi.shared.security.UserPrincipal;
 import point.ttodoApi.todo.application.TodoTemplateService;
 
 import java.util.*;
@@ -61,7 +61,7 @@ public class TagController {
           )
   )
   public Page<String> getTags(
-          @AuthenticationPrincipal MemberPrincipal principal,
+          @AuthenticationPrincipal UserPrincipal principal,
           @RequestParam(required = false)
           @Parameter(description = "카테고리 ID 목록 (중복 허용)", example = "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
           List<UUID> categoryIds,

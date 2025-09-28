@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
 import point.ttodoApi.experience.application.event.*;
-import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.application.UserService;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.error.EntityNotFoundException;
 import point.ttodoApi.todo.application.command.*;
 import point.ttodoApi.todo.application.mapper.TodoApplicationMapper;
@@ -32,12 +32,12 @@ public class TodoInstanceService {
   private final TodoTemplateService todoTemplateService;
   private final TodoRepository todoRepository;
   private final CategoryRepository categoryRepository;
-  private final MemberService memberService;
+  private final UserService UserService;
   private final TodoApplicationMapper todoApplicationMapper;
   private final ApplicationEventPublisher eventPublisher;
 
-  public boolean existsVirtualTodo(UUID memberId, TodoId todoId) {
-    return todoRepository.findByTodoIdAndOwnerId(todoId, memberId).isPresent();
+  public boolean existsVirtualTodo(UUID userId, TodoId todoId) {
+    return todoRepository.findByTodoIdAndOwnerId(todoId, userId).isPresent();
   }
 
   public Page<TodoResult> getTodoList(TodoSearchQuery query) {
@@ -46,7 +46,7 @@ public class TodoInstanceService {
     List<Long> categoryIdsAsLong = null; // TODO: UUID를 Long으로 변환하는 로직 필요
 
     Specification<Todo> spec = TodoSpecification.createSpecification(
-            query.memberId(),
+            query.userId(),
             query.complete(),
             categoryIdsAsLong,
             query.priorityIds(),
@@ -62,7 +62,7 @@ public class TodoInstanceService {
     TodoId todoId = new TodoId(query.originalTodoId(), query.daysDifference());
 
     // 먼저 Todo 테이블에서 확인 (active 상태 무관)
-    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, query.memberId());
+    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, query.userId());
 
     if (existingTodo.isPresent()) {
       Todo todo = existingTodo.get();
@@ -77,10 +77,10 @@ public class TodoInstanceService {
     // Todo 테이블에 데이터가 없으면 가상 Todo 생성
     if (query.daysDifference() == 0) {
       // 원본 TodoTemplate 조회 (82:0)
-      return todoTemplateService.getTodo(TodoQuery.of(query.memberId(), query.originalTodoId()));
+      return todoTemplateService.getTodo(TodoQuery.of(query.userId(), query.originalTodoId()));
     } else {
       // 가상 Todo 생성해서 반환
-      TodoTemplate todoTemplate = todoTemplateService.getTodoTemplates(query.memberId())
+      TodoTemplate todoTemplate = todoTemplateService.getTodoTemplates(query.userId())
               .stream()
               .filter(to -> to.getId().equals(query.originalTodoId()))
               .findFirst()
@@ -98,7 +98,7 @@ public class TodoInstanceService {
   @Transactional
   public void deactivateVirtualTodo(DeleteTodoCommand command) {
     TodoId todoId = new TodoId(command.originalTodoId(), command.daysDifference());
-    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.memberId());
+    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.userId());
 
     if (existingTodo.isPresent()) {
       // 이미 Todo 테이블에 데이터가 있으면 complete=true, active=false로 설정 (삭제 표시)
@@ -108,13 +108,13 @@ public class TodoInstanceService {
       todoRepository.save(todo);
     } else {
       // Todo 테이블에 데이터가 없으면 새로 생성해서 complete=true, active=true로 설정
-      List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.memberId());
+      List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.userId());
       TodoTemplate todoTemplate = todoTemplates.stream()
               .filter(to -> to.getId().equals(command.originalTodoId()))
               .findFirst()
               .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", command.originalTodoId()));
 
-      Member member = memberService.findByIdOrThrow(command.memberId());
+      User user = UserService.findByIdOrThrow(command.userId());
 
       LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() :
               (todoTemplate.getDate() != null ? todoTemplate.getDate() : LocalDate.now());
@@ -131,7 +131,7 @@ public class TodoInstanceService {
               .date(targetDate)
               .time(todoTemplate.getTime())
               .tags(new HashSet<>(todoTemplate.getTags()))
-              .owner(member)
+              .owner(user)
               .build();
 
       todoRepository.save(newTodo);
@@ -144,7 +144,7 @@ public class TodoInstanceService {
     Long originalTodoId = todoId.getId();
     Long daysDifference = todoId.getSeq();
 
-    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.memberId());
+    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.userId());
     TodoTemplate todoTemplate = todoTemplates.stream()
             .filter(to -> to.getId().equals(originalTodoId))
             .findFirst()
@@ -155,9 +155,9 @@ public class TodoInstanceService {
     LocalDate targetDate = anchor.plusDays(daysDifference);
 
     // active 상태에 관계없이 기존 Todo 확인
-    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.memberId());
+    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.userId());
 
-    Member member = memberService.findByIdOrThrow(command.memberId());
+    User user = UserService.findByIdOrThrow(command.userId());
 
     if (existingTodo.isPresent()) {
       Todo todo = existingTodo.get();
@@ -191,7 +191,7 @@ public class TodoInstanceService {
 
       // 카테고리 처리
       if (command.categoryId() != null) {
-        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
+        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.userId())
                 .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
         todo.setCategory(category);
       }
@@ -201,7 +201,7 @@ public class TodoInstanceService {
       // 투두 완료 시 경험치 이벤트 발생
       if (wasIncomplete && Boolean.TRUE.equals(todo.getComplete())) {
         eventPublisher.publishEvent(new TodoCompletedEvent(
-                command.memberId(),
+                command.userId(),
                 originalTodoId,
                 todo.getTitle()
         ));
@@ -210,7 +210,7 @@ public class TodoInstanceService {
       // 투두 완료 취소 시 경험치 차감 이벤트 발생
       if (wasComplete && Boolean.FALSE.equals(todo.getComplete())) {
         eventPublisher.publishEvent(new TodoUncompletedEvent(
-                command.memberId(),
+                command.userId(),
                 originalTodoId,
                 todo.getTitle()
         ));
@@ -229,12 +229,12 @@ public class TodoInstanceService {
               .date(command.date() != null ? command.date() : targetDate)
               .time(command.time() != null ? command.time() : todoTemplate.getTime())
               .tags(command.tags() != null && !command.tags().isEmpty() ? command.tags() : new HashSet<>(todoTemplate.getTags()))
-              .owner(member)
+              .owner(user)
               .build();
 
       // 카테고리 변경이 있는 경우
       if (command.categoryId() != null) {
-        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.memberId())
+        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.userId())
                 .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
         newTodo.setCategory(category);
       }
@@ -244,7 +244,7 @@ public class TodoInstanceService {
       // 새로 생성된 투두가 완료 상태인 경우 경험치 이벤트 발생
       if (Boolean.TRUE.equals(newTodo.getComplete())) {
         eventPublisher.publishEvent(new TodoCompletedEvent(
-                command.memberId(),
+                command.userId(),
                 originalTodoId,
                 newTodo.getTitle()
         ));
@@ -254,16 +254,16 @@ public class TodoInstanceService {
     }
   }
 
-  public TodoStatistics getTodoStatistics(UUID memberId, LocalDate targetDate) {
+  public TodoStatistics getTodoStatistics(UUID userId, LocalDate targetDate) {
     // 실제 Todo (DB에 저장된) 조회
     Specification<Todo> spec = TodoSpecification.createSpecification(
-            memberId, null, null, null, targetDate, targetDate
+            userId, null, null, null, targetDate, targetDate
     );
     Page<Todo> realTodoPage = todoRepository.findAll(spec, Pageable.unpaged());
 
     // TodoSearchQuery로 가상 투두 포함 전체 조회
     TodoSearchQuery query = new TodoSearchQuery(
-            memberId,
+            userId,
             null, // complete - 모든 상태 조회
             null, null, null, null, targetDate,
             targetDate, // startDate = 대상 날짜
@@ -330,7 +330,7 @@ public class TodoInstanceService {
     List<TodoResult> virtualTodos = new ArrayList<>();
     LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
 
-    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.memberId())
+    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.userId())
             .stream()
             .filter(to -> to.getRecurrenceRule() != null && to.getAnchorDate() != null)
             .filter(to -> matchesKeyword(to, query.keyword()))
@@ -356,7 +356,7 @@ public class TodoInstanceService {
         long diff = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
         Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
                 new TodoId(todoTemplate.getId(), diff),
-                query.memberId());
+                query.userId());
 
         boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
         if (isDeleted) {
@@ -383,7 +383,7 @@ public class TodoInstanceService {
     List<TodoResult> originalTodos = new ArrayList<>();
     LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
 
-    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.memberId())
+    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.userId())
             .stream()
             .filter(to -> matchesKeyword(to, query.keyword()))
             .filter(to -> matchesDateRange(to, query.startDate(), query.endDate()))
@@ -398,7 +398,7 @@ public class TodoInstanceService {
       }
 
       Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
-              new TodoId(todoTemplate.getId(), 0L), query.memberId());
+              new TodoId(todoTemplate.getId(), 0L), query.userId());
 
       boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
       if (isDeleted) {

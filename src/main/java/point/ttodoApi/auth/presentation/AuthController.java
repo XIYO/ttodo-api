@@ -11,16 +11,15 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import point.ttodoApi.auth.application.TokenService;
-import point.ttodoApi.auth.domain.MemberPrincipal;
-import point.ttodoApi.auth.presentation.dto.*;
-import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.application.command.CreateMemberCommand;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.profile.application.ProfileService;
-import point.ttodoApi.profile.domain.Profile;
+import point.ttodoApi.auth.application.AuthCommandService;
+import point.ttodoApi.auth.application.AuthQueryService;
+import point.ttodoApi.auth.application.command.*;
+import point.ttodoApi.auth.application.query.DevTokenQuery;
+import point.ttodoApi.auth.application.result.AuthResult;
+import point.ttodoApi.auth.presentation.dto.request.*;
 import point.ttodoApi.shared.config.properties.AppProperties;
-import point.ttodoApi.shared.error.BusinessException;
+import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
+import point.ttodoApi.auth.presentation.CookieService;
 
 import java.util.List;
 
@@ -28,43 +27,42 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
-@Transactional
 public class AuthController {
-  private static final String USER_ROLE = "ROLE_USER";
-  private static final String ANON_EMAIL_FALLBACK = "anon@ttodo.dev";
 
-  private final MemberService memberService;
-  private final ProfileService profileService;
-  private final PasswordEncoder passwordEncoder;
-  private final TokenService tokenService;
+  private final AuthCommandService authCommandService;
+  private final AuthQueryService authQueryService;
   private final AppProperties appProperties;
   private final CookieService cookieService;
+  private final ValidationUtils validationUtils;
 
   @Operation(
           summary = "회원가입 및 자동 로그인",
-          description = "새로운 회원을 등록하고 자동으로 로그인 처리합니다. 회원가입이 완료되면 즉시 JWT 액세스 토큰과 리프레시 토큰이 쿠키로 발급됩니다. 익명 사용자는 이메일 'anon@ttodo.dev'와 빈 패스워드로 회원가입 가능합니다."
+          description = "새로운 회원을 등록하고 자동으로 로그인 처리합니다. 회원가입이 완료되면 즉시 JWT 액세스 토큰과 리프레시 토큰이 쿠키로 발급됩니다."
   )
   @ApiResponse(responseCode = "200", description = "회원가입 성공 및 자동 로그인 완료")
   @ApiResponse(responseCode = "400", description = "입력값 검증 실패 (이메일 형식 오류, 필수값 누락 등)")
   @ApiResponse(responseCode = "409", description = "이미 사용중인 이메일 주소")
   @PostMapping(value = "/sign-up", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   public void signUpAndIn(@Valid SignUpRequest request, HttpServletResponse response) {
-    CreateMemberCommand signUpCommand = new CreateMemberCommand(
-            request.email(),
-            passwordEncoder.encode(request.password()),
-            request.nickname(),
-            request.introduction());
-    memberService.createMember(signUpCommand);
-    Member member = authenticateMember(request.email(), request.password());
-    Profile profile = profileService.getProfile(member.getId());
-    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
-    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, profile.getTimeZone(), profile.getLocale(), authorities);
-    authenticateWithCookies(memberPrincipal, response);
+    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
+    SignUpCommand command = new SignUpCommand(
+        request.email(),
+        request.password(),
+        validationUtils.sanitizeHtmlStrict(request.nickname()),
+        validationUtils.sanitizeHtml(request.introduction()),
+        "default-device-id"
+    );
+    
+    AuthResult result = authCommandService.signUp(command);
+    
+    // 쿠키 설정
+    cookieService.setJwtCookie(response, result.accessToken());
+    cookieService.setRefreshCookie(response, result.refreshToken());
   }
 
   @Operation(
           summary = "로그인",
-          description = "이메일과 패스워드로 로그인합니다. 인증 성공 시 JWT 액세스 토큰과 리프레시 토큰이 쿠키로 발급됩니다. 익명 사용자는 'anon@ttodo.dev' 이메일과 빈 패스워드로 로그인 가능합니다.\n\n" +
+          description = "이메일과 패스워드로 로그인합니다. 인증 성공 시 JWT 액세스 토큰과 리프레시 토큰이 쿠키로 발급됩니다.\n\n" +
                   "발급되는 쿠키:\n" +
                   "- jwt-token: 액세스 토큰 (유효기간: 30분)\n" +
                   "- refresh-token: 리프레시 토큰 (유효기간: 7일)",
@@ -78,8 +76,8 @@ public class AuthController {
                                   name = "로그인 예시",
                                   value = """
                                           {
-                                            "email": "anon@ttodo.dev",
-                                            "password": ""
+                                            "email": "user@example.com",
+                                            "password": "SecurePass123!"
                                           }
                                           """
                           )
@@ -90,14 +88,19 @@ public class AuthController {
   @ApiResponse(responseCode = "400", description = "입력값 검증 실패")
   @ApiResponse(responseCode = "401", description = "이메일 또는 패스워드가 일치하지 않음")
   @PostMapping(value = "/sign-in", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-  @Transactional(readOnly = true)
   public void signIn(@Valid SignInRequest request, HttpServletResponse response) {
-    Member member = authenticateMember(request.email(), request.password());
-    Profile profile = profileService.getProfile(member.getId());
-    List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(USER_ROLE));
-    MemberPrincipal memberPrincipal = MemberPrincipal.from(member, profile.getTimeZone(), profile.getLocale(), authorities);
-
-    authenticateWithCookies(memberPrincipal, response);
+    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
+    SignInCommand command = new SignInCommand(
+        request.email(),
+        request.password(),
+        "default-device-id"
+    );
+    
+    AuthResult result = authCommandService.signIn(command);
+    
+    // 쿠키 설정
+    cookieService.setJwtCookie(response, result.accessToken());
+    cookieService.setRefreshCookie(response, result.refreshToken());
   }
 
   @Operation(
@@ -106,12 +109,18 @@ public class AuthController {
   )
   @ApiResponse(responseCode = "200", description = "로그아웃 성공")
   @PostMapping(value = "/sign-out", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-  public void signOut(@CookieValue(name = "refresh-token", required = false) String refreshToken, HttpServletResponse response) {
-    cookieService.setExpiredJwtCookie(response);
-    if (refreshToken != null) {
-      tokenService.deleteByToken(refreshToken);
-      cookieService.setExpiredRefreshCookie(response);
+  public void signOut(@CookieValue(name = "refresh-token", required = false) String refreshToken, 
+                     @CookieValue(name = "device-id", required = false) String deviceId,
+                     HttpServletResponse response) {
+    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
+    if (refreshToken != null && deviceId != null) {
+      SignOutCommand command = new SignOutCommand(deviceId, refreshToken);
+      authCommandService.signOut(command);
     }
+    
+    // 쿠키 만료 처리
+    cookieService.setExpiredJwtCookie(response);
+    cookieService.setExpiredRefreshCookie(response);
   }
 
   @Operation(
@@ -121,39 +130,19 @@ public class AuthController {
   @ApiResponse(responseCode = "200", description = "토큰 갱신 성공, 새로운 액세스 토큰이 쿠키로 발급됨")
   @ApiResponse(responseCode = "401", description = "리프레시 토큰이 만료되었거나 유효하지 않음")
   @PostMapping(value = "/refresh", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-  public void refresh() {
+  public void refresh(@CookieValue(name = "refresh-token", required = true) String refreshToken,
+                     @CookieValue(name = "device-id", required = true) String deviceId,
+                     HttpServletResponse response) {
+    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
+    RefreshTokenCommand command = new RefreshTokenCommand(deviceId, refreshToken);
+    AuthResult result = authCommandService.refreshToken(command);
+    
+    // 새로운 토큰으로 쿠키 업데이트
+    cookieService.setJwtCookie(response, result.accessToken());
+    cookieService.setRefreshCookie(response, result.refreshToken());
   }
 
 
-  private Member authenticateMember(String email, String password) {
-    Member member;
-
-    try {
-      member = memberService.findByEmailOrThrow(email);
-    } catch (BusinessException e) {
-      // 회원을 찾을 수 없는 경우 - 보안상 동일한 메시지 반환
-      throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
-    }
-
-    // 소셜 로그인 사용자 (패스워드 없음)
-    if (member.getPassword() == null || member.getPassword().isEmpty()) {
-      return member;
-    }
-
-    // 일반 로그인 사용자 - 패스워드 검증
-    if (password != null && passwordEncoder.matches(password, member.getPassword())) {
-      return member;
-    }
-
-    throw new BusinessException("이메일 또는 패스워드가 올바르지 않습니다.");
-  }
-
-  private void authenticateWithCookies(MemberPrincipal member, HttpServletResponse response) {
-    TokenService.TokenResult tokens = tokenService.generateTokens(member);
-
-    cookieService.setJwtCookie(response, tokens.accessToken());
-    cookieService.setRefreshCookie(response, tokens.refreshToken());
-  }
 
   @Operation(
           summary = "개발 환경 테스트 토큰 생성",
@@ -163,23 +152,16 @@ public class AuthController {
   @GetMapping("/dev-token")
   @org.springframework.context.annotation.Profile("!prod")
   public java.util.Map<String, String> getDevToken() {
-    // 시스템 익명 사용자 정보 사용 (초기 데이터로 생성됨)
-    String domain = appProperties.getUserDomain() == null ? "ttodo.dev" : appProperties.getUserDomain();
-    String testUserId = point.ttodoApi.shared.constants.SystemConstants.SystemUsers.ANON_USER_ID.toString();
-    String testEmail = "anon@" + domain;
-    String testNickname = point.ttodoApi.shared.constants.SystemConstants.SystemUsers.ANON_USER_NICKNAME;
-    String testTimeZone = "Asia/Seoul";
-    String testLocale = "ko-KR";
-
-    // 만료 없는 토큰 생성 (neverExpire = true)
-    String token = tokenService.generateAccessToken(testUserId, testEmail, testNickname, testTimeZone, testLocale, true);
-
+    // TTODO 아키텍처 패턴: Query 객체 생성 및 Query Service 호출
+    DevTokenQuery query = new DevTokenQuery("default-device-id");
+    AuthResult result = authQueryService.getDevToken(query);
+    
     return java.util.Map.of(
-            "token", token,
+            "token", result.accessToken(),
             "usage", "Swagger의 Authorize 버튼을 클릭하고 이 토큰을 붙여넣으세요 (Bearer 접두사 없이)",
-            "userId", testUserId,
-            "email", testEmail,
-            "nickname", testNickname,
+            "userId", result.userId().toString(),
+            "email", result.email(),
+            "nickname", result.nickname(),
             "expiresIn", "NEVER (만료 없음)"
     );
   }

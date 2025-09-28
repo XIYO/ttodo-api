@@ -1,98 +1,102 @@
 package point.ttodoApi.profile.domain;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.springframework.data.annotation.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.*;
+import org.springframework.lang.Nullable;
+import point.ttodoApi.profile.domain.validation.*;
+import point.ttodoApi.shared.domain.BaseEntity;
+import point.ttodoApi.user.domain.User;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static point.ttodoApi.profile.domain.ProfileConstants.*;
+
 @Entity
-@Table(name = "profiles")
+@SoftDelete
+@DynamicUpdate
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@EntityListeners(AuditingEntityListener.class)
-public class Profile {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@ToString(exclude = "profileImage")
+public class Profile extends BaseEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @UuidGenerator(style = UuidGenerator.Style.TIME)
+  @EqualsAndHashCode.Include
+  private UUID id;
 
-  @Column(nullable = false, unique = true)
-  private UUID ownerId;
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "owner_id", nullable = false, unique = true)
+  @NotNull(message = OWNER_ID_REQUIRED_MESSAGE)
+  private User owner;
+
+  @Column(nullable = false, length = NICKNAME_MAX_LENGTH)
+  @ValidNickname
+  @Setter
+  private String nickname;
 
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
+  @NotNull(message = THEME_REQUIRED_MESSAGE)
   @Builder.Default
-  private Theme theme = Theme.PINKY;
+  @Setter
+  private Theme theme = DEFAULT_THEME;
 
-  @Column(length = 500)
+  @Column(length = INTRODUCTION_MAX_LENGTH)
+  @ValidIntroduction
+  @Setter
   private String introduction;
 
-  @Column(nullable = false, length = 50)
+  @Column(nullable = false, length = TIME_ZONE_MAX_LENGTH)
+  @ValidTimeZone
   @Builder.Default
-  private String timeZone = "Asia/Seoul";
+  @Setter
+  private String timeZone = DEFAULT_TIME_ZONE;
 
-  @Column(nullable = false, length = 10)
+  @Column(nullable = false, length = LOCALE_MAX_LENGTH)
+  @ValidLocale
   @Builder.Default
-  private String locale = "ko-KR";
+  @Setter
+  private String locale = DEFAULT_LOCALE;
 
   @Lob
+  @Nullable
   private byte[] profileImage;
 
-  @Column(length = 50)
+  @Column(length = IMAGE_TYPE_MAX_LENGTH)
+  @ValidImageType
+  @Nullable
   private String profileImageType;
 
-  @Column(length = 500)
+  @Column(length = IMAGE_URL_MAX_LENGTH)
+  @ValidImageUrl
+  @Nullable
+  @Setter
   private String imageUrl;
 
-  @CreatedDate
-  @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt;
 
-  @LastModifiedDate
-  @Column(nullable = false)
-  private LocalDateTime updatedAt;
-
-  public Profile(UUID ownerId) {
-    this.ownerId = ownerId;
-    this.theme = Theme.PINKY;
-    this.timeZone = "Asia/Seoul";
-    this.locale = "ko-KR";
-  }
-
-  public void updateTheme(Theme theme) {
-    this.theme = theme;
-  }
-
-  public void updateIntroduction(String introduction) {
-    this.introduction = introduction;
-  }
-
-  public void updateTimeZone(String timeZone) {
-    this.timeZone = timeZone;
-  }
-
-  public void updateLocale(String locale) {
-    this.locale = locale;
-  }
-
-  public void updateProfileImage(byte[] profileImage, String imageType) {
+  /**
+   * 프로필 이미지와 타입을 함께 설정
+   *
+   * @param profileImage 이미지 바이트 배열
+   * @param imageType    이미지 타입
+   */
+  public void setProfileImage(byte[] profileImage, String imageType) {
     this.profileImage = profileImage;
-    this.profileImageType = imageType;
+    profileImageType = imageType;
   }
 
-  public void updateImageUrl(String imageUrl) {
-    this.imageUrl = imageUrl;
+  /**
+   * 프로필 이미지 관련 필드 모두 제거
+   */
+  public void clearProfileImage() {
+    profileImage = null;
+    profileImageType = null;
+    imageUrl = null;
   }
 
-  public void removeProfileImage() {
-    this.profileImage = null;
-    this.profileImageType = null;
-    this.imageUrl = null;
-  }
 }

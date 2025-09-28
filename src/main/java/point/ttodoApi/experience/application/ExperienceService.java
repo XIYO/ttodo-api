@@ -3,9 +3,9 @@ package point.ttodoApi.experience.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.experience.application.result.MemberLevelResult;
-import point.ttodoApi.experience.domain.MemberExperience;
-import point.ttodoApi.experience.infrastructure.MemberExperienceRepository;
+import point.ttodoApi.experience.application.result.UserLevelResult;
+import point.ttodoApi.experience.domain.UserExperience;
+import point.ttodoApi.experience.infrastructure.UserExperienceRepository;
 import point.ttodoApi.level.application.LevelService;
 import point.ttodoApi.level.domain.Level;
 
@@ -15,45 +15,45 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class ExperienceService {
-  private final MemberExperienceRepository repository;
+  private final UserExperienceRepository repository;
   private final LevelService levelService;
 
-  public void addExperience(UUID memberId, int amount) {
-    MemberExperience exp = repository.findByOwnerId(memberId)
-            .orElseGet(() -> repository.save(MemberExperience.builder()
-                    .ownerId(memberId)
+  public void addExperience(UUID userId, int amount) {
+    UserExperience exp = repository.findByOwnerId(userId)
+            .orElseGet(() -> repository.save(UserExperience.builder()
+                    .ownerId(userId)
                     .experience(0)
                     .build()));
     exp.addExperience(amount);
   }
 
-  public void subtractExperience(UUID memberId, int amount) {
-    MemberExperience exp = repository.findByOwnerId(memberId)
-            .orElseGet(() -> repository.save(MemberExperience.builder()
-                    .ownerId(memberId)
+  public void subtractExperience(UUID userId, int amount) {
+    UserExperience exp = repository.findByOwnerId(userId)
+            .orElseGet(() -> repository.save(UserExperience.builder()
+                    .ownerId(userId)
                     .experience(0)
                     .build()));
     exp.subtractExperience(amount);
   }
 
   @Transactional(readOnly = true)
-  public int getExperience(UUID memberId) {
-    return repository.findByOwnerId(memberId)
-            .map(MemberExperience::getExperience)
+  public int getExperience(UUID userId) {
+    return repository.findByOwnerId(userId)
+            .map(UserExperience::getExperience)
             .orElse(0);
   }
 
   @Transactional(readOnly = true)
-  public Level getCurrentLevel(UUID memberId) {
-    int experience = getExperience(memberId);
+  public Level getCurrentLevel(UUID userId) {
+    int experience = getExperience(userId);
     Level level = levelService.getLevelByExperience(experience);
     return level != null ? level : createDefaultLevel();
   }
 
   @Transactional(readOnly = true)
-  public MemberLevelResult getMemberLevel(UUID memberId) {
-    int experience = getExperience(memberId);
-    Level currentLevel = getCurrentLevel(memberId);
+  public UserLevelResult getUserLevel(UUID userId) {
+    int experience = getExperience(userId);
+    Level currentLevel = getCurrentLevel(userId);
 
     Level nextLevel = levelService.getNextLevel(currentLevel.getLevel());
     int experienceToNext = nextLevel != null ? nextLevel.getRequiredExp() - experience : 0;
@@ -62,7 +62,7 @@ public class ExperienceService {
     int currentLevelTotal = nextLevel != null ?
             nextLevel.getRequiredExp() - currentLevel.getRequiredExp() : 0;
 
-    return new MemberLevelResult(
+    return new UserLevelResult(
             currentLevel.getLevel(),
             currentLevel.getName(),
             experience,

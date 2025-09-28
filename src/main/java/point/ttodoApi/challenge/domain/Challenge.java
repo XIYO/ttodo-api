@@ -1,54 +1,69 @@
 package point.ttodoApi.challenge.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.challenge.domain.validation.*;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.shared.domain.BaseEntity;
 
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static point.ttodoApi.challenge.domain.ChallengeConstants.*;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Challenge {
+@ValidChallengePeriod
+public class Challenge extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = TITLE_MAX_LENGTH)
+  @ValidChallengeTitle
   private String title;
 
-  @Column(columnDefinition = "TEXT")
+  @Column(length = DESCRIPTION_MAX_LENGTH)
+  @ValidChallengeDescription
   private String description;
 
   @Column(nullable = false)
+  @NotNull(message = START_DATE_REQUIRED_MESSAGE)
+  @ValidChallengeDate
   private LocalDate startDate;
 
   @Column(nullable = false)
+  @NotNull(message = END_DATE_REQUIRED_MESSAGE)
+  @ValidChallengeDate
   private LocalDate endDate;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
+  @NotNull(message = PERIOD_TYPE_REQUIRED_MESSAGE)
   private PeriodType periodType;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private ChallengeVisibility visibility = ChallengeVisibility.PUBLIC;
+  @NotNull(message = VISIBILITY_REQUIRED_MESSAGE)
+  private ChallengeVisibility visibility = DEFAULT_VISIBILITY;
 
-  @Column(unique = true)
+  @Column(unique = true, length = INVITE_CODE_LENGTH)
+  @ValidInviteCode
   private String inviteCode;
 
+  @ValidMaxParticipants
   private Integer maxParticipants;
 
   @Column(nullable = false)
+  @NotNull(message = CREATOR_ID_REQUIRED_MESSAGE)
   private UUID creatorId;
 
   @Column(nullable = false)
-  private LocalDateTime createdAt;
-
-  @Column(nullable = false)
-  private LocalDateTime updatedAt;
+  @NotNull(message = ACTIVE_REQUIRED_MESSAGE)
+  private Boolean active = DEFAULT_ACTIVE;
 
   @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ChallengeParticipation> participations = new ArrayList<>();
@@ -70,8 +85,6 @@ public class Challenge {
     challenge.creatorId = creatorId;
     challenge.maxParticipants = maxParticipants;
     challenge.visibility = ChallengeVisibility.PUBLIC;
-    challenge.createdAt = LocalDateTime.now();
-    challenge.updatedAt = LocalDateTime.now();
     return challenge;
   }
 
@@ -96,7 +109,6 @@ public class Challenge {
     this.description = description;
     this.periodType = periodType;
     this.maxParticipants = maxParticipants;
-    this.updatedAt = LocalDateTime.now();
   }
 
   // 비즈니스 메서드
@@ -121,75 +133,79 @@ public class Challenge {
             .count();
   }
 
+  public int getCurrentParticipants() {
+    return (int) getActiveParticipantCount();
+  }
+
   // 리더 관리 메서드들
 
   /**
    * 챌린지 생성자인지 확인
    */
-  public boolean isOwner(Member member) {
-    return member != null && this.creatorId.equals(member.getId());
+  public boolean isOwner(User user) {
+    return user != null && this.creatorId.equals(user.getId());
   }
 
   /**
    * 챌린지 생성자인지 확인 (ID로)
    */
-  public boolean isOwner(UUID memberId) {
-    return memberId != null && this.creatorId.equals(memberId);
+  public boolean isOwner(UUID userId) {
+    return userId != null && this.creatorId.equals(userId);
   }
 
   /**
    * 활성 리더인지 확인
    */
-  public boolean isLeader(Member member) {
-    if (member == null) return false;
+  public boolean isLeader(User user) {
+    if (user == null) return false;
 
     return leaders.stream()
-            .anyMatch(leader -> leader.getMember().equals(member) && leader.isActive());
+            .anyMatch(leader -> leader.getUser().equals(user) && leader.isActive());
   }
 
   /**
    * 활성 리더인지 확인 (ID로)
    */
-  public boolean isLeader(UUID memberId) {
-    if (memberId == null) return false;
+  public boolean isLeader(UUID userId) {
+    if (userId == null) return false;
 
     return leaders.stream()
-            .anyMatch(leader -> leader.getMember().getId().equals(memberId) && leader.isActive());
+            .anyMatch(leader -> leader.getUser().getId().equals(userId) && leader.isActive());
   }
 
   /**
    * 참여자 관리 권한 확인 (owner 또는 leader)
    */
-  public boolean canManageParticipants(Member member) {
-    return isOwner(member) || isLeader(member);
+  public boolean canManageParticipants(User user) {
+    return isOwner(user) || isLeader(user);
   }
 
   /**
    * 참여자 관리 권한 확인 (ID로)
    */
-  public boolean canManageParticipants(UUID memberId) {
-    return isOwner(memberId) || isLeader(memberId);
+  public boolean canManageParticipants(UUID userId) {
+    return isOwner(userId) || isLeader(userId);
   }
 
   /**
    * 리더 추가
    */
-  public ChallengeLeader addLeader(Member member, UUID appointedBy) {
-    if (member == null) {
-      throw new IllegalArgumentException("Member cannot be null");
+  public ChallengeLeader addLeader(User user, UUID appointedBy) {
+    if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
     }
 
     // 이미 활성 리더인지 확인
-    if (isLeader(member)) {
-      throw new IllegalArgumentException("Member is already a leader");
+    if (isLeader(user)) {
+      throw new IllegalArgumentException("User is already a leader");
     }
 
     // 챌린지에 참여하지 않은 멤버는 리더가 될 수 없음
-    if (!isParticipant(member)) {
-      throw new IllegalArgumentException("Member must be a participant to become a leader");
+    if (!isParticipant(user)) {
+      throw new IllegalArgumentException("User must be a participant to become a leader");
     }
 
-    ChallengeLeader leader = new ChallengeLeader(this, member, appointedBy);
+    ChallengeLeader leader = new ChallengeLeader(this, user, appointedBy);
     this.leaders.add(leader);
 
     return leader;
@@ -198,15 +214,15 @@ public class Challenge {
   /**
    * 리더 제거
    */
-  public void removeLeader(Member member, UUID removedBy, String reason) {
-    if (member == null) {
-      throw new IllegalArgumentException("Member cannot be null");
+  public void removeLeader(User user, UUID removedBy, String reason) {
+    if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
     }
 
     ChallengeLeader leader = leaders.stream()
-            .filter(l -> l.getMember().equals(member) && l.isActive())
+            .filter(l -> l.getUser().equals(user) && l.isActive())
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Member is not an active leader"));
+            .orElseThrow(() -> new IllegalArgumentException("User is not an active leader"));
 
     leader.removeLeader(removedBy, reason);
   }
@@ -232,32 +248,32 @@ public class Challenge {
   /**
    * 멤버가 챌린지 참여자인지 확인
    */
-  public boolean isParticipant(Member member) {
-    if (member == null) return false;
+  public boolean isParticipant(User user) {
+    if (user == null) return false;
 
     return participations.stream()
-            .anyMatch(p -> p.getMember().getId().equals(member.getId()) && p.getJoinOut() == null);
+            .anyMatch(p -> p.getUser().getId().equals(user.getId()) && p.getJoinOut() == null);
   }
 
   /**
    * 멤버가 챌린지 참여자인지 확인 (ID로)
    */
-  public boolean isParticipant(UUID memberId) {
-    if (memberId == null) return false;
+  public boolean isParticipant(UUID userId) {
+    if (userId == null) return false;
 
     return participations.stream()
-            .anyMatch(p -> p.getMember().getId().equals(memberId) && p.getJoinOut() == null);
+            .anyMatch(p -> p.getUser().getId().equals(userId) && p.getJoinOut() == null);
   }
 
   /**
    * 챌린지에 대한 권한 확인 (owner, leader, participant 순서)
    */
-  public ChallengeRole getMemberRole(Member member) {
-    if (member == null) return ChallengeRole.NONE;
+  public ChallengeRole getUserRole(User user) {
+    if (user == null) return ChallengeRole.NONE;
 
-    if (isOwner(member)) return ChallengeRole.OWNER;
-    if (isLeader(member)) return ChallengeRole.LEADER;
-    if (isParticipant(member)) return ChallengeRole.PARTICIPANT;
+    if (isOwner(user)) return ChallengeRole.OWNER;
+    if (isLeader(user)) return ChallengeRole.LEADER;
+    if (isParticipant(user)) return ChallengeRole.PARTICIPANT;
 
     return ChallengeRole.NONE;
   }
@@ -265,12 +281,12 @@ public class Challenge {
   /**
    * 챌린지에 대한 권한 확인 (ID로)
    */
-  public ChallengeRole getMemberRole(UUID memberId) {
-    if (memberId == null) return ChallengeRole.NONE;
+  public ChallengeRole getUserRole(UUID userId) {
+    if (userId == null) return ChallengeRole.NONE;
 
-    if (isOwner(memberId)) return ChallengeRole.OWNER;
-    if (isLeader(memberId)) return ChallengeRole.LEADER;
-    if (isParticipant(memberId)) return ChallengeRole.PARTICIPANT;
+    if (isOwner(userId)) return ChallengeRole.OWNER;
+    if (isLeader(userId)) return ChallengeRole.LEADER;
+    if (isParticipant(userId)) return ChallengeRole.PARTICIPANT;
 
     return ChallengeRole.NONE;
   }
@@ -294,11 +310,11 @@ public class Challenge {
   /**
    * 소유권 확인 메서드 (Spring Security @PreAuthorize용)
    *
-   * @param memberId 확인할 멤버 ID
+   * @param userId 확인할 멤버 ID
    * @return 소유자인지 여부
    */
-  public boolean isOwn(UUID memberId) {
-    if (memberId == null) return false;
-    return this.creatorId.equals(memberId);
+  public boolean isOwn(UUID userId) {
+    if (userId == null) return false;
+    return this.creatorId.equals(userId);
   }
 }

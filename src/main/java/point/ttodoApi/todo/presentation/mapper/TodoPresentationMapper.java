@@ -9,11 +9,14 @@ import point.ttodoApi.todo.application.command.*;
 import point.ttodoApi.todo.application.query.TodoSearchQuery;
 import point.ttodoApi.todo.application.result.TodoResult;
 import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.presentation.dto.*;
+import point.ttodoApi.todo.domain.TodoId;
+import point.ttodoApi.todo.presentation.dto.request.*;
+import point.ttodoApi.todo.presentation.dto.response.*;
 
 import java.util.UUID;
 
 @Mapper(config = MapStructConfig.class, imports = {PageRequest.class}, componentModel = "spring", uses = {RecurrenceRuleMapper.class})
+@SuppressWarnings("NullableProblems")
 @Component
 public abstract class TodoPresentationMapper {
 
@@ -25,25 +28,26 @@ public abstract class TodoPresentationMapper {
 
   // Create 관련 매핑
   @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.recurrenceRuleJson()))")
-  public abstract CreateTodoCommand toCommand(CreateTodoRequest request, UUID memberId);
+  public abstract CreateTodoCommand toCommand(CreateTodoRequest request, UUID userId);
 
   // Update 관련 매핑
-  @Mapping(target = "todoId", source = "todoId")
+  @Mapping(target = "originalTodoId", source = "originalTodoId")
+  @Mapping(target = "daysDifference", source = "daysDifference")
   @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.recurrenceRuleJson()))")
-  @Mapping(target = "originalTodoId", ignore = true)
-  public abstract UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID memberId, Long todoId);
+  public abstract UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID userId, Long originalTodoId, Long daysDifference);
 
   // Virtual Todo Update 매핑
   @Mapping(target = "virtualTodoId", source = "virtualId")
-  public abstract UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID memberId, String virtualId);
+  public abstract UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID userId, String virtualId);
 
   // Search 관련 매핑
+  @Mapping(target = "userId", source = "userId")
   @Mapping(target = "pageable", expression = "java(PageRequest.of(request.getPage() != null ? request.getPage() : 0, request.getSize() != null ? request.getSize() : 10))")
   @Mapping(target = "date", ignore = true)
   @Mapping(target = "startDate", expression = "java(request.getStartDate())")
   @Mapping(target = "endDate", expression = "java(request.getEndDate())")
   @Mapping(target = "tags", ignore = true)
-  public abstract TodoSearchQuery toQuery(TodoSearchRequest request, UUID memberId);
+  public abstract TodoSearchQuery toQuery(TodoSearchRequest request, UUID userId);
 
   // dates 처리 헬퍼 메서드들
   protected java.time.LocalDate processSingleDate(java.util.List<java.time.LocalDate> dates) {
@@ -82,6 +86,11 @@ public abstract class TodoPresentationMapper {
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid recurrence rule JSON: " + e.getMessage(), e);
     }
+  }
+
+  // TodoId를 String으로 변환
+  protected String map(TodoId todoId) {
+    return todoId != null ? todoId.getVirtualId() : null;
   }
 
   // 헬퍼 메서드

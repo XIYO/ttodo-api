@@ -6,8 +6,8 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 
 import java.util.*;
 
@@ -19,14 +19,14 @@ import java.util.*;
 @Slf4j
 public class SecurityService {
 
-  private final MemberRepository memberRepository;
+  private final UserRepository UserRepository;
 
   /**
    * 현재 로그인한 멤버 ID 조회
    *
    * @return 로그인한 멤버 ID (Optional)
    */
-  public Optional<UUID> getCurrentMemberId() {
+  public Optional<UUID> getCurrentuserId() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (authentication == null ||
@@ -36,10 +36,10 @@ public class SecurityService {
     }
 
     try {
-      // Principal이 MemberPrincipal 타입인 경우
-      if (authentication.getPrincipal() instanceof MemberPrincipal) {
-        MemberPrincipal principal = (MemberPrincipal) authentication.getPrincipal();
-        return Optional.of(principal.getMemberId());
+      // Principal이 UserPrincipal 타입인 경우
+      if (authentication.getPrincipal() instanceof UserPrincipal) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        return Optional.of(principal.id());
       }
 
       // Principal이 String 타입인 경우 (테스트나 특수한 경우)
@@ -47,8 +47,8 @@ public class SecurityService {
         String principalStr = (String) authentication.getPrincipal();
         if (!"anonymousUser".equals(principalStr)) {
           try {
-            UUID memberId = UUID.fromString(principalStr);
-            return Optional.of(memberId);
+            UUID userId = UUID.fromString(principalStr);
+            return Optional.of(userId);
           } catch (IllegalArgumentException e) {
             log.warn("Invalid UUID format in principal: {}", principalStr);
           }
@@ -59,7 +59,7 @@ public class SecurityService {
       return Optional.empty();
 
     } catch (Exception e) {
-      log.error("Error getting current member ID", e);
+      log.error("Error getting current user ID", e);
       return Optional.empty();
     }
   }
@@ -69,9 +69,9 @@ public class SecurityService {
    *
    * @return 로그인한 멤버 엔티티 (Optional)
    */
-  public Optional<Member> getCurrentMember() {
-    return getCurrentMemberId()
-            .flatMap(memberRepository::findById);
+  public Optional<User> getCurrentUser() {
+    return getCurrentuserId()
+            .flatMap(UserRepository::findById);
   }
 
   /**
@@ -116,36 +116,24 @@ public class SecurityService {
   /**
    * 현재 사용자가 특정 멤버와 동일한지 확인
    *
-   * @param memberId 비교할 멤버 ID
+   * @param userId 비교할 멤버 ID
    * @return 동일 여부
    */
-  public boolean isSameMember(UUID memberId) {
-    if (memberId == null) return false;
+  public boolean isSameUser(UUID userId) {
+    if (userId == null) return false;
 
-    return getCurrentMemberId()
-            .map(currentId -> currentId.equals(memberId))
+    return getCurrentuserId()
+            .map(currentId -> currentId.equals(userId))
             .orElse(false);
   }
 
   /**
    * 현재 사용자가 특정 멤버에 대한 접근 권한이 있는지 확인 (본인이거나 ADMIN)
    *
-   * @param memberId 접근하려는 멤버 ID
+   * @param userId 접근하려는 멤버 ID
    * @return 접근 권한 보유 여부
    */
-  public boolean canAccessMember(UUID memberId) {
-    return isSameMember(memberId) || isAdmin();
+  public boolean canAccessUser(UUID userId) {
+    return isSameUser(userId) || isAdmin();
   }
-}
-
-/**
- * Spring Security Principal 구현체
- * UserDetailsService에서 생성하여 사용
- */
-@RequiredArgsConstructor
-@lombok.Getter
-class MemberPrincipal {
-  private final UUID memberId;
-  private final String email;
-  private final String nickname;
 }

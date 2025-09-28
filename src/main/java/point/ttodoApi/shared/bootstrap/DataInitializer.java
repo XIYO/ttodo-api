@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.shared.bootstrap.data.ChallengeDataBootstrap;
 import point.ttodoApi.shared.bootstrap.data.LevelDataBootstrap;
-import point.ttodoApi.shared.bootstrap.data.MemberDataBootstrap;
+import point.ttodoApi.shared.bootstrap.data.UserDataBootstrap;
 import point.ttodoApi.shared.bootstrap.data.TodoDataBootstrap;
 
 /**
@@ -23,7 +23,7 @@ import point.ttodoApi.shared.bootstrap.data.TodoDataBootstrap;
 public class DataInitializer implements ApplicationRunner {
 
     private final LevelDataBootstrap levelBootstrap;
-    private final MemberDataBootstrap memberBootstrap;
+    private final UserDataBootstrap userBootstrap;
     private final TodoDataBootstrap todoBootstrap;
     private final ChallengeDataBootstrap challengeBootstrap;
 
@@ -35,7 +35,7 @@ public class DataInitializer implements ApplicationRunner {
         try {
             // 순서대로 데이터 초기화 실행
             levelBootstrap.initialize();      // 1. 레벨 데이터 (기본 레벨 1-20)
-            memberBootstrap.initialize();     // 2. 시스템 사용자 (anon, root)
+            userBootstrap.initialize();     // 2. 시스템 사용자 (anon, root)
             todoBootstrap.initialize();       // 3. 기본 할일 템플릿
             challengeBootstrap.initialize();  // 4. 기본 챌린지
 

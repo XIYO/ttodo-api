@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.*;
 import point.ttodoApi.category.infrastructure.persistence.*;
-import point.ttodoApi.member.domain.Member;
-import point.ttodoApi.member.infrastructure.persistence.MemberRepository;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.util.*;
@@ -23,39 +23,39 @@ public class CategoryCollaboratorService {
 
   private final CategoryCollaboratorRepository collaboratorRepository;
   private final CategoryRepository categoryRepository;
-  private final MemberRepository memberRepository;
+  private final UserRepository UserRepository;
   private final TodoRepository todoRepository;
 
   /**
    * 협업자 초대
    */
-  public CategoryCollaborator inviteCollaborator(UUID categoryId, UUID memberId, String invitationMessage) {
+  public CategoryCollaborator inviteCollaborator(UUID categoryId, UUID userId, String invitationMessage) {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
     // 이미 초대되었거나 협업자인지 확인
-    if (collaboratorRepository.existsActiveInvitation(category, member)) {
-      throw new IllegalArgumentException("Member is already invited or is a collaborator");
+    if (collaboratorRepository.existsActiveInvitation(category, user)) {
+      throw new IllegalArgumentException("User is already invited or is a collaborator");
     }
 
-    CategoryCollaborator collaborator = category.addCollaborator(member, invitationMessage);
+    CategoryCollaborator collaborator = category.addCollaborator(user, invitationMessage);
     return collaboratorRepository.save(collaborator);
   }
 
   /**
    * 협업 초대 수락
    */
-  public CategoryCollaborator acceptInvitation(UUID categoryId, UUID memberId) {
+  public CategoryCollaborator acceptInvitation(UUID categoryId, UUID userId) {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndMember(category, member)
+    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndUser(category, user)
             .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
 
     if (collaborator.getStatus() != CollaboratorStatus.PENDING) {
@@ -69,14 +69,14 @@ public class CategoryCollaboratorService {
   /**
    * 협업 초대 거절
    */
-  public CategoryCollaborator rejectInvitation(UUID categoryId, UUID memberId) {
+  public CategoryCollaborator rejectInvitation(UUID categoryId, UUID userId) {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndMember(category, member)
+    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndUser(category, user)
             .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
 
     if (collaborator.getStatus() != CollaboratorStatus.PENDING) {
@@ -90,11 +90,11 @@ public class CategoryCollaboratorService {
   /**
    * 협업자 제거 (카테고리 owner만 가능)
    */
-  public void removeCollaborator(UUID categoryId, UUID memberId, UUID requesterId) {
+  public void removeCollaborator(UUID categoryId, UUID userId, UUID requesterId) {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member requester = memberRepository.findById(requesterId)
+    User requester = UserRepository.findById(requesterId)
             .orElseThrow(() -> new IllegalArgumentException("Requester not found: " + requesterId));
 
     // 카테고리 owner만 협업자 제거 가능
@@ -102,10 +102,10 @@ public class CategoryCollaboratorService {
       throw new IllegalArgumentException("Only category owner can remove collaborators");
     }
 
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndMember(category, member)
+    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndUser(category, user)
             .orElseThrow(() -> new IllegalArgumentException("Collaborator not found"));
 
     // 소프트 삭제
@@ -113,22 +113,22 @@ public class CategoryCollaboratorService {
     collaboratorRepository.save(collaborator);
 
     // 해당 멤버의 협업 투두를 개인 투두로 전환
-    int updatedTodos = todoRepository.updateMemberCollaborativeTodosToPersonal(memberId, categoryId);
-    log.info("Converted {} collaborative todos to personal for member {} in category {}",
-            updatedTodos, memberId, categoryId);
+    int updatedTodos = todoRepository.updateUserCollaborativeTodosToPersonal(userId, categoryId);
+    log.info("Converted {} collaborative todos to personal for user {} in category {}",
+            updatedTodos, userId, categoryId);
   }
 
   /**
    * 협업자 스스로 나가기
    */
-  public void leaveCollaboration(UUID categoryId, UUID memberId) {
+  public void leaveCollaboration(UUID categoryId, UUID userId) {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndMember(category, member)
+    CategoryCollaborator collaborator = collaboratorRepository.findByCategoryAndUser(category, user)
             .orElseThrow(() -> new IllegalArgumentException("Collaborator not found"));
 
     // 소프트 삭제
@@ -136,20 +136,20 @@ public class CategoryCollaboratorService {
     collaboratorRepository.save(collaborator);
 
     // 해당 멤버의 협업 투두를 개인 투두로 전환
-    int updatedTodos = todoRepository.updateMemberCollaborativeTodosToPersonal(memberId, categoryId);
-    log.info("Member {} left collaboration in category {}, converted {} todos to personal",
-            memberId, categoryId, updatedTodos);
+    int updatedTodos = todoRepository.updateUserCollaborativeTodosToPersonal(userId, categoryId);
+    log.info("User {} left collaboration in category {}, converted {} todos to personal",
+            userId, categoryId, updatedTodos);
   }
 
   /**
    * 멤버의 대기 중인 초대 목록 조회
    */
   @Transactional(readOnly = true)
-  public List<CategoryCollaborator> getPendingInvitations(UUID memberId) {
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public List<CategoryCollaborator> getPendingInvitations(UUID userId) {
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    return collaboratorRepository.findPendingInvitationsByMember(member);
+    return collaboratorRepository.findPendingInvitationsByUser(user);
   }
 
   /**
@@ -160,7 +160,7 @@ public class CategoryCollaboratorService {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member requester = memberRepository.findById(requesterId)
+    User requester = UserRepository.findById(requesterId)
             .orElseThrow(() -> new IllegalArgumentException("Requester not found: " + requesterId));
 
     // 카테고리 owner 또는 협업자만 목록 조회 가능
@@ -175,11 +175,11 @@ public class CategoryCollaboratorService {
    * 멤버가 협업하는 카테고리 목록 조회
    */
   @Transactional(readOnly = true)
-  public List<Category> getCollaborativeCategories(UUID memberId) {
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+  public List<Category> getCollaborativeCategories(UUID userId) {
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    return collaboratorRepository.findCollaborativeCategoriesByMember(member);
+    return collaboratorRepository.findCollaborativeCategoriesByUser(user);
   }
 
   /**
@@ -197,14 +197,14 @@ public class CategoryCollaboratorService {
    * 멤버가 카테고리 협업자인지 확인
    */
   @Transactional(readOnly = true)
-  public boolean isCollaborator(UUID categoryId, UUID memberId) {
+  public boolean isCollaborator(UUID categoryId, UUID userId) {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Member not found: " + memberId));
+    User user = UserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    return category.isCollaborator(member);
+    return category.isCollaborator(user);
   }
 
   /**

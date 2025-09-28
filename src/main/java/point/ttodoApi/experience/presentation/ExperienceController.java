@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.experience.application.ExperienceService;
-import point.ttodoApi.experience.presentation.dto.MemberLevelResponse;
+import point.ttodoApi.experience.presentation.dto.response.UserLevelResponse;
 import point.ttodoApi.experience.presentation.mapper.ExperiencePresentationMapper;
 
 import java.util.UUID;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Tag(name = "경험치/레벨(Experience) 시스템", description = "할 일 완료, 챌린지 참여 등 사용자 활동에 따른 경험치 축적 및 레벨 시스템을 관리합니다. 경험치가 쉼으면 레벨이 상승하며, 이를 통해 사용자의 성취감을 높입니다.")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/members")
+@RequestMapping("/user")
 public class ExperienceController {
 
   private final ExperienceService experienceService;
@@ -36,10 +36,10 @@ public class ExperienceController {
   )
   @ApiResponse(responseCode = "200", description = "레벨/경험치 조회 성공")
   @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
-  @GetMapping("/{memberId}/experience")
+  @GetMapping("/{userId}/experience")
   @PreAuthorize("hasRole('USER')")
-  public MemberLevelResponse getMemberLevel(@PathVariable UUID memberId) {
-    var result = experienceService.getMemberLevel(memberId);
+  public UserLevelResponse getUserLevel(@PathVariable UUID userId) {
+    var result = experienceService.getUserLevel(userId);
     return mapper.toResponse(result);
   }
 }

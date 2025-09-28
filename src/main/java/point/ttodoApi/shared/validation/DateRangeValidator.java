@@ -1,7 +1,7 @@
 package point.ttodoApi.shared.validation;
 
 import jakarta.validation.*;
-import point.ttodoApi.todo.presentation.dto.TodoSearchRequest;
+import point.ttodoApi.todo.presentation.dto.request.TodoSearchRequest;
 
 public class DateRangeValidator implements ConstraintValidator<DateRangeConstraint, TodoSearchRequest> {
 

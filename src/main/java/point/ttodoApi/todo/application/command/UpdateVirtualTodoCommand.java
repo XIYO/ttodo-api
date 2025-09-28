@@ -5,7 +5,7 @@ import java.util.*;
 
 public record UpdateVirtualTodoCommand(
         String virtualTodoId,
-        UUID memberId,
+        UUID userId,
         String title,
         String description,
         Boolean complete,

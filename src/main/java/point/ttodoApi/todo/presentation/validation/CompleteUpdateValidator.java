@@ -1,7 +1,7 @@
 package point.ttodoApi.todo.presentation.validation;
 
 import jakarta.validation.*;
-import point.ttodoApi.todo.presentation.dto.UpdateTodoRequest;
+import point.ttodoApi.todo.presentation.dto.request.UpdateTodoRequest;
 
 public class CompleteUpdateValidator implements ConstraintValidator<ValidCompleteUpdate, UpdateTodoRequest> {
 

@@ -2,6 +2,14 @@
 
 TTODO의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통한 동기부여 기능을 제공합니다.
 
+## 📚 아키텍처 문서
+
+- **[TTODO 아키텍처 가이드](TTODO_ARCHITECTURE_GUIDE.md)** - TTODO 아키텍처 패턴과 핵심 원칙
+- **[개발 가이드라인](DEVELOPMENT_GUIDELINES.md)** - 코딩 표준, 테스트 전략, Git 워크플로우
+- **[아키텍처 검증 체크리스트](ARCHITECTURE_CHECKLIST.md)** - 아키텍처 준수 여부 검증
+- **[개발 로드맵](ROADMAP.md)** - 향후 개발 계획 및 우선순위
+- **[Claude Code 가이드](CLAUDE.md)** - Claude Code AI 개발 가이드
+
 ## 기술 스택
 
 ### Backend

@@ -167,6 +167,14 @@ echo $SPRING_PROFILES_ACTIVE  # Should be 'dev' for local development
 
 ## Code Conventions
 
+### Entity Layer
+
+- **NEVER use @Table annotation for table name customization** - Use default naming strategy
+- Entity class names should match intended table names (e.g., `Profile` class → `profile` table)
+- Use `@Column` only for constraints (nullable, unique, length), NOT for name customization
+- Follow JPA default naming conventions without overrides
+- Let Spring's naming strategy handle the conversion (PascalCase → snake_case)
+
 ### Service Layer
 
 - `@Transactional` on write operations
@@ -194,6 +202,22 @@ echo $SPRING_PROFILES_ACTIVE  # Should be 'dev' for local development
 - **Response DTOs**: `presentation/dto/response/` - API output formatting
 - **Commands/Queries**: `application/command/` and `application/query/` - Business operations
 - **MapStruct**: For DTO ↔ Domain mapping (see `*PresentationMapper` classes)
+
+### DTO Creation Rules
+
+- **NEVER use `new` keyword to create DTOs manually** - Prohibited for all DTO types
+- **Use MapStruct mappers** for all entity ↔ DTO conversions (e.g., `mapper.toResponse(entity)`)
+- **Spring Framework handles Request DTOs** automatically from HTTP requests
+- **Response DTOs must be created via MapStruct** mappers only
+- **Builder pattern allowed ONLY in tests** for test data setup
+- Example:
+  ```java
+  // ❌ WRONG - Never do this
+  return new TodoResponse(todo.getId(), todo.getTitle());
+  
+  // ✅ CORRECT - Use MapStruct
+  return todoPresentationMapper.toResponse(todo);
+  ```
 
 ### Testing Patterns
 

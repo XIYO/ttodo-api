@@ -1,44 +1,7 @@
 /**
  * 품질 게이트 통합 설정
- * IntelliJ IDEA Ultimate 내장 검사 도구 우선 사용
- * 외부 라이브러리 도구들은 주석 처리 (board-hole 스타일 적용)
+ * IntelliJ IDEA Ultimate 내장 검사 도구 사용
  */
-
-// ===== 외부 품질 도구 비활성화 =====
-// IntelliJ IDEA Ultimate의 내장 검사 기능을 사용하므로 외부 도구 비활성화
-
-/*
-// ===== Checkstyle 설정 =====
-checkstyle {
-    toolVersion = '10.12.5'
-    // 프로파일별 설정 선택
-    if (project.hasProperty('useGoogleStyle')) {
-        configFile = file("${rootDir}/config/checkstyle/google-checks-custom.xml")
-        println "Using Google Style with custom rules"
-    } else {
-        configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-        println "Using project default checkstyle rules"
-    }
-    maxWarnings = 0
-    maxErrors = 0
-}
-
-// ===== PMD 설정 =====
-pmd {
-    toolVersion = '6.55.0'
-    consoleOutput = true
-    ruleSetFiles = files("${rootDir}/config/pmd/ruleset.xml")
-    rulesMinimumPriority = 1  // Priority 1 이상만 검사
-}
-
-// ===== SpotBugs 설정 =====
-spotbugs {
-    toolVersion = '4.8.7'
-    effort = 'max'
-    reportLevel = 'low'
-    excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
-}
-*/
 
 // ===== SonarQube 설정 =====
 sonar {
@@ -85,14 +48,6 @@ sonar {
         // 커스텀 품질 프로파일 (옵션)
         // property 'sonar.qualityProfile', 'Board Hole Quality Profile'
 
-        // Import Checkstyle 결과
-        property 'sonar.java.checkstyle.reportPaths', 'build/reports/checkstyle/main.xml'
-
-        // Import PMD 결과
-        property 'sonar.java.pmd.reportPaths', 'build/reports/pmd/main.xml'
-
-        // Import SpotBugs 결과
-        property 'sonar.java.spotbugs.reportPaths', 'build/reports/spotbugs/main.xml'
     }
 }
 

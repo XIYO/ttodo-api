@@ -11,8 +11,9 @@ import point.ttodoApi.challenge.application.result.*;
 import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.shared.exception.challenge.ChallengeNotFoundException;
 import point.ttodoApi.challenge.infrastructure.*;
-import point.ttodoApi.challenge.presentation.dto.*;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.challenge.presentation.dto.response.InviteLinkResponse;
+import point.ttodoApi.challenge.presentation.dto.response.ChallengePolicyResponse;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.error.*;
 
 import java.time.LocalDate;
@@ -66,7 +67,7 @@ public class ChallengeService {
   }
 
   @Transactional(readOnly = true)
-  public Page<ChallengeListResult> searchChallengesWithFilter(Member member, String keyword,
+  public Page<ChallengeListResult> searchChallengesWithFilter(User user, String keyword,
                                                               String sort, Boolean join,
                                                               Pageable pageable) {
     // 공개 챌린지만 검색
@@ -81,10 +82,10 @@ public class ChallengeService {
       ChallengeListResult result = challengeMapper.toListResult(challenge);
 
       // 인증된 사용자의 참여 상태 확인
-      if (member != null) {
+      if (user != null) {
         boolean participated = challengeParticipationRepository
-                .existsByChallenge_IdAndMember_IdAndJoinOutIsNull(
-                        challenge.getId(), member.getId());
+                .existsByChallenge_IdAndUser_IdAndJoinOutIsNull(
+                        challenge.getId(), user.getId());
         return new ChallengeListResult(
                 result.id(),
                 result.title(),
@@ -121,14 +122,14 @@ public class ChallengeService {
   }
 
   @Transactional(readOnly = true)
-  public ChallengeResult getChallengeWithParticipation(Long challengeId, Member member) {
+  public ChallengeResult getChallengeWithParticipation(Long challengeId, User user) {
     Challenge challenge = getChallenge(challengeId);
     ChallengeResult result = challengeMapper.toDetailResult(challenge);
 
     // 참여 상태 확인
     boolean participated = challengeParticipationRepository
-            .existsByChallenge_IdAndMember_IdAndJoinOutIsNull(
-                    challenge.getId(), member.getId());
+            .existsByChallenge_IdAndUser_IdAndJoinOutIsNull(
+                    challenge.getId(), user.getId());
 
     // 성공률 계산
     double successRate = calculateSuccessRate(challenge);
@@ -220,9 +221,9 @@ public class ChallengeService {
    * 챌린지 소유자 여부 확인 (Spring Security @PreAuthorize용)
    */
   @Transactional(readOnly = true)
-  public boolean isOwner(Long challengeId, UUID memberId) {
+  public boolean isOwner(Long challengeId, UUID userId) {
     Challenge challenge = getChallenge(challengeId);
-    return challenge.getCreatorId().equals(memberId);
+    return challenge.getCreatorId().equals(userId);
   }
 
   private double calculateSuccessRate(Challenge challenge) {

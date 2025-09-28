@@ -1,0 +1,70 @@
+# PowerSync Open Source Configuration
+# Minimal configuration for development
+
+# Database connection
+connection:
+  type: postgresql
+  hostname: postgres
+  port: 5432
+  database: ttodo
+  username: ttodo_user
+  password: ttodo_password
+  ssl: false
+
+# Storage backend
+storage:
+  type: postgresql
+  hostname: postgres
+  port: 5432
+  database: ttodo
+  username: ttodo_user
+  password: ttodo_password
+  ssl: false
+
+# Replication settings
+replication:
+  type: postgresql
+  hostname: postgres
+  port: 5432
+  database: ttodo
+  username: ttodo_user
+  password: ttodo_password
+  ssl: false
+  
+# Migration settings (required for Open Edition)
+migrations:
+  auto_apply: true
+  
+# Sync rules
+sync_rules:
+  parameter_queries:
+    user_id: "SELECT '00000000-0000-0000-0000-000000000000'::text"  # Default user for dev
+    
+  bucket_definitions:
+    - name: all_todos
+      parameters: []
+      data:
+        - SELECT 
+            id::text,
+            title,
+            description,
+            complete,
+            created_at,
+            updated_at
+          FROM simple_todo
+
+# Authentication (disabled for development)
+auth:
+  supabase:
+    disabled: true
+  jwks:
+    disabled: true
+    
+# Port configuration
+port: 8080
+
+# Admin port
+admin_port: 8081
+
+# Development mode
+dev_mode: true

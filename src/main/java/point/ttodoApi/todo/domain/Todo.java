@@ -1,49 +1,60 @@
 package point.ttodoApi.todo.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.springframework.data.annotation.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.user.domain.User;
+import point.ttodoApi.shared.domain.BaseEntity;
+import point.ttodoApi.todo.domain.validation.*;
 
 import java.time.*;
 import java.util.*;
 
+import static point.ttodoApi.todo.domain.TodoConstants.*;
+
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
-public class Todo {
+public class Todo extends BaseEntity {
   @EmbeddedId
   private TodoId todoId;
 
+  @Column(length = TITLE_MAX_LENGTH)
+  @ValidTitle
   private String title;
+  
+  @Column(length = DESCRIPTION_MAX_LENGTH)
+  @ValidDescription
   private String description;
 
   @Column(nullable = false)
-  private Boolean complete = false;
+  private Boolean complete = DEFAULT_COMPLETE;
 
   @Column(name = "is_pinned", nullable = false)
-  private Boolean isPinned = false;
+  private Boolean isPinned = DEFAULT_IS_PINNED;
 
   @Column(name = "display_order", nullable = false)
-  private Integer displayOrder = 0;
+  @ValidDisplayOrder
+  private Integer displayOrder = DEFAULT_DISPLAY_ORDER;
 
   @Column(nullable = false)
-  private Boolean active = true;
+  private Boolean active = DEFAULT_ACTIVE;
 
   @Column(name = "is_collaborative", nullable = false)
-  private Boolean isCollaborative = false;
+  private Boolean isCollaborative = DEFAULT_IS_COLLABORATIVE;
 
+  @ValidTodoPriority
   private Integer priorityId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
   private Category category;
 
+  @ValidTodoDate
   private LocalDate date;
+  
   private LocalTime time;
 
   @ElementCollection(fetch = FetchType.LAZY)
@@ -52,18 +63,13 @@ public class Todo {
           @JoinColumn(name = "days_difference", referencedColumnName = "days_difference")
   })
   @Column(name = "tag")
+  @ValidTags
   private Set<String> tags;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id", nullable = false)
-  private Member owner;
-
-  @CreatedDate
-  @Column(updatable = false)
-  private Instant createdAt;
-
-  @LastModifiedDate
-  private Instant updatedAt;
+  @JoinColumn(name = "user_id", nullable = false)
+  @ValidOwner
+  private User owner;
 
   @Builder
   public Todo(TodoId todoId,
@@ -79,15 +85,15 @@ public class Todo {
               LocalDate date,
               LocalTime time,
               Set<String> tags,
-              Member owner) {
+              User owner) {
     this.todoId = todoId;
     this.title = title;
     this.description = description;
-    this.complete = complete != null ? complete : false;
-    this.isPinned = isPinned != null ? isPinned : false;
-    this.displayOrder = displayOrder != null ? displayOrder : 0;
-    this.active = active != null ? active : true;
-    this.isCollaborative = isCollaborative != null ? isCollaborative : false;
+    this.complete = complete != null ? complete : DEFAULT_COMPLETE;
+    this.isPinned = isPinned != null ? isPinned : DEFAULT_IS_PINNED;
+    this.displayOrder = displayOrder != null ? displayOrder : DEFAULT_DISPLAY_ORDER;
+    this.active = active != null ? active : DEFAULT_ACTIVE;
+    this.isCollaborative = isCollaborative != null ? isCollaborative : DEFAULT_IS_COLLABORATIVE;
     this.priorityId = priorityId;
     this.category = category;
     this.date = date;
@@ -98,6 +104,14 @@ public class Todo {
 
   public Long getOriginalTodoId() {
     return todoId != null ? todoId.getId() : null;
+  }
+
+  public TodoId getId() {
+    return todoId;
+  }
+
+  public void setOwner(User owner) {
+    this.owner = owner;
   }
 
   /**
@@ -118,40 +132,40 @@ public class Todo {
    * 특정 멤버가 이 투두에 접근할 수 있는지 확인
    * owner이거나 카테고리의 협업자인 경우 접근 가능
    */
-  public boolean isAccessibleBy(Member member) {
-    if (member == null) return false;
+  public boolean isAccessibleBy(User user) {
+    if (user == null) return false;
 
     // owner는 항상 접근 가능
-    if (this.owner.equals(member)) return true;
+    if (this.owner.equals(user)) return true;
 
-    // 협업 투두가 아니면 member만 접근 가능
+    // 협업 투두가 아니면 user만 접근 가능
     if (!isCollaborativeTodo()) return false;
 
     // 카테고리가 없으면 협업 불가
     if (this.category == null) return false;
 
     // 카테고리의 협업자인지 확인
-    return this.category.isCollaborator(member);
+    return this.category.isCollaborator(user);
   }
 
   /**
    * 특정 멤버가 이 투두를 수정할 수 있는지 확인
    * owner이거나 카테고리 관리 권한이 있는 경우 수정 가능
    */
-  public boolean isEditableBy(Member member) {
-    if (member == null) return false;
+  public boolean isEditableBy(User user) {
+    if (user == null) return false;
 
     // owner는 항상 수정 가능
-    if (this.owner.equals(member)) return true;
+    if (this.owner.equals(user)) return true;
 
-    // 협업 투두가 아니면 member만 수정 가능
+    // 협업 투두가 아니면 user만 수정 가능
     if (!isCollaborativeTodo()) return false;
 
     // 카테고리가 없으면 협업 불가
     if (this.category == null) return false;
 
     // 카테고리 관리 권한 확인
-    return this.category.canManage(member);
+    return this.category.canManage(user);
   }
 
   /**
@@ -188,12 +202,12 @@ public class Todo {
   /**
    * 소유권 확인 메서드 (Spring Security @PreAuthorize용)
    *
-   * @param memberId 확인할 멤버 ID
+   * @param userId 확인할 멤버 ID
    * @return 소유자인지 여부
    */
-  public boolean isOwn(UUID memberId) {
-    if (memberId == null || this.owner == null) return false;
-    return this.owner.getId().equals(memberId);
+  public boolean isOwn(UUID userId) {
+    if (userId == null || this.owner == null) return false;
+    return this.owner.getId().equals(userId);
   }
 }
 

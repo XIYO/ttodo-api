@@ -3,7 +3,7 @@ package point.ttodoApi.category.presentation.mapper;
 import org.mapstruct.*;
 import point.ttodoApi.category.application.result.CategoryResult;
 import point.ttodoApi.category.domain.Category;
-import point.ttodoApi.category.presentation.dto.CategoryResponse;
+import point.ttodoApi.category.presentation.dto.response.CategoryResponse;
 
 /**
  * Category Presentation Layer Mapper
@@ -11,6 +11,7 @@ import point.ttodoApi.category.presentation.dto.CategoryResponse;
  * DDD 원칙에 따라 외부 레이어가 내부 객체를 알고 변환
  */
 @Mapper(componentModel = "spring")
+@SuppressWarnings("NullableProblems")
 public interface CategoryPresentationMapper {
 
   /**
@@ -20,6 +21,7 @@ public interface CategoryPresentationMapper {
    * @return Presentation Layer의 응답 DTO
    */
   @Mapping(source = "colorHex", target = "color")
+  @Mapping(source = "displayOrder", target = "orderIndex")
   CategoryResponse toResponse(CategoryResult result);
 
   /**

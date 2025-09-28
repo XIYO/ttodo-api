@@ -13,12 +13,13 @@ import java.util.Set;
 public class CategorySpecification extends BaseSpecification<Category> {
 
   // Category 엔티티에서 정렬 가능한 필드들
+  // user.nickname을 제거하고 profile join 필요
   private static final Set<String> CATEGORY_SORT_FIELDS = Set.of(
           "name",
           "color",
           "description",
-          "member.email",
-          "member.nickname"
+          "user.email"
+          // "user.nickname" 제거됨 - Profile로 이동
   );
 
   @Override

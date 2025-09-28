@@ -1,9 +1,13 @@
 package point.ttodoApi.challenge.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import point.ttodoApi.challenge.domain.validation.*;
 
 import java.time.*;
+
+import static point.ttodoApi.challenge.domain.ChallengeConstants.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -11,6 +15,7 @@ import java.time.*;
 public class ChallengeTodo {
 
   @ManyToOne
+  @NotNull(message = CHALLENGE_PARTICIPATION_REQUIRED_MESSAGE)
   ChallengeParticipation challengeParticipation;
   LocalDateTime createdAt;
   LocalDateTime updatedAt;
@@ -18,10 +23,13 @@ public class ChallengeTodo {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   @Column(nullable = false)
+  @NotNull(message = DONE_REQUIRED_MESSAGE)
   private Boolean done = false;
   @Column(nullable = false)
+  @NotNull(message = TARGET_DATE_REQUIRED_MESSAGE)
   private LocalDate targetDate;
   @Embedded
+  @ValidPeriod
   private Period period;
 
   @Builder

@@ -46,10 +46,16 @@ dependencies {
 
     implementation 'org.mapstruct:mapstruct:1.6.3'
 
+    // UUID v7 생성을 위한 라이브러리
+    implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
+
     // Annotation processor 순서가 중요함 - Lombok이 먼저 처리되어야 함
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    
+    // Spring Context Indexer - 컴포넌트 스캔 속도 향상
+    annotationProcessor 'org.springframework:spring-context-indexer'
 
     implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1'
 
@@ -66,6 +72,12 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
+    // Embedded DB for @DataJpaTest slice tests
+    testImplementation 'com.h2database:h2'
+
+    // RestAssured for E2E testing
+    testImplementation 'io.rest-assured:rest-assured:5.5.0'
+    testImplementation 'io.rest-assured:spring-mock-mvc:5.5.0'
 
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
@@ -113,7 +125,7 @@ jacoco {
 }
 
 jacocoTestReport {
-    dependsOn test
+    dependsOn test, compileJava, processResources
 
     reports {
         xml.required = true  // SonarQube 연동용
@@ -266,8 +278,8 @@ build {
 
 // OpenRewrite 설정
 rewrite {
-    activeRecipe("point.ttodoApi.BoardHoleStructureAlignment")
-    configFile = file("rewrite.yml")
+    activeRecipe("point.ttodoApi.SimpleMemberToUserRefactoring")
+    configFile = file("rewrite-simple.yml")
 }
 
 // Apply quality gates configuration
@@ -275,3 +287,20 @@ apply from: 'gradle/quality-gates.gradle'
 
 // Apply refactoring configuration
 apply from: 'gradle/refactoring.gradle'
+
+// JVM 최적화 옵션 설정
+bootRun {
+    jvmArgs = [
+        '-XX:TieredStopAtLevel=1',     // C1 컴파일러만 사용 (빠른 시작)
+        '-Xverify:none',                // 클래스 검증 생략 (개발 환경용)
+        '-XX:+UseParallelGC',           // 병렬 GC 사용
+        '-Xms512m',                     // 초기 힙 크기
+        '-Xmx512m',                     // 최대 힙 크기 (초기와 동일하게 설정)
+        '-XX:+AlwaysPreTouch',          // 힙 메모리 사전 할당
+        '-XX:+UseStringDeduplication',  // 문자열 중복 제거
+        '-Djava.security.egd=file:/dev/./urandom'  // 난수 생성 속도 향상
+    ]
+    
+    // 개발 환경 프로파일 자동 설정
+    systemProperty 'spring.profiles.active', 'dev'
+}

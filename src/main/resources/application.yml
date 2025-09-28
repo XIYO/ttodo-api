@@ -1,13 +1,20 @@
 spring:
   application:
     name: ttodo-api
-  profiles:
-    group:
-      dev:
-        - "common-dev"
-      prod:
-        - "common-prod"
-    active: dev
+  main:
+    lazy-initialization: true  # 빈 지연 로딩으로 시작 속도 향상
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 25  # 배치 처리로 성능 향상
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false  # 통계 생성 비활성화
   mvc:
     hiddenmethod:
       filter:
@@ -20,30 +27,47 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-springdoc:
-  swagger-ui:
-    path: /
-  api-docs:
-    path: /v3/api-docs
+# JWT 설정
+jwt:
+  private-key: classpath:ttodo/jwt/test-private.pem
+  public-key: classpath:ttodo/jwt/public.pem
+  key-id: rsa-key-id
+  access-token:
+    expiration: 60
+    cookie:
+      name: access-token
+      path: /
+      sameSite: Lax
+      secure: false
+      httpOnly: false
+  refresh-token:
+    expiration: 31536000
+    cookie:
+      name: refresh-token
+      path: /
+      sameSite: Lax
+      secure: false
+      httpOnly: true
 
-# 동적 쿼리 시스템 설정
+# CORS 설정
 app:
-  specification:
-    index-advisor:
-      enabled: true # 인덱스 추천 기능 활성화
-      daily-reset: false # 매일 통계 리셋 여부
-    performance:
-      slow-query-threshold: 1000 # 느린 쿼리 임계값 (ms)
-      log-all-queries: false # 모든 쿼리 로깅 여부
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: '!prod'
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  cors:
+    allowed-origins:
+      - http://localhost:5173  # Vite development server
+      - http://localhost:8080  # Backend API
+      - http://localhost:4173  # Vite preview
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Content-Type
+      - Authorization
+      - X-Requested-With
+      - Accept
+      - Origin
+    allow-credentials: true
+    max-age: 3600

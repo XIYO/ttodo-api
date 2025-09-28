@@ -6,6 +6,7 @@ import point.ttodoApi.challenge.domain.*;
 import point.ttodoApi.shared.config.shared.MapStructConfig;
 
 @Mapper(config = MapStructConfig.class)
+@SuppressWarnings("NullableProblems")
 public interface ChallengeMapper {
 
   // 목록용 Result
@@ -22,9 +23,9 @@ public interface ChallengeMapper {
   ChallengeResult toDetailResult(Challenge challenge);
 
   // 참여자 Result
-  @Mapping(target = "id", source = "member.id")
-  @Mapping(target = "email", source = "member.email")
-  @Mapping(target = "nickname", source = "member.nickname")
+  @Mapping(target = "id", source = "user.id")
+  @Mapping(target = "email", source = "user.email")
+  @Mapping(target = "nickname", ignore = true) // Profile에서 별도로 가져와야 함
   @Mapping(target = "joinedAt", source = "joinedAt")
   ParticipantResult toParticipantResult(ChallengeParticipation participation);
 }

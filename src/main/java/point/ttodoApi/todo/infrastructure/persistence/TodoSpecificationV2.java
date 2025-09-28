@@ -13,6 +13,7 @@ import java.util.Set;
 public class TodoSpecificationV2 extends BaseSpecification<Todo> {
 
   // Todo 엔티티에서 정렬 가능한 필드들
+  // user.nickname을 제거하고 profile join 필요
   private static final Set<String> TODO_SORT_FIELDS = Set.of(
           "title",
           "date",
@@ -21,8 +22,8 @@ public class TodoSpecificationV2 extends BaseSpecification<Todo> {
           "complete",
           "active",
           "displayOrder",
-          "member.email",
-          "member.nickname",
+          "user.email",
+          // "user.nickname" 제거됨 - Profile로 이동
           "category.name"
   );
 

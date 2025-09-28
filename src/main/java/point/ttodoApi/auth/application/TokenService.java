@@ -8,11 +8,14 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import point.ttodoApi.shared.config.auth.properties.JwtProperties;
 import point.ttodoApi.auth.domain.*;
-import point.ttodoApi.member.application.MemberService;
-import point.ttodoApi.member.domain.Member;
+import point.ttodoApi.shared.security.UserPrincipal;
+import point.ttodoApi.user.application.UserService;
+import point.ttodoApi.user.domain.User;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.shared.error.BusinessException;
+import point.ttodoApi.user.application.dto.UserWithProfileProjection;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -35,8 +38,9 @@ public class TokenService {
   private final JwtProperties jwtProperties;
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
-  private final MemberService memberService;
+  private final UserService UserService;
   private final ProfileService profileService;
+  private final UserRepository userRepository;
   private final TokenRepository tokenRepository;
   // 동시 리프레시 요청을 위한 캐시 (10초간 유지, 최대 1000개)
   private final Map<String, TokenPair> recentRefreshCache = new ConcurrentHashMap<>();
@@ -221,17 +225,19 @@ public class TokenService {
 
       validateAndDeleteInvalidToken(deviceId, oldRefreshToken);
 
-      UUID memberId = UUID.fromString(extractClaim(oldRefreshToken, SUB_CLAIM));
-      Member member = memberService.findVerifiedMember(memberId);
-      Profile profile = profileService.getProfile(memberId);
+      UUID userId = UUID.fromString(extractClaim(oldRefreshToken, SUB_CLAIM));
+      
+      // FIXED: Use single query to get user+profile data
+      UserWithProfileProjection userProfile = userRepository.findUserWithProfile(userId).orElseThrow(() -> new BusinessException("User not found: " + userId));
 
+      // FIXED: Use Profile.nickname as single source of truth
       String newAccessToken = generateAccessToken(
-              memberId.toString(),
-              member.getEmail(),
-              member.getNickname(),
-              profile.getTimeZone(),
-              profile.getLocale());
-      String newRefreshToken = generateRefreshToken(memberId.toString(), deviceId);
+              userId.toString(),
+              userProfile.email(),
+              userProfile.nickname(),    // From Profile (single source of truth)
+              userProfile.timeZone(),
+              userProfile.locale());
+      String newRefreshToken = generateRefreshToken(userId.toString(), deviceId);
       save(deviceId, newRefreshToken);
 
       TokenPair newTokens = new TokenPair(newAccessToken, newRefreshToken);
@@ -260,16 +266,20 @@ public class TokenService {
     }
   }
 
-  public TokenResult generateTokens(MemberPrincipal member) {
+  public TokenResult generateTokens(UserPrincipal user) {
     String deviceId = UUID.randomUUID().toString();
-    Profile profile = profileService.getProfile(member.id());
+    
+    // FIXED: Use single query to get user+profile data
+    UserWithProfileProjection userProfile = userRepository.findUserWithProfile(user.id()).orElseThrow(() -> new BusinessException("User not found: " + user.id()));
+    
+    // FIXED: Use Profile.nickname as single source of truth
     String accessToken = generateAccessToken(
-            member.idAsString(),
-            member.email(),
-            member.nickname(),
-            profile.getTimeZone(),
-            profile.getLocale());
-    String refreshToken = generateRefreshToken(member.idAsString(), deviceId);
+            user.idAsString(),
+            userProfile.email(),
+            userProfile.nickname(),    // From Profile (single source of truth)
+            userProfile.timeZone(),
+            userProfile.locale());
+    String refreshToken = generateRefreshToken(user.idAsString(), deviceId);
     save(deviceId, refreshToken);
     return new TokenResult(accessToken, refreshToken, deviceId);
   }
@@ -337,5 +347,48 @@ public class TokenService {
   }
 
   public record TokenResult(String accessToken, String refreshToken, String deviceId) {
+  }
+  
+  /**
+   * 토큰 쌍 생성 (일반 만료 시간)
+   * FIXED: Uses Profile.nickname consistently
+   */
+  public TokenResult createTokenPair(String userId, String deviceId, String email, String nickname, List authorities) {
+    UUID userUUID = UUID.fromString(userId);
+    
+    // FIXED: Get nickname from Profile (single source of truth)
+    UserWithProfileProjection userProfile = userRepository.findUserWithProfile(userUUID).orElseThrow(() -> new BusinessException("User not found: " + userUUID));
+    
+    String accessToken = generateAccessToken(
+        userId, 
+        email, 
+        userProfile.nickname(),      // From Profile
+        userProfile.timeZone(), 
+        userProfile.locale());
+    String refreshToken = generateRefreshToken(userId, deviceId);
+    save(deviceId, refreshToken);
+    return new TokenResult(accessToken, refreshToken, deviceId);
+  }
+  
+  /**
+   * 장기간 유효한 토큰 쌍 생성 (개발용)
+   * FIXED: Uses Profile.nickname consistently
+   */
+  public TokenResult createLongLivedTokenPair(String userId, String deviceId, String email, String nickname, List authorities) {
+    UUID userUUID = UUID.fromString(userId);
+    
+    // FIXED: Get data from Profile (single source of truth)
+    UserWithProfileProjection userProfile = userRepository.findUserWithProfile(userUUID).orElseThrow(() -> new BusinessException("User not found: " + userUUID));
+    
+    String accessToken = generateAccessToken(
+        userId, 
+        email, 
+        userProfile.nickname(),      // From Profile
+        userProfile.timeZone(), 
+        userProfile.locale(), 
+        true);  // never expire
+    String refreshToken = generateRefreshToken(userId, deviceId);
+    save(deviceId, refreshToken);
+    return new TokenResult(accessToken, refreshToken, deviceId);
   }
 }

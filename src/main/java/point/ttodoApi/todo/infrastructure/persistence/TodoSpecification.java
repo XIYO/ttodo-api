@@ -2,21 +2,29 @@ package point.ttodoApi.todo.infrastructure.persistence;
 
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
+import point.ttodoApi.shared.specification.BaseSpecification;
 import point.ttodoApi.todo.domain.Todo;
 
 import java.time.LocalDate;
 import java.util.*;
 
-public class TodoSpecification {
+@Component
+public class TodoSpecification extends BaseSpecification<Todo> {
 
-  public static Specification<Todo> createSpecification(UUID memberId, Boolean complete,
+  @Override
+  protected Set<String> getAllowedSortFields() {
+    return Set.of("id", "title", "complete", "date", "displayOrder", "createdAt", "updatedAt");
+  }
+
+  public static Specification<Todo> createSpecification(UUID userId, Boolean complete,
                                                         List<Long> categoryIds, List<Integer> priorityIds,
                                                         LocalDate startDate, LocalDate endDate) {
     return (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
 
       // 필수 조건들
-      predicates.add(criteriaBuilder.equal(root.get("owner").get("id"), memberId));
+      predicates.add(criteriaBuilder.equal(root.get("owner").get("id"), userId));
       predicates.add(criteriaBuilder.isTrue(root.get("active")));
 
       // 완료 여부 필터
