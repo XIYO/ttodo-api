@@ -712,17 +712,17 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
         @DisplayName("개발 토큰 생성 성공")
         void getDevToken_Success() {
             // When
-            ResponseEntity<Map<String, Object>> response = restTemplate.getForEntity(
+            ResponseEntity<Map> response = restTemplate.getForEntity(
                 baseUrl + "/dev-token", Map.class);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
             @SuppressWarnings("unchecked")
-            Map<String, String> body = (Map<String, String>) response.getBody();
+            Map<String, Object> body = (Map<String, Object>) response.getBody();
             assertThat(body).isNotNull();
             assertThat(body.get("token")).isNotNull();
-            assertThat(body.get("usage")).contains("Swagger");
+            assertThat((String) body.get("usage")).contains("Swagger");
             assertThat(body.get("userId")).isNotNull();
             assertThat(body.get("email")).isEqualTo("dev@ttodo.dev");
             assertThat(body.get("expiresIn")).isEqualTo("NEVER (만료 없음)");
