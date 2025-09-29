@@ -95,6 +95,7 @@ public class UserController {
   @ApiResponse(responseCode = "401", description = "인증되지 않은 요청 (토큰 없음 또는 만료)")
   @GetMapping("/me")
   @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('USER')")
   public UserResponse getCurrentUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
     return getUser(UUID.fromString(user.getUsername()));
   }
