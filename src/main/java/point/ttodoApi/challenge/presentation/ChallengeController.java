@@ -130,7 +130,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @PatchMapping(value = "/{challengeId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'WRITE')")
   public void updateChallenge(
           @PathVariable Long challengeId,
           @Valid UpdateChallengeRequest request,
@@ -148,7 +148,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @DeleteMapping("/{challengeId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'DELETE')")
   public void deleteChallenge(@PathVariable Long challengeId) {
     challengeService.deleteChallenge(challengeId);
   }
@@ -161,7 +161,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "403", description = "챌린지 생성자가 아님")
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @GetMapping("/{challengeId}/invite-link")
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'READ')")
   public InviteLinkResponse getInviteLink(@PathVariable Long challengeId) {
     Challenge challenge = challengeService.getChallenge(challengeId);
     return new InviteLinkResponse(

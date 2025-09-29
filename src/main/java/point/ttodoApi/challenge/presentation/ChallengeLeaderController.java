@@ -35,7 +35,7 @@ public class ChallengeLeaderController {
 
   @PostMapping(consumes = {org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE, org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.CREATED)
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'WRITE')")
   @Operation(summary = "리더 추가", description = "챌린지에 새로운 리더를 추가합니다. 챌린지 생성자만 이 작업을 수행할 수 있습니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "201", description = "리더 추가 성공"),
@@ -59,7 +59,7 @@ public class ChallengeLeaderController {
 
   @DeleteMapping("/{userId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'WRITE')")
   @Operation(summary = "리더 해제", description = "리더 권한을 해제합니다. 챌린지 생성자만 이 작업을 수행할 수 있습니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "204", description = "리더 해제 성공"),
@@ -132,7 +132,7 @@ public class ChallengeLeaderController {
 
   @GetMapping("/history")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'READ')")
   @Operation(summary = "리더 기록 조회", description = "챌린지의 모든 리더 기록을 조회합니다. 해제되거나 사퇴한 리더 정보도 포함됩니다. 챌린지 생성자만 조회 가능합니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "200", description = "리더 기록 조회 성공"),
