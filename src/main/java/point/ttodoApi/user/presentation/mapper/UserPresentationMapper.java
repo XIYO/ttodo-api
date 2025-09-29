@@ -7,7 +7,7 @@ import point.ttodoApi.user.domain.User;
 import point.ttodoApi.user.presentation.dto.request.UpdateUserRequest;
 import point.ttodoApi.user.presentation.dto.response.*;
 import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.shared.config.shared.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 
 import java.util.UUID;
 

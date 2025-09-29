@@ -3,7 +3,7 @@ package point.ttodoApi.experience.presentation.mapper;
 import org.mapstruct.Mapper;
 import point.ttodoApi.experience.application.result.UserLevelResult;
 import point.ttodoApi.experience.presentation.dto.response.UserLevelResponse;
-import point.ttodoApi.shared.config.shared.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 
 @Mapper(config = MapStructConfig.class)
 @SuppressWarnings("NullableProblems")

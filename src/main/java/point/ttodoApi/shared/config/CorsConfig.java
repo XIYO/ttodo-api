@@ -1,4 +1,4 @@
-package point.ttodoApi.shared.config.shared;
+package point.ttodoApi.shared.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;

@@ -41,8 +41,8 @@ public class TodoQueryService {
     public Page<TodoResult> searchTodos(@Valid TodoSearchQuery query, Pageable pageable) {
         log.debug("Searching todos with query: {}", query);
         
-        // 단순한 Specification 체이닝 방식 사용
-        Specification<Todo> spec = Specification.<Todo>where(null);
+        // Modern conditional Specification building approach
+        Specification<Todo> spec = (root, q, cb) -> cb.conjunction();
         
         // 필수 조건
         if (query.userId() != null) {
@@ -96,7 +96,7 @@ public class TodoQueryService {
     public List<TodoResult> getCalendarTodos(@Valid CalendarQuery query) {
         log.debug("Getting calendar todos with query: {}", query);
         
-        Specification<Todo> spec = Specification.<Todo>where(null);
+        Specification<Todo> spec = (root, q, cb) -> cb.conjunction();
         
         // 필수 조건
         if (query.userId() != null) {

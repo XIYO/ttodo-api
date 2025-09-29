@@ -1,4 +1,4 @@
-package point.ttodoApi.shared.config.shared;
+package point.ttodoApi.shared.config;
 
 import org.springframework.context.annotation.*;
 import org.springframework.data.domain.PageRequest;

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mapstruct.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import point.ttodoApi.shared.config.shared.MapStructConfig;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.todo.application.command.*;
 import point.ttodoApi.todo.application.query.TodoSearchQuery;
 import point.ttodoApi.todo.application.result.TodoResult;
