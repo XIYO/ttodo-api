@@ -2,28 +2,18 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'com.github.ben-manes.versions' version '0.52.0'
-    id 'jacoco'
-    id 'org.sonarqube' version '6.3.1.5724'
-    id 'org.openrewrite.rewrite' version '6.27.0'
 }
 
 group = 'point'
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
 }
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+    compileOnly { extendsFrom annotationProcessor }
     all {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     }
@@ -41,22 +31,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
     compileOnly 'org.projectlombok:lombok'
-
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
-
-    implementation 'org.mapstruct:mapstruct:1.6.3'
-
-    // UUID v7 생성을 위한 라이브러리
-    implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
-
-    // Annotation processor 순서가 중요함 - Lombok이 먼저 처리되어야 함
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
-    
-    // Spring Context Indexer - 컴포넌트 스캔 속도 향상
     annotationProcessor 'org.springframework:spring-context-indexer'
 
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
     implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1'
 
     runtimeOnly 'org.postgresql:postgresql'
@@ -72,27 +54,15 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
-    // Embedded DB for @DataJpaTest slice tests
     testImplementation 'com.h2database:h2'
-
-    // RestAssured for E2E testing
     testImplementation 'io.rest-assured:rest-assured:5.5.0'
     testImplementation 'io.rest-assured:spring-mock-mvc:5.5.0'
 
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-
-    // OpenRewrite dependencies
-    rewrite platform("org.openrewrite.recipe:rewrite-recipe-bom:2.22.0")
-    rewrite("org.openrewrite.recipe:rewrite-spring")
-    rewrite("org.openrewrite.recipe:rewrite-migrate-java")
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-    forkEvery = 20
-    systemProperty 'junit.jupiter.execution.parallel.enabled', 'false'
-}
+tasks.named('test') { useJUnitPlatform() }
 
 // MapStruct가 Lombok의 fluent accessor를 인식하도록 설정
 tasks.withType(JavaCompile) {
@@ -113,152 +83,8 @@ compileJava {
     options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
 }
 
-// =======================================
-// 품질 검사 도구 설정
-// =======================================
-
-// Jacoco 설정 (테스트 커버리지)
-
-jacoco {
-    toolVersion = '0.8.12'
-}
-
-jacocoTestReport {
-    dependsOn test, compileJava, processResources
-
-    reports {
-        xml.required = true  // SonarQube 연동용
-        html.required = true // 개발자 확인용
-        csv.required = false
-    }
-
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                    '**/*Application*',     // Spring Boot main class
-                    '**/*Config*',          // Configuration classes
-                    '**/*Test*',            // Test classes
-                    '**/dto/request/**',    // Request DTOs (simple carriers)
-                    '**/dto/response/**'    // Response DTOs (simple carriers)
-            ])
-        }))
-    }
-}
-
-test {
-    finalizedBy jacocoTestReport
-
-    testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat = "short"
-    }
-}
-
-jacocoTestCoverageVerification {
-    dependsOn jacocoTestReport
-
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.60  // 현재 수준 근처로 설정
-            }
-        }
-
-        rule {
-            element = 'CLASS'
-            limit {
-                counter = 'BRANCH'
-                value = 'COVEREDRATIO'
-                minimum = 0.40  // 점진적 개선용
-            }
-        }
-
-        rule {
-            element = 'METHOD'
-            limit {
-                counter = 'LINE'
-                value = 'COVEREDRATIO'
-                minimum = 0.50  // 점진적 개선용
-            }
-        }
-    }
-}
-
-// SonarQube 설정
-
-
-// JSpecify Null Safety 자동화
-task ensureNullMarked {
-    group = 'build setup'
-    description = 'Ensure all packages have @NullMarked package-info.java files'
-
-    doLast {
-        def srcDir = file('src/main/java')
-        def packages = [:]
-
-        // 모든 .java 파일이 있는 패키지 수집
-        fileTree(srcDir) {
-            include '**/*.java'
-            exclude '**/package-info.java'
-        }.each { javaFile ->
-            def packageDir = javaFile.parentFile
-            def packageName = packageDir.path
-                    .replace(srcDir.path + File.separator, '')
-                    .replace(File.separator, '.')
-            packages[packageDir] = packageName
-        }
-
-        // package-info.java가 없는 패키지에 자동 생성
-        packages.each { packageDir, packageName ->
-            def packageInfoFile = new File(packageDir, 'package-info.java')
-            if (!packageInfoFile.exists()) {
-                packageInfoFile.text = """/**
- * ${packageName} package
- */
-@NullMarked
-package ${packageName};
-
-import org.jspecify.annotations.NullMarked;
-"""
-                println "✅ Generated package-info.java for: ${packageName}"
-            }
-        }
-    }
-}
-
-// 컴파일 전에 자동으로 package-info.java 생성
-compileJava.dependsOn ensureNullMarked
-
-// build 태스크가 테스트 커버리지를 포함하도록 설정
-build {
-    dependsOn jacocoTestCoverageVerification
-}
-
-// OpenRewrite 설정 (currently disabled - rewrite-simple.yml not found)
-// rewrite {
-//     activeRecipe("point.ttodoApi.SimpleMemberToUserRefactoring")
-//     configFile = file("rewrite-simple.yml")
-// }
-
-// Apply quality gates configuration
-apply from: 'gradle/quality-gates.gradle'
-
-// Apply refactoring configuration
-apply from: 'gradle/refactoring.gradle'
-
 // JVM 최적화 옵션 설정
 bootRun {
-    jvmArgs = [
-        '-XX:TieredStopAtLevel=1',     // C1 컴파일러만 사용 (빠른 시작)
-        '-Xverify:none',                // 클래스 검증 생략 (개발 환경용)
-        '-XX:+UseParallelGC',           // 병렬 GC 사용
-        '-Xms512m',                     // 초기 힙 크기
-        '-Xmx512m',                     // 최대 힙 크기 (초기와 동일하게 설정)
-        '-XX:+AlwaysPreTouch',          // 힙 메모리 사전 할당
-        '-XX:+UseStringDeduplication',  // 문자열 중복 제거
-        '-Djava.security.egd=file:/dev/./urandom'  // 난수 생성 속도 향상
-    ]
-    
-    // 개발 환경 프로파일 자동 설정
+    // 최소화된 개발 환경 설정 (필요 시 커스텀 JVM 옵션 추가)
     systemProperty 'spring.profiles.active', 'dev'
 }

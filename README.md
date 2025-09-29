@@ -32,6 +32,7 @@ TTODO의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통�
 - **Swagger/OpenAPI 3** - API 문서화
 - **JUnit 5** - 단위 테스트
 - **Spring Boot Test** - 통합 테스트
+- **Testcontainers** - PostgreSQL / Redis 컨테이너 기반 격리 테스트 (커버리지/정적 분석 도구는 간소화를 위해 제거됨)
 
 ### Libraries
 
@@ -399,6 +400,8 @@ curl -H "Authorization: Bearer $DEV_TOKEN" \
 - **API 문서**: http://localhost:8080/v3/api-docs
 
 ## QA 목표
+
+현재 빌드는 최소주의(minimal) 전략을 채택하여 SonarQube, Jacoco, OpenRewrite 등 추가 품질/커버리지 도구를 제거했습니다. 품질은 코드 리뷰, 통합 테스트, Testcontainers 격리 실행, 그리고 도메인 규칙 검증 테스트로 관리합니다.
 
 각 API의 성공 및 실패 시나리오를 테스트하여 시스템의 안정성과 기능성을 검증합니다.
 
