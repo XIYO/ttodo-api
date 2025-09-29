@@ -7,11 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import point.ttodoApi.todo.domain.validation.ValidByRules;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidByRules
 public class RecurrenceRule {
   private Frequency frequency;
   private Integer interval = 1;
@@ -19,6 +21,11 @@ public class RecurrenceRule {
   private Set<Integer> byMonthDay; // MONTHLY 특정 일자
   private Set<Integer> bySetPos;   // MONTHLY n번째 요일(1..5, -1)
   private Set<Integer> byMonth;    // YEARLY 특정 월
+  private Set<Integer> byHour;     // 0-23
+  private Set<Integer> byMinute;   // 0-59
+  private Set<Integer> bySecond;   // 0-60
+  private Set<Integer> byWeekNo;   // 1-53, -53--1
+  private Set<Integer> byYearDay;  // 1-366, -366--1
   private WeekDay weekStart = WeekDay.MO;
   private EndCondition endCondition; // NEVER | UNTIL | COUNT
   private Set<LocalDate> exDates;  // 제외 날짜

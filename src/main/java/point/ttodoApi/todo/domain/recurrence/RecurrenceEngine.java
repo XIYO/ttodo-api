@@ -43,6 +43,7 @@ public final class RecurrenceEngine {
     }
 
     List<LocalDate> dates = switch (rule.getFrequency()) {
+      case SECONDLY, MINUTELY, HOURLY -> generateTimeBased(rule, anchor, windowStart, effectiveEnd);
       case DAILY -> generateDaily(rule, anchor, windowStart, effectiveEnd);
       case WEEKLY -> generateWeekly(rule, anchor, windowStart, effectiveEnd);
       case MONTHLY -> generateMonthly(rule, anchor, windowStart, effectiveEnd);
@@ -75,6 +76,12 @@ public final class RecurrenceEngine {
     }
 
     return dates;
+  }
+
+  private static List<LocalDate> generateTimeBased(RecurrenceRule rule, LocalDate anchor, LocalDate start, LocalDate end) {
+    // For Phase 1, time-based frequencies return same as daily for date-only operations
+    // This will be fully implemented in Phase 2 when we extend to LocalDateTime
+    return generateDaily(rule, anchor, start, end);
   }
 
   private static List<LocalDate> generateDaily(RecurrenceRule rule, LocalDate anchor, LocalDate start, LocalDate end) {
