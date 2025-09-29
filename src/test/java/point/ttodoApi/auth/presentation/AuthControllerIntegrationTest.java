@@ -719,10 +719,10 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
             @SuppressWarnings("unchecked")
-            Map<String, Object> body = (Map<String, Object>) response.getBody();
+            Map<String, String> body = (Map<String, String>) response.getBody();
             assertThat(body).isNotNull();
             assertThat(body.get("token")).isNotNull();
-            assertThat((String) body.get("usage")).contains("Swagger");
+            assertThat(body.get("usage")).contains("Swagger");
             assertThat(body.get("userId")).isNotNull();
             assertThat(body.get("email")).isEqualTo("dev@ttodo.dev");
             assertThat(body.get("expiresIn")).isEqualTo("NEVER (만료 없음)");
