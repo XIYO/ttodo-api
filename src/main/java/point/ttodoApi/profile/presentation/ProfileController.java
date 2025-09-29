@@ -43,6 +43,7 @@ public class ProfileController {
   @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
   public ProfileResponse getProfile(@PathVariable UUID userId) {
     UserResult UserResult = UserService.getUser(userId);
     Profile profile = profileService.getProfile(userId);
@@ -126,6 +127,7 @@ public class ProfileController {
   @ApiResponse(responseCode = "404", description = "프로필 이미지가 없습니다.")
   @GetMapping(value = "/image", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE})
   @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('USER')")
   public byte[] getProfileImage(@PathVariable UUID userId, HttpServletResponse response) {
     Profile profile = profileService.getProfile(userId);
     if (profile.getProfileImage() == null) {

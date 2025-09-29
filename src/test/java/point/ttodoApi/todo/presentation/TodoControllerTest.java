@@ -474,6 +474,40 @@ class TodoControllerTest {
             mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk());
         }
+
+        @Test
+        @DisplayName("인증 없이 할 일 생성 시도 - 403 반환")
+        void createTodo_WithoutAuth_Returns403() throws Exception {
+            mockMvc.perform(post(BASE_URL)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .param("title", "Test Todo"))
+                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("USER 권한으로 할 일 생성 성공")
+        @WithMockUser(username = TEST_USER_ID, roles = "USER")
+        void createTodo_WithUserRole_Success() throws Exception {
+            mockMvc.perform(post(BASE_URL)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .param("title", "Test Todo"))
+                .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("인증 없이 통계 조회 시도 - 403 반환")
+        void getStatistics_WithoutAuth_Returns403() throws Exception {
+            mockMvc.perform(get(BASE_URL + "/statistics"))
+                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("USER 권한으로 통계 조회 성공")
+        @WithMockUser(username = TEST_USER_ID, roles = "USER")
+        void getStatistics_WithUserRole_Success() throws Exception {
+            mockMvc.perform(get(BASE_URL + "/statistics"))
+                .andExpect(status().isOk());
+        }
     }
     
     @Nested

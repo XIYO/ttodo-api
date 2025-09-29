@@ -60,6 +60,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "401", description = "인증되지 않은 요청")
   @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("hasRole('USER')")
   public ChallengeResponse createChallenge(
           @Valid CreateChallengeRequest request,
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
@@ -88,6 +89,7 @@ public class ChallengeController {
   )
   @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
   @GetMapping
+  @PreAuthorize("hasRole('USER')")
   @ValidPageable(sortFields = SortFieldsProvider.CHALLENGE)
   public Page<ChallengeResponse> getChallenges(
           @Parameter(description = "검색 조건") @ModelAttribute ChallengeSearchRequest request,
@@ -106,6 +108,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "200", description = "챌린지 상세 조회 성공")
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @GetMapping("/{challengeId}")
+  @PreAuthorize("hasRole('USER')")
   public ChallengeDetailResponse getChallenge(@PathVariable Long challengeId) {
     ChallengeResult result = challengeService.getChallengeDetailForPublic(challengeId);
     return challengePresentationMapper.toResponse(result);

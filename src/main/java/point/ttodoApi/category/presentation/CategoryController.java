@@ -36,6 +36,7 @@ public class CategoryController {
   private final CategoryPresentationMapper mapper;
 
   @GetMapping
+  @PreAuthorize("hasRole('USER')")
   @Operation(
           summary = "카테고리 목록 조회/검색",
           description = "사용자의 카테고리를 조회하거나 검색합니다. 다양한 필터를 통해 카테고리를 검색할 수 있습니다.\n\n" +
@@ -94,6 +95,7 @@ public class CategoryController {
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PreAuthorize("hasRole('USER')")
   @Operation(
           summary = "카테고리 생성",
           description = "새로운 카테고리를 생성합니다."
