@@ -79,9 +79,59 @@ public final class RecurrenceEngine {
   }
 
   private static List<LocalDate> generateTimeBased(RecurrenceRule rule, LocalDate anchor, LocalDate start, LocalDate end) {
-    // For Phase 1, time-based frequencies return same as daily for date-only operations
-    // This will be fully implemented in Phase 2 when we extend to LocalDateTime
-    return generateDaily(rule, anchor, start, end);
+    // For time-based frequencies, we apply BY rules to determine which dates should be included
+    // The actual time components are handled by the UI/frontend for scheduling
+    List<LocalDate> baseDates = generateDaily(rule, anchor, start, end);
+    
+    // Apply BY rules to filter dates
+    return applyByRules(baseDates, rule);
+  }
+
+  private static List<LocalDate> applyByRules(List<LocalDate> dates, RecurrenceRule rule) {
+    return dates.stream()
+            .filter(date -> matchesByRules(date, rule))
+            .collect(Collectors.toList());
+  }
+
+  private static boolean matchesByRules(LocalDate date, RecurrenceRule rule) {
+    // Apply BYWEEKNO filter
+    if (rule.getByWeekNo() != null && !rule.getByWeekNo().isEmpty()) {
+      int weekOfYear = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+      int maxWeek = date.get(IsoFields.WEEK_BASED_YEAR) == date.getYear() ? 
+        date.with(TemporalAdjusters.lastDayOfYear()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) : 53;
+      
+      boolean matches = false;
+      for (Integer weekNo : rule.getByWeekNo()) {
+        if (weekNo > 0 && weekNo == weekOfYear) {
+          matches = true;
+          break;
+        } else if (weekNo < 0 && (maxWeek + weekNo + 1) == weekOfYear) {
+          matches = true;
+          break;
+        }
+      }
+      if (!matches) return false;
+    }
+
+    // Apply BYYEARDAY filter
+    if (rule.getByYearDay() != null && !rule.getByYearDay().isEmpty()) {
+      int dayOfYear = date.getDayOfYear();
+      int yearLength = Year.of(date.getYear()).length();
+      
+      boolean matches = false;
+      for (Integer yearDay : rule.getByYearDay()) {
+        if (yearDay > 0 && yearDay == dayOfYear) {
+          matches = true;
+          break;
+        } else if (yearDay < 0 && (yearLength + yearDay + 1) == dayOfYear) {
+          matches = true;
+          break;
+        }
+      }
+      if (!matches) return false;
+    }
+
+    return true;
   }
 
   private static List<LocalDate> generateDaily(RecurrenceRule rule, LocalDate anchor, LocalDate start, LocalDate end) {
@@ -95,7 +145,9 @@ public final class RecurrenceEngine {
       first = first.plusDays(interval - mod);
     }
     for (LocalDate d = first; !d.isAfter(end); d = d.plusDays(interval)) {
-      out.add(d);
+      if (matchesByRules(d, rule)) {
+        out.add(d);
+      }
     }
     return out;
   }
@@ -116,13 +168,13 @@ public final class RecurrenceEngine {
       long weeks = Duration.between(anchorWeekStart.atStartOfDay(), curWeekStart.atStartOfDay()).toDays() / 7;
       if (weeks >= 0 && weeks % interval == 0) {
         if (byDays.contains(fromJavaDay(d.getDayOfWeek()))) {
-          if (!d.isBefore(anchor)) {
+          if (!d.isBefore(anchor) && matchesByRules(d, rule)) {
             out.add(d);
           }
         }
       }
     }
-    return out;
+    return applyByRules(out, rule);
   }
 
   private static List<LocalDate> generateMonthly(RecurrenceRule rule, LocalDate anchor, LocalDate start, LocalDate end) {
@@ -163,7 +215,7 @@ public final class RecurrenceEngine {
       }
       cursor = cursor.plusMonths(1);
     }
-    return out;
+    return applyByRules(out, rule);
   }
 
   private static List<LocalDate> generateYearly(RecurrenceRule rule, LocalDate anchor, LocalDate start, LocalDate end) {
@@ -205,7 +257,7 @@ public final class RecurrenceEngine {
         }
       }
     }
-    return out;
+    return applyByRules(out, rule);
   }
 
   private static List<LocalDate> allWeekdayDatesOfMonth(YearMonth ym, WeekDay wd) {
