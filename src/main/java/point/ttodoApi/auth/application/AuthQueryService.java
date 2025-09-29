@@ -1,8 +1,6 @@
 package point.ttodoApi.auth.application;
 
 import java.util.List;
-
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -54,7 +52,7 @@ public class AuthQueryService {
             query.deviceId(),
             user.getEmail(),
             "temp_nickname",  // TokenService에서 Profile에서 가져옴
-            List.of(new SimpleGrantedAuthority(USER_ROLE))
+            List.of(USER_ROLE)
         );
         
         log.debug("Dev token issued for anonymous user: {}", user.getId());

@@ -54,11 +54,10 @@ public abstract class BaseSpecification<T> {
     return switch (criteria.getOperation()) {
       case EQUALS -> cb.equal(path, value);
       case NOT_EQUALS -> cb.notEqual(path, value);
-      case GREATER_THAN -> cb.greaterThan(path.as(Comparable.class), (Comparable) value);
-      case GREATER_THAN_OR_EQUALS -> cb.greaterThanOrEqualTo(path.as(Comparable.class), (Comparable) value);
-      case LESS_THAN -> cb.lessThan(path.as(Comparable.class), (Comparable) value);
-      case LESS_THAN_OR_EQUALS, LESS_THAN_OR_EQUAL ->
-              cb.lessThanOrEqualTo(path.as(Comparable.class), (Comparable) value);
+      case GREATER_THAN -> createComparablePredicate(cb::greaterThan, path, value);
+      case GREATER_THAN_OR_EQUALS -> createComparablePredicate(cb::greaterThanOrEqualTo, path, value);
+      case LESS_THAN -> createComparablePredicate(cb::lessThan, path, value);
+      case LESS_THAN_OR_EQUALS, LESS_THAN_OR_EQUAL -> createComparablePredicate(cb::lessThanOrEqualTo, path, value);
       case LIKE -> cb.like(cb.lower(path.as(String.class)), "%" + value.toString().toLowerCase() + "%");
       case STARTS_WITH -> cb.like(cb.lower(path.as(String.class)), value.toString().toLowerCase() + "%");
       case ENDS_WITH -> cb.like(cb.lower(path.as(String.class)), "%" + value.toString().toLowerCase());
@@ -68,9 +67,7 @@ public abstract class BaseSpecification<T> {
       case IS_NOT_NULL -> cb.isNotNull(path);
       case BETWEEN -> {
         if (value instanceof List<?> list && list.size() == 2) {
-          yield cb.between(path.as(Comparable.class),
-                  (Comparable) list.get(0),
-                  (Comparable) list.get(1));
+          yield createBetweenPredicate(cb, path, list.get(0), list.get(1));
         }
         throw new IllegalArgumentException("BETWEEN requires exactly 2 values");
       }
@@ -198,5 +195,32 @@ public abstract class BaseSpecification<T> {
     }
 
     sortFields.forEach(this::validateSortField);
+  }
+
+  /**
+   * 타입 안전한 Comparable 비교 Predicate 생성
+   */
+  @SuppressWarnings("unchecked")
+  private <T extends Comparable<? super T>> Predicate createComparablePredicate(
+          java.util.function.BiFunction<Expression<? extends T>, T, Predicate> operation,
+          Path<?> path, Object value) {
+    try {
+      return operation.apply((Expression<T>) path, (T) value);
+    } catch (ClassCastException e) {
+      throw new IllegalArgumentException("Value type is not compatible with field type for comparison", e);
+    }
+  }
+
+  /**
+   * 타입 안전한 BETWEEN Predicate 생성
+   */
+  @SuppressWarnings("unchecked")
+  private <T extends Comparable<? super T>> Predicate createBetweenPredicate(
+          CriteriaBuilder cb, Path<?> path, Object startValue, Object endValue) {
+    try {
+      return cb.between((Expression<T>) path, (T) startValue, (T) endValue);
+    } catch (ClassCastException e) {
+      throw new IllegalArgumentException("Value types are not compatible with field type for BETWEEN operation", e);
+    }
   }
 }

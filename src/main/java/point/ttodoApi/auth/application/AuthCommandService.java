@@ -1,8 +1,6 @@
 package point.ttodoApi.auth.application;
 
 import java.util.List;
-
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +59,7 @@ public class AuthCommandService {
             command.deviceId(),
             userResult.email(),
             userResult.nickname(),
-            List.of(new SimpleGrantedAuthority(USER_ROLE))
+            List.of(USER_ROLE)
     );
 
     // 매퍼 활용해서 AuthResult 생성
@@ -91,7 +89,7 @@ public class AuthCommandService {
             command.deviceId(),
             user.getEmail(),
             userProfile.getNickname(),
-            List.of(new SimpleGrantedAuthority(USER_ROLE))
+            List.of(USER_ROLE)
     );
 
     // 매퍼 활용해서 AuthResult 생성

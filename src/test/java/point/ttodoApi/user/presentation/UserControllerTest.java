@@ -1,12 +1,10 @@
 package point.ttodoApi.user.presentation;
 
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,18 +13,14 @@ import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.shared.config.auth.SecurityTestConfig;
 import point.ttodoApi.user.application.*;
 import point.ttodoApi.user.application.query.UserQuery;
-import point.ttodoApi.user.application.query.UserListQuery;
 import point.ttodoApi.user.application.result.UserResult;
 import point.ttodoApi.user.presentation.mapper.UserPresentationMapper;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -55,6 +49,9 @@ class UserControllerTest {
     
     @MockitoBean
     private UserPresentationMapper mapper;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.error.ErrorMetricsCollector errorMetricsCollector;
     
     private static final String BASE_URL = "/user";
     private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
@@ -300,7 +297,7 @@ class UserControllerTest {
     
     @Nested
     @DisplayName("5. 인증 및 권한 테스트")
-    class AuthorizationTests {
+    class AuthenticationAndAuthorizationTests {
         
         @Test
         @DisplayName("Bearer 토큰 인증 성공")

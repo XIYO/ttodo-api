@@ -3,7 +3,6 @@ package point.ttodoApi.profile.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import point.ttodoApi.category.application.CategoryService;
 import point.ttodoApi.category.application.CategoryQueryService;
 import point.ttodoApi.user.application.UserService;
 import point.ttodoApi.user.domain.User;
@@ -20,7 +19,6 @@ public class StatisticsService {
 
   private final StatisticsRepository statisticsRepository;
   private final TodoTemplateService todoTemplateService;
-  private final CategoryService categoryService; // 기존 호환성 유지
   private final CategoryQueryService categoryQueryService; // TTODO: Query 처리
   private final UserService UserService;
 

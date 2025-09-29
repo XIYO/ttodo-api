@@ -2,7 +2,6 @@ package point.ttodoApi.user.application.command;
 
 import point.ttodoApi.user.domain.validation.required.ValidUserId;
 import point.ttodoApi.user.domain.validation.optional.OptionalUserNickname;
-// import point.ttodoApi.shared.validation.annotations.SafeHtml; // TODO: Add SafeHtml annotation
 
 import java.util.UUID;
 
@@ -17,7 +16,6 @@ public record UpdateUserCommand(
         @OptionalUserNickname
         String nickname,
         
-        // @SafeHtml // TODO: Add SafeHtml validation
         String introduction // 프로필에 저장될 자기소개
 ) {
     public boolean hasNickname() {

@@ -7,7 +7,6 @@ import org.springframework.validation.annotation.Validated;
 import point.ttodoApi.challenge.application.command.CreateChallengeCommand;
 import point.ttodoApi.challenge.application.command.UpdateChallengeCommand;
 import point.ttodoApi.challenge.application.result.ChallengeResult;
-import point.ttodoApi.challenge.application.ChallengeService;
 import point.ttodoApi.challenge.infrastructure.ChallengeRepository;
 import point.ttodoApi.challenge.domain.Challenge;
 
@@ -56,8 +55,7 @@ public class ChallengeCommandService {
      * 챌린지 수정
      */
     public ChallengeResult updateChallenge(@Valid UpdateChallengeCommand command) {
-        // 기존 서비스로 위임 (향후 TTODO 아키텍처 패턴으로 리팩토링)
-        // TODO: ChallengeService.updateChallenge 메서드 구현 확인 필요
-        throw new UnsupportedOperationException("updateChallenge 메서드는 추후 구현 예정");
+        // Challenge update feature pending implementation
+        throw new UnsupportedOperationException("updateChallenge method implementation pending");
     }
 }

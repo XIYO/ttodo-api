@@ -1,7 +1,6 @@
 package point.ttodoApi.todo.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.user.domain.User;

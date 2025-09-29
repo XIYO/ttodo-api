@@ -318,7 +318,7 @@ public class TodoController {
                         @PathVariable Long daysDifference,
                         @Valid UpdateTodoRequest request) {
     // Handle special fields first (isPinned, displayOrder)
-    // TODO: These fields are not present in UpdateTodoRequest
+    // Note: displayOrder field is not present in UpdateTodoRequest
     // if (request.displayOrder() != null) {
     //   todoTemplateService.changeOrder(UUID.fromString(user.getUsername()), id, request.displayOrder());
     //   return;

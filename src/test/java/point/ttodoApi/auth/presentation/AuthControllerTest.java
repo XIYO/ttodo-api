@@ -1,8 +1,6 @@
 package point.ttodoApi.auth.presentation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -10,7 +8,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import point.ttodoApi.auth.application.AuthCommandService;
 import point.ttodoApi.auth.application.AuthQueryService;
 import point.ttodoApi.auth.application.TokenService;
@@ -32,7 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * AuthController 단위 테스트
- * Nested 구조로 CRUD 순서에 따라 테스트 구성
+ * 최신 Spring Boot 3.x 문법 적용
+ * Nested 구조로 CRUD 순서에 따라 체계적 테스트 구성
  */
 @WebMvcTest(AuthController.class)
 @Import({SecurityTestConfig.class, CustomJwtAuthConverter.class, CustomUserDetailsService.class})
@@ -52,6 +50,36 @@ class AuthControllerTest {
     
     @MockitoBean
     private TokenService tokenService;
+    
+    @MockitoBean
+    private point.ttodoApi.user.infrastructure.persistence.UserRepository userRepository;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.error.ErrorMetricsCollector errorMetricsCollector;
+    
+    @MockitoBean
+    private point.ttodoApi.user.application.UserCommandService userCommandService;
+    
+    @MockitoBean
+    private point.ttodoApi.user.application.UserQueryService userQueryService;
+    
+    @MockitoBean
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    
+    @MockitoBean
+    private point.ttodoApi.profile.application.ProfileService profileService;
+    
+    @MockitoBean
+    private point.ttodoApi.auth.application.mapper.AuthApplicationMapper authMapper;
+    
+    @MockitoBean
+    private point.ttodoApi.auth.presentation.CookieService cookieService;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.config.properties.AppProperties appProperties;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.validation.sanitizer.ValidationUtils validationUtils;
     
     private static final String BASE_URL = "/auth";
     private static final UUID TEST_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
@@ -311,8 +339,8 @@ class AuthControllerTest {
     }
     
     @Nested
-    @DisplayName("4. 인증 관련 테스트")
-    class AuthenticationTests {
+    @DisplayName("4. 인증 및 권한 테스트")
+    class AuthenticationAndAuthorizationTests {
         
         @Test
         @DisplayName("인증 필요한 엔드포인트 - 토큰 없이 접근시 401")

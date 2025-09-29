@@ -66,4 +66,5 @@ logging:
 # Disable unnecessary features in tests
 management:
   endpoints:
-    enabled-by-default: false
+    access:
+      default: DENY

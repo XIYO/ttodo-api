@@ -38,6 +38,7 @@ import point.ttodoApi.config.TestContainersConfig;
 public abstract class BaseIntegrationTest {
 
     @Container
+    @SuppressWarnings("resource") // Container lifecycle managed by Testcontainers
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
         new PostgreSQLContainer<>(DockerImageName.parse("postgres:17-alpine"))
             .withDatabaseName("ttodo_test")
@@ -46,6 +47,7 @@ public abstract class BaseIntegrationTest {
             .withReuse(true);
 
     @Container
+    @SuppressWarnings("resource") // Container lifecycle managed by Testcontainers
     protected static final GenericContainer<?> REDIS_CONTAINER =
         new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
             .withExposedPorts(6379)

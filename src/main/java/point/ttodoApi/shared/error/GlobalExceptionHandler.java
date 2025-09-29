@@ -374,8 +374,4 @@ public class GlobalExceptionHandler {
       return "오류 발생";
     }
   }
-
-  private String getErrorTitle(ErrorCode errorCode) {
-    return errorCode.getMessage();
-  }
 }

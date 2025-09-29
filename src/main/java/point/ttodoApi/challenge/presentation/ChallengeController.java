@@ -21,7 +21,6 @@ import point.ttodoApi.challenge.presentation.dto.request.*;
 import point.ttodoApi.challenge.presentation.dto.response.*;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.ttodoApi.user.application.UserService;
-import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.validation.*;
 
 /**

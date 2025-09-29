@@ -4,12 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
-import point.ttodoApi.user.domain.User;
 import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 import point.ttodoApi.profile.domain.*;
 import point.ttodoApi.profile.infrastructure.persistence.*;
-import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -21,9 +18,6 @@ public class ProfileService {
 
   private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   private final ProfileRepository profileRepository;
-  private final StatisticsRepository statisticsRepository;
-  private final TodoRepository todoRepository;
-  private final CategoryRepository categoryRepository;
   private final UserRepository UserRepository;
 
   @Transactional

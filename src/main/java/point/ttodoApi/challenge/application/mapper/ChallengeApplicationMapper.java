@@ -4,7 +4,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import point.ttodoApi.challenge.application.command.CreateChallengeCommand;
-import point.ttodoApi.challenge.application.command.UpdateChallengeCommand;
 import point.ttodoApi.challenge.application.result.ChallengeResult;
 import point.ttodoApi.challenge.domain.Challenge;
 import point.ttodoApi.challenge.domain.ChallengeVisibility;

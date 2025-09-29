@@ -26,16 +26,6 @@ public class ValidationUtils {
           "^[a-zA-Z0-9가-힣._-]{2,20}$"
   );
 
-  private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-          "^.{4,}$"  // 4자 이상만 확인
-  );
-
-  // Common weak passwords to block
-  private static final String[] COMMON_WEAK_PASSWORDS = {
-          "password", "12345678", "123456789", "1234567890", "qwerty", "qwertyuiop",
-          "admin123", "password123", "admin@123", "test123", "demo123", "welcome123",
-          "password1", "p@ssw0rd", "p@ssword", "passw0rd", "qwerty123"
-  };
 
   private static final Pattern URL_PATTERN = Pattern.compile(
           "^(https?://)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$"
@@ -98,43 +88,6 @@ public class ValidationUtils {
     }
 
     return true;
-  }
-
-  private boolean hasConsecutiveCharacters(String password, int maxConsecutive) {
-    if (password.length() < maxConsecutive) {
-      return false;
-    }
-
-    for (int i = 0; i <= password.length() - maxConsecutive; i++) {
-      boolean ascending = true;
-      boolean descending = true;
-
-      for (int j = 0; j < maxConsecutive - 1; j++) {
-        char current = password.charAt(i + j);
-        char next = password.charAt(i + j + 1);
-
-        // Check for ascending sequence
-        if (next != current + 1) {
-          ascending = false;
-        }
-
-        // Check for descending sequence
-        if (next != current - 1) {
-          descending = false;
-        }
-
-        // If neither ascending nor descending, break early
-        if (!ascending && !descending) {
-          break;
-        }
-      }
-
-      if (ascending || descending) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   public boolean isValidUrl(String url) {

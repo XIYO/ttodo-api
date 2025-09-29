@@ -9,8 +9,6 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**

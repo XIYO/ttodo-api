@@ -23,7 +23,6 @@ import point.ttodoApi.auth.application.query.DevTokenQuery;
 import point.ttodoApi.auth.application.result.AuthResult;
 import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
 import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
-import point.ttodoApi.shared.config.properties.AppProperties;
 import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
 
 @Tag(name = "인증(Authentication)", description = "회원가입, 로그인, 로그아웃, 토큰 갱신 등 사용자 인증 관련 API를 제공합니다. JWT 기반 인증을 사용하며, 액세스 토큰과 리프레시 토큰을 쿠키로 관리합니다.")
@@ -34,7 +33,6 @@ public class AuthController {
 
   private final AuthCommandService authCommandService;
   private final AuthQueryService authQueryService;
-  private final AppProperties appProperties;
   private final CookieService cookieService;
   private final ValidationUtils validationUtils;
 

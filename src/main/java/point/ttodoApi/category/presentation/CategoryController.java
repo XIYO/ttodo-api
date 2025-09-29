@@ -11,7 +11,7 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import java.util.UUID;
+
 import point.ttodoApi.category.application.*;
 import point.ttodoApi.category.application.query.*;
 import point.ttodoApi.category.application.result.CategoryResult;
@@ -19,16 +19,17 @@ import point.ttodoApi.category.application.command.*;
 import point.ttodoApi.category.presentation.dto.request.*;
 import point.ttodoApi.category.presentation.dto.response.*;
 import point.ttodoApi.category.presentation.mapper.CategoryPresentationMapper;
-import point.ttodoApi.shared.validation.*;
 
 import java.util.UUID;
+import point.ttodoApi.shared.validation.*;
+
+
 
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
 @Tag(name = "할일 카테고리 관리", description = "할일을 분류하기 위한 카테고리 생성, 조회, 수정, 삭제 및 색상/이름 관리 API")
 public class CategoryController {
-  private final CategoryService categoryService; // 기존 서비스 (호환성 유지)
   private final CategoryCommandService categoryCommandService; // TTODO: Command 처리
   private final CategoryQueryService categoryQueryService; // TTODO: Query 처리
   private final CategorySearchService categorySearchService;
@@ -149,12 +150,5 @@ public class CategoryController {
     DeleteCategoryCommand command = new DeleteCategoryCommand(UUID.fromString(user.getUsername()), categoryId);
     // TTODO 아키텍처 패턴: Command 서비스 사용
     categoryCommandService.deleteCategory(command);
-  }
-
-  private Pageable createPageable(int page, int size, String sort) {
-    String[] sortParams = sort.split(",");
-    String property = sortParams[0];
-    String direction = sortParams.length > 1 ? sortParams[1] : "asc";
-    return PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), property));
   }
 }

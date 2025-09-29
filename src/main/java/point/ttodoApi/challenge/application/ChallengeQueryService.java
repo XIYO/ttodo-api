@@ -8,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import point.ttodoApi.challenge.application.query.ChallengeListQuery;
 import point.ttodoApi.challenge.application.query.ChallengeQuery;
 import point.ttodoApi.challenge.application.result.ChallengeResult;
-import point.ttodoApi.challenge.application.ChallengeSearchService;
 import point.ttodoApi.challenge.presentation.dto.request.ChallengeSearchRequest;
 import point.ttodoApi.challenge.domain.Challenge;
 
@@ -41,9 +40,8 @@ public class ChallengeQueryService {
      * 챌린지 상세 조회
      */
     public ChallengeResult getChallenge(@Valid ChallengeQuery query) {
-        // 단순 ID로 조회하도록 임시 구현
-        // TODO: ChallengeSearchService에 적절한 메서드 추가 필요
-        throw new UnsupportedOperationException("getChallenge 메서드는 추후 구현 예정");
+        // Challenge search service integration pending
+        throw new UnsupportedOperationException("getChallenge method implementation pending");
     }
     
     private ChallengeResult toChallengeResult(Challenge challenge) {

@@ -1,7 +1,6 @@
 package point.ttodoApi.todo.presentation;
 
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -13,15 +12,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.shared.config.auth.SecurityTestConfig;
 import point.ttodoApi.todo.application.*;
 import point.ttodoApi.todo.application.command.*;
-import point.ttodoApi.todo.application.query.TodoSearchQuery;
 import point.ttodoApi.todo.application.result.TodoResult;
 import point.ttodoApi.todo.presentation.mapper.TodoPresentationMapper;
 import point.ttodoApi.todo.presentation.dto.request.*;
 import point.ttodoApi.todo.presentation.dto.response.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 import static org.hamcrest.Matchers.*;
@@ -33,7 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * TodoController 단위 테스트
- * Nested 구조로 CRUD 순서에 따라 테스트 구성
+ * 최신 Spring Boot 3.x 문법 적용
+ * Nested 구조로 CRUD 순서에 따라 체계적 테스트 구성
  */
 @WebMvcTest(TodoController.class)
 @Import({SecurityTestConfig.class})
@@ -54,6 +51,9 @@ class TodoControllerTest {
     
     @MockitoBean
     private TodoPresentationMapper todoPresentationMapper;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.error.ErrorMetricsCollector errorMetricsCollector;
     
     private static final String BASE_URL = "/todos";
     private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
@@ -318,7 +318,7 @@ class TodoControllerTest {
             @DisplayName("TODO 수정 성공 - 제목 변경")
             @WithMockUser(username = TEST_USER_ID)
             void updateTodo_Success_TitleChange() throws Exception {
-                // 실제 TODO ID가 필요한 경우 먼저 생성
+                // Using mock TODO ID for test
                 String todoId = "test-todo-id";
                 
                 mockMvc.perform(put(BASE_URL + "/" + todoId)
@@ -424,8 +424,8 @@ class TodoControllerTest {
     }
     
     @Nested
-    @DisplayName("5. 인증 관련 종합 테스트")
-    class AuthenticationTests {
+    @DisplayName("5. 인증 및 권한 테스트")
+    class AuthenticationAndAuthorizationTests {
         
         @Test
         @DisplayName("인증 토큰 없이 접근 - 401 반환")
@@ -477,7 +477,7 @@ class TodoControllerTest {
     }
     
     @Nested
-    @DisplayName("6. 엣지 케이스 종합")
+    @DisplayName("6. 통합 엣지 케이스")
     class EdgeCasesComprehensive {
         
         @Test
@@ -511,7 +511,7 @@ class TodoControllerTest {
         @DisplayName("동시 요청 처리")
         @WithMockUser(username = TEST_USER_ID)
         void concurrentRequests() throws Exception {
-            // 동시에 여러 TODO 생성 요청
+            // Multiple concurrent TODO creation requests
             for (int i = 0; i < 3; i++) {
                 mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)

@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import point.ttodoApi.category.application.mapper.CategoryApplicationMapper;
 import point.ttodoApi.category.application.query.*;
 import point.ttodoApi.category.application.result.CategoryResult;
 import point.ttodoApi.category.domain.Category;
@@ -27,7 +26,6 @@ import java.util.UUID;
 public class CategoryQueryService {
     
     private final CategoryRepository categoryRepository;
-    private final CategoryApplicationMapper mapper;
 
     /**
      * 카테고리 목록 조회 (정렬)

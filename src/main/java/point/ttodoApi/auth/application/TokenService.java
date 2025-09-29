@@ -344,7 +344,7 @@ public class TokenService {
    * 토큰 쌍 생성 (일반 만료 시간)
    * FIXED: Uses Profile.nickname consistently
    */
-  public TokenResult createTokenPair(String userId, String deviceId, String email, String nickname, List authorities) {
+  public TokenResult createTokenPair(String userId, String deviceId, String email, String nickname, List<String> authorities) {
     UUID userUUID = UUID.fromString(userId);
     
     // FIXED: Get nickname from Profile (single source of truth)
@@ -365,7 +365,7 @@ public class TokenService {
    * 장기간 유효한 토큰 쌍 생성 (개발용)
    * FIXED: Uses Profile.nickname consistently
    */
-  public TokenResult createLongLivedTokenPair(String userId, String deviceId, String email, String nickname, List authorities) {
+  public TokenResult createLongLivedTokenPair(String userId, String deviceId, String email, String nickname, List<String> authorities) {
     UUID userUUID = UUID.fromString(userId);
     
     // FIXED: Get data from Profile (single source of truth)

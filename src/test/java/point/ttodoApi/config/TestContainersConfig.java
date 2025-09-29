@@ -15,12 +15,14 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestContainersConfig {
 
+    @SuppressWarnings("resource") // Containers are managed by Spring TestContainer lifecycle
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(DockerImageName.parse("postgres:17-alpine"))
             .withDatabaseName("ttodo_test")
             .withUsername("test_user")
             .withPassword("test_password")
             .withReuse(true);
 
+    @SuppressWarnings("resource") // Containers are managed by Spring TestContainer lifecycle
     static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
             .withExposedPorts(6379)
             .withReuse(true);
