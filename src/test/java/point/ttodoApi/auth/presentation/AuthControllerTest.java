@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import point.ttodoApi.auth.application.AuthCommandService;
 import point.ttodoApi.auth.application.AuthQueryService;
 import point.ttodoApi.auth.application.TokenService;

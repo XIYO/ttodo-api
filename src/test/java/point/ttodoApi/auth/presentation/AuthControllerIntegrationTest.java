@@ -712,7 +712,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
         @DisplayName("개발 토큰 생성 성공")
         void getDevToken_Success() {
             // When
-            ResponseEntity<Map<String, Object>> response = restTemplate.getForEntity(
+            @SuppressWarnings("rawtypes")
+            ResponseEntity<Map> response = restTemplate.getForEntity(
                 baseUrl + "/dev-token", Map.class);
 
             // Then

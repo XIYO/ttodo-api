@@ -39,7 +39,8 @@ class AuthControllerBasicTest {
         // Test the dev token endpoint (should work without database)
         String url = "http://localhost:" + port + "/auth/dev-token";
 
-        ResponseEntity<Map<String, Object>> response = restTemplate.getForEntity(url, Map.class);
+        @SuppressWarnings("rawtypes")
+        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
 
         // The endpoint should return something (may fail due to missing DB, but context should load)
         assertThat(response).isNotNull();
