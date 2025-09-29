@@ -79,12 +79,25 @@ public final class RecurrenceEngine {
   }
 
   private static List<LocalDate> generateTimeBased(RecurrenceRule rule, LocalDate anchor, LocalDate start, LocalDate end) {
-    // For time-based frequencies, we apply BY rules to determine which dates should be included
-    // The actual time components are handled by the UI/frontend for scheduling
-    List<LocalDate> baseDates = generateDaily(rule, anchor, start, end);
+    // For time-based frequencies, we need to respect byWeekDays filtering
+    Set<WeekDay> byDays = rule.getByWeekDays();
     
-    // Apply BY rules to filter dates
-    return applyByRules(baseDates, rule);
+    if (byDays != null && !byDays.isEmpty()) {
+      // Use weekly-style generation but with daily interval for time-based frequencies
+      List<LocalDate> out = new ArrayList<>();
+      int interval = Math.max(1, rule.getInterval());
+      
+      for (LocalDate d = start.isBefore(anchor) ? anchor : start; !d.isAfter(end); d = d.plusDays(interval)) {
+        if (byDays.contains(fromJavaDay(d.getDayOfWeek())) && matchesByRules(d, rule)) {
+          out.add(d);
+        }
+      }
+      return out;
+    } else {
+      // No byWeekDays restriction, use daily generation
+      List<LocalDate> baseDates = generateDaily(rule, anchor, start, end);
+      return applyByRules(baseDates, rule);
+    }
   }
 
   private static List<LocalDate> applyByRules(List<LocalDate> dates, RecurrenceRule rule) {
@@ -94,11 +107,14 @@ public final class RecurrenceEngine {
   }
 
   private static boolean matchesByRules(LocalDate date, RecurrenceRule rule) {
+    // Apply BYHOUR, BYMINUTE, BYSECOND filters
+    // For LocalDate API, these act as additional constraints on which dates are valid
+    // In a full implementation, these would be used with LocalDateTime
+    
     // Apply BYWEEKNO filter
     if (rule.getByWeekNo() != null && !rule.getByWeekNo().isEmpty()) {
       int weekOfYear = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-      int maxWeek = date.get(IsoFields.WEEK_BASED_YEAR) == date.getYear() ? 
-        date.with(TemporalAdjusters.lastDayOfYear()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) : 53;
+      int maxWeek = date.with(TemporalAdjusters.lastDayOfYear()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
       
       boolean matches = false;
       for (Integer weekNo : rule.getByWeekNo()) {
@@ -130,6 +146,11 @@ public final class RecurrenceEngine {
       }
       if (!matches) return false;
     }
+
+    // For time-based BY rules (BYHOUR, BYMINUTE, BYSECOND),
+    // they are applied when the actual time component is used
+    // In the current LocalDate-only API, they don't filter dates
+    // but serve as metadata for scheduling engines
 
     return true;
   }
@@ -243,8 +264,7 @@ public final class RecurrenceEngine {
               }
             }
           }
-        }
-        if (bySetPos != null && !bySetPos.isEmpty() && byDays != null && !byDays.isEmpty()) {
+        } else if (bySetPos != null && !bySetPos.isEmpty() && byDays != null && !byDays.isEmpty()) {
           for (WeekDay wd : byDays) {
             List<LocalDate> candidates = allWeekdayDatesOfMonth(ym, wd);
             for (Integer pos : bySetPos) {
@@ -252,6 +272,15 @@ public final class RecurrenceEngine {
               if (d != null && !d.isBefore(start) && !d.isAfter(end) && !d.isBefore(anchor)) {
                 out.add(d);
               }
+            }
+          }
+        } else {
+          // Default: use anchor date's day of month
+          int anchorDay = anchor.getDayOfMonth();
+          if (anchorDay <= ym.lengthOfMonth()) {
+            LocalDate d = ym.atDay(anchorDay);
+            if (!d.isBefore(start) && !d.isAfter(end) && !d.isBefore(anchor)) {
+              out.add(d);
             }
           }
         }
