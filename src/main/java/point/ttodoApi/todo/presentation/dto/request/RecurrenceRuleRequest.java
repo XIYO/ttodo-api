@@ -8,7 +8,7 @@ import java.util.Set;
 
 @Schema(description = "RRULE 기반 반복 규칙")
 public record RecurrenceRuleRequest(
-        @Schema(description = "반복 주기", example = "WEEKLY", allowableValues = {"DAILY", "WEEKLY", "MONTHLY", "YEARLY"})
+        @Schema(description = "반복 주기", example = "WEEKLY", allowableValues = {"SECONDLY", "MINUTELY", "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"})
         Frequency frequency,
         @Schema(description = "간격(기본 1)", example = "2")
         Integer interval,
@@ -20,6 +20,16 @@ public record RecurrenceRuleRequest(
         Set<Integer> bySetPos,
         @Schema(description = "연간 특정 월(1..12)", example = "[6]")
         Set<Integer> byMonth,
+        @Schema(description = "시간 지정(0-23)", example = "[9,14,18]")
+        Set<Integer> byHour,
+        @Schema(description = "분 지정(0-59)", example = "[0,15,30,45]")
+        Set<Integer> byMinute,
+        @Schema(description = "초 지정(0-60)", example = "[0,30]")
+        Set<Integer> bySecond,
+        @Schema(description = "연중 주차(1-53,-53--1)", example = "[1,26,52]")
+        Set<Integer> byWeekNo,
+        @Schema(description = "연중 날짜(1-366,-366--1)", example = "[1,100,365]")
+        Set<Integer> byYearDay,
         @Schema(description = "주 시작 요일", example = "MO")
         WeekDay weekStart,
         @Schema(description = "종료 조건")
