@@ -5,6 +5,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import point.ttodoApi.shared.config.auth.properties.JwtProperties;
 import point.ttodoApi.auth.domain.*;
@@ -353,7 +354,7 @@ public class TokenService {
    * 토큰 쌍 생성 (일반 만료 시간)
    * FIXED: Uses Profile.nickname consistently
    */
-  public TokenResult createTokenPair(String userId, String deviceId, String email, String nickname, List authorities) {
+  public TokenResult createTokenPair(String userId, String deviceId, String email, String nickname, List<SimpleGrantedAuthority> authorities) {
     UUID userUUID = UUID.fromString(userId);
     
     // FIXED: Get nickname from Profile (single source of truth)
@@ -374,7 +375,7 @@ public class TokenService {
    * 장기간 유효한 토큰 쌍 생성 (개발용)
    * FIXED: Uses Profile.nickname consistently
    */
-  public TokenResult createLongLivedTokenPair(String userId, String deviceId, String email, String nickname, List authorities) {
+  public TokenResult createLongLivedTokenPair(String userId, String deviceId, String email, String nickname, List<SimpleGrantedAuthority> authorities) {
     UUID userUUID = UUID.fromString(userId);
     
     // FIXED: Get data from Profile (single source of truth)
