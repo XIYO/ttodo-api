@@ -41,14 +41,13 @@ public class TodoQueryService {
     public Page<TodoResult> searchTodos(@Valid TodoSearchQuery query, Pageable pageable) {
         log.debug("Searching todos with query: {}", query);
         
-        // 단순한 Specification 체이닝 방식 사용
-        Specification<Todo> spec = Specification.<Todo>where(null);
+        // 단순한 Specification 체이닝 방식 사용 (deprecated API 제거)
+        Specification<Todo> spec = (root, q, cb) -> cb.isTrue(root.get("active"));
         
         // 필수 조건
         if (query.userId() != null) {
             spec = spec.and((root, q, cb) -> cb.equal(root.get("owner").get("id"), query.userId()));
         }
-        spec = spec.and((root, q, cb) -> cb.isTrue(root.get("active")));
         
         // 선택적 조건들
         if (query.keyword() != null) {
@@ -96,13 +95,13 @@ public class TodoQueryService {
     public List<TodoResult> getCalendarTodos(@Valid CalendarQuery query) {
         log.debug("Getting calendar todos with query: {}", query);
         
-        Specification<Todo> spec = Specification.<Todo>where(null);
+        // 기본 조건부터 시작 (deprecated API 제거)
+        Specification<Todo> spec = (root, q, cb) -> cb.isTrue(root.get("active"));
         
         // 필수 조건
         if (query.userId() != null) {
             spec = spec.and((root, q, cb) -> cb.equal(root.get("owner").get("id"), query.userId()));
         }
-        spec = spec.and((root, q, cb) -> cb.isTrue(root.get("active")));
         
         // 월별 날짜 범위 조건 (year, month 기반)
         LocalDate startOfMonth = LocalDate.of(query.year(), query.month(), 1);

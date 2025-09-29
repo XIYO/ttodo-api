@@ -1,4 +1,4 @@
-package point.ttodoApi.shared.config.shared;
+package point.ttodoApi.shared.config;
 
 import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.info.*;
