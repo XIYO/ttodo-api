@@ -4,10 +4,11 @@ import org.mapstruct.*;
 import point.ttodoApi.auth.application.command.SignUpCommand;
 import point.ttodoApi.auth.application.result.AuthResult;
 import point.ttodoApi.profile.domain.Profile;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.user.application.command.CreateUserCommand;
 import point.ttodoApi.user.domain.User;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(config = MapStructConfig.class)
 @SuppressWarnings("NullableProblems")
 public interface AuthApplicationMapper {
 

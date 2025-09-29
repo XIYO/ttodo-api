@@ -1,13 +1,14 @@
 package point.ttodoApi.challenge.application.mapper;
 
 import org.mapstruct.*;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.challenge.application.result.ChallengeTodoResult;
 import point.ttodoApi.challenge.domain.ChallengeTodo;
 
 /**
  * MapStruct mapper for converting ChallengeTodo domain entities to application layer DTOs.
  */
-@Mapper(componentModel = "spring")
+@Mapper(config = MapStructConfig.class)
 @SuppressWarnings("NullableProblems")
 public interface ChallengeTodoMapper {
   /**

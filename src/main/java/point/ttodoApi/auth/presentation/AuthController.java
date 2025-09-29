@@ -15,14 +15,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import point.ttodoApi.auth.application.AuthCommandService;
 import point.ttodoApi.auth.application.AuthQueryService;
-import point.ttodoApi.auth.application.command.RefreshTokenCommand;
-import point.ttodoApi.auth.application.command.SignInCommand;
-import point.ttodoApi.auth.application.command.SignOutCommand;
-import point.ttodoApi.auth.application.command.SignUpCommand;
-import point.ttodoApi.auth.application.query.DevTokenQuery;
 import point.ttodoApi.auth.application.result.AuthResult;
 import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
 import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
+import point.ttodoApi.auth.presentation.mapper.AuthPresentationMapper;
 import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
 
 @Tag(name = "인증(Authentication)", description = "회원가입, 로그인, 로그아웃, 토큰 갱신 등 사용자 인증 관련 API를 제공합니다. JWT 기반 인증을 사용하며, 액세스 토큰과 리프레시 토큰을 쿠키로 관리합니다.")
@@ -35,6 +31,7 @@ public class AuthController {
   private final AuthQueryService authQueryService;
   private final CookieService cookieService;
   private final ValidationUtils validationUtils;
+  private final AuthPresentationMapper authMapper;
 
   @Operation(
           summary = "회원가입 및 자동 로그인",
@@ -45,13 +42,11 @@ public class AuthController {
   @ApiResponse(responseCode = "409", description = "이미 사용중인 이메일 주소")
   @PostMapping(value = "/sign-up", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   public void signUpAndIn(@Valid SignUpRequest request, HttpServletResponse response) {
-    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
-    SignUpCommand command = new SignUpCommand(
-        request.email(),
-        request.password(),
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Command 생성
+    var command = authMapper.toCommand(
+        request,
         validationUtils.sanitizeHtmlStrict(request.nickname()),
-        validationUtils.sanitizeHtml(request.introduction()),
-        "default-device-id"
+        validationUtils.sanitizeHtml(request.introduction())
     );
     
     AuthResult result = authCommandService.signUp(command);
@@ -90,12 +85,8 @@ public class AuthController {
   @ApiResponse(responseCode = "401", description = "이메일 또는 패스워드가 일치하지 않음")
   @PostMapping(value = "/sign-in", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   public void signIn(@Valid SignInRequest request, HttpServletResponse response) {
-    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
-    SignInCommand command = new SignInCommand(
-        request.email(),
-        request.password(),
-        "default-device-id"
-    );
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Command 생성
+    var command = authMapper.toCommand(request, "default-device-id");
     
     AuthResult result = authCommandService.signIn(command);
     
@@ -113,9 +104,9 @@ public class AuthController {
   public void signOut(@CookieValue(name = "refresh-token", required = false) String refreshToken, 
                      @CookieValue(name = "device-id", required = false) String deviceId,
                      HttpServletResponse response) {
-    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Command 생성
     if (refreshToken != null && deviceId != null) {
-      SignOutCommand command = new SignOutCommand(deviceId, refreshToken);
+      var command = authMapper.toSignOutCommand(deviceId, refreshToken);
       authCommandService.signOut(command);
     }
     
@@ -134,8 +125,8 @@ public class AuthController {
   public void refresh(@CookieValue(name = "refresh-token", required = true) String refreshToken,
                      @CookieValue(name = "device-id", required = true) String deviceId,
                      HttpServletResponse response) {
-    // TTODO 아키텍처 패턴: Command 객체 생성 및 Command Service 호출
-    RefreshTokenCommand command = new RefreshTokenCommand(deviceId, refreshToken);
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Command 생성
+    var command = authMapper.toRefreshTokenCommand(deviceId, refreshToken);
     AuthResult result = authCommandService.refreshToken(command);
     
     // 새로운 토큰으로 쿠키 업데이트
@@ -153,8 +144,8 @@ public class AuthController {
   @GetMapping("/dev-token")
   @org.springframework.context.annotation.Profile("!prod")
   public java.util.Map<String, String> getDevToken() {
-    // TTODO 아키텍처 패턴: Query 객체 생성 및 Query Service 호출
-    DevTokenQuery query = new DevTokenQuery("default-device-id");
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Query 생성
+    var query = authMapper.toDevTokenQuery("default-device-id");
     AuthResult result = authQueryService.getDevToken(query);
     
     return java.util.Map.of(

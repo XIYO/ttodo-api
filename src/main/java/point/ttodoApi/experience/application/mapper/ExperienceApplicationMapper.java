@@ -1,6 +1,7 @@
 package point.ttodoApi.experience.application.mapper;
 
 import org.mapstruct.Mapper;
+import point.ttodoApi.shared.config.MapStructConfig;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import point.ttodoApi.experience.application.result.UserLevelResult;
@@ -12,7 +13,7 @@ import point.ttodoApi.level.domain.Level;
  * TTODO 아키텍처 패턴: Application Layer 매퍼
  * Domain ↔ Application DTO 변환
  */
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(config = MapStructConfig.class)
 @SuppressWarnings("NullableProblems")
 public interface ExperienceApplicationMapper {
 

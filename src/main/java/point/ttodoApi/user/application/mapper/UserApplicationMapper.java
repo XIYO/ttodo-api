@@ -2,7 +2,7 @@ package point.ttodoApi.user.application.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
+import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.user.application.command.CreateUserCommand;
 import point.ttodoApi.user.application.result.UserResult;
 import point.ttodoApi.user.domain.User;
@@ -12,7 +12,7 @@ import point.ttodoApi.user.domain.User;
  * TTODO 아키텍처 패턴: Application Layer 매퍼
  * Domain ↔ Application DTO 변환
  */
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(config = MapStructConfig.class)
 @SuppressWarnings("NullableProblems")
 public interface UserApplicationMapper {
 

@@ -63,9 +63,9 @@ public class CategoryController {
       return categorySearchService.searchCategories(request, pageable)
               .map(mapper::toResponse);
     } else {
-      // TTODO 아키텍처 패턴: Query 서비스 사용
-      return categoryQueryService.getCategories(new CategoryPageQuery(UUID.fromString(user.getUsername()), pageable))
-              .map(mapper::toResponse);
+      // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Query 생성
+      var query = mapper.toCategoryPageQuery(UUID.fromString(user.getUsername()), pageable);
+      return categoryQueryService.getCategories(query).map(mapper::toResponse);
     }
   }
 
@@ -87,8 +87,9 @@ public class CategoryController {
   public CategoryResponse getCategory(
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
-    // TTODO 아키텍처 패턴: Query 서비스 사용
-    CategoryResult result = categoryQueryService.getCategory(new CategoryQuery(categoryId, UUID.fromString(user.getUsername())));
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Query 생성
+    var query = mapper.toCategoryQuery(categoryId, UUID.fromString(user.getUsername()));
+    CategoryResult result = categoryQueryService.getCategory(query);
     return mapper.toResponse(result);
   }
 
@@ -102,12 +103,8 @@ public class CategoryController {
   public CategoryResponse createCategory(
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Valid CreateCategoryRequest request) {
-    CreateCategoryCommand command = new CreateCategoryCommand(
-            UUID.fromString(user.getUsername()),
-            request.name(),
-            request.color(),
-            request.description());
-    // TTODO 아키텍처 패턴: Command 서비스 사용
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Command 생성
+    var command = mapper.toCommand(request, UUID.fromString(user.getUsername()));
     CategoryResult result = categoryCommandService.createCategory(command);
     return mapper.toResponse(result);
   }
@@ -125,14 +122,8 @@ public class CategoryController {
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
           @Valid UpdateCategoryRequest request) {
-    UpdateCategoryCommand command = new UpdateCategoryCommand(
-            UUID.fromString(user.getUsername()),
-            categoryId,
-            request.name(),
-            request.color(),
-            request.description(),
-            request.orderIndex());
-    // TTODO 아키텍처 패턴: Command 서비스 사용
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Command 생성
+    var command = mapper.toCommand(request, UUID.fromString(user.getUsername()), categoryId);
     CategoryResult result = categoryCommandService.updateCategory(command);
     return mapper.toResponse(result);
   }
@@ -147,8 +138,8 @@ public class CategoryController {
   public void deleteCategory(
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
-    DeleteCategoryCommand command = new DeleteCategoryCommand(UUID.fromString(user.getUsername()), categoryId);
-    // TTODO 아키텍처 패턴: Command 서비스 사용
+    // TTODO 아키텍처 패턴: MapStruct 매퍼를 통한 Command 생성
+    var command = mapper.toDeleteCommand(UUID.fromString(user.getUsername()), categoryId);
     categoryCommandService.deleteCategory(command);
   }
 }
