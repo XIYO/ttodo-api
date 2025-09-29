@@ -3,6 +3,7 @@ package point.ttodoApi.challenge.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import point.ttodoApi.challenge.domain.validation.*;
 import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.domain.BaseEntity;
@@ -15,61 +16,72 @@ import static point.ttodoApi.challenge.domain.ChallengeConstants.*;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter // 일반 Setter 제공
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 필수
+@AllArgsConstructor(access = AccessLevel.PACKAGE) // MapStruct/테스트용
+@Builder
+@ToString(exclude = {"participations", "leaders"}) // 순환참조 방지
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@FieldDefaults(level = AccessLevel.PRIVATE) // private 자동 적용
 @ValidChallengePeriod
 public class Challenge extends BaseEntity {
+  @EqualsAndHashCode.Include
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  Long id;
 
   @Column(nullable = false, length = TITLE_MAX_LENGTH)
   @ValidChallengeTitle
-  private String title;
+  String title;
 
   @Column(length = DESCRIPTION_MAX_LENGTH)
   @ValidChallengeDescription
-  private String description;
+  String description;
 
   @Column(nullable = false)
   @NotNull(message = START_DATE_REQUIRED_MESSAGE)
   @ValidChallengeDate
-  private LocalDate startDate;
+  LocalDate startDate;
 
   @Column(nullable = false)
   @NotNull(message = END_DATE_REQUIRED_MESSAGE)
   @ValidChallengeDate
-  private LocalDate endDate;
+  LocalDate endDate;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   @NotNull(message = PERIOD_TYPE_REQUIRED_MESSAGE)
-  private PeriodType periodType;
+  PeriodType periodType;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   @NotNull(message = VISIBILITY_REQUIRED_MESSAGE)
-  private ChallengeVisibility visibility = DEFAULT_VISIBILITY;
+  @Builder.Default
+  ChallengeVisibility visibility = DEFAULT_VISIBILITY;
 
   @Column(unique = true, length = INVITE_CODE_LENGTH)
   @ValidInviteCode
-  private String inviteCode;
+  String inviteCode;
 
   @ValidMaxParticipants
-  private Integer maxParticipants;
+  Integer maxParticipants;
 
   @Column(nullable = false)
   @NotNull(message = CREATOR_ID_REQUIRED_MESSAGE)
-  private UUID creatorId;
+  UUID creatorId;
 
   @Column(nullable = false)
   @NotNull(message = ACTIVE_REQUIRED_MESSAGE)
-  private Boolean active = DEFAULT_ACTIVE;
+  @Builder.Default
+  Boolean active = DEFAULT_ACTIVE;
 
   @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ChallengeParticipation> participations = new ArrayList<>();
+  @Builder.Default
+  List<ChallengeParticipation> participations = new ArrayList<>();
 
   @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ChallengeLeader> leaders = new ArrayList<>();
+  @Builder.Default
+  List<ChallengeLeader> leaders = new ArrayList<>();
 
   // 팩토리 메서드 - 공개 챌린지
   public static Challenge createPublicChallenge(String title, String description,
@@ -104,12 +116,6 @@ public class Challenge extends BaseEntity {
     return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
   }
 
-  public void update(String title, String description, PeriodType periodType, Integer maxParticipants) {
-    this.title = title;
-    this.description = description;
-    this.periodType = periodType;
-    this.maxParticipants = maxParticipants;
-  }
 
   // 비즈니스 메서드
   public boolean isJoinable() {

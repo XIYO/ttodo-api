@@ -69,7 +69,12 @@ public class CategoryService {
       throw new BusinessException("이미 존재하는 카테고리명입니다.");
     }
 
-    category.update(command.name(), command.color(), command.description(), command.orderIndex());
+    category.setName(command.name());
+    category.setColor(command.color());
+    category.setDescription(command.description());
+    if (command.orderIndex() != null) {
+      category.setOrderIndex(command.orderIndex());
+    }
 
     return toCategoryResult(category);
   }

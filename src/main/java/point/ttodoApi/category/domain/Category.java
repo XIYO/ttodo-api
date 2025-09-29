@@ -3,6 +3,7 @@ package point.ttodoApi.category.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import point.ttodoApi.category.domain.validation.*;
 import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.domain.BaseEntity;
@@ -14,57 +15,49 @@ import java.util.stream.Collectors;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter // 일반 Setter 제공
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 필수
+@AllArgsConstructor(access = AccessLevel.PACKAGE) // MapStruct/테스트용
+@Builder
+@ToString(exclude = {"owner", "collaborators"}) // 순환참조 방지
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@FieldDefaults(level = AccessLevel.PRIVATE) // private 자동 적용
 @Table(name = "categories",
         indexes = {
                 @Index(name = "idx_category_user", columnList = "user_id")
         }
 )
 public class Category extends BaseEntity {
+  @EqualsAndHashCode.Include
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
+  UUID id;
 
   @Column(nullable = false, length = NAME_MAX_LENGTH)
   @ValidCategoryName
-  private String name;
+  String name;
 
   @Column(length = COLOR_LENGTH)
   @ValidColor
-  private String color;
+  String color;
 
   @Column(length = DESCRIPTION_MAX_LENGTH)
   @ValidDescription
-  private String description;
+  String description;
 
   @Column(name = "order_index")
-  private Integer orderIndex = 0;
+  @Builder.Default
+  Integer orderIndex = 0;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
   @NotNull(message = OWNER_REQUIRED_MESSAGE)
-  private User owner;
+  User owner;
 
   @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-  private final Set<CategoryCollaborator> collaborators = new HashSet<>();
+  @Builder.Default
+  Set<CategoryCollaborator> collaborators = new HashSet<>();
 
-  @Builder
-  public Category(String name, String color, String description, User owner, Integer orderIndex) {
-    this.name = name;
-    this.color = color;
-    this.description = description;
-    this.owner = owner;
-    this.orderIndex = orderIndex != null ? orderIndex : 0;
-  }
-
-  public void update(String name, String color, String description, Integer orderIndex) {
-    this.name = name;
-    this.color = color;
-    this.description = description;
-    if (orderIndex != null) {
-      this.orderIndex = orderIndex;
-    }
-  }
 
   /**
    * 협업자 확인 메서드

@@ -71,7 +71,9 @@ public class CategoryCommandService {
             throw new BusinessException("이미 존재하는 카테고리명입니다.");
         }
 
-        category.update(command.name(), command.color(), command.description(), null);
+        category.setName(command.name());
+        category.setColor(command.color());
+        category.setDescription(command.description());
         
         Category savedCategory = categoryRepository.save(category);
         // TTODO 아키텍처 패턴: Application 매퍼 사용

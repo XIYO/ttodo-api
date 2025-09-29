@@ -160,12 +160,16 @@ public class ChallengeService {
       throw new BusinessException(ErrorCode.INVALID_OPERATION,
               "현재 참여 인원보다 적은 수로 제한할 수 없습니다");
 
-    challenge.update(
-            command.title() != null ? command.title() : challenge.getTitle(),
-            command.description() != null ? command.description() : challenge.getDescription(),
-            command.periodType() != null ? command.periodType() : challenge.getPeriodType(),
-            command.maxParticipants()
-    );
+    if (command.title() != null) {
+      challenge.setTitle(command.title());
+    }
+    if (command.description() != null) {
+      challenge.setDescription(command.description());
+    }
+    if (command.periodType() != null) {
+      challenge.setPeriodType(command.periodType());
+    }
+    challenge.setMaxParticipants(command.maxParticipants());
   }
 
   public void deleteChallenge(Long challengeId) {

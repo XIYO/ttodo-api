@@ -1,6 +1,7 @@
 package point.ttodoApi.challenge.presentation.dto.response;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import point.ttodoApi.challenge.domain.ChallengeLeader;
 
 import java.time.LocalDateTime;
@@ -8,27 +9,30 @@ import java.util.UUID;
 
 /**
  * 챌린지 리더 응답 DTO
+ * 롬복 최적화: @FieldDefaults + @Builder 패턴
  */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString // 디버깅을 위한 toString 추가
+@FieldDefaults(level = AccessLevel.PRIVATE) // private 자동 적용
 public class ChallengeLeaderResponse {
 
-  private Long id;
-  private Long challengeId;
-  private String challengeTitle;
-  private UUID userId;
-  private String userNickname;
-  private String userEmail;
-  private LocalDateTime appointedAt;
-  private UUID appointedBy;
-  private String appointedByNickname;
-  private String status;
-  private LocalDateTime removedAt;
-  private UUID removedBy;
-  private String removedByNickname;
-  private String removalReason;
+  Long id;
+  Long challengeId;
+  String challengeTitle;
+  UUID userId;
+  String userNickname;
+  String userEmail;
+  LocalDateTime appointedAt;
+  UUID appointedBy;
+  String appointedByNickname;
+  String status;
+  LocalDateTime removedAt;
+  UUID removedBy;
+  String removedByNickname;
+  String removalReason;
 
   public static ChallengeLeaderResponse from(ChallengeLeader leader, String userNickname) {
     return ChallengeLeaderResponse.builder()

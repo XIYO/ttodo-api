@@ -2,6 +2,7 @@ package point.ttodoApi.todo.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.user.domain.User;
 import point.ttodoApi.shared.domain.BaseEntity;
@@ -14,47 +15,58 @@ import static point.ttodoApi.todo.domain.TodoConstants.*;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Setter
+@Setter // 일반 Setter 제공
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 필수
+@AllArgsConstructor(access = AccessLevel.PACKAGE) // MapStruct/테스트용
+@Builder
+@ToString(exclude = {"owner", "category"}) // 순환참조 방지
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@FieldDefaults(level = AccessLevel.PRIVATE) // private 자동 적용
 public class Todo extends BaseEntity {
+  @EqualsAndHashCode.Include
   @EmbeddedId
-  private TodoId todoId;
+  TodoId todoId;
 
   @Column(length = TITLE_MAX_LENGTH)
   @ValidTitle
-  private String title;
+  String title;
   
   @Column(length = DESCRIPTION_MAX_LENGTH)
   @ValidDescription
-  private String description;
+  String description;
 
   @Column(nullable = false)
-  private Boolean complete = DEFAULT_COMPLETE;
+  @Builder.Default
+  Boolean complete = DEFAULT_COMPLETE;
 
   @Column(name = "is_pinned", nullable = false)
-  private Boolean isPinned = DEFAULT_IS_PINNED;
+  @Builder.Default
+  Boolean isPinned = DEFAULT_IS_PINNED;
 
   @Column(name = "display_order", nullable = false)
   @ValidDisplayOrder
-  private Integer displayOrder = DEFAULT_DISPLAY_ORDER;
+  @Builder.Default
+  Integer displayOrder = DEFAULT_DISPLAY_ORDER;
 
   @Column(nullable = false)
-  private Boolean active = DEFAULT_ACTIVE;
+  @Builder.Default
+  Boolean active = DEFAULT_ACTIVE;
 
   @Column(name = "is_collaborative", nullable = false)
-  private Boolean isCollaborative = DEFAULT_IS_COLLABORATIVE;
+  @Builder.Default
+  Boolean isCollaborative = DEFAULT_IS_COLLABORATIVE;
 
   @ValidTodoPriority
-  private Integer priorityId;
+  Integer priorityId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
-  private Category category;
+  Category category;
 
   @ValidTodoDate
-  private LocalDate date;
+  LocalDate date;
   
-  private LocalTime time;
+  LocalTime time;
 
   @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(name = "todo_tags", joinColumns = {
@@ -63,43 +75,14 @@ public class Todo extends BaseEntity {
   })
   @Column(name = "tag")
   @ValidTags
-  private Set<String> tags;
+  Set<String> tags;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
   @ValidOwner
-  private User owner;
+  User owner;
 
-  @Builder
-  public Todo(TodoId todoId,
-              String title,
-              String description,
-              Boolean complete,
-              Boolean isPinned,
-              Integer displayOrder,
-              Boolean active,
-              Boolean isCollaborative,
-              Integer priorityId,
-              Category category,
-              LocalDate date,
-              LocalTime time,
-              Set<String> tags,
-              User owner) {
-    this.todoId = todoId;
-    this.title = title;
-    this.description = description;
-    this.complete = complete != null ? complete : DEFAULT_COMPLETE;
-    this.isPinned = isPinned != null ? isPinned : DEFAULT_IS_PINNED;
-    this.displayOrder = displayOrder != null ? displayOrder : DEFAULT_DISPLAY_ORDER;
-    this.active = active != null ? active : DEFAULT_ACTIVE;
-    this.isCollaborative = isCollaborative != null ? isCollaborative : DEFAULT_IS_COLLABORATIVE;
-    this.priorityId = priorityId;
-    this.category = category;
-    this.date = date;
-    this.time = time;
-    this.tags = tags;
-    this.owner = owner;
-  }
+  // 롬복 @Builder와 @AllArgsConstructor를 사용하여 자동 생성
 
   public Long getOriginalTodoId() {
     return todoId != null ? todoId.getId() : null;
@@ -109,9 +92,7 @@ public class Todo extends BaseEntity {
     return todoId;
   }
 
-  public void setOwner(User owner) {
-    this.owner = owner;
-  }
+  // 불필요한 정적 팩토리 메서드 제거 - Builder가 이미 충분히 명확함
 
   /**
    * 협업 투두인지 확인
