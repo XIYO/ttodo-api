@@ -8,7 +8,7 @@ sonar {
     properties {
         // 기본 설정
         property 'sonar.projectKey', project.name
-        property 'sonar.projectName', 'Board Hole Application'
+        property 'sonar.projectName', 'TTODO API'
         property 'sonar.projectVersion', project.version
 
         // 소스 설정
@@ -46,7 +46,7 @@ sonar {
         '''
 
         // 커스텀 품질 프로파일 (옵션)
-        // property 'sonar.qualityProfile', 'Board Hole Quality Profile'
+        // property 'sonar.qualityProfile', 'TTODO Quality Profile'
 
     }
 }

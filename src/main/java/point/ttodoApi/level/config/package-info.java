@@ -2,6 +2,6 @@
  * point.ttodoApi.level.config package
  */
 @NullMarked
-package point.ttodoApi.shared.config.level;
+package point.ttodoApi.level.config;
 
 import org.jspecify.annotations.NullMarked;
