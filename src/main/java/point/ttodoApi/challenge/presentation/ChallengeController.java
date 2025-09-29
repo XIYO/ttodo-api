@@ -12,7 +12,7 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import point.ttodoApi.shared.security.UserPrincipal;
+import java.util.UUID;
 import point.ttodoApi.challenge.application.*;
 import point.ttodoApi.challenge.application.command.*;
 import point.ttodoApi.challenge.application.result.ChallengeResult;
@@ -63,10 +63,10 @@ public class ChallengeController {
   @ResponseStatus(HttpStatus.CREATED)
   public ChallengeResponse createChallenge(
           @Valid CreateChallengeRequest request,
-          @AuthenticationPrincipal UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    User user = UserService.findVerifiedUser(principal.id());
-    CreateChallengeCommand command = challengePresentationMapper.toCommand(request, user.getId());
+    point.ttodoApi.user.domain.User domainUser = UserService.findVerifiedUser(UUID.fromString(user.getUsername()));
+    CreateChallengeCommand command = challengePresentationMapper.toCommand(request, domainUser.getId());
     Long challengeId = challengeService.createChallenge(command);
     ChallengeResult result = challengeService.getChallengeDetailForPublic(challengeId);
     return challengePresentationMapper.toChallengeResponse(result);
@@ -132,7 +132,7 @@ public class ChallengeController {
   public void updateChallenge(
           @PathVariable Long challengeId,
           @Valid UpdateChallengeRequest request,
-          @AuthenticationPrincipal UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
     UpdateChallengeCommand command = challengePresentationMapper.toCommand(request);
     challengeService.partialUpdateChallenge(challengeId, command);
   }

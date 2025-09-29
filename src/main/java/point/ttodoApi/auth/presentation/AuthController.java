@@ -1,27 +1,30 @@
 package point.ttodoApi.auth.presentation;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.auth.application.AuthCommandService;
 import point.ttodoApi.auth.application.AuthQueryService;
-import point.ttodoApi.auth.application.command.*;
+import point.ttodoApi.auth.application.command.RefreshTokenCommand;
+import point.ttodoApi.auth.application.command.SignInCommand;
+import point.ttodoApi.auth.application.command.SignOutCommand;
+import point.ttodoApi.auth.application.command.SignUpCommand;
 import point.ttodoApi.auth.application.query.DevTokenQuery;
 import point.ttodoApi.auth.application.result.AuthResult;
-import point.ttodoApi.auth.presentation.dto.request.*;
+import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
+import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
 import point.ttodoApi.shared.config.properties.AppProperties;
 import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
-import point.ttodoApi.auth.presentation.CookieService;
-
-import java.util.List;
 
 @Tag(name = "인증(Authentication)", description = "회원가입, 로그인, 로그아웃, 토큰 갱신 등 사용자 인증 관련 API를 제공합니다. JWT 기반 인증을 사용하며, 액세스 토큰과 리프레시 토큰을 쿠키로 관리합니다.")
 @RestController

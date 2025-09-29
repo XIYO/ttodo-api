@@ -6,10 +6,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import point.ttodoApi.shared.security.UserPrincipal;
+import org.springframework.security.core.userdetails.User;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Security context factory for WithAnonUser annotation
@@ -30,21 +29,19 @@ public class WithAnonUserSecurityContextFactory implements WithSecurityContextFa
     public SecurityContext createSecurityContext(WithAnonUser annotation) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-        // Create UserPrincipal for anonymous user
-        UserPrincipal userPrincipal = new UserPrincipal(
-            UUID.fromString(ANON_USER_ID),
-            ANON_USER_EMAIL,
-            annotation.nickname(),
-            annotation.timeZone(),
-            annotation.locale(),
+        // Create User for anonymous user
+        User user = new User(
+            ANON_USER_ID, // username as UUID string
+            "", // no password for test
+            true, true, true, true,
             List.of(new SimpleGrantedAuthority("ROLE_USER"))
         );
 
         // Create Authentication
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-            userPrincipal,
+            user,
             null,
-            userPrincipal.getAuthorities()
+            user.getAuthorities()
         );
 
         context.setAuthentication(authentication);

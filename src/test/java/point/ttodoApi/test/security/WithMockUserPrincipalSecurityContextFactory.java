@@ -6,9 +6,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import point.ttodoApi.shared.security.UserPrincipal;
+import org.springframework.security.core.userdetails.User;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,13 +22,11 @@ public class WithMockUserPrincipalSecurityContextFactory implements WithSecurity
     public SecurityContext createSecurityContext(WithMockUserPrincipal annotation) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-        // Create UserPrincipal
-        UserPrincipal userPrincipal = new UserPrincipal(
-            UUID.fromString(annotation.userId()),
-            annotation.email(),
-            annotation.nickname(),
-            annotation.timeZone(),
-            annotation.locale(),
+        // Create User
+        User user = new User(
+            annotation.userId(), // username as UUID string
+            "", // no password for test
+            true, true, true, true,
             Arrays.stream(annotation.roles())
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList())
@@ -35,9 +34,9 @@ public class WithMockUserPrincipalSecurityContextFactory implements WithSecurity
 
         // Create Authentication
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-            userPrincipal,
+            user,
             null,
-            userPrincipal.getAuthorities()
+            user.getAuthorities()
         );
 
         context.setAuthentication(authentication);

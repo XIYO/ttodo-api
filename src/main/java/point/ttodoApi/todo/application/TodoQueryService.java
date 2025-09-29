@@ -84,7 +84,7 @@ public class TodoQueryService {
     public List<TodoResult> getTodosByUser(UUID userId) {
         log.debug("Getting todos for user: {}", userId);
         
-        List<Todo> todos = todoRepository.findAccessibleTodosByuserId(userId);
+    List<Todo> todos = todoRepository.findAccessibleTodosByUserId(userId);
         return todos.stream()
             .map(mapper::toResult)
             .toList();

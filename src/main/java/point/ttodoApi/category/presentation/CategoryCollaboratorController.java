@@ -62,9 +62,9 @@ public class CategoryCollaboratorController {
   })
   public CollaboratorResponse acceptInvitation(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    CategoryCollaborator collaborator = collaboratorService.acceptInvitation(categoryId, principal.id());
+    CategoryCollaborator collaborator = collaboratorService.acceptInvitation(categoryId, UUID.fromString(user.getUsername()));
     return collaboratorMapper.toResponse(collaborator);
   }
 
@@ -78,9 +78,9 @@ public class CategoryCollaboratorController {
   })
   public CollaboratorResponse rejectInvitation(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    CategoryCollaborator collaborator = collaboratorService.rejectInvitation(categoryId, principal.id());
+    CategoryCollaborator collaborator = collaboratorService.rejectInvitation(categoryId, UUID.fromString(user.getUsername()));
     return collaboratorMapper.toResponse(collaborator);
   }
 
@@ -95,9 +95,9 @@ public class CategoryCollaboratorController {
   public void removeCollaborator(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
           @Parameter(description = "제거할 멤버 ID") @PathVariable UUID userId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    collaboratorService.removeCollaborator(categoryId, userId, principal.id());
+    collaboratorService.removeCollaborator(categoryId, userId, UUID.fromString(user.getUsername()));
   }
 
   @DeleteMapping
@@ -110,9 +110,9 @@ public class CategoryCollaboratorController {
   })
   public void leaveCollaboration(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    collaboratorService.leaveCollaboration(categoryId, principal.id());
+    collaboratorService.leaveCollaboration(categoryId, UUID.fromString(user.getUsername()));
   }
 
   @GetMapping
@@ -124,9 +124,9 @@ public class CategoryCollaboratorController {
   })
   public List<CollaboratorResponse> getCategoryCollaborators(
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    List<CategoryCollaborator> collaborators = collaboratorService.getCategoryCollaborators(categoryId, principal.id());
+    List<CategoryCollaborator> collaborators = collaboratorService.getCategoryCollaborators(categoryId, UUID.fromString(user.getUsername()));
     return collaborators.stream()
             .map(collaboratorMapper::toResponse)
             .collect(Collectors.toList());

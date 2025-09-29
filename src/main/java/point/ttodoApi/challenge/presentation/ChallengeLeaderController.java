@@ -43,12 +43,12 @@ public class ChallengeLeaderController {
   public ChallengeLeaderResponse addLeader(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
           @Valid LeaderAppointRequest request,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
     ChallengeLeader leader = leaderService.appointLeader(
             challengeId,
             request.getUserId(),
-            principal.id()
+            UUID.fromString(user.getUsername())
     );
 
     Profile userProfile = profileService.getProfile(leader.getUser().getId());
@@ -66,11 +66,11 @@ public class ChallengeLeaderController {
   public void removeLeader(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
           @Parameter(description = "해제할 멤버 ID") @PathVariable UUID userId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal,
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Valid LeaderRemoveRequest request) {
 
     String reason = request != null ? request.getReason() : null;
-    leaderService.removeLeader(challengeId, userId, principal.id(), reason);
+    leaderService.removeLeader(challengeId, userId, UUID.fromString(user.getUsername()), reason);
   }
 
   @DeleteMapping
@@ -83,9 +83,9 @@ public class ChallengeLeaderController {
   })
   public void resignLeader(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    leaderService.resignLeader(challengeId, principal.id(), null);
+    leaderService.resignLeader(challengeId, UUID.fromString(user.getUsername()), null);
   }
 
   @GetMapping
@@ -97,9 +97,9 @@ public class ChallengeLeaderController {
   })
   public List<ChallengeLeaderResponse> getChallengeLeaders(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    List<ChallengeLeader> leaders = leaderService.getChallengeLeaders(challengeId, principal.id());
+    List<ChallengeLeader> leaders = leaderService.getChallengeLeaders(challengeId, UUID.fromString(user.getUsername()));
     return leaders.stream()
             .map(leader -> {
               Profile userProfile = profileService.getProfile(leader.getUser().getId());
@@ -133,9 +133,9 @@ public class ChallengeLeaderController {
   })
   public List<ChallengeLeaderResponse> getChallengeLeaderHistory(
           @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-          @AuthenticationPrincipal point.ttodoApi.shared.security.UserPrincipal principal) {
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
 
-    List<ChallengeLeader> leaders = leaderService.getChallengeLeaderHistory(challengeId, principal.id());
+    List<ChallengeLeader> leaders = leaderService.getChallengeLeaderHistory(challengeId, UUID.fromString(user.getUsername()));
     return leaders.stream()
             .map(leader -> {
               Profile userProfile = profileService.getProfile(leader.getUser().getId());

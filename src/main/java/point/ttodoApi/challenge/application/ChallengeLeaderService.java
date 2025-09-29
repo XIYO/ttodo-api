@@ -120,7 +120,7 @@ public class ChallengeLeaderService {
     User user = UserRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    return leaderRepository.findActiveChallengesByuserId(userId);
+                return leaderRepository.findActiveChallengesByUserId(user.getId());
   }
 
   /**

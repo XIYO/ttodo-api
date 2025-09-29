@@ -90,7 +90,7 @@ public interface ChallengeLeaderRepository extends JpaRepository<ChallengeLeader
   @Query("SELECT cl.challenge FROM ChallengeLeader cl " +
           "WHERE cl.user.id = :userId AND cl.status = 'ACTIVE' " +
           "ORDER BY cl.appointedAt DESC")
-  List<Challenge> findActiveChallengesByuserId(@Param("userId") UUID userId);
+        List<Challenge> findActiveChallengesByUserId(@Param("userId") UUID userId);
 
   /**
    * 특정 챌린지의 모든 리더 기록 조회 (제거된 리더 포함)

@@ -1,10 +1,9 @@
 package point.ttodoApi.auth.application.command;
 
+import point.ttodoApi.auth.domain.validation.optional.OptionalIntroduction;
+import point.ttodoApi.auth.domain.validation.required.ValidDeviceId;
 import point.ttodoApi.auth.domain.validation.required.ValidEmail;
 import point.ttodoApi.auth.domain.validation.required.ValidNickname;
-import point.ttodoApi.auth.domain.validation.required.ValidDeviceId;
-import point.ttodoApi.auth.domain.validation.optional.OptionalIntroduction;
-import point.ttodoApi.shared.validation.annotations.SanitizeHtml;
 
 /**
  * 회원가입 커맨드

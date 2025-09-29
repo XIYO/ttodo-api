@@ -1,23 +1,22 @@
 package point.ttodoApi.auth.application;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import point.ttodoApi.auth.application.query.DevTokenQuery;
 import point.ttodoApi.auth.application.result.AuthResult;
-import point.ttodoApi.auth.application.TokenService;
-import point.ttodoApi.user.application.UserService;
-import point.ttodoApi.user.application.UserQueryService;
-import point.ttodoApi.user.domain.User;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.shared.error.BusinessException;
-
-import jakarta.validation.Valid;
-import java.util.List;
+import point.ttodoApi.user.application.UserQueryService;
+import point.ttodoApi.user.domain.User;
 
 /**
  * Auth Query Service
@@ -32,9 +31,8 @@ public class AuthQueryService {
     
     private static final String USER_ROLE = "ROLE_USER";
     private static final String ANON_EMAIL_FALLBACK = "anon@ttodo.dev";
-    
-    private final UserService UserService; // 기존 호환성 유지
-    private final UserQueryService UserQueryService; // TTODO: Query 처리
+
+    private final UserQueryService userQueryService;
     private final ProfileService profileService;
     private final TokenService tokenService;
     
@@ -45,7 +43,7 @@ public class AuthQueryService {
         log.debug("Processing dev token request for device: {}", query.deviceId());
         
         // TTODO 아키텍처 패턴: Query 서비스 사용
-        User user = UserQueryService.findUserEntityByEmail(ANON_EMAIL_FALLBACK)
+        User user = userQueryService.findUserEntityByEmail(ANON_EMAIL_FALLBACK)
             .orElseThrow(() -> new BusinessException("익명 사용자를 찾을 수 없습니다."));
             
         Profile profile = profileService.getProfile(user.getId());

@@ -11,7 +11,7 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import point.ttodoApi.shared.security.UserPrincipal;
+import java.util.UUID;
 import point.ttodoApi.category.application.*;
 import point.ttodoApi.category.application.query.*;
 import point.ttodoApi.category.application.result.CategoryResult;
@@ -49,12 +49,12 @@ public class CategoryController {
   @ApiResponse(responseCode = "200", description = "카테고리 목록 조회 성공")
   @ValidPageable(sortFields = SortFieldsProvider.CATEGORY)
   public Page<CategoryResponse> getCategories(
-          @AuthenticationPrincipal UserPrincipal principal,
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "검색 조건") @ModelAttribute CategorySearchRequest request,
           @Parameter(description = "페이징 및 정렬 정보")
           @PageableDefault(size = 20, sort = "orderIndex", direction = Sort.Direction.ASC) Pageable pageable) {
 
-    request.setUserId(principal.id());
+    request.setUserId(UUID.fromString(user.getUsername()));
     request.validate();
 
     // 검색 조건이 있으면 검색 서비스 사용, 없으면 기존 서비스 사용
@@ -63,7 +63,7 @@ public class CategoryController {
               .map(mapper::toResponse);
     } else {
       // TTODO 아키텍처 패턴: Query 서비스 사용
-      return categoryQueryService.getCategories(new CategoryPageQuery(principal.id(), pageable))
+      return categoryQueryService.getCategories(new CategoryPageQuery(UUID.fromString(user.getUsername()), pageable))
               .map(mapper::toResponse);
     }
   }
@@ -84,10 +84,10 @@ public class CategoryController {
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
   @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
   public CategoryResponse getCategory(
-          @AuthenticationPrincipal UserPrincipal principal,
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
     // TTODO 아키텍처 패턴: Query 서비스 사용
-    CategoryResult result = categoryQueryService.getCategory(new CategoryQuery(categoryId, principal.id()));
+    CategoryResult result = categoryQueryService.getCategory(new CategoryQuery(categoryId, UUID.fromString(user.getUsername())));
     return mapper.toResponse(result);
   }
 
@@ -99,10 +99,10 @@ public class CategoryController {
   @ApiResponse(responseCode = "201", description = "카테고리 생성 성공")
   @ResponseStatus(HttpStatus.CREATED)
   public CategoryResponse createCategory(
-          @AuthenticationPrincipal UserPrincipal principal,
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Valid CreateCategoryRequest request) {
     CreateCategoryCommand command = new CreateCategoryCommand(
-            principal.id(),
+            UUID.fromString(user.getUsername()),
             request.name(),
             request.color(),
             request.description());
@@ -121,11 +121,11 @@ public class CategoryController {
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
   @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
   public CategoryResponse updateCategory(
-          @AuthenticationPrincipal UserPrincipal principal,
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
           @Valid UpdateCategoryRequest request) {
     UpdateCategoryCommand command = new UpdateCategoryCommand(
-            principal.id(),
+            UUID.fromString(user.getUsername()),
             categoryId,
             request.name(),
             request.color(),
@@ -144,9 +144,9 @@ public class CategoryController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
   public void deleteCategory(
-          @AuthenticationPrincipal UserPrincipal principal,
+          @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
-    DeleteCategoryCommand command = new DeleteCategoryCommand(principal.id(), categoryId);
+    DeleteCategoryCommand command = new DeleteCategoryCommand(UUID.fromString(user.getUsername()), categoryId);
     // TTODO 아키텍처 패턴: Command 서비스 사용
     categoryCommandService.deleteCategory(command);
   }

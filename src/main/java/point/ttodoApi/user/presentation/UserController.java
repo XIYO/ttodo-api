@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.shared.security.UserPrincipal;
 import point.ttodoApi.shared.validation.*;
 import point.ttodoApi.user.application.*;
 import point.ttodoApi.user.application.command.UpdateUserCommand;
@@ -96,8 +95,8 @@ public class UserController {
   @ApiResponse(responseCode = "401", description = "인증되지 않은 요청 (토큰 없음 또는 만료)")
   @GetMapping("/me")
   @ResponseStatus(HttpStatus.OK)
-  public UserResponse getCurrentUser(@AuthenticationPrincipal UserPrincipal principal) {
-    return getUser(principal.id());
+  public UserResponse getCurrentUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
+    return getUser(UUID.fromString(user.getUsername()));
   }
 
   @Operation(

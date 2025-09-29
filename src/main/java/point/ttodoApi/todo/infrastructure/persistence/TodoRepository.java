@@ -39,7 +39,7 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
           "     cc.deletedAt IS NULL)" +
           ") " +
           "ORDER BY t.createdAt DESC")
-  List<Todo> findAccessibleTodosByuserId(@Param("userId") UUID userId);
+        List<Todo> findAccessibleTodosByUserId(@Param("userId") UUID userId);
 
   /**
    * 특정 카테고리의 협업 투두 조회
@@ -63,7 +63,7 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
           "cc.status = 'ACCEPTED' AND " +
           "cc.deletedAt IS NULL " +
           "ORDER BY t.createdAt DESC")
-  List<Todo> findCollaborativeTodosByuserId(@Param("userId") UUID userId);
+        List<Todo> findCollaborativeTodosByUserId(@Param("userId") UUID userId);
 
   /**
    * 특정 TodoId로 멤버가 접근 가능한 투두 조회
@@ -105,7 +105,7 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
           "cc.user.id = :userId AND " +
           "cc.status = 'ACCEPTED' AND " +
           "cc.deletedAt IS NULL")
-  long countCollaborativeTodosByuserId(@Param("userId") UUID userId);
+        long countCollaborativeTodosByUserId(@Param("userId") UUID userId);
 
   /**
    * 카테고리가 변경되어 협업 범위에서 벗어난 투두들을 일반 투두로 전환

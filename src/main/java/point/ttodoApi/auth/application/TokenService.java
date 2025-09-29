@@ -1,27 +1,35 @@
 package point.ttodoApi.auth.application;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.stereotype.Service;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.jwt.*;
-import org.springframework.stereotype.Service;
+import point.ttodoApi.auth.domain.TokenRepository;
 import point.ttodoApi.shared.config.auth.properties.JwtProperties;
-import point.ttodoApi.auth.domain.*;
-import point.ttodoApi.shared.security.UserPrincipal;
-import point.ttodoApi.user.application.UserService;
-import point.ttodoApi.user.domain.User;
-import point.ttodoApi.profile.application.ProfileService;
-import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.shared.error.BusinessException;
 import point.ttodoApi.user.application.dto.UserWithProfileProjection;
 import point.ttodoApi.user.infrastructure.persistence.UserRepository;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
 
 @Slf4j
 @Service
@@ -38,8 +46,6 @@ public class TokenService {
   private final JwtProperties jwtProperties;
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
-  private final UserService UserService;
-  private final ProfileService profileService;
   private final UserRepository userRepository;
   private final TokenRepository tokenRepository;
   // 동시 리프레시 요청을 위한 캐시 (10초간 유지, 최대 1000개)
@@ -266,23 +272,8 @@ public class TokenService {
     }
   }
 
-  public TokenResult generateTokens(UserPrincipal user) {
-    String deviceId = UUID.randomUUID().toString();
-    
-    // FIXED: Use single query to get user+profile data
-    UserWithProfileProjection userProfile = userRepository.findUserWithProfile(user.id()).orElseThrow(() -> new BusinessException("User not found: " + user.id()));
-    
-    // FIXED: Use Profile.nickname as single source of truth
-    String accessToken = generateAccessToken(
-            user.idAsString(),
-            userProfile.email(),
-            userProfile.nickname(),    // From Profile (single source of truth)
-            userProfile.timeZone(),
-            userProfile.locale());
-    String refreshToken = generateRefreshToken(user.idAsString(), deviceId);
-    save(deviceId, refreshToken);
-    return new TokenResult(accessToken, refreshToken, deviceId);
-  }
+  // Deprecated: UserPrincipal removed, use UUID directly
+  // public TokenResult generateTokens(UserPrincipal user) { ... }
 
   /**
    * deviceId에 대한 Lock을 가져오거나 생성

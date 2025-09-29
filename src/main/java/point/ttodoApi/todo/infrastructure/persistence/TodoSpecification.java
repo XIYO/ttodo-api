@@ -18,7 +18,7 @@ public class TodoSpecification extends BaseSpecification<Todo> {
   }
 
   public static Specification<Todo> createSpecification(UUID userId, Boolean complete,
-                                                        List<Long> categoryIds, List<Integer> priorityIds,
+                                                        List<UUID> categoryIds, List<Integer> priorityIds,
                                                         LocalDate startDate, LocalDate endDate) {
     return (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();

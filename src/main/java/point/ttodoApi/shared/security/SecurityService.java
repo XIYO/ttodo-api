@@ -6,10 +6,11 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import point.ttodoApi.user.domain.User;
 import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 
 import java.util.*;
+
+import org.springframework.security.core.userdetails.User;
 
 /**
  * Spring Security 컨텍스트에서 현재 사용자 정보를 제공하는 서비스
@@ -36,10 +37,10 @@ public class SecurityService {
     }
 
     try {
-      // Principal이 UserPrincipal 타입인 경우
-      if (authentication.getPrincipal() instanceof UserPrincipal) {
-        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        return Optional.of(principal.id());
+      // Principal이 User 타입인 경우
+      if (authentication.getPrincipal() instanceof User) {
+        User user = (User) authentication.getPrincipal();
+        return Optional.of(UUID.fromString(user.getUsername()));
       }
 
       // Principal이 String 타입인 경우 (테스트나 특수한 경우)
@@ -69,7 +70,7 @@ public class SecurityService {
    *
    * @return 로그인한 멤버 엔티티 (Optional)
    */
-  public Optional<User> getCurrentUser() {
+  public Optional<point.ttodoApi.user.domain.User> getCurrentUser() {
     return getCurrentuserId()
             .flatMap(UserRepository::findById);
   }

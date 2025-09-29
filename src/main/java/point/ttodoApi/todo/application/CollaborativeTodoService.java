@@ -39,7 +39,7 @@ public class CollaborativeTodoService {
     User user = UserRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    List<Todo> todos = todoRepository.findAccessibleTodosByuserId(userId);
+  List<Todo> todos = todoRepository.findAccessibleTodosByUserId(userId);
 
     return todos.stream()
             .map(todo -> {
@@ -85,7 +85,7 @@ public class CollaborativeTodoService {
     User user = UserRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-    List<Todo> todos = todoRepository.findCollaborativeTodosByuserId(userId);
+  List<Todo> todos = todoRepository.findCollaborativeTodosByUserId(userId);
 
     return todos.stream()
             .map(todo -> {
@@ -248,7 +248,7 @@ public class CollaborativeTodoService {
    */
   @Transactional(readOnly = true)
   public long countCollaborativeTodosByUser(UUID userId) {
-    return todoRepository.countCollaborativeTodosByuserId(userId);
+  return todoRepository.countCollaborativeTodosByUserId(userId);
   }
 
   /**
