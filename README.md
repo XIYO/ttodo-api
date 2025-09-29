@@ -260,48 +260,40 @@ Notes
 - Inputs are accepted only as `application/x-www-form-urlencoded` or `multipart/form-data`.
 - `recurrenceRuleJson` is a JSON string field inside the form.
 
-개발 환경에서 API 테스트를 위한 하드코딩된 JWT 토큰입니다. **이 토큰은 사실상 만료가 없습니다 (100년 후 만료).**
+## API 테스트 가이드
 
-**토큰 정보:**
+개발 환경에서 API를 테스트하기 위해서는 JWT 토큰이 필요합니다.
 
-- User ID: `ffffffff-ffff-ffff-ffff-ffffffffffff` (익명 사용자)
-- Email: `anon@ttodo.dev`
-- Nickname: `익명사용자`
-- TimeZone: `Asia/Seoul`
-- Locale: `ko_KR`
-- Device ID: `test-device-anon`
-- **만료: 100년 후 (사실상 만료 없음)**
+### 인증 토큰 획득 방법
 
-**테스트용 Access Token:**
+1. **개발 토큰 엔드포인트 사용 (권장)**:
+   ```bash
+   curl -X GET http://localhost:8080/auth/dev-token
+   ```
 
-```
-eyJhbGciOiJSUzI1NiIsImtpZCI6InJzYS1rZXktaWQiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmZmZmZmZmZi1mZmZmLWZmZmYtZmZmZi1mZmZmZmZmZmZmZmYiLCJpYXQiOjE3NTY0OTcyMDQsImV4cCI6NDkxMDA5NzIwNCwiZW1haWwiOiJhbm9uQHR0b2RvLmRldiIsIm5pY2tuYW1lIjoi7J2166qF7IKs7Jqp7J6QIiwidGltZVpvbmUiOiJBc2lhL1Nlb3VsIiwibG9jYWxlIjoia29fS1IiLCJzY29wZSI6IlJPTEVfVVNFUiJ9.0omjGk_61raPaG4yof4tLGInII276NkzdS1rjRhf9erzXRFjMvQsbl-FAFWdll5l6YPEbmoSVLoXzCqDJU4X_fXhC6bAEUXIs4_2_IrgsxxpoWGC_KaTv6tCd-35EPb12AfSTkLHpaXlUjbmEkNiAZypD54ICfUY_6f3ts0Ki75GFjLJ0wGUju7vX8ECHljxLhyNt6H1XVgKGUxta1Fx_R1wcaiJZR0j0I7LW0JV3ZRbO1hG_3in9Y3eL5k-hYRSYLXJr6H6GNzY2ztbKru2tXVRJQFuGVrsx-RPzNmm-L5xb-DBRFrt6KDa1bQoedL12WgFTWwQe96Uk-DhoOyPhw
-```
+2. **회원가입/로그인 플로우 사용**:
+   - `POST /auth/sign-up` 또는 `POST /auth/sign-in`
+   - JWT 토큰이 자동으로 쿠키에 설정됩니다
 
-**curl 명령어 예시:**
+### API 호출 예시
 
 ```bash
-# API 테스트용 curl 명령어 (쿠키 방식)
-curl -H "Cookie: access-token=eyJhbGciOiJSUzI1NiIsImtpZCI6InJzYS1rZXktaWQiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmZmZmZmZmZi1mZmZmLWZmZmYtZmZmZi1mZmZmZmZmZmZmZmYiLCJpYXQiOjE3NTY0OTcyMDQsImV4cCI6NDkxMDA5NzIwNCwiZW1haWwiOiJhbm9uQHR0b2RvLmRldiIsIm5pY2tuYW1lIjoi7J2166qF7IKs7Jqp7J6QIiwidGltZVpvbmUiOiJBc2lhL1Nlb3VsIiwibG9jYWxlIjoia29fS1IiLCJzY29wZSI6IlJPTEVfVVNFUiJ9.0omjGk_61raPaG4yof4tLGInII276NkzdS1rjRhf9erzXRFjMvQsbl-FAFWdll5l6YPEbmoSVLoXzCqDJU4X_fXhC6bAEUXIs4_2_IrgsxxpoWGC_KaTv6tCd-35EPb12AfSTkLHpaXlUjbmEkNiAZypD54ICfUY_6f3ts0Ki75GFjLJ0wGUju7vX8ECHljxLhyNt6H1XVgKGUxta1Fx_R1wcaiJZR0j0I7LW0JV3ZRbO1hG_3in9Y3eL5k-hYRSYLXJr6H6GNzY2ztbKru2tXVRJQFuGVrsx-RPzNmm-L5xb-DBRFrt6KDa1bQoedL12WgFTWwQe96Uk-DhoOyPhw" \
-     http://localhost:8080/todos
+# 쿠키 방식 (자동 설정됨)
+curl http://localhost:8080/todos
 
-# Bearer 토큰 방식
-curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InJzYS1rZXktaWQiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmZmZmZmZmZi1mZmZmLWZmZmYtZmZmZi1mZmZmZmZmZmZmZmYiLCJpYXQiOjE3NTY0OTcyMDQsImV4cCI6NDkxMDA5NzIwNCwiZW1haWwiOiJhbm9uQHR0b2RvLmRldiIsIm5pY2tuYW1lIjoi7J2166qF7IKs7Jqp7J6QIiwidGltZVpvbmUiOiJBc2lhL1Nlb3VsIiwibG9jYWxlIjoia29fS1IiLCJzY29wZSI6IlJPTEVfVVNFUiJ9.0omjGk_61raPaG4yof4tLGInII276NkzdS1rjRhf9erzXRFjMvQsbl-FAFWdll5l6YPEbmoSVLoXzCqDJU4X_fXhC6bAEUXIs4_2_IrgsxxpoWGC_KaTv6tCd-35EPb12AfSTkLHpaXlUjbmEkNiAZypD54ICfUY_6f3ts0Ki75GFjLJ0wGUju7vX8ECHljxLhyNt6H1XVgKGUxta1Fx_R1wcaiJZR0j0I7LW0JV3ZRbO1hG_3in9Y3eL5k-hYRSYLXJr6H6GNzY2ztbKru2tXVRJQFuGVrsx-RPzNmm-L5xb-DBRFrt6KDa1bQoedL12WgFTWwQe96Uk-DhoOyPhw" \
+# Authorization 헤더 방식  
+curl -H "Authorization: Bearer YOUR_TOKEN_HERE" \
      http://localhost:8080/todos
 ```
 
-**Swagger UI에서 사용하기:**
+### Swagger UI 사용
 
-1. Swagger UI 접속: http://localhost:8080/swagger-ui.html
-2. 상단의 "Authorize" 버튼 클릭
-3. 위의 Access Token 값 입력 (Bearer 접두사 제외)
-4. Authorize 클릭
+1. http://localhost:8080/swagger-ui.html 접속
+2. "Authorize" 버튼 클릭
+3. 토큰 입력 (Bearer 접두사 제외)
+4. "Authorize" 클릭
 
-**주의사항:**
-
-- 이 토큰은 개발/테스트 환경에서만 사용하세요
-- 프로덕션 환경에서는 절대 사용하지 마세요
-- 이 토큰은 `test-private.pem` 키로 서명되었습니다
+> ⚠️ **보안 참고**: 자세한 개발 토큰 정보 및 보안 가이드라인은 [SECURITY.md](./SECURITY.md)를 참조하세요.
 
 ### 인증 (Authentication)
 

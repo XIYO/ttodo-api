@@ -136,12 +136,11 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
-                    '**/*Application*',     // Spring Boot main class
-                    '**/*Config*',          // Configuration classes
-                    '**/*Test*',            // Test classes
-                    '**/*Exception*',       // Exception classes
-                    '**/dto/**',            // DTO classes
-                    '**/entity/**'          // Entity classes (optional)
+                    '**/*Application*',         // Spring Boot main class
+                    '**/*Config*',              // Configuration classes
+                    '**/*Test*',                // Test classes
+                    '**/presentation/dto/**',   // Presentation DTOs (carriers only)
+                    '**/package-info.java'      // Package documentation
             ])
         }))
     }

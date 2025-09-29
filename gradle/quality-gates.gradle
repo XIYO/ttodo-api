@@ -3,54 +3,6 @@
  * IntelliJ IDEA Ultimate 내장 검사 도구 사용
  */
 
-// ===== SonarQube 설정 =====
-sonar {
-    properties {
-        // 기본 설정
-        property 'sonar.projectKey', project.name
-        property 'sonar.projectName', 'Board Hole Application'
-        property 'sonar.projectVersion', project.version
-
-        // 소스 설정
-        property 'sonar.sources', 'src/main/java'
-        property 'sonar.tests', 'src/test/java'
-        property 'sonar.java.binaries', 'build/classes/java/main'
-        property 'sonar.java.test.binaries', 'build/classes/java/test'
-        property 'sonar.java.libraries', 'build/libs/*.jar'
-
-        // Lombok 지원
-        property 'sonar.java.lombok.addLombokGeneratedAnnotation', 'true'
-
-        // 커버리지
-        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
-        property 'sonar.junit.reportPaths', 'build/test-results/test'
-
-        // 제외 패턴
-        property 'sonar.exclusions', '''
-            **/test/**,
-            **/*Test.java,
-            **/*Tests.java,
-            **/*Config.java,
-            **/*Configuration.java,
-            **/package-info.java,
-            **/*Application.java,
-            **/dto/**,
-            **/result/**
-        '''
-
-        // 중복 코드 제외
-        property 'sonar.cpd.exclusions', '''
-            **/*Test.java,
-            **/*Entity.java,
-            **/*DTO.java
-        '''
-
-        // 커스텀 품질 프로파일 (옵션)
-        // property 'sonar.qualityProfile', 'Board Hole Quality Profile'
-
-    }
-}
-
 // ===== 품질 체크 통합 태스크 (IntelliJ 기반) =====
 task qualityGate {
     group = 'verification'
