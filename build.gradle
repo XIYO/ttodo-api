@@ -234,11 +234,11 @@ build {
     dependsOn jacocoTestCoverageVerification
 }
 
-// OpenRewrite 설정
-rewrite {
-    activeRecipe("point.ttodoApi.SimpleMemberToUserRefactoring")
-    configFile = file("rewrite-simple.yml")
-}
+// OpenRewrite 설정 (currently disabled - rewrite-simple.yml not found)
+// rewrite {
+//     activeRecipe("point.ttodoApi.SimpleMemberToUserRefactoring")
+//     configFile = file("rewrite-simple.yml")
+// }
 
 // Apply quality gates configuration
 apply from: 'gradle/quality-gates.gradle'
