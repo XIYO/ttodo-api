@@ -1,16 +1,20 @@
 package point.ttodoApi.shared.validation.validators;
 
-import jakarta.validation.*;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.shared.validation.annotations.SafeUrl;
-import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
+import point.ttodoApi.shared.validation.threat.InputThreatPattern;
+
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Component
-@RequiredArgsConstructor
 public class SafeUrlValidator implements ConstraintValidator<SafeUrl, String> {
 
-  private final ValidationUtils validationUtils;
+  private static final Pattern URL_PATTERN = Pattern.compile(
+      "^(https?://)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$"
+  );
   private boolean allowHttp;
 
   @Override
@@ -20,18 +24,18 @@ public class SafeUrlValidator implements ConstraintValidator<SafeUrl, String> {
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
-    if (value == null || value.isEmpty()) {
+    if (value == null || value.isBlank()) {
       return true;
     }
 
-    if (!validationUtils.isValidUrl(value)) {
+    if (!URL_PATTERN.matcher(value).matches()) {
       return false;
     }
 
-    if (!allowHttp && value.toLowerCase().startsWith("http://")) {
+    if (!allowHttp && value.toLowerCase(Locale.ROOT).startsWith("http://")) {
       return false;
     }
 
-    return !validationUtils.containsSqlInjectionPattern(value);
+    return !InputThreatPattern.SQL_INJECTION.matcher(value).matches();
   }
 }

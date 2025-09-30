@@ -1,16 +1,16 @@
 package point.ttodoApi.shared.validation.validators;
 
-import jakarta.validation.*;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.shared.validation.annotations.ValidPhoneNumber;
-import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
+
+import java.util.regex.Pattern;
 
 @Component
-@RequiredArgsConstructor
 public class ValidPhoneNumberValidator implements ConstraintValidator<ValidPhoneNumber, String> {
 
-  private final ValidationUtils validationUtils;
+  private static final Pattern KR_PHONE_PATTERN = Pattern.compile("^(\\+82|0)(1[0-9])[0-9]{3,4}[0-9]{4}$");
   private String region;
 
   @Override
@@ -20,7 +20,7 @@ public class ValidPhoneNumberValidator implements ConstraintValidator<ValidPhone
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
-    if (value == null || value.isEmpty()) {
+    if (value == null || value.isBlank()) {
       return true;
     }
 
@@ -28,6 +28,7 @@ public class ValidPhoneNumberValidator implements ConstraintValidator<ValidPhone
       return true;
     }
 
-    return validationUtils.isValidPhoneNumber(value);
+    var normalized = value.replaceAll("[\\s-]", "");
+    return KR_PHONE_PATTERN.matcher(normalized).matches();
   }
 }

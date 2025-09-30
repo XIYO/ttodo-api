@@ -1,16 +1,13 @@
 package point.ttodoApi.shared.validation.validators;
 
-import jakarta.validation.*;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.shared.validation.annotations.NoSqlInjection;
-import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
+import point.ttodoApi.shared.validation.threat.InputThreatPattern;
 
 @Component
-@RequiredArgsConstructor
 public class NoSqlInjectionValidator implements ConstraintValidator<NoSqlInjection, String> {
-
-  private final ValidationUtils validationUtils;
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
@@ -18,6 +15,6 @@ public class NoSqlInjectionValidator implements ConstraintValidator<NoSqlInjecti
       return true;
     }
 
-    return !validationUtils.containsSqlInjectionPattern(value);
+    return !InputThreatPattern.SQL_INJECTION.matcher(value).matches();
   }
 }

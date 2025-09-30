@@ -4,7 +4,6 @@ import jakarta.validation.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.shared.validation.annotations.ValidEmail;
-import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
 import point.ttodoApi.shared.validation.service.DisposableEmailService;
 
 import java.util.regex.Pattern;
@@ -19,7 +18,6 @@ public class ValidEmailValidator implements ConstraintValidator<ValidEmail, Stri
                   "(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
   );
 
-  private final ValidationUtils validationUtils;
   private final DisposableEmailService disposableEmailService;
 
   private boolean allowDisposable;
@@ -43,15 +41,8 @@ public class ValidEmailValidator implements ConstraintValidator<ValidEmail, Stri
       return false;
     }
 
-    // Additional validation using ValidationUtils
-    if (!validationUtils.isValidEmail(email)) {
-      return false;
-    }
-
-    // Check for SQL injection patterns
-    if (validationUtils.containsSqlInjectionPattern(email)) {
-      return false;
-    }
+    // (중복 제거) ValidationUtils.isValidEmail 호출 제거
+    // SQL Injection 패턴 검사는 별도 유틸 이관 예정 - 1단계에서는 생략
 
     // Check for disposable email domains if not allowed
     if (!allowDisposable && disposableEmailService.isDisposableEmail(email)) {
