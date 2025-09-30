@@ -23,27 +23,18 @@ public interface ChallengeApplicationMapper {
      * 실제 엔티티 생성은 서비스에서 팩토리 메서드 사용
      */
     default Challenge createChallenge(CreateChallengeCommand command) {
-        if (command.visibility() == ChallengeVisibility.INVITE_ONLY) {
-            return Challenge.createInviteOnlyChallenge(
-                command.title(),
-                command.description(),
-                command.periodType(),
-                command.startDate(),
-                command.endDate(),
-                command.creatorId(),
-                command.maxParticipants()
-            );
-        } else {
-            return Challenge.createPublicChallenge(
-                command.title(),
-                command.description(),
-                command.periodType(),
-                command.startDate(),
-                command.endDate(),
-                command.creatorId(),
-                command.maxParticipants()
-            );
-        }
+        return Challenge.builder()
+                .title(command.title())
+                .description(command.description())
+                .periodType(command.periodType())
+                .startDate(command.startDate())
+                .endDate(command.endDate())
+                .creatorId(command.creatorId())
+                .maxParticipants(command.maxParticipants())
+                .visibility(command.visibility())
+                .inviteCode(command.visibility() == ChallengeVisibility.INVITE_ONLY ? 
+                        java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase() : null)
+                .build();
     }
 
     /**

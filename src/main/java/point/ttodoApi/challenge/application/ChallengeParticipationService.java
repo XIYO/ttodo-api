@@ -118,7 +118,7 @@ public class ChallengeParticipationService {
     // 이미 탈퇴한 경우
     if (participation.getJoinOut() != null) throw new ConflictException("이미 탈퇴한 챌린지입니다");
 
-    participation.leaveChallenge();
+    participation.setJoinOut(LocalDateTime.now());
     participationRepository.save(participation);
   }
 

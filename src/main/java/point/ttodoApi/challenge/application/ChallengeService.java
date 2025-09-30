@@ -36,25 +36,18 @@ public class ChallengeService {
       throw new BusinessException(ErrorCode.INVALID_OPERATION, "시작일이 종료일보다 늦을 수 없습니다");
 
     // 챌린지 생성
-    Challenge challenge;
-    if (command.visibility() == ChallengeVisibility.PUBLIC) challenge = Challenge.createPublicChallenge(
-            command.title(),
-            command.description(),
-            command.periodType(),
-            command.startDate(),
-            command.endDate(),
-            command.creatorId(),
-            command.maxParticipants()
-    );
-    else challenge = Challenge.createInviteOnlyChallenge(
-            command.title(),
-            command.description(),
-            command.periodType(),
-            command.startDate(),
-            command.endDate(),
-            command.creatorId(),
-            command.maxParticipants()
-    );
+    Challenge challenge = Challenge.builder()
+            .title(command.title())
+            .description(command.description())
+            .periodType(command.periodType())
+            .startDate(command.startDate())
+            .endDate(command.endDate())
+            .creatorId(command.creatorId())
+            .maxParticipants(command.maxParticipants())
+            .visibility(command.visibility())
+            .inviteCode(command.visibility() == ChallengeVisibility.INVITE_ONLY ? 
+                    UUID.randomUUID().toString().substring(0, 8).toUpperCase() : null)
+            .build();
 
     Challenge saved = challengeRepository.save(challenge);
 

@@ -2,10 +2,6 @@ package point.ttodoApi.shared.config;
 
 import org.mapstruct.*;
 
-/**
- * MapStruct 공통 설정
- * 모든 매퍼에서 상속받아 사용하는 공통 설정 클래스
- */
 @MapperConfig(
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -17,4 +13,26 @@ import org.mapstruct.*;
         collectionMappingStrategy = CollectionMappingStrategy.ADDER_PREFERRED
 )
 public interface MapStructConfig {
+    
+    /**
+     * Instant를 LocalDateTime으로 변환
+     * BaseEntity의 createdAt/updatedAt (Instant)을 LocalDateTime으로 매핑할 때 사용
+     */
+    default java.time.LocalDateTime instantToLocalDateTime(java.time.Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        return java.time.LocalDateTime.ofInstant(instant, java.time.ZoneId.systemDefault());
+    }
+    
+    /**
+     * LocalDateTime을 Instant로 변환
+     * LocalDateTime을 BaseEntity의 Instant 필드로 매핑할 때 사용
+     */
+    default java.time.Instant localDateTimeToInstant(java.time.LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
+        return localDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant();
+    }
 }

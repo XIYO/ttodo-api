@@ -128,7 +128,7 @@ public class CollaborativeTodoService {
       throw new IllegalArgumentException("Only todo owner can disable collaboration");
     }
 
-    todo.disableCollaboration();
+    todo.setIsCollaborative(false);
     todoRepository.save(todo);
 
     log.info("Todo {} disabled collaboration by user {}", todoId, userId);
@@ -149,7 +149,7 @@ public class CollaborativeTodoService {
     }
 
     // 협업 투두가 아니면 일반 완료 처리 (owner만)
-    if (!todo.isCollaborativeTodo()) {
+    if (todo.getIsCollaborative() == null || !todo.getIsCollaborative()) {
       if (!todo.getOwner().equals(user)) {
         throw new IllegalArgumentException("Only todo owner can complete non-collaborative todo");
       }

@@ -1,6 +1,7 @@
 package point.ttodoApi.todo.presentation;
 
 import org.junit.jupiter.api.*;
+import static org.mockito.ArgumentMatchers.any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -9,7 +10,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import point.ttodoApi.shared.config.auth.SecurityTestConfig;
+import point.ttodoApi.shared.config.TestCommonConfig;
 import point.ttodoApi.todo.application.*;
 import point.ttodoApi.todo.application.command.*;
 import point.ttodoApi.todo.application.result.TodoResult;
@@ -32,8 +33,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 최신 Spring Boot 3.x 문법 적용
  * Nested 구조로 CRUD 순서에 따라 체계적 테스트 구성
  */
-@WebMvcTest(TodoController.class)
-@Import({SecurityTestConfig.class})
+@WebMvcTest(
+    controllers = TodoController.class,
+    properties = {
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8080",
+        "jwt.key-id=test-key-id",
+        "jwt.access-token.expiration=1800",
+        "jwt.refresh-token.expiration=86400"
+    }
+)
+@Import(TestCommonConfig.class)
 class TodoControllerTest {
 
     @Autowired
@@ -55,9 +64,17 @@ class TodoControllerTest {
     @MockitoBean
     private point.ttodoApi.shared.error.ErrorMetricsCollector errorMetricsCollector;
     
+    @MockitoBean
+    private point.ttodoApi.shared.validation.service.DisposableEmailService disposableEmailService;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.validation.service.ForbiddenWordService forbiddenWordService;
+    
     private static final String BASE_URL = "/todos";
     private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
     private static final UUID TEST_USER_UUID = UUID.fromString(TEST_USER_ID);
+    
+
     
     @Nested
     @DisplayName("1. CREATE - TODO 생성")

@@ -3,52 +3,48 @@ package point.ttodoApi.challenge.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import point.ttodoApi.challenge.domain.validation.*;
+import point.ttodoApi.shared.domain.BaseEntity;
 
 import java.time.*;
 
 import static point.ttodoApi.challenge.domain.ChallengeConstants.*;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class ChallengeTodo {
+@Getter
+@Setter // 일반 Setter 제공
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 필수
+@AllArgsConstructor(access = AccessLevel.PACKAGE) // MapStruct/테스트용
+@Builder
+@ToString(exclude = {"challengeParticipation"}) // 순환참조 방지
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@FieldDefaults(level = AccessLevel.PRIVATE) // private 자동 적용
+public class ChallengeTodo extends BaseEntity {
 
+  @EqualsAndHashCode.Include
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  Long id;
+  
   @ManyToOne
   @NotNull(message = CHALLENGE_PARTICIPATION_REQUIRED_MESSAGE)
   ChallengeParticipation challengeParticipation;
-  LocalDateTime createdAt;
-  LocalDateTime updatedAt;
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  
   @Column(nullable = false)
   @NotNull(message = DONE_REQUIRED_MESSAGE)
-  private Boolean done = false;
+  @Builder.Default
+  Boolean done = false;
+  
   @Column(nullable = false)
   @NotNull(message = TARGET_DATE_REQUIRED_MESSAGE)
-  private LocalDate targetDate;
+  LocalDate targetDate;
+  
   @Embedded
   @ValidPeriod
-  private Period period;
+  Period period;
 
-  @Builder
-  public ChallengeTodo(ChallengeParticipation challengeParticipation, Period period, LocalDate targetDate) {
-    this.challengeParticipation = challengeParticipation;
-    this.period = period;
-    this.targetDate = targetDate;
-    this.done = false;
-  }
 
-  @PrePersist
-  public void prePersist() {
-    this.createdAt = LocalDateTime.now();
-  }
-
-  @PreUpdate
-  public void preUpdate() {
-    this.updatedAt = LocalDateTime.now();
-  }
 
   public void complete(LocalDate currentDate) {
     if (!isInPeriod(challengeParticipation.getChallenge().getPeriodType(), currentDate)) {

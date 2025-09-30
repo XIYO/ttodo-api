@@ -94,19 +94,6 @@ public class Todo extends BaseEntity {
 
   // 불필요한 정적 팩토리 메서드 제거 - Builder가 이미 충분히 명확함
 
-  /**
-   * 협업 투두인지 확인
-   */
-  public boolean isCollaborativeTodo() {
-    return this.isCollaborative != null && this.isCollaborative;
-  }
-
-  /**
-   * 협업 상태 업데이트
-   */
-  public void updateCollaborativeStatus(boolean isCollaborative) {
-    this.isCollaborative = isCollaborative;
-  }
 
   /**
    * 특정 멤버가 이 투두에 접근할 수 있는지 확인
@@ -118,8 +105,8 @@ public class Todo extends BaseEntity {
     // owner는 항상 접근 가능
     if (this.owner.equals(user)) return true;
 
-    // 협업 투두가 아니면 user만 접근 가능
-    if (!isCollaborativeTodo()) return false;
+    // 협업 투두가 아니면 owner만 접근 가능
+    if (this.isCollaborative == null || !this.isCollaborative) return false;
 
     // 카테고리가 없으면 협업 불가
     if (this.category == null) return false;
@@ -138,8 +125,8 @@ public class Todo extends BaseEntity {
     // owner는 항상 수정 가능
     if (this.owner.equals(user)) return true;
 
-    // 협업 투두가 아니면 user만 수정 가능
-    if (!isCollaborativeTodo()) return false;
+    // 협업 투두가 아니면 owner만 수정 가능
+    if (this.isCollaborative == null || !this.isCollaborative) return false;
 
     // 카테고리가 없으면 협업 불가
     if (this.category == null) return false;
@@ -164,12 +151,6 @@ public class Todo extends BaseEntity {
     this.isCollaborative = true;
   }
 
-  /**
-   * 협업 투두를 개인 투두로 전환
-   */
-  public void disableCollaboration() {
-    this.isCollaborative = false;
-  }
 
   /**
    * 투두가 협업 범위에 있는지 확인
