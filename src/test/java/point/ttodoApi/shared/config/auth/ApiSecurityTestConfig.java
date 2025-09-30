@@ -8,6 +8,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import point.ttodoApi.shared.config.auth.properties.JwtProperties;
+import point.ttodoApi.shared.validation.service.DisposableEmailService;
+import point.ttodoApi.shared.validation.service.ForbiddenWordService;
+
+import static org.mockito.Mockito.mock;
 
 @TestConfiguration
 @EnableWebSecurity
@@ -23,5 +28,27 @@ public class ApiSecurityTestConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();
+    }
+    
+    @Bean
+    @Primary
+    public DisposableEmailService disposableEmailService() {
+        DisposableEmailService mock = mock(DisposableEmailService.class);
+        org.mockito.Mockito.when(mock.isDisposableEmail(org.mockito.ArgumentMatchers.any())).thenReturn(false);
+        return mock;
+    }
+    
+    @Bean
+    @Primary
+    public ForbiddenWordService forbiddenWordService() {
+        ForbiddenWordService mock = mock(ForbiddenWordService.class);
+        org.mockito.Mockito.when(mock.containsForbiddenWord(org.mockito.ArgumentMatchers.any())).thenReturn(false);
+        return mock;
+    }
+    
+    @Bean
+    @Primary
+    public JwtProperties jwtProperties() {
+        return mock(JwtProperties.class);
     }
 }
