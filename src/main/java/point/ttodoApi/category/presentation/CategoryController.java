@@ -84,7 +84,7 @@ public class CategoryController {
   @ApiResponse(responseCode = "200", description = "카테고리 조회 성공")
   @ApiResponse(responseCode = "403", description = "접근 권한 없음")
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
-  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#categoryId, 'Category', 'READ')")
   public CategoryResponse getCategory(
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {
@@ -119,7 +119,7 @@ public class CategoryController {
   @ApiResponse(responseCode = "200", description = "카테고리 수정 성공")
   @ApiResponse(responseCode = "403", description = "접근 권한 없음")
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
-  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#categoryId, 'Category', 'WRITE')")
   public CategoryResponse updateCategory(
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId,
@@ -136,7 +136,7 @@ public class CategoryController {
   @ApiResponse(responseCode = "403", description = "접근 권한 없음")
   @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#categoryId, 'Category', 'DELETE')")
   public void deleteCategory(
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
           @Parameter(description = "카테고리 ID") @PathVariable UUID categoryId) {

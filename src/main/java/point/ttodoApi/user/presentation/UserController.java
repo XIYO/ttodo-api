@@ -108,7 +108,7 @@ public class UserController {
   @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
   @GetMapping("/{userId}")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
+  @PreAuthorize("hasPermission(#userId, 'User', 'ACCESS')")
   public UserResponse getUser(@PathVariable UUID userId) {
     // TTODO 아키텍처 패턴: Query 서비스 사용
     UserResult dto = userQueryService.getUser(new UserQuery(userId));
@@ -129,7 +129,7 @@ public class UserController {
   @ApiResponse(responseCode = "404", description = "회원을 찾을 수 없음")
   @PatchMapping(value = "/{userId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("#userId == authentication.principal.id")
+  @PreAuthorize("hasPermission(#userId, 'User', 'WRITE')")
   @io.swagger.v3.oas.annotations.parameters.RequestBody(
           content = {
                   @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE, schema = @Schema(implementation = UpdateUserRequest.class)),

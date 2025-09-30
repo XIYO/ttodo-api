@@ -34,7 +34,7 @@ public class CategoryCollaboratorController {
 
   @PostMapping(consumes = {org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE, org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.CREATED)
-  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#categoryId, 'Category', 'WRITE')")
   @Operation(summary = "협업자 초대", description = "카테고리에 새로운 협업자를 초대합니다. 카테고리 소유자만 협업자를 초대할 수 있습니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "201", description = "협업자 초대 성공"),
@@ -90,7 +90,7 @@ public class CategoryCollaboratorController {
 
   @DeleteMapping("/{userId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#categoryId, 'Category', 'WRITE')")
   @Operation(summary = "협업자 제거", description = "카테고리에서 협업자를 제거합니다. 카테고리 소유자만 협업자를 제거할 수 있습니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "204", description = "협업자 제거 성공"),
@@ -123,7 +123,7 @@ public class CategoryCollaboratorController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("@categoryQueryService.isUser(#categoryId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#categoryId, 'Category', 'READ')")
   @Operation(summary = "카테고리 협업자 목록 조회", description = "카테고리의 모든 협업자 목록을 조회합니다. 소유자와 현재 협업 중인 모든 멤버 정보를 포함합니다.")
   @ApiResponses({
           @ApiResponse(responseCode = "200", description = "협업자 목록 조회 성공"),

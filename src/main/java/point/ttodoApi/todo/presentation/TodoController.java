@@ -81,7 +81,7 @@ public class TodoController {
 
   @GetMapping("/{id:\\d+}:{daysDifference:\\d+}")
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'READ')")
   @Operation(
           summary = "할 일 상세 조회",
           description = "특정 할 일의 상세 정보를 조회합니다. ID 형식에 따라 원본 할 일 또는 가상 할 일을 조회할 수 있습니다.\n\n" +
@@ -256,7 +256,7 @@ public class TodoController {
                   schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
           )
   )
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'WRITE')")
   public void modify(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
                      @PathVariable Long id,
                      @PathVariable Long daysDifference,
@@ -315,7 +315,7 @@ public class TodoController {
                   schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
           )
   )
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'WRITE')")
   public void patchTodo(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
                         @PathVariable Long id,
                         @PathVariable Long daysDifference,
@@ -365,7 +365,7 @@ public class TodoController {
   @ApiResponse(responseCode = "204", description = "할 일 삭제/숨기기 성공")
   @ApiResponse(responseCode = "403", description = "다른 사용자의 할 일에 접근 시도")
   @ApiResponse(responseCode = "404", description = "할 일을 찾을 수 없음")
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'DELETE')")
   public void remove(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
                      @PathVariable Long id,
                      @PathVariable Long daysDifference,

@@ -23,7 +23,7 @@ public class TagController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("@todoTemplateService.canAccessTags(authentication.principal.id)")
+  @PreAuthorize("hasPermission(null, 'Tag', 'READ')")
   @Operation(
           summary = "사용자 태그 목록 조회",
           description = "사용자가 할 일에 사용한 모든 태그를 중복 없이 조회합니다. 카테고리별로 필터링이 가능하며, 페이지네이션과 정렬을 지원합니다. 태그는 알파벳 순으로 정렬됩니다.",
