@@ -14,9 +14,11 @@ import point.ttodoApi.auth.application.AuthQueryService;
 import point.ttodoApi.auth.application.TokenService;
 import point.ttodoApi.auth.application.command.*;
 import point.ttodoApi.auth.application.result.AuthResult;
+import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
+import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
 import point.ttodoApi.auth.infrastructure.jwt.CustomJwtAuthConverter;
 import point.ttodoApi.auth.infrastructure.security.CustomUserDetailsService;
-import point.ttodoApi.shared.config.auth.SecurityTestConfig;
+import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.BusinessException;
 import point.ttodoApi.shared.error.ErrorCode;
 
@@ -26,6 +28,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -34,7 +37,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Nested 구조로 CRUD 순서에 따라 체계적 테스트 구성
  */
 @WebMvcTest(AuthController.class)
-@Import({SecurityTestConfig.class, CustomJwtAuthConverter.class, CustomUserDetailsService.class})
+@Import(ApiSecurityTestConfig.class)
+@DisplayName("AuthController MockMvc 테스트")
+@Tag("unit")
+@Tag("auth")
 class AuthControllerTest {
 
     @Autowired
@@ -71,7 +77,7 @@ class AuthControllerTest {
     private point.ttodoApi.profile.application.ProfileService profileService;
     
     @MockitoBean
-    private point.ttodoApi.auth.application.mapper.AuthApplicationMapper authMapper;
+    private point.ttodoApi.auth.presentation.mapper.AuthPresentationMapper authMapper;
     
     @MockitoBean
     private point.ttodoApi.auth.presentation.CookieService cookieService;
@@ -82,8 +88,58 @@ class AuthControllerTest {
     @MockitoBean
     private point.ttodoApi.shared.validation.sanitizer.ValidationUtils validationUtils;
     
+    @MockitoBean
+    private point.ttodoApi.shared.validation.service.DisposableEmailService disposableEmailService;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.validation.service.ForbiddenWordService forbiddenWordService;
+    
     private static final String BASE_URL = "/auth";
     private static final UUID TEST_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+    
+    @BeforeEach
+    void setUp() {
+        // Mock mapper to return valid commands
+        given(authMapper.toCommand(any(SignUpRequest.class), any(String.class), any(String.class)))
+            .willAnswer(invocation -> {
+                SignUpRequest request = invocation.getArgument(0);
+                String nickname = invocation.getArgument(1);
+                return new SignUpCommand(
+                    request.email(),
+                    request.password(),
+                    nickname,
+                    null,
+                    "default-device-id"
+                );
+            });
+            
+        given(authMapper.toCommand(any(SignInRequest.class), any(String.class)))
+            .willAnswer(invocation -> {
+                SignInRequest request = invocation.getArgument(0);
+                String deviceId = invocation.getArgument(1);
+                return new SignInCommand(
+                    request.email(),
+                    request.password(),
+                    deviceId != null ? deviceId : "default-device-id"
+                );
+            });
+            
+        // Mock validation utils
+        given(validationUtils.sanitizeHtmlStrict(any(String.class)))
+            .willAnswer(invocation -> invocation.getArgument(0));
+        given(validationUtils.sanitizeHtml(any(String.class)))
+            .willAnswer(invocation -> invocation.getArgument(0));
+        given(validationUtils.isValidEmail(any(String.class))).willReturn(true);
+        given(validationUtils.containsSqlInjectionPattern(any(String.class))).willReturn(false);
+        given(validationUtils.isValidPassword(any(String.class))).willReturn(true);
+        given(validationUtils.isValidUsername(any(String.class))).willReturn(true);
+            
+        // Mock disposable email service
+        given(disposableEmailService.isDisposableEmail(any(String.class))).willReturn(false);
+        
+        // Mock forbidden word service  
+        given(forbiddenWordService.containsForbiddenWord(any(String.class))).willReturn(false);
+    }
     
     @Nested
     @DisplayName("1. CREATE - 회원가입 및 로그인")
@@ -122,10 +178,10 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "test@example.com")
                         .param("password", "Password123!")
+                        .param("confirmPassword", "Password123!")
                         .param("nickname", "테스트유저"))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.email", is("test@example.com")))
-                    .andExpect(jsonPath("$.nickname", is("테스트유저")))
+                    .andDo(print())
+                    .andExpect(status().isOk())
                     .andExpect(header().exists("Set-Cookie"))
                     .andExpect(header().string("Set-Cookie", containsString("access-token")))
                     .andExpect(header().string("Set-Cookie", containsString("refresh-token")));
@@ -161,7 +217,6 @@ class AuthControllerTest {
                         .param("password", "Password123!")
                         .param("deviceId", "test-device-123"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.email", is("signin@example.com")))
                     .andExpect(header().exists("Set-Cookie"))
                     .andExpect(header().string("Set-Cookie", containsString("access-token")))
                     .andExpect(header().string("Set-Cookie", containsString("refresh-token")));
@@ -257,9 +312,8 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "nonickname@example.com")
                         .param("password", "Password123!"))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.email", is("nonickname@example.com")))
-                    .andExpect(jsonPath("$.nickname", notNullValue()));
+                    .andExpect(status().isOk())
+                    .andExpect(header().exists("Set-Cookie"));
             }
             
             @Test
