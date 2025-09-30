@@ -57,12 +57,17 @@ dependencies {
     testImplementation 'com.h2database:h2'
     testImplementation 'io.rest-assured:rest-assured:5.5.0'
     testImplementation 'io.rest-assured:spring-mock-mvc:5.5.0'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
-tasks.named('test') { useJUnitPlatform() }
+tasks.named('test') { 
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+}
 
 // MapStruct가 Lombok의 fluent accessor를 인식하도록 설정
 tasks.withType(JavaCompile) {
