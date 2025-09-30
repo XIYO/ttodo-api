@@ -94,51 +94,17 @@ class AuthControllerTest {
     @MockitoBean
     private point.ttodoApi.shared.validation.service.ForbiddenWordService forbiddenWordService;
     
+    @MockitoBean 
+    private point.ttodoApi.shared.config.auth.properties.JwtProperties jwtProperties;
+    
     private static final String BASE_URL = "/auth";
     private static final UUID TEST_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
     
-    @BeforeEach
-    void setUp() {
-        // Mock mapper to return valid commands
-        given(authMapper.toCommand(any(SignUpRequest.class), any(String.class), any(String.class)))
-            .willAnswer(invocation -> {
-                SignUpRequest request = invocation.getArgument(0);
-                String nickname = invocation.getArgument(1);
-                return new SignUpCommand(
-                    request.email(),
-                    request.password(),
-                    nickname,
-                    null,
-                    "default-device-id"
-                );
-            });
-            
-        given(authMapper.toCommand(any(SignInRequest.class), any(String.class)))
-            .willAnswer(invocation -> {
-                SignInRequest request = invocation.getArgument(0);
-                String deviceId = invocation.getArgument(1);
-                return new SignInCommand(
-                    request.email(),
-                    request.password(),
-                    deviceId != null ? deviceId : "default-device-id"
-                );
-            });
-            
-        // Mock validation utils
-        given(validationUtils.sanitizeHtmlStrict(any(String.class)))
-            .willAnswer(invocation -> invocation.getArgument(0));
-        given(validationUtils.sanitizeHtml(any(String.class)))
-            .willAnswer(invocation -> invocation.getArgument(0));
-        given(validationUtils.isValidEmail(any(String.class))).willReturn(true);
-        given(validationUtils.containsSqlInjectionPattern(any(String.class))).willReturn(false);
-        given(validationUtils.isValidPassword(any(String.class))).willReturn(true);
-        given(validationUtils.isValidUsername(any(String.class))).willReturn(true);
-            
-        // Mock disposable email service
-        given(disposableEmailService.isDisposableEmail(any(String.class))).willReturn(false);
-        
-        // Mock forbidden word service  
-        given(forbiddenWordService.containsForbiddenWord(any(String.class))).willReturn(false);
+    @Test
+    @DisplayName("Simple security test - sign-out permits all")
+    void signOut_PermitsAll_Test() throws Exception {
+        mockMvc.perform(post(BASE_URL + "/sign-out"))
+            .andExpect(status().isOk());
     }
     
     @Nested
