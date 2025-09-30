@@ -55,8 +55,8 @@ class ChallengeControllerTest {
     private static final UUID TEST_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
     private static final String TEST_TITLE = "Test Challenge";
     private static final String TEST_DESCRIPTION = "Test Description";
-    private static final LocalDate TEST_START_DATE = LocalDate.of(2025, 1, 1);
-    private static final LocalDate TEST_END_DATE = LocalDate.of(2025, 1, 31);
+    private static final LocalDate TEST_START_DATE = LocalDate.now().plusDays(1);
+    private static final LocalDate TEST_END_DATE = LocalDate.now().plusDays(31);
 
     @BeforeEach
     void setUp() {
@@ -129,6 +129,8 @@ class ChallengeControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", TEST_TITLE)
                         .param("description", TEST_DESCRIPTION)
+                        .param("periodType", "WEEKLY")
+                        .param("visibility", "PUBLIC")
                         .param("startDate", TEST_START_DATE.toString())
                         .param("endDate", TEST_END_DATE.toString()))
                     .andExpect(status().isCreated());
@@ -146,6 +148,8 @@ class ChallengeControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", TEST_TITLE)
                         .param("description", TEST_DESCRIPTION)
+                        .param("periodType", "WEEKLY")
+                        .param("visibility", "PUBLIC")
                         .param("startDate", TEST_START_DATE.toString())
                         .param("endDate", TEST_END_DATE.toString()))
                     .andExpect(status().isForbidden());
@@ -163,6 +167,8 @@ class ChallengeControllerTest {
                 mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("description", TEST_DESCRIPTION)
+                        .param("periodType", "WEEKLY")
+                        .param("visibility", "PUBLIC")
                         .param("startDate", TEST_START_DATE.toString())
                         .param("endDate", TEST_END_DATE.toString()))
                     .andExpect(status().isBadRequest());
@@ -179,8 +185,10 @@ class ChallengeControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", TEST_TITLE)
                         .param("description", TEST_DESCRIPTION)
-                        .param("startDate", "2025-01-31")
-                        .param("endDate", "2025-01-01"))
+                        .param("periodType", "WEEKLY")
+                        .param("visibility", "PUBLIC")
+                        .param("startDate", TEST_END_DATE.toString())
+                        .param("endDate", TEST_START_DATE.toString()))
                     .andExpect(status().isBadRequest());
             }
         }
@@ -197,6 +205,8 @@ class ChallengeControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", TEST_TITLE)
                         .param("description", TEST_DESCRIPTION)
+                        .param("periodType", "WEEKLY")
+                        .param("visibility", "PUBLIC")
                         .param("startDate", TEST_START_DATE.toString())
                         .param("endDate", TEST_END_DATE.toString()))
                     .andExpect(status().isCreated());
@@ -274,11 +284,11 @@ class ChallengeControllerTest {
             @DisplayName("챌린지 수정 성공")
             @WithMockUser
             void updateChallenge_Success() throws Exception {
-                mockMvc.perform(put("/challenges/1")
+                mockMvc.perform(patch("/challenges/1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Updated Title")
                         .param("description", "Updated Description"))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isNoContent());
             }
         }
         
@@ -289,7 +299,7 @@ class ChallengeControllerTest {
             @Test
             @DisplayName("챌린지 수정 실패 - 인증 없음")
             void updateChallenge_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(put("/challenges/1")
+                mockMvc.perform(patch("/challenges/1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Updated Title"))
                     .andExpect(status().isForbidden());
