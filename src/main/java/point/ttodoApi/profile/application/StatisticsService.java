@@ -55,7 +55,8 @@ public class StatisticsService {
 
     // 기존 Statistics가 있다면 업데이트
     if (statistics.getId() != null) {
-      statistics.updateStatistics(completedTodos, totalCategories);
+      statistics.setSucceededTodosCount(completedTodos);
+      statistics.setCategoryCount(totalCategories);
     }
 
     statisticsRepository.save(statistics);

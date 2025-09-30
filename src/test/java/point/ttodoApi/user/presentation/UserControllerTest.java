@@ -1,6 +1,7 @@
 package point.ttodoApi.user.presentation;
 
 import org.junit.jupiter.api.*;
+import static org.mockito.ArgumentMatchers.any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -10,7 +11,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
-import point.ttodoApi.shared.config.auth.SecurityTestConfig;
+import point.ttodoApi.shared.config.TestCommonConfig;
 import point.ttodoApi.user.application.*;
 import point.ttodoApi.user.application.query.UserQuery;
 import point.ttodoApi.user.application.result.UserResult;
@@ -28,8 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * UserController 단위 테스트
  * Nested 구조로 CRUD 순서에 따라 테스트 구성
  */
-@WebMvcTest(UserController.class)
-@Import({SecurityTestConfig.class})
+@WebMvcTest(
+    controllers = UserController.class,
+    properties = {
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8080",
+        "jwt.key-id=test-key-id",
+        "jwt.access-token.expiration=1800",
+        "jwt.refresh-token.expiration=86400"
+    }
+)
+@Import(TestCommonConfig.class)
 class UserControllerTest {
 
     @Autowired
@@ -53,9 +62,17 @@ class UserControllerTest {
     @MockitoBean
     private point.ttodoApi.shared.error.ErrorMetricsCollector errorMetricsCollector;
     
+    @MockitoBean
+    private point.ttodoApi.shared.validation.service.DisposableEmailService disposableEmailService;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.validation.service.ForbiddenWordService forbiddenWordService;
+    
     private static final String BASE_URL = "/user";
     private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
     private static final String OTHER_USER_ID = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee";
+    
+
     
     @Nested
     @DisplayName("1. CREATE - 회원 생성은 AuthController에서 처리")

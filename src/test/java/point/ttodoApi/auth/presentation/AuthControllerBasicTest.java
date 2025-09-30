@@ -17,8 +17,24 @@ import static org.assertj.core.api.Assertions.*;
  * Basic AuthController test without TestContainers
  * To verify Spring Boot configuration works correctly
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {
+        "spring.datasource.url=jdbc:h2:mem:testdb",
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.data.redis.host=localhost",
+        "spring.data.redis.port=6379",
+        "jwt.private-key=classpath:ttodo/jwt/test-private.pem",
+        "jwt.public-key=classpath:ttodo/jwt/public.pem",
+        "jwt.key-id=test-rsa-key-id",
+        "jwt.access-token.expiration=1800",
+        "jwt.refresh-token.expiration=86400",
+        "management.endpoints.web.exposure.include=health",
+        "logging.level.root=WARN"
+    }
+)
 @AutoConfigureWebMvc
 class AuthControllerBasicTest {
 
@@ -39,7 +55,6 @@ class AuthControllerBasicTest {
         // Test the dev token endpoint (should work without database)
         String url = "http://localhost:" + port + "/auth/dev-token";
 
-        @SuppressWarnings("rawtypes")
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
 
         // The endpoint should return something (may fail due to missing DB, but context should load)
