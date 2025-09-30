@@ -68,13 +68,15 @@ class ChallengeControllerTest {
         given(userService.findVerifiedUser(any(UUID.class))).willReturn(mockUser);
         given(challengePresentationMapper.toCommand(any(), any()))
             .willReturn(new CreateChallengeCommand(
-                TEST_USER_ID,
                 TEST_TITLE,
                 TEST_DESCRIPTION,
+                point.ttodoApi.challenge.domain.PeriodType.WEEKLY,
+                point.ttodoApi.challenge.domain.ChallengeVisibility.PUBLIC,
                 TEST_START_DATE,
                 TEST_END_DATE,
                 null,
-                true
+                TEST_USER_ID,
+                null
             ));
         
         given(challengeService.createChallenge(any())).willReturn(1L);
@@ -85,11 +87,12 @@ class ChallengeControllerTest {
             TEST_DESCRIPTION,
             TEST_START_DATE,
             TEST_END_DATE,
-            TEST_USER_ID,
-            0,
-            null,
+            point.ttodoApi.challenge.domain.PeriodType.WEEKLY,
             true,
-            null
+            5,
+            0.85,
+            point.ttodoApi.challenge.domain.ChallengeVisibility.PUBLIC,
+            TEST_USER_ID
         );
         given(challengeService.getChallengeDetailForPublic(anyLong())).willReturn(mockResult);
         
@@ -99,12 +102,13 @@ class ChallengeControllerTest {
             TEST_DESCRIPTION,
             TEST_START_DATE,
             TEST_END_DATE,
-            TEST_USER_ID,
-            0,
-            null,
-            true
+            point.ttodoApi.challenge.domain.PeriodType.WEEKLY,
+            true,
+            5
         );
         given(challengePresentationMapper.toChallengeResponse(any())).willReturn(mockResponse);
+        
+        org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
     }
 
     @Nested
@@ -249,7 +253,7 @@ class ChallengeControllerTest {
             @WithMockUser
             void getChallenge_Failure_NotFound() throws Exception {
                 given(challengeService.getChallengeDetailForPublic(anyLong()))
-                    .willThrow(new BusinessException(ErrorCode.ENTITY_NOT_FOUND));
+                    .willThrow(new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND));
                 
                 mockMvc.perform(get("/challenges/999")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -270,8 +274,6 @@ class ChallengeControllerTest {
             @DisplayName("챌린지 수정 성공")
             @WithMockUser
             void updateChallenge_Success() throws Exception {
-                org.mockito.Mockito.doNothing().when(challengeService).updateChallenge(anyLong(), any());
-                
                 mockMvc.perform(put("/challenges/1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Updated Title")
@@ -336,7 +338,7 @@ class ChallengeControllerTest {
             @DisplayName("챌린지 삭제 실패 - 존재하지 않는 챌린지")
             @WithMockUser
             void deleteChallenge_Failure_NotFound() throws Exception {
-                org.mockito.Mockito.doThrow(new BusinessException(ErrorCode.ENTITY_NOT_FOUND))
+                org.mockito.Mockito.doThrow(new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND))
                     .when(challengeService).deleteChallenge(anyLong());
                 
                 mockMvc.perform(delete("/challenges/999")
