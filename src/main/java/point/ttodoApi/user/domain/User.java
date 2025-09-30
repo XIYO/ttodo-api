@@ -34,7 +34,8 @@ public class User extends BaseEntity {
 
   @EqualsAndHashCode.Include
   @Id
-  UUID id;
+  @Builder.Default
+  UUID id = UuidCreator.getTimeOrdered();
 
   @Column(unique = true, nullable = false)
   @ValidEmail
@@ -43,12 +44,6 @@ public class User extends BaseEntity {
   @Column(nullable = false)
   @ValidPassword
   String password;
-
-  @PrePersist
-  private void generateIdIfAbsent() {
-    // Generate time-ordered UUID (v7-like) for new entities
-    if (id == null) id = UuidCreator.getTimeOrdered();
-  }
   
   // === 도메인 메서드들 ===
   

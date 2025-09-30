@@ -83,38 +83,6 @@ public class Challenge extends BaseEntity {
   @Builder.Default
   List<ChallengeLeader> leaders = new ArrayList<>();
 
-  // 팩토리 메서드 - 공개 챌린지
-  public static Challenge createPublicChallenge(String title, String description,
-                                                PeriodType periodType, LocalDate startDate,
-                                                LocalDate endDate, UUID creatorId,
-                                                Integer maxParticipants) {
-    Challenge challenge = new Challenge();
-    challenge.title = title;
-    challenge.description = description;
-    challenge.periodType = periodType;
-    challenge.startDate = startDate;
-    challenge.endDate = endDate;
-    challenge.creatorId = creatorId;
-    challenge.maxParticipants = maxParticipants;
-    challenge.visibility = ChallengeVisibility.PUBLIC;
-    return challenge;
-  }
-
-  // 팩토리 메서드 - 초대 전용 챌린지
-  public static Challenge createInviteOnlyChallenge(String title, String description,
-                                                    PeriodType periodType, LocalDate startDate,
-                                                    LocalDate endDate, UUID creatorId,
-                                                    Integer maxParticipants) {
-    Challenge challenge = createPublicChallenge(title, description, periodType,
-            startDate, endDate, creatorId, maxParticipants);
-    challenge.visibility = ChallengeVisibility.INVITE_ONLY;
-    challenge.inviteCode = generateInviteCode();
-    return challenge;
-  }
-
-  private static String generateInviteCode() {
-    return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-  }
 
 
   // 비즈니스 메서드

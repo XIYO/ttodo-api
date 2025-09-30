@@ -3,62 +3,51 @@ package point.ttodoApi.challenge.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import point.ttodoApi.user.domain.User;
+import point.ttodoApi.shared.domain.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static point.ttodoApi.challenge.domain.ChallengeConstants.*;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class ChallengeParticipation {
+@Getter
+@Setter // 일반 Setter 제공
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 필수
+@AllArgsConstructor(access = AccessLevel.PACKAGE) // MapStruct/테스트용
+@Builder
+@ToString(exclude = {"user", "challenge", "challengeTodos"}) // 순환참조 방지
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@FieldDefaults(level = AccessLevel.PRIVATE) // private 자동 적용
+public class ChallengeParticipation extends BaseEntity {
+  @EqualsAndHashCode.Include
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @NotNull(message = USER_REQUIRED_MESSAGE)
-  private User user;
+  User user;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @NotNull(message = CHALLENGE_REQUIRED_MESSAGE)
-  private Challenge challenge;
+  Challenge challenge;
 
-  private LocalDateTime joinedAt;
-
-  private LocalDateTime joinOut;
+  // 챌린지 참여 시작 시간 (시스템 createdAt와 논리적으로 구분)
+  LocalDateTime joinedAt;
+  
+  LocalDateTime joinOut;
 
   @OneToMany(mappedBy = "challengeParticipation", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ChallengeTodo> challengeTodos = new ArrayList<>();
-
-  @Builder
-  public ChallengeParticipation(User user, Challenge challenge, LocalDateTime joinedAt) {
-    this.user = user;
-    this.challenge = challenge;
-    this.joinedAt = joinedAt != null ? joinedAt : LocalDateTime.now();
-  }
-
+  @Builder.Default
+  List<ChallengeTodo> challengeTodos = new ArrayList<>();
+  
   @PrePersist
-  private void prePersist() {
-    joinedAt = LocalDateTime.now();
-  }
-
-  public void leaveChallenge() {
-    this.joinOut = LocalDateTime.now();
-  }
-
-  public boolean isActive() {
-    return joinOut == null;
-  }
-
-  public boolean hasLeftChallenge() {
-    return joinOut != null;
-  }
-
-  // 테스트용 setter
-  public void setJoinedAt(LocalDateTime joinedAt) {
-    this.joinedAt = joinedAt;
+  protected void onCreate() {
+    if (joinedAt == null) {
+      joinedAt = LocalDateTime.now();
+    }
   }
 }

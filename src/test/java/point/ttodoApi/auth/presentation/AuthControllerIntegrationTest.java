@@ -44,9 +44,19 @@ import static org.assertj.core.api.Assertions.*;
  *
  * 테스트 환경: Testcontainers (PostgreSQL + Redis) via BaseIntegrationTest
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.show-sql=false",
+        "jwt.key-id=test-rsa-key-id",
+        "jwt.access-token.expiration=1800",
+        "jwt.refresh-token.expiration=86400",
+        "logging.level.root=WARN",
+        "app.cors.allowed-origins=http://localhost:8080"
+    }
+)
 @Testcontainers
-@ActiveProfiles("test")
 @DirtiesContext
 class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
@@ -712,7 +722,6 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
         @DisplayName("개발 토큰 생성 성공")
         void getDevToken_Success() {
             // When
-            @SuppressWarnings("rawtypes")
             ResponseEntity<Map> response = restTemplate.getForEntity(
                 baseUrl + "/dev-token", Map.class);
 
@@ -720,7 +729,7 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
             @SuppressWarnings("unchecked")
-            Map<String, String> body = (Map<String, String>) response.getBody();
+            Map<String, String> body = response.getBody();
             assertThat(body).isNotNull();
             assertThat(body.get("token")).isNotNull();
             assertThat(body.get("usage")).contains("Swagger");
