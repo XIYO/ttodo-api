@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.challenge.application.*;
 import point.ttodoApi.challenge.application.command.*;
 import point.ttodoApi.challenge.application.result.ChallengeResult;
+import point.ttodoApi.challenge.presentation.dto.request.*;
 import point.ttodoApi.challenge.presentation.dto.response.ChallengeResponse;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
@@ -65,8 +66,11 @@ class ChallengeControllerTest {
             .email("test@example.com")
             .build();
         
+        // UserService.findVerifiedUser mock - controller에서 호출
         given(userService.findVerifiedUser(any(UUID.class))).willReturn(mockUser);
-        given(challengePresentationMapper.toCommand(any(), any()))
+        
+        // Mapper mock - CreateChallengeRequest와 UUID를 받아 Command 반환
+        given(challengePresentationMapper.toCommand(any(CreateChallengeRequest.class), any(UUID.class)))
             .willReturn(new CreateChallengeCommand(
                 TEST_TITLE,
                 TEST_DESCRIPTION,
@@ -79,8 +83,10 @@ class ChallengeControllerTest {
                 null
             ));
         
-        given(challengeService.createChallenge(any())).willReturn(1L);
+        // Service mock - createChallenge는 Long 반환
+        given(challengeService.createChallenge(any(CreateChallengeCommand.class))).willReturn(1L);
         
+        // Service mock - getChallengeDetailForPublic은 ChallengeResult 반환
         ChallengeResult mockResult = new ChallengeResult(
             1L,
             TEST_TITLE,
@@ -96,6 +102,7 @@ class ChallengeControllerTest {
         );
         given(challengeService.getChallengeDetailForPublic(anyLong())).willReturn(mockResult);
         
+        // Mapper mock - toChallengeResponse는 ChallengeResponse 반환
         ChallengeResponse mockResponse = new ChallengeResponse(
             1L,
             TEST_TITLE,
@@ -106,8 +113,9 @@ class ChallengeControllerTest {
             true,
             5
         );
-        given(challengePresentationMapper.toChallengeResponse(any())).willReturn(mockResponse);
+        given(challengePresentationMapper.toChallengeResponse(any(ChallengeResult.class))).willReturn(mockResponse);
         
+        // Service mock - deleteChallenge는 void
         org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
     }
 
