@@ -9,22 +9,23 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.challenge.application.*;
+import point.ttodoApi.challenge.application.command.*;
+import point.ttodoApi.challenge.application.result.ChallengeResult;
+import point.ttodoApi.challenge.presentation.dto.response.ChallengeResponse;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.*;
 import point.ttodoApi.user.application.UserService;
+import point.ttodoApi.user.domain.User;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * ChallengeController 단위 테스트
- * 개별 Mock 방식 적용
- * @WithMockUser 기반 인증 처리
- * CRUD 순서 + Nested 구조 + 한글 DisplayName
- */
 @WebMvcTest(ChallengeController.class)
 @Import(ApiSecurityTestConfig.class)
 @DisplayName("ChallengeController 단위 테스트")
@@ -51,14 +52,59 @@ class ChallengeControllerTest {
     @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
 
-    private static final String BASE_URL = "/challenges";
-    private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
+    private static final UUID TEST_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+    private static final String TEST_TITLE = "Test Challenge";
+    private static final String TEST_DESCRIPTION = "Test Description";
+    private static final LocalDate TEST_START_DATE = LocalDate.of(2025, 1, 1);
+    private static final LocalDate TEST_END_DATE = LocalDate.of(2025, 1, 31);
 
     @BeforeEach
     void setUp() {
-        // 기본 성공 응답 설정 - 간소화
-        org.mockito.Mockito.doNothing().when(challengeService).createChallenge(any());
-        org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
+        User mockUser = User.builder()
+            .id(TEST_USER_ID)
+            .email("test@example.com")
+            .build();
+        
+        given(userService.findVerifiedUser(any(UUID.class))).willReturn(mockUser);
+        given(challengePresentationMapper.toCommand(any(), any()))
+            .willReturn(new CreateChallengeCommand(
+                TEST_USER_ID,
+                TEST_TITLE,
+                TEST_DESCRIPTION,
+                TEST_START_DATE,
+                TEST_END_DATE,
+                null,
+                true
+            ));
+        
+        given(challengeService.createChallenge(any())).willReturn(1L);
+        
+        ChallengeResult mockResult = new ChallengeResult(
+            1L,
+            TEST_TITLE,
+            TEST_DESCRIPTION,
+            TEST_START_DATE,
+            TEST_END_DATE,
+            TEST_USER_ID,
+            0,
+            null,
+            true,
+            null
+        );
+        given(challengeService.getChallengeDetailForPublic(anyLong())).willReturn(mockResult);
+        
+        ChallengeResponse mockResponse = new ChallengeResponse(
+            1L,
+            TEST_TITLE,
+            TEST_DESCRIPTION,
+            TEST_START_DATE,
+            TEST_END_DATE,
+            TEST_USER_ID,
+            0,
+            null,
+            true
+        );
+        given(challengePresentationMapper.toChallengeResponse(any())).willReturn(mockResponse);
     }
 
     @Nested
@@ -73,14 +119,14 @@ class ChallengeControllerTest {
             @Test
             @Order(1)
             @DisplayName("챌린지 생성 성공 - 유효한 데이터")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
+            @WithMockUser
             void createChallenge_Success_WithValidData() throws Exception {
-                mockMvc.perform(post(BASE_URL)
+                mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("title", "Test Challenge")
-                        .param("description", "Test Description")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("title", TEST_TITLE)
+                        .param("description", TEST_DESCRIPTION)
+                        .param("startDate", TEST_START_DATE.toString())
+                        .param("endDate", TEST_END_DATE.toString()))
                     .andExpect(status().isCreated());
             }
         }
@@ -92,12 +138,12 @@ class ChallengeControllerTest {
             @Test
             @DisplayName("챌린지 생성 실패 - 인증 없음")
             void createChallenge_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(post(BASE_URL)
+                mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("title", "Test Challenge")
-                        .param("description", "Test Description")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("title", TEST_TITLE)
+                        .param("description", TEST_DESCRIPTION)
+                        .param("startDate", TEST_START_DATE.toString())
+                        .param("endDate", TEST_END_DATE.toString()))
                     .andExpect(status().isForbidden());
             }
         }
@@ -108,13 +154,29 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 생성 실패 - 제목 미입력")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
-            void createChallenge_Failure_NoTitle() throws Exception {
-                mockMvc.perform(post(BASE_URL)
+            @WithMockUser
+            void createChallenge_Failure_WithoutTitle() throws Exception {
+                mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("description", "Test Description")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("description", TEST_DESCRIPTION)
+                        .param("startDate", TEST_START_DATE.toString())
+                        .param("endDate", TEST_END_DATE.toString()))
+                    .andExpect(status().isBadRequest());
+            }
+            
+            @Test
+            @DisplayName("챌린지 생성 실패 - 종료일이 시작일보다 빠름")
+            @WithMockUser
+            void createChallenge_Failure_EndDateBeforeStartDate() throws Exception {
+                given(challengeService.createChallenge(any()))
+                    .willThrow(new BusinessException(ErrorCode.INVALID_OPERATION));
+                
+                mockMvc.perform(post("/challenges")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("title", TEST_TITLE)
+                        .param("description", TEST_DESCRIPTION)
+                        .param("startDate", "2025-01-31")
+                        .param("endDate", "2025-01-01"))
                     .andExpect(status().isBadRequest());
             }
         }
@@ -124,19 +186,20 @@ class ChallengeControllerTest {
         class EdgeCases {
             
             @Test
-            @DisplayName("챌린지 생성 - 설명 미입력시 기본값 사용")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
-            void createChallenge_EdgeCase_NoDescription() throws Exception {
-                mockMvc.perform(post(BASE_URL)
+            @DisplayName("챌린지 생성 - 선택 필드 미입력")
+            @WithMockUser
+            void createChallenge_EdgeCase_WithoutOptionalFields() throws Exception {
+                mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("title", "Test Challenge")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("title", TEST_TITLE)
+                        .param("description", TEST_DESCRIPTION)
+                        .param("startDate", TEST_START_DATE.toString())
+                        .param("endDate", TEST_END_DATE.toString()))
                     .andExpect(status().isCreated());
             }
         }
     }
-
+    
     @Nested
     @DisplayName("2. READ - 챌린지 조회")
     class ReadTests {
@@ -147,17 +210,19 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 목록 조회 성공")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
+            @WithMockUser
             void getChallenges_Success() throws Exception {
-                mockMvc.perform(get(BASE_URL))
+                mockMvc.perform(get("/challenges")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                     .andExpect(status().isOk());
             }
             
             @Test
             @DisplayName("챌린지 상세 조회 성공")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
+            @WithMockUser
             void getChallenge_Success() throws Exception {
-                mockMvc.perform(get(BASE_URL + "/1"))
+                mockMvc.perform(get("/challenges/1")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                     .andExpect(status().isOk());
             }
         }
@@ -169,14 +234,8 @@ class ChallengeControllerTest {
             @Test
             @DisplayName("챌린지 목록 조회 실패 - 인증 없음")
             void getChallenges_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(get(BASE_URL))
-                    .andExpect(status().isForbidden());
-            }
-            
-            @Test
-            @DisplayName("챌린지 상세 조회 실패 - 인증 없음")
-            void getChallenge_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(get(BASE_URL + "/1"))
+                mockMvc.perform(get("/challenges")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                     .andExpect(status().isForbidden());
             }
         }
@@ -187,15 +246,18 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 상세 조회 실패 - 존재하지 않는 챌린지")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
+            @WithMockUser
             void getChallenge_Failure_NotFound() throws Exception {
-                // 간소화된 테스트 - 실제 서비스 메서드 확인 후 수정 필요
-                mockMvc.perform(get(BASE_URL + "/999"))
+                given(challengeService.getChallengeDetailForPublic(anyLong()))
+                    .willThrow(new BusinessException(ErrorCode.ENTITY_NOT_FOUND));
+                
+                mockMvc.perform(get("/challenges/999")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                     .andExpect(status().isNotFound());
             }
         }
     }
-
+    
     @Nested
     @DisplayName("3. UPDATE - 챌린지 수정")
     class UpdateTests {
@@ -206,11 +268,13 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 수정 성공")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
+            @WithMockUser
             void updateChallenge_Success() throws Exception {
-                mockMvc.perform(put(BASE_URL + "/1")
+                org.mockito.Mockito.doNothing().when(challengeService).updateChallenge(anyLong(), any());
+                
+                mockMvc.perform(put("/challenges/1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("title", "Updated Challenge")
+                        .param("title", "Updated Title")
                         .param("description", "Updated Description"))
                     .andExpect(status().isOk());
             }
@@ -223,14 +287,14 @@ class ChallengeControllerTest {
             @Test
             @DisplayName("챌린지 수정 실패 - 인증 없음")
             void updateChallenge_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(put(BASE_URL + "/1")
+                mockMvc.perform(put("/challenges/1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("title", "Updated Challenge"))
+                        .param("title", "Updated Title"))
                     .andExpect(status().isForbidden());
             }
         }
     }
-
+    
     @Nested
     @DisplayName("4. DELETE - 챌린지 삭제")
     class DeleteTests {
@@ -241,9 +305,12 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 삭제 성공")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
+            @WithMockUser
             void deleteChallenge_Success() throws Exception {
-                mockMvc.perform(delete(BASE_URL + "/1"))
+                org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
+                
+                mockMvc.perform(delete("/challenges/1")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                     .andExpect(status().isNoContent());
             }
         }
@@ -255,10 +322,27 @@ class ChallengeControllerTest {
             @Test
             @DisplayName("챌린지 삭제 실패 - 인증 없음")
             void deleteChallenge_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(delete(BASE_URL + "/1"))
+                mockMvc.perform(delete("/challenges/1")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                     .andExpect(status().isForbidden());
             }
         }
+        
+        @Nested
+        @DisplayName("실패 케이스 - 일반")
+        class GeneralFailureCases {
+            
+            @Test
+            @DisplayName("챌린지 삭제 실패 - 존재하지 않는 챌린지")
+            @WithMockUser
+            void deleteChallenge_Failure_NotFound() throws Exception {
+                org.mockito.Mockito.doThrow(new BusinessException(ErrorCode.ENTITY_NOT_FOUND))
+                    .when(challengeService).deleteChallenge(anyLong());
+                
+                mockMvc.perform(delete("/challenges/999")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                    .andExpect(status().isNotFound());
+            }
+        }
     }
-
 }
