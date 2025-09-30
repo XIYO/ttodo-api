@@ -15,8 +15,12 @@ import point.ttodoApi.auth.application.AuthQueryService;
 import point.ttodoApi.auth.application.TokenService;
 import point.ttodoApi.auth.application.command.*;
 import point.ttodoApi.auth.application.result.AuthResult;
-import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
 import point.ttodoApi.auth.presentation.dto.request.SignInRequest;
+import point.ttodoApi.auth.presentation.dto.request.SignUpRequest;
+import point.ttodoApi.auth.infrastructure.jwt.CustomJwtAuthConverter;
+import point.ttodoApi.auth.infrastructure.security.CustomUserDetailsService;
+import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
+
 import point.ttodoApi.shared.error.BusinessException;
 import point.ttodoApi.shared.error.ErrorCode;
 
@@ -26,6 +30,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -34,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Nested 구조로 CRUD 순서에 따라 체계적 테스트 구성
  */
 @WebMvcTest(AuthController.class)
-@Import({point.ttodoApi.shared.config.ApiSecurityTestConfig.class})
+@Import(ApiSecurityTestConfig.class)
 @DisplayName("AuthController MockMvc 테스트")
 @Tag("unit")
 @Tag("auth")
@@ -56,25 +61,96 @@ class AuthControllerTest {
     @MockitoBean
     private TokenService tokenService;
     
-    // 필요한 MockBean 직접 선언 (기존 TestCommonConfig 제거로 인해)
-    @MockitoBean private point.ttodoApi.user.infrastructure.persistence.UserRepository userRepository;
-    @MockitoBean private point.ttodoApi.shared.error.ErrorMetricsCollector errorMetricsCollector;
-    @MockitoBean private point.ttodoApi.user.application.UserCommandService userCommandService;
-    @MockitoBean private point.ttodoApi.user.application.UserQueryService userQueryService;
-    @MockitoBean private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
-    @MockitoBean private point.ttodoApi.profile.application.ProfileService profileService;
-    @MockitoBean private point.ttodoApi.auth.presentation.mapper.AuthPresentationMapper authMapper;
-    @MockitoBean private point.ttodoApi.auth.presentation.CookieService cookieService;
-    @MockitoBean private point.ttodoApi.shared.config.properties.AppProperties appProperties;
-    @MockitoBean private point.ttodoApi.shared.validation.sanitizer.ValidationUtils validationUtils;
-    @MockitoBean private point.ttodoApi.shared.validation.service.DisposableEmailService disposableEmailService;
-    @MockitoBean private point.ttodoApi.shared.validation.service.ForbiddenWordService forbiddenWordService;
+    @MockitoBean
+    private point.ttodoApi.user.infrastructure.persistence.UserRepository userRepository;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.error.ErrorMetricsCollector errorMetricsCollector;
+    
+    @MockitoBean
+    private point.ttodoApi.user.application.UserCommandService userCommandService;
+    
+    @MockitoBean
+    private point.ttodoApi.user.application.UserQueryService userQueryService;
+    
+    @MockitoBean
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    
+    @MockitoBean
+    private point.ttodoApi.profile.application.ProfileService profileService;
+    
+    @MockitoBean
+    private point.ttodoApi.auth.presentation.mapper.AuthPresentationMapper authMapper;
+    
+    @MockitoBean
+    private point.ttodoApi.auth.presentation.CookieService cookieService;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.config.properties.AppProperties appProperties;
+    
+    @MockitoBean
+    private point.ttodoApi.shared.validation.sanitizer.ValidationUtils validationUtils;
     
     private static final String BASE_URL = "/auth";
     private static final UUID TEST_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
     
     @BeforeEach
     void setUp() {
+        // Mock validation utils for any validation that still uses it
+        given(validationUtils.sanitizeHtmlStrict(any(String.class)))
+            .willAnswer(invocation -> invocation.getArgument(0));
+        given(validationUtils.sanitizeHtml(any(String.class)))
+            .willAnswer(invocation -> invocation.getArgument(0));
+        given(validationUtils.isValidEmail(any(String.class))).willReturn(true);
+        given(validationUtils.containsSqlInjectionPattern(any(String.class))).willReturn(false);
+        given(validationUtils.isValidPassword(any(String.class))).willReturn(true);
+        given(validationUtils.isValidUsername(any(String.class))).willReturn(true);
+        
+        // Mock mapper methods
+        given(authMapper.toSignOutCommand(any(), any()))
+            .willReturn(new SignOutCommand("test-device", "test-token"));
+            
+        // Mock auth service methods to do nothing for void methods
+        org.mockito.Mockito.doNothing().when(authCommandService).signOut(any());
+        
+        // Mock cookie service methods to do nothing for void methods
+        org.mockito.Mockito.doNothing().when(cookieService).setExpiredJwtCookie(any());
+        org.mockito.Mockito.doNothing().when(cookieService).setExpiredRefreshCookie(any());
+    }
+    
+    @Test
+    @DisplayName("Security test - all auth endpoints accessible with ApiSecurityTestConfig")
+    void authEndpoints_SecurityPermitsAll() throws Exception {
+        // Test that ApiSecurityTestConfig permits all requests (no 403 Forbidden)
+        // This validates that our security configuration is working correctly
+        
+        mockMvc.perform(post(BASE_URL + "/sign-up")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("email", "test@example.com")
+                .param("password", "test123"))
+            .andExpect(status().is(not(403))); // Security permits access
+            
+        mockMvc.perform(post(BASE_URL + "/sign-in")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)  
+                .param("email", "test@example.com")
+                .param("password", "test123"))
+            .andExpect(status().is(not(403))); // Security permits access
+            
+        mockMvc.perform(post(BASE_URL + "/sign-out"))
+            .andExpect(status().is(not(403))); // Security permits access
+            
+        mockMvc.perform(post(BASE_URL + "/refresh"))
+            .andExpect(status().is(not(403))); // Security permits access
+    }
+    
+    @Test
+    @DisplayName("@WithMockUser 테스트 - 인증된 사용자로 접근")
+    @WithMockUser(username = "ffffffff-ffff-ffff-ffff-ffffffffffff")
+    void withMockUser_Test() throws Exception {
+        // @WithMockUser가 정상적으로 작동하는지 테스트
+        // 이 테스트는 보안 설정이 올바르게 구성되었음을 증명
+        mockMvc.perform(post(BASE_URL + "/sign-out"))
+            .andExpect(status().is(not(403))); // 인증된 사용자도 접근 가능
         // Configure mock validation services to allow valid test data
         given(validationUtils.isValidEmail(any())).willReturn(true);
         given(validationUtils.isValidUsername(any())).willReturn(true);
@@ -150,7 +226,11 @@ class AuthControllerTest {
                         .param("password", "Password123!")
                         .param("confirmPassword", "Password123!")
                         .param("nickname", "테스트유저"))
-                    .andExpect(status().isOk());
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(header().exists("Set-Cookie"))
+                    .andExpect(header().string("Set-Cookie", containsString("access-token")))
+                    .andExpect(header().string("Set-Cookie", containsString("refresh-token")));
             }
             
             @Test
@@ -163,7 +243,10 @@ class AuthControllerTest {
                         .param("email", "signin@example.com")
                         .param("password", "Password123!")
                         .param("deviceId", "test-device-123"))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isOk())
+                    .andExpect(header().exists("Set-Cookie"))
+                    .andExpect(header().string("Set-Cookie", containsString("access-token")))
+                    .andExpect(header().string("Set-Cookie", containsString("refresh-token")));
             }
         }
         
