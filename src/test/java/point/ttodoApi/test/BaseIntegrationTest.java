@@ -1,5 +1,6 @@
 package point.ttodoApi.test;
 
+import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
@@ -35,6 +36,7 @@ import point.ttodoApi.config.TestContainersConfig;
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Transactional
+@Tag("integration")
 public abstract class BaseIntegrationTest {
 
     @Container

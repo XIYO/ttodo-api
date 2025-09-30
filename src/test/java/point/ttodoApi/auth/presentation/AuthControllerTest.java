@@ -11,12 +11,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.auth.application.*;
 import point.ttodoApi.auth.application.command.*;
 import point.ttodoApi.auth.application.result.AuthResult;
+import point.ttodoApi.auth.presentation.dto.request.*;
 import point.ttodoApi.auth.presentation.mapper.AuthPresentationMapper;
+import point.ttodoApi.common.fixture.AuthFixtures;
 import point.ttodoApi.profile.application.ProfileService;
+import point.ttodoApi.profile.infrastructure.persistence.ProfileRepository;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.*;
 import point.ttodoApi.shared.validation.sanitizer.ValidationUtils;
 import point.ttodoApi.user.application.*;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
 
 import java.util.UUID;
 
@@ -68,6 +72,12 @@ class AuthControllerTest {
     
     @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
+    
+    @MockitoBean
+    private UserRepository userRepository;
+    
+    @MockitoBean 
+    private ProfileRepository profileRepository;
 
     private static final String BASE_URL = "/auth";
     private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
@@ -83,10 +93,35 @@ class AuthControllerTest {
         given(validationUtils.isValidPassword(anyString())).willReturn(true);
         given(validationUtils.isValidUsername(anyString())).willReturn(true);
         
+        // Mock repository behaviors
+        given(userRepository.existsByEmail(anyString())).willReturn(false);
+        
+        // Mock mapper commands
         given(authMapper.toSignOutCommand(any(), any()))
             .willReturn(new SignOutCommand("test-device", "test-token"));
+        
+        // Mock command creation for sign up (3 parameters)
+        given(authMapper.toCommand(any(SignUpRequest.class), anyString(), anyString()))
+            .willAnswer(invocation -> new SignUpCommand(
+                "test@example.com",
+                "Password123!",
+                "테스트유저",
+                null,
+                "default-device-id"
+            ));
             
+        // Mock command creation for sign in (2 parameters)
+        given(authMapper.toCommand(any(SignInRequest.class), anyString()))
+            .willAnswer(invocation -> new SignInCommand(
+                "signin@example.com",
+                "Password123!",
+                "test-device-123"
+            ));
+            
+        // Mock service methods
         org.mockito.Mockito.doNothing().when(authCommandService).signOut(any());
+        org.mockito.Mockito.doNothing().when(cookieService).setJwtCookie(any(), anyString());
+        org.mockito.Mockito.doNothing().when(cookieService).setRefreshCookie(any(), anyString());
         org.mockito.Mockito.doNothing().when(cookieService).setExpiredJwtCookie(any());
         org.mockito.Mockito.doNothing().when(cookieService).setExpiredRefreshCookie(any());
         
@@ -117,6 +152,12 @@ class AuthControllerTest {
             @Order(1)
             @DisplayName("회원가입 성공 - 유효한 이메일과 패스워드")
             void signUp_Success_WithValidCredentials() throws Exception {
+                // Given
+                AuthResult result = AuthFixtures.createAuthResult();
+                given(authCommandService.signUp(any(SignUpCommand.class)))
+                    .willReturn(result);
+                
+                // When & Then
                 mockMvc.perform(post(BASE_URL + "/sign-up")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "test@example.com")
@@ -130,6 +171,12 @@ class AuthControllerTest {
             @Order(2)
             @DisplayName("로그인 성공 - 올바른 자격 증명")
             void signIn_Success_WithCorrectCredentials() throws Exception {
+                // Given
+                AuthResult result = AuthFixtures.createAuthResult();
+                given(authCommandService.signIn(any(SignInCommand.class)))
+                    .willReturn(result);
+                
+                // When & Then
                 mockMvc.perform(post(BASE_URL + "/sign-in")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "signin@example.com")
