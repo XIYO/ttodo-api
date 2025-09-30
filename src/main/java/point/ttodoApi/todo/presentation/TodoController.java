@@ -40,6 +40,7 @@ public class TodoController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('USER')")
   @ValidPageable(sortFields = SortFieldsProvider.TODO)
   @Operation(
           summary = "할 일 목록 조회",
@@ -80,6 +81,7 @@ public class TodoController {
 
   @GetMapping("/{id:\\d+}:{daysDifference:\\d+}")
   @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'READ')")
   @Operation(
           summary = "할 일 상세 조회",
           description = "특정 할 일의 상세 정보를 조회합니다. ID 형식에 따라 원본 할 일 또는 가상 할 일을 조회할 수 있습니다.\n\n" +
@@ -127,6 +129,7 @@ public class TodoController {
 
   @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("hasRole('USER')")
   @Operation(
           summary = "할 일 생성",
           description = "새로운 할 일을 생성합니다. 카테고리, 우선순위, 태그, 반복 설정 등 다양한 옵션을 설정할 수 있습니다. 입력은 form만 지원합니다(application/x-www-form-urlencoded 또는 multipart/form-data).\n\n" +
@@ -253,7 +256,7 @@ public class TodoController {
                   schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
           )
   )
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'WRITE')")
   public void modify(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
                      @PathVariable Long id,
                      @PathVariable Long daysDifference,
@@ -312,7 +315,7 @@ public class TodoController {
                   schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = point.ttodoApi.shared.error.ErrorResponse.class)
           )
   )
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'WRITE')")
   public void patchTodo(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
                         @PathVariable Long id,
                         @PathVariable Long daysDifference,
@@ -362,7 +365,7 @@ public class TodoController {
   @ApiResponse(responseCode = "204", description = "할 일 삭제/숨기기 성공")
   @ApiResponse(responseCode = "403", description = "다른 사용자의 할 일에 접근 시도")
   @ApiResponse(responseCode = "404", description = "할 일을 찾을 수 없음")
-  @PreAuthorize("@todoTemplateService.isOwnerWithDaysDifference(#id, #daysDifference, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#id + ':' + #daysDifference, 'Todo', 'DELETE')")
   public void remove(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user,
                      @PathVariable Long id,
                      @PathVariable Long daysDifference,
@@ -390,6 +393,7 @@ public class TodoController {
 
   @GetMapping("/statistics")
   @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('USER')")
   @Operation(
           summary = "할 일 통계 조회",
           description = "특정 날짜의 할 일 통계를 조회합니다. 진행 중 및 완료된 할 일의 개수, 카테고리별 분포 등의 통계 정보를 제공합니다.\n\n" +

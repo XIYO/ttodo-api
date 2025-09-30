@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -16,6 +17,7 @@ public class PriorityController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('USER')")
   @Operation(
           summary = "우선순위 참조 데이터 조회",
           description = "할 일에 설정할 수 있는 우선순위 목록을 조회합니다. 이 데이터는 할 일 생성/수정 시 우선순위 선택을 위한 고정된 참조 데이터입니다.",

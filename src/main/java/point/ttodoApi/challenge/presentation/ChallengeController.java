@@ -60,6 +60,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "401", description = "인증되지 않은 요청")
   @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("hasRole('USER')")
   public ChallengeResponse createChallenge(
           @Valid CreateChallengeRequest request,
           @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
@@ -88,6 +89,7 @@ public class ChallengeController {
   )
   @ApiResponse(responseCode = "200", description = "챌린지 목록 조회 성공")
   @GetMapping
+  @PreAuthorize("hasRole('USER')")
   @ValidPageable(sortFields = SortFieldsProvider.CHALLENGE)
   public Page<ChallengeResponse> getChallenges(
           @Parameter(description = "검색 조건") @ModelAttribute ChallengeSearchRequest request,
@@ -106,6 +108,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "200", description = "챌린지 상세 조회 성공")
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @GetMapping("/{challengeId}")
+  @PreAuthorize("hasRole('USER')")
   public ChallengeDetailResponse getChallenge(@PathVariable Long challengeId) {
     ChallengeResult result = challengeService.getChallengeDetailForPublic(challengeId);
     return challengePresentationMapper.toResponse(result);
@@ -127,7 +130,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @PatchMapping(value = "/{challengeId}", consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'WRITE')")
   public void updateChallenge(
           @PathVariable Long challengeId,
           @Valid UpdateChallengeRequest request,
@@ -145,7 +148,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @DeleteMapping("/{challengeId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'DELETE')")
   public void deleteChallenge(@PathVariable Long challengeId) {
     challengeService.deleteChallenge(challengeId);
   }
@@ -158,7 +161,7 @@ public class ChallengeController {
   @ApiResponse(responseCode = "403", description = "챌린지 생성자가 아님")
   @ApiResponse(responseCode = "404", description = "챌린지를 찾을 수 없음")
   @GetMapping("/{challengeId}/invite-link")
-  @PreAuthorize("@challengeService.isOwner(#challengeId, authentication.principal.id)")
+  @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'READ')")
   public InviteLinkResponse getInviteLink(@PathVariable Long challengeId) {
     Challenge challenge = challengeService.getChallenge(challengeId);
     return new InviteLinkResponse(
