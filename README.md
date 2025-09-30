@@ -25,14 +25,13 @@ TTODO의 백엔드 API 서버입니다. 개인 TODO 관리와 챌린지를 통�
 
 - **PostgreSQL** - 메인 데이터베이스 (개발/운영)
 - **Redis** - 토큰 저장소 및 세션 관리
-- **Testcontainers** - 테스트 환경 자동화
 
 ### Documentation & Testing
 
 - **Swagger/OpenAPI 3** - API 문서화
 - **JUnit 5** - 단위 테스트
-- **Spring Boot Test** - 통합 테스트
-- **Testcontainers** - PostgreSQL / Redis 컨테이너 기반 격리 테스트 (커버리지/정적 분석 도구는 간소화를 위해 제거됨)
+- **Spring Boot Test** - 슬라이스 테스트 (@WebMvcTest, Mockito 기반)
+- 통합 테스트 및 Testcontainers 제거하여 테스트 단순화 및 실행 속도 개선
 
 ### Libraries
 

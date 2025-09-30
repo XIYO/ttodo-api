@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 TTODO-API is a Spring Boot 3.5 backend API for personal TODO management with challenge and gamification features,
 following Domain-Driven Design (DDD) architecture.
 
-**Tech Stack**: Java 21, Spring Boot 3.5, PostgreSQL, Redis, JWT authentication, Testcontainers
+**Tech Stack**: Java 21, Spring Boot 3.5, PostgreSQL, Redis, JWT authentication
 
 ## Essential Commands
 
@@ -20,7 +20,7 @@ following Domain-Driven Design (DDD) architecture.
 # Build project
 ./gradlew build
 
-# Run all tests (uses Testcontainers for PostgreSQL/Redis)
+# Run all tests (slice/unit tests only)
 ./gradlew test
 
 # Run specific test class
@@ -29,7 +29,6 @@ following Domain-Driven Design (DDD) architecture.
 # Run tests by pattern
 ./gradlew test --tests "*ServiceTest"     # Unit tests
 ./gradlew test --tests "*ControllerTest"  # Controller tests
-./gradlew test --tests "*IntegrationTest" # Integration tests
 
 # Clean and build
 ./gradlew clean build
@@ -127,8 +126,9 @@ point.ttodoApi.[domain]/
     - Domain-specific exceptions
 
 6. **Testing Strategy**:
-    - BaseIntegrationTest with Testcontainers (PostgreSQL + Redis)
-    - Test security annotations: `@WithMockMemberPrincipal`, `@WithAnonUser`
+    - Slice tests with @WebMvcTest for controllers (MockMvc + Mockito)
+    - Pure unit tests for domain logic (JUnit 5)
+    - Test security annotations: `@WithMockUser` for authentication
     - Pre-configured test JWT tokens in application-test.yml
 
 ## Development Workflow
@@ -221,10 +221,11 @@ echo $SPRING_PROFILES_ACTIVE  # Should be 'dev' for local development
 
 ### Testing Patterns
 
-- Extend `BaseIntegrationTest` for integration tests (provides PostgreSQL/Redis containers)
-- Use `@WithMockMemberPrincipal` for authenticated endpoint tests
+- Use `@WebMvcTest(ControllerClass.class)` for controller slice tests with MockMvc
+- Use `@MockitoBean` to mock service dependencies
+- Use `@WithMockUser` for authenticated endpoint tests
+- Pure JUnit tests for domain logic without Spring context
 - Test data uses UUIDs: `ffffffff-ffff-ffff-ffff-ffffffffffff` for anonymous user
-- Testcontainers automatically manage database lifecycle
 
 ## Current Improvement Areas
 
