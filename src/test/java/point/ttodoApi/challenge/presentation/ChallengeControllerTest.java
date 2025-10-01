@@ -57,7 +57,7 @@ class ChallengeControllerTest {
     @BeforeEach
     void setUp() {
         // 기본 성공 응답 설정 - 간소화
-        org.mockito.Mockito.doNothing().when(challengeService).createChallenge(any());
+        given(challengeService.createChallenge(any())).willReturn(1L);
         org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
     }
 

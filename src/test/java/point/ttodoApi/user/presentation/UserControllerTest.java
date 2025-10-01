@@ -12,9 +12,13 @@ import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.ErrorMetricsCollector;
 import point.ttodoApi.user.application.*;
+import point.ttodoApi.user.application.result.UserResult;
 import point.ttodoApi.user.presentation.mapper.UserPresentationMapper;
 
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -56,7 +60,12 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         // 기본 성공 응답 설정 - 간소화
-        org.mockito.Mockito.doNothing().when(userCommandService).updateUser(any());
+        UserResult mockResult = new UserResult(
+                UUID.fromString(TEST_USER_ID),
+                "test@example.com",
+                "Test User"
+        );
+        given(userCommandService.updateUser(any())).willReturn(mockResult);
         // deleteUser 메서드는 실제 구현 확인 후 수정 필요
     }
 

@@ -62,8 +62,26 @@ class TodoControllerTest {
     @BeforeEach
     void setUp() {
         // 기본 성공 응답 설정 - 간소화
-        org.mockito.Mockito.doNothing().when(todoCommandService).createTodo(any(CreateTodoCommand.class));
-        org.mockito.Mockito.doNothing().when(todoCommandService).updateTodo(any(UpdateTodoCommand.class));
+        TodoResult mockResult = new TodoResult(
+                TEST_USER_ID,
+                "Test Todo",
+                null,
+                false,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+        given(todoCommandService.createTodo(any(CreateTodoCommand.class))).willReturn(mockResult);
+        given(todoCommandService.updateTodo(any(UpdateTodoCommand.class))).willReturn(mockResult);
         org.mockito.Mockito.doNothing().when(todoCommandService).deleteTodo(any(DeleteTodoCommand.class));
     }
 
