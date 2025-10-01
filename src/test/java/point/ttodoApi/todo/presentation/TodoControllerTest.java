@@ -12,14 +12,12 @@ import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.*;
 import point.ttodoApi.todo.application.*;
 import point.ttodoApi.todo.application.command.*;
-import point.ttodoApi.todo.application.result.TodoResult;
 import point.ttodoApi.todo.presentation.mapper.TodoPresentationMapper;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -61,28 +59,7 @@ class TodoControllerTest {
     
     @BeforeEach
     void setUp() {
-        // 기본 성공 응답 설정 - 간소화
-        TodoResult mockResult = new TodoResult(
-                TEST_USER_ID,
-                "Test Todo",
-                null,
-                false,
-                false,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-        given(todoCommandService.createTodo(any(CreateTodoCommand.class))).willReturn(mockResult);
-        given(todoCommandService.updateTodo(any(UpdateTodoCommand.class))).willReturn(mockResult);
-        org.mockito.Mockito.doNothing().when(todoCommandService).deleteTodo(any(DeleteTodoCommand.class));
+        // Mock 설정은 각 테스트에서 필요시 개별적으로 수행
     }
 
     @Nested
