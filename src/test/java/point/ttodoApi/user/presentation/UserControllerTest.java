@@ -55,9 +55,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        // 기본 성공 응답 설정 - 간소화
-        org.mockito.Mockito.doNothing().when(userCommandService).updateUser(any());
-        // deleteUser 메서드는 실제 구현 확인 후 수정 필요
+        // Mock 설정은 각 테스트에서 필요시 개별적으로 수행
     }
 
     @Nested
