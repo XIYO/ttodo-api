@@ -39,6 +39,9 @@ class StatisticsControllerTest {
     private StatisticsService statisticsService;
 
     @MockitoBean
+    private point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper profilePresentationMapper;
+
+    @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
 
     private static final UUID USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
@@ -57,6 +60,11 @@ class StatisticsControllerTest {
             .categoryCount(3)
             .build();
         given(statisticsService.getStatistics(any(UUID.class))).willReturn(statistics);
+        given(profilePresentationMapper.toStatisticsResponse(statistics))
+            .willReturn(new point.ttodoApi.profile.presentation.dto.response.StatisticsResponse(
+                statistics.getSucceededTodosCount(),
+                statistics.getCategoryCount()
+            ));
 
         mockMvc.perform(get("/user/{userId}/profile/statistics", USER_ID)
                 .with(SecurityMockMvcRequestPostProcessors.user(new TestUserDetails(USER_ID))))

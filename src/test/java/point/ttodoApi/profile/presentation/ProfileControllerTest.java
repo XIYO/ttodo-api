@@ -53,6 +53,9 @@ class ProfileControllerTest {
     private ProfileService profileService;
 
     @MockitoBean
+    private point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper profilePresentationMapper;
+
+    @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
 
     private static final UUID USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
@@ -90,6 +93,15 @@ class ProfileControllerTest {
             Profile profile = createProfile();
             given(userService.getUser(USER_ID)).willReturn(userResult);
             given(profileService.getProfile(USER_ID)).willReturn(profile);
+            given(profilePresentationMapper.toProfileResponse(userResult, profile))
+                .willReturn(new point.ttodoApi.profile.presentation.dto.response.ProfileResponse(
+                    userResult.nickname(),
+                    profile.getIntroduction(),
+                    profile.getTimeZone(),
+                    profile.getLocale(),
+                    profile.getTheme(),
+                    profile.getImageUrl()
+                ));
 
             mockMvc.perform(get("/user/{userId}/profile", USER_ID)
                     .with(authenticatedUser(USER_ID)))
@@ -161,6 +173,10 @@ class ProfileControllerTest {
             Profile profile = createProfile();
             profile.setImageUrl("https://cdn/new.png");
             given(profileService.updateProfileImage(eq(USER_ID), any())).willReturn(profile);
+            given(profilePresentationMapper.toProfileImageUploadResponse(profile.getImageUrl()))
+                .willReturn(new point.ttodoApi.profile.presentation.dto.response.ProfileImageUploadResponse(
+                    profile.getImageUrl()
+                ));
 
             MockMultipartFile image = new MockMultipartFile(
                 "image", "profile.png", "image/png", new byte[]{1, 2, 3}

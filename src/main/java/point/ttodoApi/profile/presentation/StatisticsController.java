@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import point.ttodoApi.profile.application.StatisticsService;
 import point.ttodoApi.profile.domain.Statistics;
 import point.ttodoApi.profile.presentation.dto.response.StatisticsResponse;
+import point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper;
 
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class StatisticsController {
 
   private final StatisticsService statisticsService;
+  private final ProfilePresentationMapper mapper;
 
   @Operation(
           summary = "사용자 활동 통계 조회",
@@ -35,9 +37,6 @@ public class StatisticsController {
   public StatisticsResponse getStatistics(@PathVariable UUID userId) {
     Statistics statistics = statisticsService.getStatistics(userId);
 
-    return new StatisticsResponse(
-            statistics.getSucceededTodosCount(),
-            statistics.getCategoryCount()
-    );
+    return mapper.toStatisticsResponse(statistics);
   }
 }

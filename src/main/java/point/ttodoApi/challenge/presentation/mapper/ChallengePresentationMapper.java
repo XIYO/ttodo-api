@@ -79,4 +79,11 @@ public interface ChallengePresentationMapper {
   @Mapping(target = "participantCount", expression = "java(challenge.getParticipations() != null ? challenge.getParticipations().size() : 0)")
   ChallengeResponse toChallengeSummaryResponse(Challenge challenge);
 
+  /**
+   * Challenge -> InviteLinkResponse 변환
+   */
+  @Mapping(target = "inviteCode", source = "inviteCode")
+  @Mapping(target = "inviteUrl", expression = "java(\"https://ttodo.dev/challenges/invite/\" + challenge.getInviteCode())")
+  InviteLinkResponse toInviteLinkResponse(Challenge challenge);
+
 }
