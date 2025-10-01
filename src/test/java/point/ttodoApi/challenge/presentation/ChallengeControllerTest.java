@@ -3,32 +3,47 @@ package point.ttodoApi.challenge.presentation;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Bean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.challenge.application.*;
 import point.ttodoApi.challenge.application.command.*;
 import point.ttodoApi.challenge.application.result.ChallengeResult;
+import point.ttodoApi.challenge.domain.Challenge;
+import point.ttodoApi.challenge.domain.ChallengeVisibility;
+import point.ttodoApi.challenge.domain.PeriodType;
 import point.ttodoApi.challenge.presentation.dto.request.*;
+import point.ttodoApi.challenge.presentation.dto.response.ChallengeDetailResponse;
 import point.ttodoApi.challenge.presentation.dto.response.ChallengeResponse;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.*;
+import point.ttodoApi.shared.security.AuthorizationService;
+import point.ttodoApi.shared.security.CustomPermissionEvaluator;
 import point.ttodoApi.user.application.UserService;
 import point.ttodoApi.user.domain.User;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ChallengeController.class)
-@Import(ApiSecurityTestConfig.class)
+@Import({ApiSecurityTestConfig.class, ChallengeControllerTest.MethodSecurityTestConfig.class})
 @DisplayName("ChallengeController 단위 테스트")
 @Tag("unit")
 @Tag("challenge")
@@ -53,7 +68,11 @@ class ChallengeControllerTest {
     @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
 
+    @MockitoBean
+    private AuthorizationService authorizationService;
+
     private static final UUID TEST_USER_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+    private static final String TEST_USER_ID_STRING = "ffffffff-ffff-ffff-ffff-ffffffffffff";
     private static final String TEST_TITLE = "Test Challenge";
     private static final String TEST_DESCRIPTION = "Test Description";
     private static final LocalDate TEST_START_DATE = LocalDate.now().plusDays(1);
@@ -84,8 +103,17 @@ class ChallengeControllerTest {
             ));
         
         // Service mock - createChallenge는 Long 반환
-        given(challengeService.createChallenge(any(CreateChallengeCommand.class))).willReturn(1L);
-        
+        doReturn(1L).when(challengeService).createChallenge(any(CreateChallengeCommand.class));
+
+        // Mapper mock - update 요청 변환
+        given(challengePresentationMapper.toCommand(any(UpdateChallengeRequest.class)))
+            .willReturn(new UpdateChallengeCommand(
+                "Updated Title",
+                "Updated Description",
+                PeriodType.WEEKLY,
+                null
+            ));
+
         // Service mock - getChallengeDetailForPublic은 ChallengeResult 반환
         ChallengeResult mockResult = new ChallengeResult(
             1L,
@@ -93,30 +121,83 @@ class ChallengeControllerTest {
             TEST_DESCRIPTION,
             TEST_START_DATE,
             TEST_END_DATE,
-            point.ttodoApi.challenge.domain.PeriodType.WEEKLY,
+            PeriodType.WEEKLY,
             true,
             5,
             0.85,
-            point.ttodoApi.challenge.domain.ChallengeVisibility.PUBLIC,
+            ChallengeVisibility.PUBLIC,
             TEST_USER_ID
         );
-        given(challengeService.getChallengeDetailForPublic(anyLong())).willReturn(mockResult);
-        
-        // Mapper mock - toChallengeResponse는 ChallengeResponse 반환
+        doReturn(mockResult).when(challengeService).getChallengeDetailForPublic(anyLong());
+
+        // 검색용 도메인 엔티티 및 응답
+        Challenge mockChallenge = Challenge.builder()
+            .id(1L)
+            .title(TEST_TITLE)
+            .description(TEST_DESCRIPTION)
+            .startDate(TEST_START_DATE)
+            .endDate(TEST_END_DATE)
+            .periodType(PeriodType.WEEKLY)
+            .visibility(ChallengeVisibility.PUBLIC)
+            .creatorId(TEST_USER_ID)
+            .build();
+        Page<Challenge> mockPage = new PageImpl<>(List.of(mockChallenge));
+        given(challengeSearchService.searchChallenges(any(ChallengeSearchRequest.class), any(Pageable.class)))
+            .willReturn(mockPage);
+
+        // Mapper mock - toChallengeResponse 및 요약 응답 반환
         ChallengeResponse mockResponse = new ChallengeResponse(
             1L,
             TEST_TITLE,
             TEST_DESCRIPTION,
             TEST_START_DATE,
             TEST_END_DATE,
-            point.ttodoApi.challenge.domain.PeriodType.WEEKLY,
+            PeriodType.WEEKLY,
             true,
             5
         );
         given(challengePresentationMapper.toChallengeResponse(any(ChallengeResult.class))).willReturn(mockResponse);
-        
+        given(challengePresentationMapper.toChallengeSummaryResponse(any(Challenge.class))).willReturn(mockResponse);
+
+        ChallengeDetailResponse mockDetailResponse = new ChallengeDetailResponse(
+            1L,
+            TEST_TITLE,
+            TEST_DESCRIPTION,
+            TEST_START_DATE,
+            TEST_END_DATE,
+            PeriodType.WEEKLY,
+            true,
+            5,
+            0.85f,
+            3,
+            5,
+            List.of()
+        );
+        given(challengePresentationMapper.toResponse(any(ChallengeResult.class))).willReturn(mockDetailResponse);
+
         // Service mock - deleteChallenge는 void
         org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
+        org.mockito.Mockito.doNothing().when(challengeService).partialUpdateChallenge(anyLong(), any(UpdateChallengeCommand.class));
+
+        // 권한 검증은 테스트에서는 인증된 사용자일 때만 통과시키도록 AuthorizationService만 스텁
+        given(authorizationService.hasPermission(any(UUID.class), any(), anyString(), anyString()))
+            .willReturn(true);
+    }
+
+    @TestConfiguration
+    static class MethodSecurityTestConfig {
+
+        @Bean
+        CustomPermissionEvaluator customPermissionEvaluator(AuthorizationService authorizationService) {
+            return new CustomPermissionEvaluator(authorizationService);
+        }
+
+        @Bean
+        MethodSecurityExpressionHandler methodSecurityExpressionHandler(CustomPermissionEvaluator customPermissionEvaluator) {
+            DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+            handler.setPermissionEvaluator(customPermissionEvaluator);
+            return handler;
+        }
     }
 
     @Nested
@@ -131,7 +212,7 @@ class ChallengeControllerTest {
             @Test
             @Order(1)
             @DisplayName("챌린지 생성 성공 - 유효한 데이터")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void createChallenge_Success_WithValidData() throws Exception {
                 mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -170,7 +251,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 생성 실패 - 제목 미입력")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void createChallenge_Failure_WithoutTitle() throws Exception {
                 mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -184,7 +265,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 생성 실패 - 종료일이 시작일보다 빠름")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void createChallenge_Failure_EndDateBeforeStartDate() throws Exception {
                 given(challengeService.createChallenge(any()))
                     .willThrow(new BusinessException(ErrorCode.INVALID_OPERATION));
@@ -207,7 +288,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 생성 - 선택 필드 미입력")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void createChallenge_EdgeCase_WithoutOptionalFields() throws Exception {
                 mockMvc.perform(post("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -232,7 +313,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 목록 조회 성공")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void getChallenges_Success() throws Exception {
                 mockMvc.perform(get("/challenges")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -241,7 +322,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 상세 조회 성공")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void getChallenge_Success() throws Exception {
                 mockMvc.perform(get("/challenges/1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -268,7 +349,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 상세 조회 실패 - 존재하지 않는 챌린지")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void getChallenge_Failure_NotFound() throws Exception {
                 given(challengeService.getChallengeDetailForPublic(anyLong()))
                     .willThrow(new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND));
@@ -290,7 +371,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 수정 성공")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void updateChallenge_Success() throws Exception {
                 mockMvc.perform(patch("/challenges/1")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -325,7 +406,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 삭제 성공")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void deleteChallenge_Success() throws Exception {
                 org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
                 
@@ -354,7 +435,7 @@ class ChallengeControllerTest {
             
             @Test
             @DisplayName("챌린지 삭제 실패 - 존재하지 않는 챌린지")
-            @WithMockUser
+            @WithMockUser(username = TEST_USER_ID_STRING)
             void deleteChallenge_Failure_NotFound() throws Exception {
                 org.mockito.Mockito.doThrow(new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND))
                     .when(challengeService).deleteChallenge(anyLong());

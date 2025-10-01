@@ -3,11 +3,11 @@ services:
     image: postgres:18-alpine
     container_name: ttodo-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-ttodo}
-      POSTGRES_USER: ${POSTGRES_USER:-ttodo_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ttodo_password}
+      POSTGRES_DB: ttodo
+      POSTGRES_USER: ttodo
+      POSTGRES_PASSWORD: ttodo
     ports:
-      - "5432:5432"
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     command:
@@ -16,23 +16,27 @@ services:
       - -c
       - wal_level=logical
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ttodo_user -d ttodo_dev" ]
+      test: [ "CMD-SHELL", "pg_isready -U ttodo -d ttodo" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - "org.springframework.boot.service-connection=postgres"
 
   redis:
     image: redis:alpine
     container_name: ttodo-redis
     ports:
       - "6379"
+    labels:
+      - "org.springframework.boot.service-connection=redis"
 
   electric:
     image: electricsql/electric:latest
     container_name: ttodo-electric
     environment:
       # Database connection
-      DATABASE_URL: postgresql://ttodo_user:ttodo_password@postgres:5432/ttodo?sslmode=disable
+      DATABASE_URL: postgresql://ttodo:ttodo@postgres:5432/ttodo?sslmode=disable
       # Development mode - insecure
       ELECTRIC_INSECURE: "true"
     ports:

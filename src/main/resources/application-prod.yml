@@ -1,5 +1,14 @@
 # 프로덕션 환경 설정
 spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:ttodo}
+    username: ${POSTGRES_USER:ttodo}
+    password: ${POSTGRES_PASSWORD:ttodo}
+    driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -25,8 +34,3 @@ jwt:
       domain: ttodo.xiyo.dev
       secure: true
       httpOnly: true
-
-logging:
-  level:
-    root: warn
-    point.ttodoApi: info
