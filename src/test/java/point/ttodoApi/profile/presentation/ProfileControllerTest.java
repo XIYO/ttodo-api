@@ -17,6 +17,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.profile.domain.Theme;
+import point.ttodoApi.profile.presentation.dto.response.ProfileImageUploadResponse;
+import point.ttodoApi.profile.presentation.dto.response.ProfileResponse;
+import point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.ErrorMetricsCollector;
 import point.ttodoApi.user.application.UserService;
@@ -53,7 +56,7 @@ class ProfileControllerTest {
     private ProfileService profileService;
 
     @MockitoBean
-    private point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper profilePresentationMapper;
+    private ProfilePresentationMapper profilePresentationMapper;
 
     @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
@@ -94,7 +97,7 @@ class ProfileControllerTest {
             given(userService.getUser(USER_ID)).willReturn(userResult);
             given(profileService.getProfile(USER_ID)).willReturn(profile);
             given(profilePresentationMapper.toProfileResponse(userResult, profile))
-                .willReturn(new point.ttodoApi.profile.presentation.dto.response.ProfileResponse(
+                .willReturn(new ProfileResponse(
                     userResult.nickname(),
                     profile.getIntroduction(),
                     profile.getTimeZone(),
@@ -174,7 +177,7 @@ class ProfileControllerTest {
             profile.setImageUrl("https://cdn/new.png");
             given(profileService.updateProfileImage(eq(USER_ID), any())).willReturn(profile);
             given(profilePresentationMapper.toProfileImageUploadResponse(profile.getImageUrl()))
-                .willReturn(new point.ttodoApi.profile.presentation.dto.response.ProfileImageUploadResponse(
+                .willReturn(new ProfileImageUploadResponse(
                     profile.getImageUrl()
                 ));
 

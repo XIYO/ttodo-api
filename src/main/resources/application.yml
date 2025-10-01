@@ -51,6 +51,7 @@ jwt:
 
 # CORS 설정
 app:
+  base-url: https://ttodo.dev
   cors:
     allowed-origins:
       - http://localhost:5173  # Vite development server

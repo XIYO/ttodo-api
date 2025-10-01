@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import point.ttodoApi.profile.application.StatisticsService;
 import point.ttodoApi.profile.domain.Statistics;
+import point.ttodoApi.profile.presentation.dto.response.StatisticsResponse;
+import point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.ErrorMetricsCollector;
 import point.ttodoApi.user.domain.User;
@@ -39,7 +41,7 @@ class StatisticsControllerTest {
     private StatisticsService statisticsService;
 
     @MockitoBean
-    private point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper profilePresentationMapper;
+    private ProfilePresentationMapper profilePresentationMapper;
 
     @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
@@ -61,7 +63,10 @@ class StatisticsControllerTest {
             .build();
         given(statisticsService.getStatistics(any(UUID.class))).willReturn(statistics);
         given(profilePresentationMapper.toStatisticsResponse(statistics))
-            .willCallRealMethod();
+            .willReturn(new StatisticsResponse(
+                statistics.getSucceededTodosCount(),
+                statistics.getCategoryCount()
+            ));
 
         mockMvc.perform(get("/user/{userId}/profile/statistics", USER_ID)
                 .with(SecurityMockMvcRequestPostProcessors.user(new TestUserDetails(USER_ID))))
