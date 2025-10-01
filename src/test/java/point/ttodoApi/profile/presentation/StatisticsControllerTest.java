@@ -61,10 +61,7 @@ class StatisticsControllerTest {
             .build();
         given(statisticsService.getStatistics(any(UUID.class))).willReturn(statistics);
         given(profilePresentationMapper.toStatisticsResponse(statistics))
-            .willReturn(new point.ttodoApi.profile.presentation.dto.response.StatisticsResponse(
-                statistics.getSucceededTodosCount(),
-                statistics.getCategoryCount()
-            ));
+            .willCallRealMethod();
 
         mockMvc.perform(get("/user/{userId}/profile/statistics", USER_ID)
                 .with(SecurityMockMvcRequestPostProcessors.user(new TestUserDetails(USER_ID))))
