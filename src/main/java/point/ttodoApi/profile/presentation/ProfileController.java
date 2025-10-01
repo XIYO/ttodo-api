@@ -19,6 +19,7 @@ import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.profile.presentation.dto.request.UpdateProfileRequest;
 import point.ttodoApi.profile.presentation.dto.response.ProfileImageUploadResponse;
 import point.ttodoApi.profile.presentation.dto.response.ProfileResponse;
+import point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -34,6 +35,7 @@ public class ProfileController {
 
   private final UserService UserService;
   private final ProfileService profileService;
+  private final ProfilePresentationMapper mapper;
 
   @Operation(
           summary = "프로필 정보 조회",
@@ -48,14 +50,7 @@ public class ProfileController {
     UserResult UserResult = UserService.getUser(userId);
     Profile profile = profileService.getProfile(userId);
 
-    return new ProfileResponse(
-            UserResult.nickname(),
-            profile.getIntroduction(),
-            profile.getTimeZone(),
-            profile.getLocale(),
-            profile.getTheme(),
-            profile.getImageUrl()
-    );
+    return mapper.toProfileResponse(UserResult, profile);
   }
 
   @Operation(
@@ -159,7 +154,7 @@ public class ProfileController {
           @PathVariable UUID userId,
           @RequestParam("image") MultipartFile image) throws IOException {
     Profile updatedProfile = profileService.updateProfileImage(userId, image);
-    return new ProfileImageUploadResponse(updatedProfile.getImageUrl());
+    return mapper.toProfileImageUploadResponse(updatedProfile.getImageUrl());
   }
 
   @Operation(

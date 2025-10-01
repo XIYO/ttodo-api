@@ -164,10 +164,7 @@ public class ChallengeController {
   @PreAuthorize("hasPermission(#challengeId, 'Challenge', 'READ')")
   public InviteLinkResponse getInviteLink(@PathVariable Long challengeId) {
     Challenge challenge = challengeService.getChallenge(challengeId);
-    return new InviteLinkResponse(
-            challenge.getInviteCode(),
-            "https://ttodo.dev/challenges/invite/" + challenge.getInviteCode()
-    );
+    return challengePresentationMapper.toInviteLinkResponse(challenge);
   }
 
 

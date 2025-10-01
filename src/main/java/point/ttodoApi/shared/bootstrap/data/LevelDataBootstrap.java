@@ -36,26 +36,26 @@ public class LevelDataBootstrap {
      */
     private List<Level> createDefaultLevels() {
         return List.of(
-                new Level(1, "떠오르는 새싹", 0),
-                new Level(2, "작은 불꽃", 100),
-                new Level(3, "흔들리는 나무", 250),
-                new Level(4, "단단한 바위", 450),
-                new Level(5, "흐르는 강물", 700),
-                new Level(6, "빛나는 별빛", 1000),
-                new Level(7, "고요한 달빛", 1350),
-                new Level(8, "믿음의 등대", 1750),
-                new Level(9, "불타는 열정", 2200),
-                new Level(10, "깨어난 거인", 2700),
-                new Level(11, "날개 단 독수리", 3250),
-                new Level(12, "폭풍의 항해사", 3850),
-                new Level(13, "번개의 주인", 4500),
-                new Level(14, "시간의 지배자", 5200),
-                new Level(15, "운명의 개척자", 5950),
-                new Level(16, "지혜의 현자", 6750),
-                new Level(17, "빛의 수호자", 7600),
-                new Level(18, "차원의 여행자", 8500),
-                new Level(19, "영원의 불꽃", 9450),
-                new Level(20, "시공의 초월자", 10450)
+                Level.builder().level(1).name("떠오르는 새싹").requiredExp(0).build(),
+                Level.builder().level(2).name("작은 불꽃").requiredExp(100).build(),
+                Level.builder().level(3).name("흔들리는 나무").requiredExp(250).build(),
+                Level.builder().level(4).name("단단한 바위").requiredExp(450).build(),
+                Level.builder().level(5).name("흐르는 강물").requiredExp(700).build(),
+                Level.builder().level(6).name("빛나는 별빛").requiredExp(1000).build(),
+                Level.builder().level(7).name("고요한 달빛").requiredExp(1350).build(),
+                Level.builder().level(8).name("믿음의 등대").requiredExp(1750).build(),
+                Level.builder().level(9).name("불타는 열정").requiredExp(2200).build(),
+                Level.builder().level(10).name("깨어난 거인").requiredExp(2700).build(),
+                Level.builder().level(11).name("날개 단 독수리").requiredExp(3250).build(),
+                Level.builder().level(12).name("폭풍의 항해사").requiredExp(3850).build(),
+                Level.builder().level(13).name("번개의 주인").requiredExp(4500).build(),
+                Level.builder().level(14).name("시간의 지배자").requiredExp(5200).build(),
+                Level.builder().level(15).name("운명의 개척자").requiredExp(5950).build(),
+                Level.builder().level(16).name("지혜의 현자").requiredExp(6750).build(),
+                Level.builder().level(17).name("빛의 수호자").requiredExp(7600).build(),
+                Level.builder().level(18).name("차원의 여행자").requiredExp(8500).build(),
+                Level.builder().level(19).name("영원의 불꽃").requiredExp(9450).build(),
+                Level.builder().level(20).name("시공의 초월자").requiredExp(10450).build()
         );
     }
 }

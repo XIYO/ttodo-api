@@ -1,19 +1,27 @@
 package point.ttodoApi.sync.presentation.dto.response;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import java.util.List;
 
-@Data
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = false)
 public class SyncResponse {
-    private boolean success;
-    private Long serverTimestamp;
-    private List<SyncResult> results;
-    private List<ConflictRecord> conflicts;
+    boolean success;
+    Long serverTimestamp;
+    List<SyncResult> results;
+    List<ConflictRecord> conflicts;
     
-    @Data
-    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SyncResult {
         private String localId;
         private Integer serverId;
@@ -22,12 +30,13 @@ public class SyncResponse {
         private String error;
     }
     
-    @Data
-    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ConflictRecord {
         private Integer id;
         private Object serverVersion;
         private Object clientVersion;
-        private String resolution; // "server_wins", "client_wins", "merged"
+        private String resolution;
     }
 }

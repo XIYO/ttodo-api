@@ -17,6 +17,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.profile.application.ProfileService;
 import point.ttodoApi.profile.domain.Profile;
 import point.ttodoApi.profile.domain.Theme;
+import point.ttodoApi.profile.presentation.dto.response.ProfileImageUploadResponse;
+import point.ttodoApi.profile.presentation.dto.response.ProfileResponse;
+import point.ttodoApi.profile.presentation.mapper.ProfilePresentationMapper;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.ErrorMetricsCollector;
 import point.ttodoApi.user.application.UserService;
@@ -51,6 +54,9 @@ class ProfileControllerTest {
 
     @MockitoBean
     private ProfileService profileService;
+
+    @MockitoBean
+    private ProfilePresentationMapper profilePresentationMapper;
 
     @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
@@ -90,6 +96,15 @@ class ProfileControllerTest {
             Profile profile = createProfile();
             given(userService.getUser(USER_ID)).willReturn(userResult);
             given(profileService.getProfile(USER_ID)).willReturn(profile);
+            given(profilePresentationMapper.toProfileResponse(userResult, profile))
+                .willReturn(new ProfileResponse(
+                    userResult.nickname(),
+                    profile.getIntroduction(),
+                    profile.getTimeZone(),
+                    profile.getLocale(),
+                    profile.getTheme(),
+                    profile.getImageUrl()
+                ));
 
             mockMvc.perform(get("/user/{userId}/profile", USER_ID)
                     .with(authenticatedUser(USER_ID)))
@@ -161,6 +176,10 @@ class ProfileControllerTest {
             Profile profile = createProfile();
             profile.setImageUrl("https://cdn/new.png");
             given(profileService.updateProfileImage(eq(USER_ID), any())).willReturn(profile);
+            given(profilePresentationMapper.toProfileImageUploadResponse(profile.getImageUrl()))
+                .willReturn(new ProfileImageUploadResponse(
+                    profile.getImageUrl()
+                ));
 
             MockMultipartFile image = new MockMultipartFile(
                 "image", "profile.png", "image/png", new byte[]{1, 2, 3}

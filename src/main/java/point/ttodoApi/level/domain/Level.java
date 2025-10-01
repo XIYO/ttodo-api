@@ -6,6 +6,8 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 @Table(name = "levels")
 public class Level {
   @Id
@@ -16,11 +18,4 @@ public class Level {
 
   @Column(nullable = false)
   private int requiredExp;
-
-  @Builder
-  public Level(Integer level, String name, int requiredExp) {
-    this.level = level;
-    this.name = name;
-    this.requiredExp = requiredExp;
-  }
 }
