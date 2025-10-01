@@ -32,12 +32,13 @@ public class SyncService {
         results.add(result);
       } catch (Exception e) {
         log.error("Failed to process sync change: {}", change, e);
-        results.add(SyncResponse.SyncResult.builder()
-                .localId(change.getRecord().getId())
-                .operation(change.getOperation())
-                .success(false)
-                .error(e.getMessage())
-                .build());
+        results.add(new SyncResponse.SyncResult(
+                change.getRecord().getId(),
+                null,
+                change.getOperation(),
+                false,
+                e.getMessage()
+        ));
       }
     }
 
@@ -75,12 +76,13 @@ public class SyncService {
             record.getCreatedAt() != null ? Timestamp.valueOf(record.getCreatedAt()) : Timestamp.from(Instant.now())
     );
 
-    return SyncResponse.SyncResult.builder()
-            .localId(record.getId())
-            .serverId(serverId)
-            .operation("insert")
-            .success(true)
-            .build();
+    return new SyncResponse.SyncResult(
+            record.getId(),
+            serverId,
+            "insert",
+            true,
+            null
+    );
   }
 
   private SyncResponse.SyncResult handleUpdate(SyncRequest.SyncRecord record) {
@@ -97,13 +99,13 @@ public class SyncService {
 
     // Only update if client version is newer
     if (record.getUpdatedAt() != null && serverUpdatedAt != null && record.getUpdatedAt() <= serverUpdatedAt)
-      return SyncResponse.SyncResult.builder()
-              .localId(record.getId())
-              .serverId(Integer.valueOf(record.getId()))
-              .operation("update")
-              .success(false)
-              .error("Server version is newer")
-              .build();
+      return new SyncResponse.SyncResult(
+              record.getId(),
+              Integer.valueOf(record.getId()),
+              "update",
+              false,
+              "Server version is newer"
+      );
 
     final String sql = "UPDATE simple_todo SET title = ?, description = ?, complete = ?, updated_at = ? WHERE id = ?";
 
@@ -115,13 +117,13 @@ public class SyncService {
             record.getId()
     );
 
-    return SyncResponse.SyncResult.builder()
-            .localId(record.getId())
-            .serverId(Integer.valueOf(record.getId()))
-            .operation("update")
-            .success(updated > 0)
-            .error(updated == 0 ? "Record not found" : null)
-            .build();
+    return new SyncResponse.SyncResult(
+            record.getId(),
+            Integer.valueOf(record.getId()),
+            "update",
+            updated > 0,
+            updated == 0 ? "Record not found" : null
+    );
   }
 
   private SyncResponse.SyncResult handleDelete(SyncRequest.SyncRecord record) {
@@ -129,11 +131,12 @@ public class SyncService {
 
     int deleted = jdbcTemplate.update(sql, record.getId());
 
-    return SyncResponse.SyncResult.builder()
-            .localId(record.getId())
-            .operation("delete")
-            .success(deleted > 0)
-            .error(deleted == 0 ? "Record not found" : null)
-            .build();
+    return new SyncResponse.SyncResult(
+            record.getId(),
+            null,
+            "delete",
+            deleted > 0,
+            deleted == 0 ? "Record not found" : null
+    );
   }
 }

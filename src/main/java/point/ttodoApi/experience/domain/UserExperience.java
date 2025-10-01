@@ -11,6 +11,8 @@ import static point.ttodoApi.experience.domain.ExperienceConstants.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 @Table(name = "user_experiences")
 public class UserExperience {
   @Id
@@ -24,12 +26,6 @@ public class UserExperience {
   @Column(nullable = false)
   @ValidExperience
   private int experience;
-
-  @Builder
-  public UserExperience(UUID ownerId, int experience) {
-    this.ownerId = ownerId;
-    this.experience = experience;
-  }
 
   public void addExperience(@ValidExperienceIncrement int amount) {
     experience += amount;

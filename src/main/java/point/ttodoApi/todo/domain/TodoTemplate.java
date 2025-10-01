@@ -20,8 +20,10 @@ import static point.ttodoApi.todo.domain.TodoConstants.*;
 @Table(name = "todo_template")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class TodoTemplate {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,12 +60,15 @@ public class TodoTemplate {
   @Column(name = "complete")
   private Boolean complete;
 
+  @Builder.Default
   @Column(name = "active", nullable = false)
   private Boolean active = DEFAULT_ACTIVE;
 
+  @Builder.Default
   @Column(name = "is_pinned", nullable = false)
   private Boolean isPinned = DEFAULT_IS_PINNED;
 
+  @Builder.Default
   @Column(name = "display_order", nullable = false)
   @ValidDisplayOrder
   private Integer displayOrder = DEFAULT_DISPLAY_ORDER;
@@ -77,6 +82,7 @@ public class TodoTemplate {
 
   // 구 반복 요일 컬렉션 제거(미래지향: RRULE 사용)
 
+  @Builder.Default
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "todo_template_tags", joinColumns = @JoinColumn(name = "todo_template_id"))
   @Column(name = "tag")
@@ -91,36 +97,6 @@ public class TodoTemplate {
   @JoinColumn(name = "user_id", nullable = false)
   @ValidOwner
   private User owner;
-
-  @Builder
-  public TodoTemplate(
-          String title,
-          String description,
-          Integer priorityId,
-          LocalDate date,
-          LocalTime time,
-          Boolean complete,
-          Boolean active,
-          Boolean isPinned,
-          Integer displayOrder,
-          Set<String> tags,
-          Category category,
-          User owner
-  ) {
-    this.title = title;
-    this.description = description;
-    this.priorityId = priorityId;
-    this.date = date;
-    this.time = time;
-    this.complete = complete;
-    this.active = active != null ? active : DEFAULT_ACTIVE;
-    this.isPinned = isPinned != null ? isPinned : DEFAULT_IS_PINNED;
-    this.displayOrder = displayOrder != null ? displayOrder : DEFAULT_DISPLAY_ORDER;
-    this.tags = tags != null ? tags : new HashSet<>();
-    this.category = category;
-    this.owner = owner;
-  }
-
 
   public void togglePin() {
     this.isPinned = !this.isPinned;
