@@ -1,6 +1,10 @@
 package point.ttodoApi.sync.presentation.dto.response;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import java.util.List;
 
