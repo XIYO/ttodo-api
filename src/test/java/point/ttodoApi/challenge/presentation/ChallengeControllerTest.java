@@ -9,10 +9,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import point.ttodoApi.challenge.application.*;
+import point.ttodoApi.challenge.application.result.ChallengeResult;
+import point.ttodoApi.challenge.presentation.dto.response.ChallengeResponse;
 import point.ttodoApi.challenge.presentation.mapper.ChallengePresentationMapper;
 import point.ttodoApi.shared.config.auth.ApiSecurityTestConfig;
 import point.ttodoApi.shared.error.*;
 import point.ttodoApi.user.application.UserService;
+
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -57,7 +61,46 @@ class ChallengeControllerTest {
     @BeforeEach
     void setUp() {
         // 기본 성공 응답 설정 - 간소화
+        // Mock User 설정
+        point.ttodoApi.user.domain.User mockUser = point.ttodoApi.user.domain.User.builder()
+                .id(UUID.fromString(TEST_USER_ID))
+                .email("test@example.com")
+                .password("password")
+                .build();
+        given(userService.findVerifiedUser(any(UUID.class))).willReturn(mockUser);
+        
+        // Mock Challenge Service
         given(challengeService.createChallenge(any())).willReturn(1L);
+        
+        // Mock ChallengeResult for getChallengeDetailForPublic
+        ChallengeResult mockResult = new ChallengeResult(
+                1L,
+                "Test Challenge",
+                "Test Description",
+                java.time.LocalDate.of(2099, 1, 1),
+                java.time.LocalDate.of(2099, 12, 31),
+                point.ttodoApi.challenge.domain.PeriodType.DAILY,
+                false,
+                0,
+                0.0,
+                point.ttodoApi.challenge.domain.ChallengeVisibility.PUBLIC,
+                UUID.fromString(TEST_USER_ID)
+        );
+        given(challengeService.getChallengeDetailForPublic(anyLong())).willReturn(mockResult);
+        
+        // Mock ChallengeResponse for mapper
+        ChallengeResponse mockResponse = new ChallengeResponse(
+                1L,
+                "Test Challenge",
+                "Test Description",
+                java.time.LocalDate.of(2099, 1, 1),
+                java.time.LocalDate.of(2099, 12, 31),
+                point.ttodoApi.challenge.domain.PeriodType.DAILY,
+                false,
+                0
+        );
+        given(challengePresentationMapper.toChallengeResponse(any())).willReturn(mockResponse);
+        
         org.mockito.Mockito.doNothing().when(challengeService).deleteChallenge(anyLong());
     }
 
@@ -79,8 +122,8 @@ class ChallengeControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Test Challenge")
                         .param("description", "Test Description")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("startDate", "2099-01-01")
+                        .param("endDate", "2099-12-31"))
                     .andExpect(status().isCreated());
             }
         }
@@ -96,8 +139,8 @@ class ChallengeControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Test Challenge")
                         .param("description", "Test Description")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("startDate", "2099-01-01")
+                        .param("endDate", "2099-12-31"))
                     .andExpect(status().isForbidden());
             }
         }
@@ -113,8 +156,8 @@ class ChallengeControllerTest {
                 mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("description", "Test Description")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("startDate", "2099-01-01")
+                        .param("endDate", "2099-12-31"))
                     .andExpect(status().isBadRequest());
             }
         }
@@ -130,8 +173,8 @@ class ChallengeControllerTest {
                 mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Test Challenge")
-                        .param("startDate", "2025-01-01")
-                        .param("endDate", "2025-01-31"))
+                        .param("startDate", "2099-01-01")
+                        .param("endDate", "2099-12-31"))
                     .andExpect(status().isCreated());
             }
         }
