@@ -87,21 +87,9 @@ public interface TodoApplicationMapper {
   @Mapping(target = "anchorDate", ignore = true)
   TodoResult toResult(Todo todo);
 
-  // CreateTodoCommand로 Todo 엔티티 생성
-  @Mapping(target = "todoId", expression = "java(new point.ttodoApi.todo.domain.TodoId(1L, 0L))") // 임시 ID, 실제로는 생성 로직에서 처리
-  @Mapping(target = "owner", ignore = true) // 서비스에서 설정
-  @Mapping(target = "category", ignore = true) // 서비스에서 설정
-  @Mapping(target = "active", constant = "true")
-  @Mapping(target = "isCollaborative", constant = "false")
-  Todo toEntity(CreateTodoCommand command);
-
-  // UpdateTodoCommand로 Todo 엔티티 업데이트
-  @Mapping(target = "todoId", ignore = true)
-  @Mapping(target = "owner", ignore = true)
-  @Mapping(target = "category", ignore = true)
-  @Mapping(target = "active", ignore = true)
-  @Mapping(target = "isCollaborative", ignore = true)
-  void updateEntity(@MappingTarget Todo todo, UpdateTodoCommand command);
+  // Note: CreateTodoCommand → Todo 매핑은 TodoCommandService에서만 사용되었으며,
+  // 현재 TodoCommandService는 사용되지 않아 제거됨.
+  // 향후 필요시 TodoTemplateService에서 직접 엔티티 생성 로직 사용.
 
   @Named("priorityName")
   default String getPriorityName(Integer priorityId) {

@@ -20,6 +20,13 @@ public interface TodoRepository extends JpaRepository<Todo, TodoId>, JpaSpecific
   @Query("SELECT t FROM Todo t WHERE t.todoId = :todoId AND t.owner.id = :userId")
   Optional<Todo> findByTodoIdAndOwnerIdIgnoreActive(@Param("todoId") TodoId todoId, @Param("userId") UUID userId);
 
+  /**
+   * 여러 TodoId에 해당하는 Todo를 한 번에 조회 (N+1 방지용 벌크 조회)
+   * active 상태 무시하고 조회
+   */
+  @Query("SELECT t FROM Todo t WHERE t.todoId IN :todoIds AND t.owner.id = :ownerId")
+  List<Todo> findAllByTodoIdInAndOwnerIdIgnoreActive(@Param("todoIds") List<TodoId> todoIds, @Param("ownerId") UUID ownerId);
+
   // 통계용 메서드 - 완료한 할일 수
   @Query("SELECT COUNT(t) FROM Todo t WHERE t.owner.id = :userId AND t.complete = true AND t.active = true")
   long countCompletedTodosByOwnerId(@Param("userId") UUID userId);

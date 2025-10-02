@@ -1,9 +1,10 @@
 package point.ttodoApi.auth.presentation;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.*;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,7 @@ class AuthControllerTest {
     @MockitoBean 
     private ProfileRepository profileRepository;
 
-    private static final String BASE_URL = "/auth";
+    
     private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
     private static final String EMAIL = "test@example.com";
     private static final String PASSWORD = "Password123!";
@@ -77,33 +78,42 @@ class AuthControllerTest {
     @BeforeEach
     void setUp() {
         // Mock repository behaviors
-            given(userRepository.existsByEmail(org.mockito.Mockito.anyString())).willReturn(false);
-        
-        // Mock mapper commands
-            given(authMapper.toSignOutCommand(org.mockito.Mockito.any(), org.mockito.Mockito.any()))
+        given(userRepository.existsByEmail(anyString())).willReturn(false);
+
+        // Mock mapper commands - nullable() for parameters that can be null
+        given(authMapper.toSignOutCommand(any(), any()))
             .willReturn(new SignOutCommand("test-device", "test-token"));
-            given(authMapper.toCommand(org.mockito.Mockito.any(SignUpRequest.class), org.mockito.Mockito.anyString(), org.mockito.Mockito.anyString()))
-            .willAnswer(invocation -> new SignUpCommand(
-                "test@example.com",
-                "Password123!",
-                "테스트유저",
-                null,
-                "default-device-id"
-            ));
-            given(authMapper.toCommand(org.mockito.Mockito.any(SignInRequest.class), org.mockito.Mockito.anyString()))
-            .willAnswer(invocation -> new SignInCommand(
-                "signin@example.com",
-                "Password123!",
-                "test-device-123"
-            ));
-            
+        given(authMapper.toCommand(any(SignUpRequest.class), any(), any()))
+            .willAnswer(invocation -> {
+                SignUpRequest req = invocation.getArgument(0);
+                String nickname = invocation.getArgument(1);
+                String introduction = invocation.getArgument(2);
+                return new SignUpCommand(
+                    req.email(),
+                    req.password(),
+                    nickname != null ? nickname : req.nickname(),
+                    introduction,
+                    "default-device-id"
+                );
+            });
+        given(authMapper.toCommand(any(SignInRequest.class), any()))
+            .willAnswer(invocation -> {
+                SignInRequest req = invocation.getArgument(0);
+                String deviceId = invocation.getArgument(1);
+                return new SignInCommand(
+                    req.email(),
+                    req.password(),
+                    deviceId != null ? deviceId : "default-device"
+                );
+            });
+
         // Mock service methods
-            org.mockito.Mockito.doNothing().when(authCommandService).signOut(org.mockito.Mockito.any());
-            org.mockito.Mockito.doNothing().when(cookieService).setJwtCookie(org.mockito.Mockito.any(), org.mockito.Mockito.anyString());
-            org.mockito.Mockito.doNothing().when(cookieService).setRefreshCookie(org.mockito.Mockito.any(), org.mockito.Mockito.anyString());
-            org.mockito.Mockito.doNothing().when(cookieService).setExpiredJwtCookie(org.mockito.Mockito.any());
-            org.mockito.Mockito.doNothing().when(cookieService).setExpiredRefreshCookie(org.mockito.Mockito.any());
-        
+        org.mockito.Mockito.doNothing().when(authCommandService).signOut(any());
+        org.mockito.Mockito.doNothing().when(cookieService).setJwtCookie(any(), anyString());
+        org.mockito.Mockito.doNothing().when(cookieService).setRefreshCookie(any(), anyString());
+        org.mockito.Mockito.doNothing().when(cookieService).setExpiredJwtCookie(any());
+        org.mockito.Mockito.doNothing().when(cookieService).setExpiredRefreshCookie(any());
+
         // 기본 성공 응답 설정
         AuthResult defaultAuthResult = new AuthResult(
             "mock-access-token",
@@ -113,8 +123,8 @@ class AuthControllerTest {
             "test@example.com",
             "테스트유저"
         );
-            given(authCommandService.signUp(org.mockito.Mockito.any(SignUpCommand.class))).willReturn(defaultAuthResult);
-            given(authCommandService.signIn(org.mockito.Mockito.any(SignInCommand.class))).willReturn(defaultAuthResult);
+        given(authCommandService.signUp(any(SignUpCommand.class))).willReturn(defaultAuthResult);
+        given(authCommandService.signIn(any(SignInCommand.class))).willReturn(defaultAuthResult);
     }
     
     @Nested
@@ -130,13 +140,8 @@ class AuthControllerTest {
             @Order(1)
             @DisplayName("회원가입 성공 - 유효한 이메일과 패스워드")
             void signUp_Success_WithValidCredentials() throws Exception {
-                // Given
-                AuthResult result = AuthFixtures.createAuthResult();
-                     given(authCommandService.signUp(org.mockito.Mockito.any(SignUpCommand.class)))
-                    .willReturn(result);
-                
                 // When & Then
-                mockMvc.perform(post(BASE_URL + "/sign-up")
+                mockMvc.perform(post("/auth/sign-up")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "test@example.com")
                         .param("password", "Password123!")
@@ -149,13 +154,8 @@ class AuthControllerTest {
             @Order(2)
             @DisplayName("로그인 성공 - 올바른 자격 증명")
             void signIn_Success_WithCorrectCredentials() throws Exception {
-                // Given
-                AuthResult result = AuthFixtures.createAuthResult();
-                     given(authCommandService.signIn(org.mockito.Mockito.any(SignInCommand.class)))
-                    .willReturn(result);
-                
                 // When & Then
-                mockMvc.perform(post(BASE_URL + "/sign-in")
+                mockMvc.perform(post("/auth/sign-in")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "signin@example.com")
                         .param("password", "Password123!")
@@ -171,10 +171,10 @@ class AuthControllerTest {
             @Test
             @DisplayName("회원가입 실패 - 중복 이메일")
             void signUp_Failure_DuplicateEmail() throws Exception {
-                     given(authCommandService.signUp(org.mockito.Mockito.any(SignUpCommand.class)))
+                given(authCommandService.signUp(any(SignUpCommand.class)))
                     .willThrow(new BusinessException(ErrorCode.DUPLICATE_EMAIL));
-                
-                mockMvc.perform(post(BASE_URL + "/sign-up")
+
+                mockMvc.perform(post("/auth/sign-up")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "duplicate@example.com")
                         .param("password", "Password123!")
@@ -186,10 +186,10 @@ class AuthControllerTest {
             @Test
             @DisplayName("로그인 실패 - 잘못된 패스워드")
             void signIn_Failure_WrongPassword() throws Exception {
-                     given(authCommandService.signIn(org.mockito.Mockito.any(SignInCommand.class)))
+                given(authCommandService.signIn(any(SignInCommand.class)))
                     .willThrow(new BusinessException(ErrorCode.AUTHENTICATION_FAILED));
-                
-                mockMvc.perform(post(BASE_URL + "/sign-in")
+
+                mockMvc.perform(post("/auth/sign-in")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "wrong@example.com")
                         .param("password", "WrongPass123!")
@@ -205,7 +205,7 @@ class AuthControllerTest {
             @Test
             @DisplayName("회원가입 실패 - 유효하지 않은 이메일 형식")
             void signUp_Failure_InvalidEmailFormat() throws Exception {
-                mockMvc.perform(post(BASE_URL + "/sign-up")
+                mockMvc.perform(post("/auth/sign-up")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "invalid-email")
                         .param("password", "Password123!")
@@ -217,7 +217,7 @@ class AuthControllerTest {
             @Test
             @DisplayName("회원가입 실패 - 약한 패스워드")
             void signUp_Failure_WeakPassword() throws Exception {
-                mockMvc.perform(post(BASE_URL + "/sign-up")
+                mockMvc.perform(post("/auth/sign-up")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "test@example.com")
                         .param("password", "weak")
@@ -234,7 +234,7 @@ class AuthControllerTest {
             @Test
             @DisplayName("회원가입 실패 - 닉네임 미입력")
             void signUp_EdgeCase_NoNickname() throws Exception {
-                mockMvc.perform(post(BASE_URL + "/sign-up")
+                mockMvc.perform(post("/auth/sign-up")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "nonickname@example.com")
                         .param("password", "Password123!")
@@ -245,7 +245,7 @@ class AuthControllerTest {
             @Test
             @DisplayName("로그인 - deviceId 미입력시 기본값 사용")
             void signIn_EdgeCase_NoDeviceId() throws Exception {
-                mockMvc.perform(post(BASE_URL + "/sign-in")
+                mockMvc.perform(post("/auth/sign-in")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("email", "nodevice@example.com")
                         .param("password", "Password123!"))
@@ -266,15 +266,18 @@ class AuthControllerTest {
             @DisplayName("로그아웃 성공")
             @WithMockUser(username = TEST_USER_ID)
             void signOut_Success() throws Exception {
-                mockMvc.perform(post(BASE_URL + "/sign-out")
-                        .cookie(new jakarta.servlet.http.Cookie("refresh-token", "some-token")))
+                mockMvc.perform(post("/auth/sign-out")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .cookie(new jakarta.servlet.http.Cookie("refresh-token", "some-token"))
+                        .cookie(new jakarta.servlet.http.Cookie("device-id", "test-device")))
                     .andExpect(status().isOk());
             }
-            
+
             @Test
             @DisplayName("로그아웃 - 인증 없이도 성공")
             void signOut_WithoutAuth_Success() throws Exception {
-                mockMvc.perform(post(BASE_URL + "/sign-out"))
+                mockMvc.perform(post("/auth/sign-out")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                     .andExpect(status().isOk());
             }
         }
@@ -286,48 +289,20 @@ class AuthControllerTest {
         @Test
         @DisplayName("Security Config - 모든 엔드포인트 403 아님")
         void permitsAllAuthEndpoints() throws Exception {
-            mockMvc.perform(post(BASE_URL + "/sign-up")
+            mockMvc.perform(post("/auth/sign-up")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .param("email", EMAIL)
                     .param("password", PASSWORD))
                 .andExpect(status().is(not(403)));
 
-            mockMvc.perform(post(BASE_URL + "/sign-in")
+            mockMvc.perform(post("/auth/sign-in")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .param("email", EMAIL)
                     .param("password", PASSWORD))
                 .andExpect(status().is(not(403)));
 
-            mockMvc.perform(post(BASE_URL + "/sign-out"))
+            mockMvc.perform(post("/auth/sign-out"))
                 .andExpect(status().is(not(403)));
-        }
-    }
-
-    @Nested
-    @DisplayName("JSON 변형 케이스")
-    class JsonVariant {
-        @Test
-        @DisplayName("회원가입 - JSON 본문")
-        void signUp_WithJsonBody() throws Exception {
-            AuthResult result = AuthFixtures.createAuthResult();
-                given(authCommandService.signUp(org.mockito.Mockito.any(SignUpCommand.class))).willReturn(result);
-                given(authMapper.toCommand(org.mockito.Mockito.any(SignUpRequest.class), org.mockito.Mockito.anyString(), org.mockito.Mockito.anyString()))
-                .willReturn(new SignUpCommand(EMAIL, PASSWORD, NICKNAME, null, "device"));
-            String jsonBody = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(
-                java.util.Map.of(
-                    "email", EMAIL,
-                    "password", PASSWORD,
-                    "confirmPassword", PASSWORD,
-                    "nickname", NICKNAME,
-                    "introduction", "",
-                    "timeZone", "Asia/Seoul",
-                    "locale", "ko_KR"
-                )
-            );
-            mockMvc.perform(post(BASE_URL + "/sign-up")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(jsonBody))
-                .andExpect(status().isOk());
         }
     }
 

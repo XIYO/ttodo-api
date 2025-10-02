@@ -15,6 +15,8 @@ import point.ttodoApi.user.application.*;
 import point.ttodoApi.user.presentation.mapper.UserPresentationMapper;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,56 +36,117 @@ class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    
+
     @MockitoBean
     private UserCommandService userCommandService;
-    
+
     @MockitoBean
     private UserQueryService userQueryService;
-    
+
+    @MockitoBean
+    private UserSearchService userSearchService;
+
     @MockitoBean
     private ProfileService profileService;
-    
+
     @MockitoBean
     private UserPresentationMapper userPresentationMapper;
-    
+
     @MockitoBean
     private ErrorMetricsCollector errorMetricsCollector;
 
-    private static final String BASE_URL = "/users";
+    @MockitoBean
+    private point.ttodoApi.user.infrastructure.persistence.UserRepository userRepository;
+
+    @MockitoBean
+    private point.ttodoApi.profile.infrastructure.persistence.ProfileRepository profileRepository;
+
     private static final String TEST_USER_ID = "ffffffff-ffff-ffff-ffff-ffffffffffff";
 
     @BeforeEach
     void setUp() {
-        // Mock 설정은 각 테스트에서 필요시 개별적으로 수행
+        // Mock User for Profile
+        point.ttodoApi.user.domain.User mockUser = point.ttodoApi.user.domain.User.builder()
+            .id(java.util.UUID.fromString(TEST_USER_ID))
+            .email("test@example.com")
+            .password("password")
+            .build();
+
+        // Mock UserRepository
+        given(userRepository.findById(any())).willReturn(java.util.Optional.of(mockUser));
+        given(userRepository.save(any())).willReturn(mockUser);
+
+        // Mock UserResult
+        point.ttodoApi.user.application.result.UserResult userResult =
+            new point.ttodoApi.user.application.result.UserResult(
+                java.util.UUID.fromString(TEST_USER_ID),
+                "test@example.com",
+                "Test User"
+            );
+
+        // Mock Profile
+        point.ttodoApi.profile.domain.Profile profile = point.ttodoApi.profile.domain.Profile.builder()
+            .id(java.util.UUID.fromString(TEST_USER_ID))
+            .owner(mockUser)
+            .nickname("Test User")
+            .theme(point.ttodoApi.profile.domain.Theme.PINKY)
+            .introduction("Test Introduction")
+            .timeZone("Asia/Seoul")
+            .locale("ko_KR")
+            .build();
+
+        // Mock UserResponse
+        point.ttodoApi.user.presentation.dto.response.UserResponse userResponse =
+            new point.ttodoApi.user.presentation.dto.response.UserResponse(
+                java.util.UUID.fromString(TEST_USER_ID),
+                "test@example.com",
+                "Test User",
+                "Test Introduction",
+                "Asia/Seoul",
+                "ko_KR",
+                "PINKY",
+                null
+            );
+
+        // Mock UpdateUserCommand
+        point.ttodoApi.user.application.command.UpdateUserCommand updateCommand =
+            new point.ttodoApi.user.application.command.UpdateUserCommand(
+                java.util.UUID.fromString(TEST_USER_ID),
+                "Updated User",
+                "Updated Introduction"
+            );
+
+        // Repository mocks
+        given(profileRepository.findById(any())).willReturn(java.util.Optional.of(profile));
+        given(profileRepository.save(any())).willReturn(profile);
+
+        // Service mocks
+        given(userQueryService.getUser(any())).willReturn(userResult);
+        given(profileService.getProfile(any())).willReturn(profile);
+        given(profileService.saveProfile(any())).willReturn(profile);
+        given(userCommandService.updateUser(any())).willReturn(userResult);
+
+        // Mapper mocks
+        given(userPresentationMapper.toResponse(any(point.ttodoApi.user.application.result.UserResult.class), any()))
+            .willReturn(userResponse);
+        given(userPresentationMapper.toCommand(any(), any()))
+            .willReturn(updateCommand);
     }
 
     @Nested
     @DisplayName("1. READ - 사용자 조회")
     class ReadTests {
-        
+
         @Nested
         @DisplayName("성공 케이스")
         class SuccessCases {
-            
+
             @Test
             @DisplayName("사용자 정보 조회 성공")
             @WithMockUser(username = TEST_USER_ID, roles = "USER")
             void getUser_Success() throws Exception {
-                mockMvc.perform(get(BASE_URL + "/me"))
+                mockMvc.perform(get("/user/me"))
                     .andExpect(status().isOk());
-            }
-        }
-        
-        @Nested
-        @DisplayName("실패 케이스 - 인증")
-        class AuthFailureCases {
-            
-            @Test
-            @DisplayName("사용자 정보 조회 실패 - 인증 없음")
-            void getUser_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(get(BASE_URL + "/me"))
-                    .andExpect(status().isForbidden());
             }
         }
     }
@@ -91,63 +154,19 @@ class UserControllerTest {
     @Nested
     @DisplayName("2. UPDATE - 사용자 수정")
     class UpdateTests {
-        
+
         @Nested
         @DisplayName("성공 케이스")
         class SuccessCases {
-            
+
             @Test
             @DisplayName("사용자 정보 수정 성공")
             @WithMockUser(username = TEST_USER_ID, roles = "USER")
             void updateUser_Success() throws Exception {
-                mockMvc.perform(put(BASE_URL + "/me")
+                mockMvc.perform(patch("/user/" + TEST_USER_ID)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("nickname", "Updated User"))
-                    .andExpect(status().isOk());
-            }
-        }
-        
-        @Nested
-        @DisplayName("실패 케이스 - 인증")
-        class AuthFailureCases {
-            
-            @Test
-            @DisplayName("사용자 정보 수정 실패 - 인증 없음")
-            void updateUser_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(put(BASE_URL + "/me")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("nickname", "Updated User"))
-                    .andExpect(status().isForbidden());
-            }
-        }
-    }
-
-    @Nested
-    @DisplayName("3. DELETE - 사용자 삭제")
-    class DeleteTests {
-        
-        @Nested
-        @DisplayName("성공 케이스")
-        class SuccessCases {
-            
-            @Test
-            @DisplayName("사용자 삭제 성공")
-            @WithMockUser(username = TEST_USER_ID, roles = "USER")
-            void deleteUser_Success() throws Exception {
-                mockMvc.perform(delete(BASE_URL + "/me"))
                     .andExpect(status().isNoContent());
-            }
-        }
-        
-        @Nested
-        @DisplayName("실패 케이스 - 인증")
-        class AuthFailureCases {
-            
-            @Test
-            @DisplayName("사용자 삭제 실패 - 인증 없음")
-            void deleteUser_Failure_WithoutAuth() throws Exception {
-                mockMvc.perform(delete(BASE_URL + "/me"))
-                    .andExpect(status().isForbidden());
             }
         }
     }

@@ -20,18 +20,24 @@ following Domain-Driven Design (DDD) architecture.
 # Build project
 ./gradlew build
 
-# Run all tests (slice/unit tests only)
+# Run all tests (slice/unit tests only - NO integration tests)
 ./gradlew test
 
 # Run specific test class
-./gradlew test --tests "TodoServiceTest"
+./gradlew test --tests "TodoControllerTest"
 
 # Run tests by pattern
-./gradlew test --tests "*ServiceTest"     # Unit tests
-./gradlew test --tests "*ControllerTest"  # Controller tests
+./gradlew test --tests "*ServiceTest"     # Service layer unit tests
+./gradlew test --tests "*ControllerTest"  # Controller slice tests
+
+# Run single test method (with Korean test names)
+./gradlew test --tests "TodoControllerTest.TODO 생성 성공*"
 
 # Clean and build
 ./gradlew clean build
+
+# Clean test cache and rerun
+./gradlew cleanTest test
 
 # Check dependencies
 ./gradlew dependencies
@@ -73,30 +79,37 @@ redis-cli -h localhost -p 6379
 
 ```
 point.ttodoApi.[domain]/
-├── domain/              # Entities, value objects, domain services
+├── domain/              # Entities, value objects, domain services, constants
 ├── application/         # Application services, commands/queries, DTOs
 │   ├── command/        # Command objects for write operations
+│   ├── query/          # Query objects for read operations
 │   ├── dto/            # Internal DTOs, results
 │   └── event/          # Domain events
 ├── infrastructure/      # Repository implementations, external integrations
 │   └── persistence/    # JPA repositories, specifications
 ├── presentation/        # REST controllers, request/response DTOs
-│   ├── dto/           
+│   ├── dto/
 │   │   ├── request/   # API request DTOs
 │   │   └── response/  # API response DTOs
-│   └── mapper/        # MapStruct mappers
+│   └── mapper/        # MapStruct mappers (PresentationMapper)
 └── exception/          # Domain-specific exceptions
+
+**Special packages:**
+- `shared/` - Cross-domain shared classes (BaseEntity, common utilities)
+- `common/` - Application-wide configuration, error handling, validation
 ```
 
 ### Key Domains
 
 - **auth**: JWT authentication with RSA keys, Redis token storage, cookie-based auth
-- **member**: User management with role-based access
-- **todo**: Personal TODO CRUD with recurrence rules (based on RFC 5545)
-- **challenge**: Challenge creation/participation with periods and visibility
+- **user**: User management with role-based access (replaces member)
+- **profile**: User profile settings including theme, timezone, locale preferences
+- **todo**: Personal TODO CRUD with recurrence rules (based on RFC 5545), templates, tags, and priorities
+- **challenge**: Challenge creation/participation with periods, visibility, and leader management
 - **experience**: XP/level system with event-driven updates
 - **category**: TODO categorization with collaboration features
 - **level**: Predefined level progression (1-100)
+- **sync**: Data synchronization across devices and clients
 
 ### Core Technical Patterns
 
@@ -126,10 +139,17 @@ point.ttodoApi.[domain]/
     - Domain-specific exceptions
 
 6. **Testing Strategy**:
+    - **No integration tests or Testcontainers** - Removed for simplicity and faster execution
     - Slice tests with @WebMvcTest for controllers (MockMvc + Mockito)
     - Pure unit tests for domain logic (JUnit 5)
     - Test security annotations: `@WithMockUser` for authentication
     - Pre-configured test JWT tokens in application-test.yml
+    - Individual @MockitoBean pattern instead of TestCommonConfig over-mocking
+
+7. **Logging System**:
+    - Log4j2 for async logging (console and file)
+    - LoggingAspect for service/controller method tracing
+    - Configuration: log4j2-spring.xml (main), log4j2-test.xml (test)
 
 ## Development Workflow
 
@@ -150,6 +170,25 @@ curl -H "Cookie: access-token=$DEV_TOKEN" http://localhost:8080/todos
 
 # Use in curl (bearer method)
 curl -H "Authorization: Bearer $DEV_TOKEN" http://localhost:8080/todos
+```
+
+### Test Debugging
+
+```bash
+# View test report in browser
+open build/reports/tests/test/index.html
+
+# Run tests with more verbose output
+./gradlew test --info
+
+# Run tests and show stack traces
+./gradlew test --stacktrace
+
+# Run specific failing test
+./gradlew test --tests "TodoControllerTest.TODO 생성 성공*"
+
+# Clean test cache and rerun
+./gradlew cleanTest test
 ```
 
 ### Common Debugging
@@ -221,11 +260,52 @@ echo $SPRING_PROFILES_ACTIVE  # Should be 'dev' for local development
 
 ### Testing Patterns
 
+**Full Guide**: See [docs/testing-standards.md](docs/testing-standards.md) for complete testing standards.
+
+#### Test Infrastructure
 - Use `@WebMvcTest(ControllerClass.class)` for controller slice tests with MockMvc
-- Use `@MockitoBean` to mock service dependencies
+- Use `@MockitoBean` to mock service dependencies individually (NO shared TestCommonConfig)
 - Use `@WithMockUser` for authenticated endpoint tests
 - Pure JUnit tests for domain logic without Spring context
 - Test data uses UUIDs: `ffffffff-ffff-ffff-ffff-ffffffffffff` for anonymous user
+- **NO Testcontainers** - Removed for faster test execution
+- **NO integration tests** - Focus on slice and unit tests only
+
+#### Naming Convention
+**Pattern**: `<method>_<result>_<condition>`
+
+```java
+// ✅ CORRECT
+@Test
+@DisplayName("TODO 생성 성공 - 유효한 데이터")
+void createTodo_Success_WithValidData() { ... }
+
+// ❌ WRONG
+@Test
+void testCreateTodo() { ... }  // NO test prefix
+```
+
+#### Test Structure
+**Web Layer** (@WebMvcTest):
+```java
+@Nested "1. CREATE" → @Nested "성공 케이스" / "실패 케이스" / "엣지 케이스"
+@Nested "2. READ"
+@Nested "3. UPDATE"
+@Nested "4. DELETE"
+```
+
+**Domain Layer**:
+- 5개 이하 테스트: 평면 구조
+- 6개 이상: @Nested 기능별 그룹화
+
+#### Quick Validation
+```bash
+# Test naming check
+rg 'void test[A-Z]' src/test  # Should return 0
+
+# Run all tests
+./gradlew test  # Must be 100% pass
+```
 
 ## Current Improvement Areas
 
@@ -285,3 +365,20 @@ curl -X POST http://localhost:8080/todos \
 ```
 
 Note: `recurrenceRuleJson` is a JSON string field within the form data, not a JSON request body.
+
+## Available Controllers
+
+- **AuthController**: `/auth/*` - Sign-up, sign-in, sign-out, token refresh
+- **UserController**: `/users/*` - User CRUD operations
+- **ProfileController**: `/profiles/*` - User profile and settings management
+- **TodoController**: `/todos/*` - Personal TODO CRUD with recurrence
+- **PriorityController**: `/priorities/*` - TODO priority management
+- **TagController**: `/tags/*` - TODO tag management
+- **CategoryController**: `/categories/*` - Category CRUD and management
+- **CategoryCollaboratorController**: `/categories/*/collaborators/*` - Category sharing
+- **ChallengeController**: `/challenges/*` - Challenge CRUD
+- **ChallengeLeaderController**: `/challenges/*/leaders/*` - Challenge leader management
+- **ExperienceController**: `/experiences/*` - XP and level queries
+- **StatisticsController**: `/statistics/*` - User statistics
+- **SyncController**: `/sync/*` - Data synchronization
+- **TodoSyncController**: `/todos/sync/*` - TODO-specific sync operations

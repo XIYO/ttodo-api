@@ -1,6 +1,7 @@
 package point.ttodoApi.todo.application.command;
 
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import point.ttodoApi.todo.domain.recurrence.RecurrenceRule;
 import point.ttodoApi.todo.domain.validation.optional.OptionalTodoTitle;
 import point.ttodoApi.todo.domain.validation.optional.OptionalTodoDescription;
@@ -17,8 +18,8 @@ public record UpdateTodoCommand(
         
         @Positive(message = "Original Todo ID는 양수여야 합니다")
         Long originalTodoId,
-        
-        @Positive(message = "Days difference는 양수여야 합니다")
+
+        @PositiveOrZero(message = "Days difference는 0 이상이어야 합니다")
         Long daysDifference,
         
         @OptionalTodoTitle

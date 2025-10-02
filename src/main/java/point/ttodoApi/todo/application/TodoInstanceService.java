@@ -23,6 +23,7 @@ import point.ttodoApi.todo.infrastructure.persistence.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +51,8 @@ public class TodoInstanceService {
             query.endDate()
     );
 
-    Page<Todo> todoPage = todoRepository.findAll(spec, Pageable.unpaged());
+    // DB 페이지네이션 복원: Pageable 객체 사용
+    Page<Todo> todoPage = todoRepository.findAll(spec, query.pageable());
     return getTodoListWithVirtualTodos(query, todoPage);
   }
 
@@ -290,7 +292,7 @@ public class TodoInstanceService {
 
   private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
     List<TodoResult> realTodos = todoPage.getContent().stream()
-            .filter(todo -> Boolean.TRUE.equals(todo.getActive()) && Boolean.TRUE.equals(todo.getComplete()))
+            .filter(todo -> Boolean.TRUE.equals(todo.getActive()))
             .map(todoApplicationMapper::toResult)
             .toList();
 
@@ -306,7 +308,8 @@ public class TodoInstanceService {
       allTodos.sort(getDefaultComparator());
     }
 
-    int start = (int) query.pageable().getOffset();
+    // IndexOutOfBoundsException 방지: offset이 size를 초과하면 빈 리스트 반환
+    int start = Math.min((int) query.pageable().getOffset(), allTodos.size());
     int end = Math.min(start + query.pageable().getPageSize(), allTodos.size());
     List<TodoResult> pagedTodos = allTodos.subList(start, end);
 
@@ -332,34 +335,53 @@ public class TodoInstanceService {
             .filter(to -> matchesKeyword(to, query.keyword()))
             .toList();
 
+    // N+1 방지: 먼저 필요한 모든 TodoId를 수집
+    List<TodoId> allTodoIds = new ArrayList<>();
     for (TodoTemplate todoTemplate : todoTemplates) {
       RecurrenceRule rule = todoTemplate.getRecurrenceRule();
       List<LocalDate> virtualDates = RecurrenceEngine.generateBetween(rule, query.startDate(), query.endDate());
-
+      LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() : todoTemplate.getDate();
       LocalDate originalDueDate = todoTemplate.getDate();
 
       for (LocalDate virtualDate : virtualDates) {
-        // baseDate 이후의 가상 투두만 포함
-        if (virtualDate.isBefore(baseDate)) {
+        if (virtualDate.isBefore(baseDate) || virtualDate.equals(originalDueDate)) {
           continue;
         }
-
-        if (virtualDate.equals(originalDueDate)) {
-          continue;
-        }
-
-        LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() : todoTemplate.getDate();
         long diff = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
-        Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
-                new TodoId(todoTemplate.getId(), diff),
-                query.userId());
+        allTodoIds.add(new TodoId(todoTemplate.getId(), diff));
+      }
+    }
 
-        boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
+    // 한 번에 벌크 조회 후 Map으로 캐싱
+    Map<TodoId, Todo> existingTodoMap = todoRepository
+            .findAllByTodoIdInAndOwnerIdIgnoreActive(allTodoIds, query.userId())
+            .stream()
+            .collect(Collectors.toMap(Todo::getTodoId, todo -> todo));
+
+    // Map에서 조회하여 가상 투두 생성
+    for (TodoTemplate todoTemplate : todoTemplates) {
+      RecurrenceRule rule = todoTemplate.getRecurrenceRule();
+      List<LocalDate> virtualDates = RecurrenceEngine.generateBetween(rule, query.startDate(), query.endDate());
+      LocalDate originalDueDate = todoTemplate.getDate();
+      LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() : todoTemplate.getDate();
+
+      for (LocalDate virtualDate : virtualDates) {
+        if (virtualDate.isBefore(baseDate) || virtualDate.equals(originalDueDate)) {
+          continue;
+        }
+
+        long diff = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
+        TodoId todoId = new TodoId(todoTemplate.getId(), diff);
+        Todo existingTodo = existingTodoMap.get(todoId);
+
+        // 삭제된 투두는 제외
+        boolean isDeleted = existingTodo != null && Boolean.FALSE.equals(existingTodo.getActive());
         if (isDeleted) {
           continue;
         }
 
-        if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
+        // 존재하지 않거나 미완료인 경우만 가상 투두로 표시
+        if (existingTodo == null || !Boolean.TRUE.equals(existingTodo.getComplete())) {
           long daysDifference = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
           String virtualId = todoTemplate.getId() + ":" + daysDifference;
           virtualTodos.add(todoApplicationMapper.toVirtualResult(todoTemplate, virtualId, virtualDate));
@@ -387,21 +409,34 @@ public class TodoInstanceService {
             .filter(to -> matchesPriorityFilter(to, query.priorityIds()))
             .toList();
 
+    // N+1 방지: 모든 원본 TodoId(seq=0) 수집
+    List<TodoId> originalTodoIds = todoTemplates.stream()
+            .map(template -> new TodoId(template.getId(), 0L))
+            .toList();
+
+    // 한 번에 벌크 조회 후 Map으로 캐싱
+    Map<TodoId, Todo> existingTodoMap = todoRepository
+            .findAllByTodoIdInAndOwnerIdIgnoreActive(originalTodoIds, query.userId())
+            .stream()
+            .collect(Collectors.toMap(Todo::getTodoId, todo -> todo));
+
     for (TodoTemplate todoTemplate : todoTemplates) {
       // baseDate 이후의 원본 투두만 포함
       if (todoTemplate.getDate() != null && baseDate != null && todoTemplate.getDate().isBefore(baseDate)) {
         continue;
       }
 
-      Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(
-              new TodoId(todoTemplate.getId(), 0L), query.userId());
+      TodoId originalTodoId = new TodoId(todoTemplate.getId(), 0L);
+      Todo existingTodo = existingTodoMap.get(originalTodoId);
 
-      boolean isDeleted = existingTodo.isPresent() && Boolean.FALSE.equals(existingTodo.get().getActive());
+      // 삭제된 투두는 제외
+      boolean isDeleted = existingTodo != null && Boolean.FALSE.equals(existingTodo.getActive());
       if (isDeleted) {
         continue;
       }
 
-      if (existingTodo.isEmpty() || !Boolean.TRUE.equals(existingTodo.get().getComplete())) {
+      // 존재하지 않거나 미완료인 경우만 원본 투두로 표시
+      if (existingTodo == null || !Boolean.TRUE.equals(existingTodo.getComplete())) {
         if (todoTemplate.getAnchorDate() != null && todoTemplate.getDate() != null) {
           long daysDifference = ChronoUnit.DAYS.between(
                   todoTemplate.getAnchorDate(), todoTemplate.getDate());
