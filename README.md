@@ -57,6 +57,7 @@ src/main/java/point/ttodoApi/
 
 ```bash
 ./gradlew bootRun        # 애플리케이션 실행
+./gradlew compileJava   # 컴파일 테스트
 ./gradlew test           # 테스트 실행
 ./gradlew build          # 빌드
 ./gradlew clean build    # 클린 빌드
