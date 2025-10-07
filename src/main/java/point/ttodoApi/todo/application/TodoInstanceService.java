@@ -1,520 +1,423 @@
 package point.ttodoApi.todo.application;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import point.ttodoApi.category.domain.Category;
 import point.ttodoApi.category.infrastructure.persistence.CategoryRepository;
-import point.ttodoApi.experience.application.event.*;
-import point.ttodoApi.user.application.UserService;
+import point.ttodoApi.experience.application.event.TodoCompletedEvent;
+import point.ttodoApi.experience.application.event.TodoUncompletedEvent;
+import point.ttodoApi.shared.exception.ResourceNotFoundException;
+import point.ttodoApi.todo.application.command.UpdateTodoInstanceCommand;
+import point.ttodoApi.todo.domain.TodoInstance;
+import point.ttodoApi.todo.infrastructure.persistence.TodoInstanceRepository;
 import point.ttodoApi.user.domain.User;
-import point.ttodoApi.shared.error.EntityNotFoundException;
-import point.ttodoApi.todo.application.command.*;
-import point.ttodoApi.todo.application.mapper.TodoApplicationMapper;
-import point.ttodoApi.todo.application.query.*;
-import point.ttodoApi.todo.application.result.*;
-import point.ttodoApi.todo.domain.*;
-import point.ttodoApi.todo.domain.recurrence.*;
-import point.ttodoApi.todo.infrastructure.persistence.*;
+import point.ttodoApi.user.infrastructure.persistence.UserRepository;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class TodoInstanceService {
 
-  private final TodoTemplateService todoTemplateService;
-  private final TodoRepository todoRepository;
+  private final TodoInstanceRepository instanceRepository;
+  private final UserRepository userRepository;
   private final CategoryRepository categoryRepository;
-  private final UserService UserService;
-  private final TodoApplicationMapper todoApplicationMapper;
   private final ApplicationEventPublisher eventPublisher;
 
-  public boolean existsVirtualTodo(UUID userId, TodoId todoId) {
-    return todoRepository.findByTodoIdAndOwnerId(todoId, userId).isPresent();
-  }
+  /**
+   * 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public TodoInstance getInstance(UUID userId, UUID instanceId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-  public Page<TodoResult> getTodoList(TodoSearchQuery query) {
-    Specification<Todo> spec = TodoSpecification.createSpecification(
-            query.userId(),
-            query.complete(),
-            query.categoryIds(),
-            query.priorityIds(),
-            query.startDate(),
-            query.endDate()
-    );
+    TodoInstance instance = instanceRepository.findById(instanceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found: " + instanceId));
 
-    // DB 페이지네이션 복원: Pageable 객체 사용
-    Page<Todo> todoPage = todoRepository.findAll(spec, query.pageable());
-    return getTodoListWithVirtualTodos(query, todoPage);
-  }
-
-  public TodoResult getVirtualTodo(VirtualTodoQuery query) {
-    TodoId todoId = new TodoId(query.originalTodoId(), query.daysDifference());
-
-    // 먼저 Todo 테이블에서 확인 (active 상태 무관)
-    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, query.userId());
-
-    if (existingTodo.isPresent()) {
-      Todo todo = existingTodo.get();
-      // active=false인 경우만 404 에러 (삭제된 Todo)
-      if (!todo.getActive()) {
-        throw new EntityNotFoundException("Todo", query.originalTodoId() + ":" + query.daysDifference());
-      }
-      // Todo 테이블에 데이터가 있으면 반환 (완료/미완료 상관없이)
-      return todoApplicationMapper.toResult(todo);
+    if (!instance.isAccessibleBy(user)) {
+      throw new IllegalStateException("User cannot access this instance");
     }
 
-    // Todo 테이블에 데이터가 없으면 가상 Todo 생성
-    if (query.daysDifference() == 0) {
-      // 원본 TodoTemplate 조회 (82:0)
-      return todoTemplateService.getTodo(TodoQuery.of(query.userId(), query.originalTodoId()));
-    } else {
-      // 가상 Todo 생성해서 반환
-      TodoTemplate todoTemplate = todoTemplateService.getTodoTemplates(query.userId())
-              .stream()
-              .filter(to -> to.getId().equals(query.originalTodoId()))
-              .findFirst()
-              .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", query.originalTodoId()));
-
-      LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() :
-              (todoTemplate.getDate() != null ? todoTemplate.getDate() : LocalDate.now());
-      LocalDate targetDate = anchor.plusDays(query.daysDifference());
-
-      String virtualId = query.originalTodoId() + ":" + query.daysDifference();
-      return todoApplicationMapper.toVirtualResult(todoTemplate, virtualId, targetDate);
-    }
+    return instance;
   }
 
+  /**
+   * 오늘의 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public List<TodoInstance> getTodayInstances(UUID userId) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    return instanceRepository.findTodayInstances(owner, LocalDate.now());
+  }
+
+  /**
+   * 날짜 범위로 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public List<TodoInstance> getInstancesByDateRange(UUID userId, LocalDate startDate, LocalDate endDate) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    return instanceRepository.findByDateRange(owner, startDate, endDate);
+  }
+
+  /**
+   * 지난 미완료 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public List<TodoInstance> getOverdueInstances(UUID userId) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    return instanceRepository.findOverdueInstances(owner, LocalDate.now());
+  }
+
+  /**
+   * 예정된 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public Page<TodoInstance> getUpcomingInstances(UUID userId, Pageable pageable) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    return instanceRepository.findUpcomingInstances(owner, LocalDate.now(), pageable);
+  }
+
+  /**
+   * 완료된 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public Page<TodoInstance> getCompletedInstances(UUID userId, Pageable pageable) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    return instanceRepository.findCompletedInstances(owner, pageable);
+  }
+
+  /**
+   * 고정된 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public List<TodoInstance> getPinnedInstances(UUID userId) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    return instanceRepository.findPinnedInstances(owner);
+  }
+
+  /**
+   * 인스턴스 수정 (오버라이드)
+   */
   @Transactional
-  public void deactivateVirtualTodo(DeleteTodoCommand command) {
-    TodoId todoId = new TodoId(command.originalTodoId(), command.daysDifference());
-    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.userId());
+  public TodoInstance updateInstance(UUID userId, UUID instanceId, UpdateTodoInstanceCommand command) {
+    log.debug("Updating todo instance: {} for user: {}", instanceId, userId);
 
-    if (existingTodo.isPresent()) {
-      // 이미 Todo 테이블에 데이터가 있으면 complete=true, active=false로 설정 (삭제 표시)
-      Todo todo = existingTodo.get();
-      todo.setComplete(true);
-      todo.setActive(false);
-      todoRepository.save(todo);
-    } else {
-      // Todo 테이블에 데이터가 없으면 새로 생성해서 complete=true, active=true로 설정
-      List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.userId());
-      TodoTemplate todoTemplate = todoTemplates.stream()
-              .filter(to -> to.getId().equals(command.originalTodoId()))
-              .findFirst()
-              .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", command.originalTodoId()));
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-      User user = UserService.findByIdOrThrow(command.userId());
+    TodoInstance instance = instanceRepository.findById(instanceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found: " + instanceId));
 
-      LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() :
-              (todoTemplate.getDate() != null ? todoTemplate.getDate() : LocalDate.now());
-      LocalDate targetDate = anchor.plusDays(command.daysDifference());
-
-      Todo newTodo = Todo.builder()
-              .todoId(todoId)
-              .title(todoTemplate.getTitle())
-              .description(todoTemplate.getDescription())
-              .complete(true)  // 삭제 표시
-              .active(false)   // 비활성화
-              .priorityId(todoTemplate.getPriorityId())
-              .category(todoTemplate.getCategory())
-              .date(targetDate)
-              .time(todoTemplate.getTime())
-              .tags(new HashSet<>(todoTemplate.getTags()))
-              .owner(user)
-              .build();
-
-      todoRepository.save(newTodo);
+    if (!instance.isEditableBy(user)) {
+      throw new IllegalStateException("User cannot edit this instance");
     }
+
+    // 오버라이드 필드 업데이트
+    if (command.getTitle() != null) {
+      instance.setTitle(command.getTitle());
+    }
+    if (command.getDescription() != null) {
+      instance.setDescription(command.getDescription());
+    }
+    if (command.getPriorityId() != null) {
+      instance.setPriorityId(command.getPriorityId());
+    }
+    if (command.getCategoryId() != null) {
+      Category category = categoryRepository.findById(command.getCategoryId())
+          .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + command.getCategoryId()));
+      instance.setCategory(category);
+    }
+    if (command.getTags() != null) {
+      instance.setTags(new HashSet<>(command.getTags()));
+    }
+
+    // 인스턴스 고유 필드 업데이트
+    if (command.getDueDate() != null) {
+      instance.setDueDate(command.getDueDate());
+    }
+    if (command.getDueTime() != null) {
+      instance.setDueTime(command.getDueTime());
+    }
+    if (command.getIsPinned() != null) {
+      instance.setIsPinned(command.getIsPinned());
+    }
+    if (command.getDisplayOrder() != null) {
+      instance.setDisplayOrder(command.getDisplayOrder());
+    }
+
+    instance = instanceRepository.save(instance);
+    log.debug("Todo instance updated: {}", instanceId);
+
+    return instance;
   }
 
+  /**
+   * 인스턴스 완료 처리
+   */
   @Transactional
-  public TodoResult updateOrCreateVirtualTodo(UpdateVirtualTodoCommand command) {
-    TodoId todoId = TodoId.fromVirtualId(command.virtualTodoId());
-    Long originalTodoId = todoId.getId();
-    Long daysDifference = todoId.getSeq();
+  public TodoInstance completeInstance(UUID userId, UUID instanceId) {
+    log.debug("Completing todo instance: {} for user: {}", instanceId, userId);
 
-    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(command.userId());
-    TodoTemplate todoTemplate = todoTemplates.stream()
-            .filter(to -> to.getId().equals(originalTodoId))
-            .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException("TodoTemplate", originalTodoId));
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() :
-            (todoTemplate.getDate() != null ? todoTemplate.getDate() : LocalDate.now());
-    LocalDate targetDate = anchor.plusDays(daysDifference);
+    TodoInstance instance = instanceRepository.findByIdAndOwner(instanceId, user)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found or access denied"));
 
-    // active 상태에 관계없이 기존 Todo 확인
-    Optional<Todo> existingTodo = todoRepository.findByTodoIdAndOwnerIdIgnoreActive(todoId, command.userId());
+    if (instance.isCompleted()) {
+      throw new IllegalStateException("Instance already completed");
+    }
 
-    User user = UserService.findByIdOrThrow(command.userId());
+    instance.markComplete();
+    instance = instanceRepository.save(instance);
 
-    if (existingTodo.isPresent()) {
-      Todo todo = existingTodo.get();
-      boolean wasIncomplete = !Boolean.TRUE.equals(todo.getComplete());
-      boolean wasComplete = Boolean.TRUE.equals(todo.getComplete());
+    // 경험치 이벤트 발행
+    eventPublisher.publishEvent(new TodoCompletedEvent(
+        user.getId(),
+        instance.getId(),
+        instance.getEffectivePriorityId()
+    ));
 
-      // 삭제된 Todo를 다시 활성화
-      todo.setActive(true);
+    log.info("Todo instance completed: {}", instanceId);
+    return instance;
+  }
 
-      if (command.title() != null && !command.title().trim().isEmpty()) {
-        todo.setTitle(command.title());
-      }
-      if (command.description() != null && !command.description().trim().isEmpty()) {
-        todo.setDescription(command.description());
-      }
-      if (command.complete() != null) {
-        todo.setComplete(command.complete());
-      }
-      if (command.priorityId() != null) {
-        todo.setPriorityId(command.priorityId());
-      }
-      if (command.date() != null) {
-        todo.setDate(command.date());
-      }
-      if (command.time() != null) {
-        todo.setTime(command.time());
-      }
-      if (command.tags() != null && !command.tags().isEmpty()) {
-        todo.setTags(command.tags());
-      }
+  /**
+   * 인스턴스 완료 취소
+   */
+  @Transactional
+  public TodoInstance uncompleteInstance(UUID userId, UUID instanceId) {
+    log.debug("Uncompleting todo instance: {} for user: {}", instanceId, userId);
 
-      // 카테고리 처리
-      if (command.categoryId() != null) {
-        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.userId())
-                .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
-        todo.setCategory(category);
-      }
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-      todoRepository.save(todo);
+    TodoInstance instance = instanceRepository.findByIdAndOwner(instanceId, user)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found or access denied"));
 
-      // 투두 완료 시 경험치 이벤트 발생
-      if (wasIncomplete && Boolean.TRUE.equals(todo.getComplete())) {
-        eventPublisher.publishEvent(new TodoCompletedEvent(
-                command.userId(),
-                originalTodoId,
-                todo.getTitle()
-        ));
-      }
+    if (!instance.isCompleted()) {
+      throw new IllegalStateException("Instance is not completed");
+    }
 
-      // 투두 완료 취소 시 경험치 차감 이벤트 발생
-      if (wasComplete && Boolean.FALSE.equals(todo.getComplete())) {
-        eventPublisher.publishEvent(new TodoUncompletedEvent(
-                command.userId(),
-                originalTodoId,
-                todo.getTitle()
-        ));
-      }
+    instance.markIncomplete();
+    instance = instanceRepository.save(instance);
 
-      return todoApplicationMapper.toResult(todo);
+    // 경험치 차감 이벤트 발행
+    eventPublisher.publishEvent(new TodoUncompletedEvent(
+        user.getId(),
+        instance.getId(),
+        instance.getEffectivePriorityId()
+    ));
+
+    log.info("Todo instance uncompleted: {}", instanceId);
+    return instance;
+  }
+
+  /**
+   * 인스턴스 소프트 삭제
+   */
+  @Transactional
+  public void deleteInstance(UUID userId, UUID instanceId) {
+    log.debug("Deleting todo instance: {} for user: {}", instanceId, userId);
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    TodoInstance instance = instanceRepository.findByIdAndOwner(instanceId, user)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found or access denied"));
+
+    if (!instance.isEditableBy(user)) {
+      throw new IllegalStateException("User cannot delete this instance");
+    }
+
+    instance.softDelete();
+    instanceRepository.save(instance);
+
+    log.info("Todo instance soft deleted: {}", instanceId);
+  }
+
+  /**
+   * 인스턴스 복구
+   */
+  @Transactional
+  public TodoInstance restoreInstance(UUID userId, UUID instanceId) {
+    log.debug("Restoring todo instance: {} for user: {}", instanceId, userId);
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    TodoInstance instance = instanceRepository.findById(instanceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found"));
+
+    if (!instance.getOwner().equals(user)) {
+      throw new IllegalStateException("User cannot restore this instance");
+    }
+
+    instance.restore();
+    instance = instanceRepository.save(instance);
+
+    log.info("Todo instance restored: {}", instanceId);
+    return instance;
+  }
+
+  /**
+   * 인스턴스 토글 (완료/미완료)
+   */
+  @Transactional
+  public TodoInstance toggleInstance(UUID userId, UUID instanceId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    TodoInstance instance = instanceRepository.findByIdAndOwner(instanceId, user)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found or access denied"));
+
+    if (instance.isCompleted()) {
+      return uncompleteInstance(userId, instanceId);
     } else {
-      // 새 Todo 생성
-      Todo newTodo = Todo.builder()
-              .todoId(todoId)
-              .title(command.title() != null && !command.title().trim().isEmpty() ? command.title() : todoTemplate.getTitle())
-              .description(command.description() != null && !command.description().trim().isEmpty() ? command.description() : todoTemplate.getDescription())
-              .complete(command.complete() != null ? command.complete() : false)
-              .priorityId(command.priorityId() != null ? command.priorityId() : todoTemplate.getPriorityId())
-              .category(todoTemplate.getCategory())
-              .date(command.date() != null ? command.date() : targetDate)
-              .time(command.time() != null ? command.time() : todoTemplate.getTime())
-              .tags(command.tags() != null && !command.tags().isEmpty() ? command.tags() : new HashSet<>(todoTemplate.getTags()))
-              .owner(user)
-              .build();
-
-      // 카테고리 변경이 있는 경우
-      if (command.categoryId() != null) {
-        Category category = categoryRepository.findByIdAndOwnerId(command.categoryId(), command.userId())
-                .orElseThrow(() -> new EntityNotFoundException("Category", command.categoryId()));
-        newTodo.setCategory(category);
-      }
-
-      todoRepository.save(newTodo);
-
-      // 새로 생성된 투두가 완료 상태인 경우 경험치 이벤트 발생
-      if (Boolean.TRUE.equals(newTodo.getComplete())) {
-        eventPublisher.publishEvent(new TodoCompletedEvent(
-                command.userId(),
-                originalTodoId,
-                newTodo.getTitle()
-        ));
-      }
-
-      return todoApplicationMapper.toResult(newTodo);
+      return completeInstance(userId, instanceId);
     }
   }
 
-  public TodoStatistics getTodoStatistics(UUID userId, LocalDate targetDate) {
-    // 실제 Todo (DB에 저장된) 조회
-    Specification<Todo> spec = TodoSpecification.createSpecification(
-            userId, null, null, null, targetDate, targetDate
-    );
-    Page<Todo> realTodoPage = todoRepository.findAll(spec, Pageable.unpaged());
+  /**
+   * 통계 조회
+   */
+  @Transactional(readOnly = true)
+  public List<Map<String, Object>> getCompletionStats(UUID userId, LocalDate startDate, LocalDate endDate) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    // TodoSearchQuery로 가상 투두 포함 전체 조회
-    TodoSearchQuery query = new TodoSearchQuery(
-            userId,
-            null, // complete - 모든 상태 조회
-            null, null, null, null, targetDate,
-            targetDate, // startDate = 대상 날짜
-            targetDate, // endDate = 대상 날짜
-            Pageable.unpaged()
-    );
-
-    // 실제 투두
-    List<TodoResult> realTodoResults = realTodoPage.getContent().stream()
-            .map(todoApplicationMapper::toResult)
-            .toList();
-    List<TodoResult> allTodos = new ArrayList<>(realTodoResults);
-
-    // 가상 투두 (반복 투두 + 원본 투두)
-    List<TodoResult> originalTodos = generateOriginalTodos(query);
-    List<TodoResult> virtualTodos = generateVirtualTodos(query);
-    allTodos.addAll(originalTodos);
-    allTodos.addAll(virtualTodos);
-
-    long total = allTodos.size();
-    long completed = allTodos.stream()
-            .mapToLong(todo -> Boolean.TRUE.equals(todo.complete()) ? 1 : 0)
-            .sum();
-    long inProgress = total - completed;
-
-    return new TodoStatistics(total, inProgress, completed);
+    return instanceRepository.getCompletionStatsByDateRange(owner, startDate, endDate);
   }
 
-  private Page<TodoResult> getTodoListWithVirtualTodos(TodoSearchQuery query, Page<Todo> todoPage) {
-    List<TodoResult> realTodos = todoPage.getContent().stream()
-            .filter(todo -> Boolean.TRUE.equals(todo.getActive()))
-            .map(todoApplicationMapper::toResult)
-            .toList();
+  /**
+   * 카테고리별 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public List<TodoInstance> getInstancesByCategory(UUID userId, UUID categoryId) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    List<TodoResult> originalTodos = generateOriginalTodos(query);
-    List<TodoResult> virtualTodos = generateVirtualTodos(query);
-
-    List<TodoResult> allTodos = new ArrayList<>();
-    allTodos.addAll(realTodos);
-    allTodos.addAll(originalTodos);
-    allTodos.addAll(virtualTodos);
-
-    if (query.pageable().getSort().isUnsorted()) {
-      allTodos.sort(getDefaultComparator());
-    }
-
-    // IndexOutOfBoundsException 방지: offset이 size를 초과하면 빈 리스트 반환
-    int start = Math.min((int) query.pageable().getOffset(), allTodos.size());
-    int end = Math.min(start + query.pageable().getPageSize(), allTodos.size());
-    List<TodoResult> pagedTodos = allTodos.subList(start, end);
-
-    return new PageImpl<>(pagedTodos, query.pageable(), allTodos.size());
+    return instanceRepository.findByCategoryId(owner, categoryId);
   }
 
-  private List<TodoResult> generateVirtualTodos(TodoSearchQuery query) {
-    if (query.startDate() == null || query.endDate() == null) {
-      return new ArrayList<>();
-    }
+  /**
+   * 인스턴스 생성 (수동)
+   */
+  @Transactional
+  public TodoInstance createInstance(UUID userId, point.ttodoApi.todo.application.command.CreateTodoInstanceCommand command) {
+    log.debug("Creating todo instance for user: {}", userId);
 
-    // 완료만 조회하는 경우에만 가상 투두 제외
-    if (query.complete() != null && query.complete()) {
-      return new ArrayList<>();
-    }
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    List<TodoResult> virtualTodos = new ArrayList<>();
-    LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
-
-    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.userId())
-            .stream()
-            .filter(to -> to.getRecurrenceRule() != null && to.getAnchorDate() != null)
-            .filter(to -> matchesKeyword(to, query.keyword()))
-            .toList();
-
-    // N+1 방지: 먼저 필요한 모든 TodoId를 수집
-    List<TodoId> allTodoIds = new ArrayList<>();
-    for (TodoTemplate todoTemplate : todoTemplates) {
-      RecurrenceRule rule = todoTemplate.getRecurrenceRule();
-      List<LocalDate> virtualDates = RecurrenceEngine.generateBetween(rule, query.startDate(), query.endDate());
-      LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() : todoTemplate.getDate();
-      LocalDate originalDueDate = todoTemplate.getDate();
-
-      for (LocalDate virtualDate : virtualDates) {
-        if (virtualDate.isBefore(baseDate) || virtualDate.equals(originalDueDate)) {
-          continue;
-        }
-        long diff = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
-        allTodoIds.add(new TodoId(todoTemplate.getId(), diff));
-      }
-    }
-
-    // 한 번에 벌크 조회 후 Map으로 캐싱
-    Map<TodoId, Todo> existingTodoMap = todoRepository
-            .findAllByTodoIdInAndOwnerIdIgnoreActive(allTodoIds, query.userId())
-            .stream()
-            .collect(Collectors.toMap(Todo::getTodoId, todo -> todo));
-
-    // Map에서 조회하여 가상 투두 생성
-    for (TodoTemplate todoTemplate : todoTemplates) {
-      RecurrenceRule rule = todoTemplate.getRecurrenceRule();
-      List<LocalDate> virtualDates = RecurrenceEngine.generateBetween(rule, query.startDate(), query.endDate());
-      LocalDate originalDueDate = todoTemplate.getDate();
-      LocalDate anchor = todoTemplate.getAnchorDate() != null ? todoTemplate.getAnchorDate() : todoTemplate.getDate();
-
-      for (LocalDate virtualDate : virtualDates) {
-        if (virtualDate.isBefore(baseDate) || virtualDate.equals(originalDueDate)) {
-          continue;
-        }
-
-        long diff = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
-        TodoId todoId = new TodoId(todoTemplate.getId(), diff);
-        Todo existingTodo = existingTodoMap.get(todoId);
-
-        // 삭제된 투두는 제외
-        boolean isDeleted = existingTodo != null && Boolean.FALSE.equals(existingTodo.getActive());
-        if (isDeleted) {
-          continue;
-        }
-
-        // 존재하지 않거나 미완료인 경우만 가상 투두로 표시
-        if (existingTodo == null || !Boolean.TRUE.equals(existingTodo.getComplete())) {
-          long daysDifference = anchor != null ? ChronoUnit.DAYS.between(anchor, virtualDate) : 0;
-          String virtualId = todoTemplate.getId() + ":" + daysDifference;
-          virtualTodos.add(todoApplicationMapper.toVirtualResult(todoTemplate, virtualId, virtualDate));
-        }
-      }
-    }
-
-    return virtualTodos;
+    // TODO: Implement instance creation logic
+    throw new UnsupportedOperationException("createInstance not yet implemented");
   }
 
-  private List<TodoResult> generateOriginalTodos(TodoSearchQuery query) {
-    // 완료만 조회하는 경우에만 원본 투두 제외 (이미 완료되어 실제 투두로 저장됨)
-    if (query.complete() != null && query.complete()) {
-      return new ArrayList<>();
-    }
+  /**
+   * 상태 업데이트 (완료/미완료 토글)
+   */
+  @Transactional
+  public TodoInstance updateStatus(UUID userId, UUID instanceId, point.ttodoApi.todo.application.command.UpdateTodoStatusCommand command) {
+    log.debug("Updating status for instance: {}", instanceId);
 
-    List<TodoResult> originalTodos = new ArrayList<>();
-    LocalDate baseDate = query.date() != null ? query.date() : query.startDate();
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    List<TodoTemplate> todoTemplates = todoTemplateService.getTodoTemplates(query.userId())
-            .stream()
-            .filter(to -> matchesKeyword(to, query.keyword()))
-            .filter(to -> matchesDateRange(to, query.startDate(), query.endDate()))
-            .filter(to -> matchesCategoryFilter(to, query.categoryIds()))
-            .filter(to -> matchesPriorityFilter(to, query.priorityIds()))
-            .toList();
+    TodoInstance instance = instanceRepository.findByIdAndOwner(instanceId, user)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found or access denied"));
 
-    // N+1 방지: 모든 원본 TodoId(seq=0) 수집
-    List<TodoId> originalTodoIds = todoTemplates.stream()
-            .map(template -> new TodoId(template.getId(), 0L))
-            .toList();
+    // UpdateTodoStatusCommand는 사실상 불필요하지만 호환성을 위해 유지
+    // 실제로는 completeInstance/uncompleteInstance 사용 권장
 
-    // 한 번에 벌크 조회 후 Map으로 캐싱
-    Map<TodoId, Todo> existingTodoMap = todoRepository
-            .findAllByTodoIdInAndOwnerIdIgnoreActive(originalTodoIds, query.userId())
-            .stream()
-            .collect(Collectors.toMap(Todo::getTodoId, todo -> todo));
-
-    for (TodoTemplate todoTemplate : todoTemplates) {
-      // baseDate 이후의 원본 투두만 포함
-      if (todoTemplate.getDate() != null && baseDate != null && todoTemplate.getDate().isBefore(baseDate)) {
-        continue;
-      }
-
-      TodoId originalTodoId = new TodoId(todoTemplate.getId(), 0L);
-      Todo existingTodo = existingTodoMap.get(originalTodoId);
-
-      // 삭제된 투두는 제외
-      boolean isDeleted = existingTodo != null && Boolean.FALSE.equals(existingTodo.getActive());
-      if (isDeleted) {
-        continue;
-      }
-
-      // 존재하지 않거나 미완료인 경우만 원본 투두로 표시
-      if (existingTodo == null || !Boolean.TRUE.equals(existingTodo.getComplete())) {
-        if (todoTemplate.getAnchorDate() != null && todoTemplate.getDate() != null) {
-          long daysDifference = ChronoUnit.DAYS.between(
-                  todoTemplate.getAnchorDate(), todoTemplate.getDate());
-          String virtualId = todoTemplate.getId() + ":" + daysDifference;
-          originalTodos.add(todoApplicationMapper.toOriginalResult(todoTemplate, virtualId, todoTemplate.getDate()));
-        } else {
-          String virtualId = todoTemplate.getId() + ":0";
-          originalTodos.add(todoApplicationMapper.toOriginalResult(todoTemplate, virtualId, todoTemplate.getDate()));
-        }
-      }
-    }
-
-    return originalTodos;
+    return instanceRepository.save(instance);
   }
 
-  // (old repeat generation helpers removed; RRULE engine is the single source)
+  /**
+   * 고정 토글
+   */
+  @Transactional
+  public TodoInstance togglePin(UUID userId, UUID instanceId, boolean pin) {
+    log.debug("Toggling pin for instance: {} to {}", instanceId, pin);
 
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-  private boolean matchesKeyword(TodoTemplate todoTemplate, String keyword) {
-    if (keyword == null || keyword.trim().isEmpty()) {
-      return true;
-    }
+    TodoInstance instance = instanceRepository.findByIdAndOwner(instanceId, user)
+        .orElseThrow(() -> new ResourceNotFoundException("Todo instance not found or access denied"));
 
-    String lowerKeyword = keyword.toLowerCase();
-    return (todoTemplate.getTitle() != null && todoTemplate.getTitle().toLowerCase().contains(lowerKeyword)) ||
-            (todoTemplate.getDescription() != null && todoTemplate.getDescription().toLowerCase().contains(lowerKeyword)) ||
-            (todoTemplate.getTags() != null && todoTemplate.getTags().stream()
-                    .anyMatch(tag -> tag.toLowerCase().contains(lowerKeyword)));
+    instance.setIsPinned(pin);
+    return instanceRepository.save(instance);
   }
 
-  private boolean matchesDateRange(TodoTemplate todoTemplate, LocalDate startDate, LocalDate endDate) {
-    if (startDate == null && endDate == null) {
-      return true;
-    }
+  /**
+   * 정의의 모든 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public Page<TodoInstance> getDefinitionInstances(UUID userId, UUID definitionId, Pageable pageable) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    LocalDate dueDate = todoTemplate.getDate();
-    if (dueDate == null) {
-      return true; // null인 경우는 항상 포함
-    }
-
-    if (startDate != null && dueDate.isBefore(startDate)) {
-      return false;
-    }
-
-    if (endDate != null && dueDate.isAfter(endDate)) {
-      return false;
-    }
-
-    return true;
+    // TODO: Implement repository method
+    throw new UnsupportedOperationException("getDefinitionInstances not yet implemented");
   }
 
-  private boolean matchesCategoryFilter(TodoTemplate todoTemplate, List<UUID> categoryIds) {
-    if (categoryIds == null || categoryIds.isEmpty()) {
-      return true;
-    }
+  /**
+   * 특정 날짜의 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public List<TodoInstance> getInstancesByDate(UUID userId, LocalDate date) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    if (todoTemplate.getCategory() == null) {
-      return categoryIds.contains(null);
-    }
-
-    return categoryIds.contains(todoTemplate.getCategory().getId());
+    return instanceRepository.findByDateRange(owner, date, date);
   }
 
-  private boolean matchesPriorityFilter(TodoTemplate todoTemplate, List<Integer> priorityIds) {
-    if (priorityIds == null || priorityIds.isEmpty()) {
-      return true;
-    }
+  /**
+   * 상태별 인스턴스 조회
+   */
+  @Transactional(readOnly = true)
+  public Page<TodoInstance> getInstancesByStatus(UUID userId, Integer statusId, Pageable pageable) {
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-    return priorityIds.contains(todoTemplate.getPriorityId());
+    // TODO: Implement repository method
+    throw new UnsupportedOperationException("getInstancesByStatus not yet implemented");
   }
 
-  private Comparator<TodoResult> getDefaultComparator() {
-    return Comparator
-            .comparing((TodoResult t) -> t.date() != null ? t.date() : LocalDate.MAX)
-            .thenComparing((TodoResult t) -> t.complete() != null ? t.complete() : false)
-            .thenComparing((TodoResult t) -> t.isPinned() == null || !t.isPinned())
-            .thenComparing((TodoResult t) -> t.displayOrder() != null ? t.displayOrder() : Integer.MAX_VALUE)
-            .thenComparing((TodoResult t) -> t.priorityId() != null ? -t.priorityId() : Integer.MIN_VALUE)
-            .thenComparing((TodoResult t) -> Long.parseLong(t.id().split(":")[0]));
+  /**
+   * 반복 정의의 인스턴스 대량 생성
+   */
+  @Transactional
+  public List<TodoInstance> generateInstances(UUID userId, UUID definitionId, LocalDate startDate, LocalDate endDate) {
+    log.debug("Generating instances for definition: {} from {} to {}", definitionId, startDate, endDate);
+
+    User owner = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+    // TODO: Implement instance generation logic
+    throw new UnsupportedOperationException("generateInstances not yet implemented");
   }
 }

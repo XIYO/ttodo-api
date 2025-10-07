@@ -8,7 +8,6 @@ import point.ttodoApi.category.domain.*;
 import point.ttodoApi.category.infrastructure.persistence.*;
 import point.ttodoApi.user.domain.User;
 import point.ttodoApi.user.infrastructure.persistence.UserRepository;
-import point.ttodoApi.todo.infrastructure.persistence.TodoRepository;
 
 import java.util.*;
 
@@ -24,7 +23,6 @@ public class CategoryCollaboratorService {
   private final CategoryCollaboratorRepository collaboratorRepository;
   private final CategoryRepository categoryRepository;
   private final UserRepository UserRepository;
-  private final TodoRepository todoRepository;
 
   /**
    * 협업자 초대
@@ -112,10 +110,9 @@ public class CategoryCollaboratorService {
     collaborator.softDelete();
     collaboratorRepository.save(collaborator);
 
-    // 해당 멤버의 협업 투두를 개인 투두로 전환
-    int updatedTodos = todoRepository.updateUserCollaborativeTodosToPersonal(userId, categoryId);
-    log.info("Converted {} collaborative todos to personal for user {} in category {}",
-            updatedTodos, userId, categoryId);
+    // TODO: Implement todo collaboration logic with new TodoDefinition/TodoInstance architecture
+    // 해당 멤버의 협업 투두를 개인 투두로 전환하는 로직 필요
+    log.info("Removed collaborator {} from category {}", userId, categoryId);
   }
 
   /**
@@ -135,10 +132,9 @@ public class CategoryCollaboratorService {
     collaborator.softDelete();
     collaboratorRepository.save(collaborator);
 
-    // 해당 멤버의 협업 투두를 개인 투두로 전환
-    int updatedTodos = todoRepository.updateUserCollaborativeTodosToPersonal(userId, categoryId);
-    log.info("User {} left collaboration in category {}, converted {} todos to personal",
-            userId, categoryId, updatedTodos);
+    // TODO: Implement todo collaboration logic with new TodoDefinition/TodoInstance architecture
+    // 해당 멤버의 협업 투두를 개인 투두로 전환하는 로직 필요
+    log.info("User {} left collaboration in category {}", userId, categoryId);
   }
 
   /**
@@ -215,11 +211,10 @@ public class CategoryCollaboratorService {
     Category category = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryId));
 
-    // 활성 협업자가 없는 경우 모든 협업 투두를 개인 투두로 전환
+    // TODO: Implement todo collaboration logic with new TodoDefinition/TodoInstance architecture
+    // 활성 협업자가 없는 경우 모든 협업 투두를 개인 투두로 전환하는 로직 필요
     if (!category.isCollaborative()) {
-      int updatedTodos = todoRepository.updateCollaborativeTodosToPersonalByCategoryId(categoryId);
-      log.info("Category {} has no collaborators, converted {} collaborative todos to personal",
-              categoryId, updatedTodos);
+      log.info("Category {} has no collaborators, sync logic needed for new architecture", categoryId);
     }
   }
 }

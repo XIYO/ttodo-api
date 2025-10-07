@@ -6,10 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import point.ttodoApi.shared.config.MapStructConfig;
 import point.ttodoApi.todo.application.command.*;
-import point.ttodoApi.todo.application.query.TodoSearchQuery;
-import point.ttodoApi.todo.application.result.TodoResult;
-import point.ttodoApi.todo.domain.Todo;
-import point.ttodoApi.todo.domain.TodoId;
+import point.ttodoApi.todo.domain.TodoDefinition;
+import point.ttodoApi.todo.domain.TodoInstance;
+import point.ttodoApi.todo.domain.TodoView;
 import point.ttodoApi.todo.presentation.dto.request.*;
 import point.ttodoApi.todo.presentation.dto.response.*;
 
@@ -26,54 +25,7 @@ public abstract class TodoPresentationMapper {
   @org.springframework.beans.factory.annotation.Autowired
   private RecurrenceRuleMapper recurrenceRuleMapper;
 
-  // Create 관련 매핑
-  @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.recurrenceRuleJson()))")
-  public abstract CreateTodoCommand toCommand(CreateTodoRequest request, UUID userId);
-
-  // Update 관련 매핑
-  @Mapping(target = "originalTodoId", source = "originalTodoId")
-  @Mapping(target = "daysDifference", source = "daysDifference")
-  @Mapping(target = "recurrenceRule", expression = "java(parseRecurrenceRule(request.recurrenceRuleJson()))")
-  public abstract UpdateTodoCommand toCommand(UpdateTodoRequest request, UUID userId, Long originalTodoId, Long daysDifference);
-
-  // Virtual Todo Update 매핑
-  @Mapping(target = "virtualTodoId", source = "virtualId")
-  public abstract UpdateVirtualTodoCommand toVirtualCommand(UpdateTodoRequest request, UUID userId, String virtualId);
-
-  // Search 관련 매핑
-  @Mapping(target = "userId", source = "userId")
-  @Mapping(target = "pageable", expression = "java(PageRequest.of(request.getPage() != null ? request.getPage() : 0, request.getSize() != null ? request.getSize() : 10))")
-  @Mapping(target = "date", ignore = true)
-  @Mapping(target = "startDate", expression = "java(request.getStartDate())")
-  @Mapping(target = "endDate", expression = "java(request.getEndDate())")
-  @Mapping(target = "tags", ignore = true)
-  public abstract TodoSearchQuery toQuery(TodoSearchRequest request, UUID userId);
-
-  // dates 처리 헬퍼 메서드들
-  protected java.time.LocalDate processSingleDate(java.util.List<java.time.LocalDate> dates) {
-    if (dates == null || dates.isEmpty()) return null;
-    return dates.size() == 1 ? dates.get(0) : null;
-  }
-
-  protected java.time.LocalDate processStartDate(java.util.List<java.time.LocalDate> dates) {
-    if (dates == null || dates.isEmpty()) return null;
-    if (dates.size() == 1) return dates.get(0);  // 단일 날짜일 때도 startDate로 설정
-    if (dates.size() == 2) return dates.get(0);
-    return java.util.Collections.min(dates);
-  }
-
-  protected java.time.LocalDate processEndDate(java.util.List<java.time.LocalDate> dates) {
-    if (dates == null || dates.isEmpty()) return null;
-    if (dates.size() == 1) return dates.get(0);  // 단일 날짜일 때도 endDate로 설정
-    if (dates.size() == 2) return dates.get(1);
-    return java.util.Collections.max(dates);
-  }
-
-  // Response 매핑
-  public abstract TodoResponse toResponse(TodoResult todoResult);
-
-  // Domain Entity to Response 매핑
-  public abstract TodoResponse toResponse(Todo todo);
+  // Old Todo mapping methods removed for new architecture
 
   // JSON 문자열을 RecurrenceRule로 파싱
   protected point.ttodoApi.todo.domain.recurrence.RecurrenceRule parseRecurrenceRule(String json) {
@@ -88,21 +40,50 @@ public abstract class TodoPresentationMapper {
     }
   }
 
-  // TodoId를 String으로 변환
-  protected String map(TodoId todoId) {
-    return todoId != null ? todoId.getVirtualId() : null;
+  // Instant to LocalDateTime 변환
+  protected java.time.LocalDateTime map(java.time.Instant instant) {
+    if (instant == null) return null;
+    return java.time.LocalDateTime.ofInstant(instant, java.time.ZoneId.systemDefault());
   }
 
-  // 헬퍼 메서드
-  public boolean isOnlyCompleteFieldUpdate(UpdateTodoRequest request) {
-    return request.complete() != null &&
-            (request.title() == null || request.title().trim().isEmpty()) &&
-            (request.description() == null || request.description().trim().isEmpty()) &&
-            request.priorityId() == null &&
-            request.categoryId() == null &&
-            request.date() == null &&
-            request.time() == null &&
-            request.recurrenceRuleJson() == null &&
-            (request.tags() == null || request.tags().isEmpty());
+
+  // TodoDefinition 매핑 메서드
+  public abstract CreateTodoDefinitionCommand toCreateCommand(CreateTodoDefinitionRequest request);
+  public abstract UpdateTodoDefinitionCommand toUpdateCommand(UpdateTodoDefinitionRequest request);
+
+  @Mapping(target = "instanceCount", expression = "java((int)definition.getInstances().stream().filter(i -> i.getDeletedAt() == null).count())")
+  @Mapping(target = "completedInstanceCount", expression = "java((int)definition.getInstances().stream().filter(i -> i.getDeletedAt() == null && i.isCompleted()).count())")
+  @Mapping(target = "ownerNickname", ignore = true) // Set by service layer
+  @Mapping(target = "categoryName", source = "category.name")
+  @Mapping(target = "ownerId", source = "owner.id")
+  public abstract TodoDefinitionResponse toDefinitionResponse(TodoDefinition definition);
+
+  // TodoInstance 매핑 메서드
+  public abstract CreateTodoInstanceCommand toCreateCommand(CreateTodoInstanceRequest request);
+  public abstract UpdateTodoInstanceCommand toUpdateCommand(UpdateTodoInstanceRequest request);
+  public abstract UpdateTodoStatusCommand toStatusCommand(UpdateTodoStatusRequest request);
+
+  @Mapping(target = "definitionTitle", source = "definition.title")
+  @Mapping(target = "definitionDescription", source = "definition.description")
+  @Mapping(target = "definitionPriorityId", source = "definition.priorityId")
+  @Mapping(target = "categoryName", source = "instance.category.name", defaultExpression = "java(instance.getDefinition().getCategory() != null ? instance.getDefinition().getCategory().getName() : null)")
+  @Mapping(target = "isRecurring", expression = "java(instance.getDefinition().getRecurrenceRule() != null)")
+  @Mapping(target = "completed", source = "completed")
+  public abstract TodoInstanceResponse toInstanceResponse(TodoInstance instance);
+
+  // TodoView 매핑 메서드
+  @Mapping(target = "completed", source = "completed")
+  @Mapping(target = "priorityName", expression = "java(getPriorityName(view.getPriorityId()))")
+  public abstract TodoViewResponse toViewResponse(TodoView view);
+
+  // 우선순위 ID를 우선순위명으로 변환
+  protected String getPriorityName(Integer priorityId) {
+    if (priorityId == null) return "보통";
+    return switch (priorityId) {
+      case 0 -> "낮음";
+      case 1 -> "보통";
+      case 2 -> "높음";
+      default -> "알 수 없음";
+    };
   }
 }

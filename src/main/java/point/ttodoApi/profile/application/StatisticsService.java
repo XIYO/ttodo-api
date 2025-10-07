@@ -8,7 +8,6 @@ import point.ttodoApi.user.application.UserService;
 import point.ttodoApi.user.domain.User;
 import point.ttodoApi.profile.domain.Statistics;
 import point.ttodoApi.profile.infrastructure.persistence.StatisticsRepository;
-import point.ttodoApi.todo.application.TodoTemplateService;
 
 import java.util.UUID;
 
@@ -18,8 +17,7 @@ import java.util.UUID;
 public class StatisticsService {
 
   private final StatisticsRepository statisticsRepository;
-  private final TodoTemplateService todoTemplateService;
-  private final CategoryQueryService categoryQueryService; // TTODO: Query 처리
+  private final CategoryQueryService categoryQueryService;
   private final UserService UserService;
 
   /**
@@ -27,9 +25,9 @@ public class StatisticsService {
    */
   @Transactional
   public Statistics getStatistics(UUID userId) {
+    // TODO: Implement count completed todos logic with new TodoView architecture
     // 실시간으로 완료한 할일 수와 카테고리 수를 계산
-    long completedTodos = todoTemplateService.countCompletedTodos(userId);
-    // TTODO 아키텍처 패턴: Query 서비스 사용
+    long completedTodos = 0; // todoTemplateService.countCompletedTodos(userId);
     long totalCategories = categoryQueryService.countByOwnerId(userId);
 
     // Statistics 엔티티에 저장/업데이트

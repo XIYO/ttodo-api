@@ -5,9 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import point.ttodoApi.challenge.application.ChallengeService;
 import point.ttodoApi.category.application.CategoryQueryService;
-import point.ttodoApi.todo.application.TodoTemplateService;
-import point.ttodoApi.todo.application.CollaborativeTodoService;
-import point.ttodoApi.todo.domain.TodoId;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -24,8 +21,6 @@ public class AuthorizationService {
     private final SecurityService securityService;
     private final ChallengeService challengeService;
     private final CategoryQueryService categoryQueryService;
-    private final TodoTemplateService todoTemplateService;
-    private final CollaborativeTodoService collaborativeTodoService;
 
     /**
      * 통합 권한 검증 메서드
@@ -77,31 +72,9 @@ public class AuthorizationService {
     }
 
     private boolean evaluateTodoPermission(UUID userId, Serializable targetId, String permission) {
-        // TodoId 형태 처리: "todoId:daysDifference" 또는 단순 Long
-        if (targetId instanceof String) {
-            String[] parts = targetId.toString().split(":");
-            if (parts.length == 2) {
-                try {
-                    Long todoId = Long.parseLong(parts[0]);
-                    Long daysDifference = Long.parseLong(parts[1]);
-                    return switch (permission.toUpperCase()) {
-                        case "READ", "WRITE", "DELETE" -> 
-                            todoTemplateService.isOwnerWithDaysDifference(todoId, daysDifference, userId);
-                        default -> false;
-                    };
-                } catch (NumberFormatException e) {
-                    return false;
-                }
-            }
-        }
-
-        Long todoId = convertToLong(targetId);
-        if (todoId == null) return false;
-
-        return switch (permission.toUpperCase()) {
-            case "READ", "WRITE", "DELETE" -> todoTemplateService.isOwner(todoId, userId);
-            default -> false;
-        };
+        // TODO: Implement new todo permission logic with TodoDefinition/TodoInstance
+        log.warn("Todo permission evaluation not yet implemented for new architecture");
+        return false;
     }
 
     private boolean evaluateUserPermission(UUID userId, Serializable targetId, String permission) {
@@ -117,10 +90,8 @@ public class AuthorizationService {
     }
 
     private boolean evaluateTagPermission(UUID userId, String permission) {
-        return switch (permission.toUpperCase()) {
-            case "READ" -> todoTemplateService.canAccessTags(userId);
-            default -> false;
-        };
+        // TODO: Implement tag permission logic
+        return true; // Temporary: allow all authenticated users
     }
 
     private Long convertToLong(Serializable id) {

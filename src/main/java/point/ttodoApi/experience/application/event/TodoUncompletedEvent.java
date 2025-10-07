@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public record TodoUncompletedEvent(
         UUID userId,
-        Long todoId,
-        String todoTitle
+        UUID todoId,
+        Integer priorityId
 ) {
 }
